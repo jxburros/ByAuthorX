@@ -16,6 +16,7 @@ from pathlib import Path
 from .cli import _error, error_result, execute, result_exit_code
 
 MAX_BODY = 16 * 1024 * 1024
+RESERVED = '.byax'
 PATH_KEYS = frozenset(('path', 'out', 'document', 'config_dir', 'root', 'audio_path', 'source_path', 'job_root', 'csv', 'reference_dir'))
 
 
@@ -29,25 +30,41 @@ class AccessPolicy:
         path = Path(value).resolve()
         if not any(path == root or root in path.parents for root in self.roots):
             _error('invalid_input', 'Path is outside authorized filesystem roots', field='path')
+        # Clients may write files under the roots (export, unpack), so they must
+        # never reach service-owned provider configuration or job state.
+        if any(path == reserved or reserved in path.parents for reserved in self.reserved):
+            _error('invalid_input', 'Path is inside the service-reserved .byax folder', field='path')
         return str(path)
+
+    @property
+    def reserved(self):
+        return tuple(root / RESERVED for root in self.roots)
+
+    def _owned(self, command, args):
+        state = self.roots[0] / RESERVED
+        owned = {}
+        if command in ('providers', 'transcribe'):
+            owned['config_dir'] = state / 'config'
+        if command == 'jobs':
+            owned['root'] = state / 'jobs'
+        if command == 'transcribe':
+            owned['job_root'] = state / 'jobs'
+        for key, value in owned.items():
+            if key in args and (not isinstance(args[key], str) or Path(args[key]).resolve() != value):
+                _error('invalid_input', 'Service configuration and job folders are fixed by the service', field=key)
+            args.pop(key, None)
+        return {key: str(value) for key, value in owned.items()}
 
     def check(self, command, args):
         if not isinstance(args, dict):
             _error('invalid_input', 'Arguments must be an object')
-        # Service-owned configuration and job state stay inside its authorized roots.
-        if command in ('providers', 'transcribe'):
-            args.setdefault('config_dir', str(self.roots[0] / '.byax' / 'config'))
-        if command == 'jobs':
-            args.setdefault('root', str(self.roots[0] / '.byax' / 'jobs'))
-        if command == 'transcribe':
-            args.setdefault('job_root', str(self.roots[0] / '.byax' / 'jobs'))
+        # Service-owned configuration and job state stay in a reserved folder
+        # inside the first root; clients cannot select or write to it.
+        owned = self._owned(command, args)
         # Provider configuration may name executable adapters or endpoints and is
         # an administrative local action. Existing aliases remain callable.
         if command == 'providers' and args.get('action') == 'configure':
             _error('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
-        if command == 'jobs' and args.get('action') == 'submit':
-            spec = args.get('input', {})
-            self.check(spec.get('command'), spec.get('arguments', {}))
         def visit(value):
             if isinstance(value, dict):
                 for key, child in value.items():
@@ -59,6 +76,12 @@ class AccessPolicy:
                 for child in value:
                     visit(child)
         visit(args)
+        if command == 'jobs' and args.get('action') == 'submit':
+            spec = args.get('input', {})
+            if not isinstance(spec, dict):
+                _error('invalid_input', 'Job input must be an object')
+            self.check(spec.get('command'), spec.setdefault('arguments', {}))
+        args.update(owned)
 
 
 def make_server(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765):

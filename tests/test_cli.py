@@ -156,3 +156,22 @@ def test_transcription_does_not_overwrite_manual_edits(tmp_path, monkeypatch):
     jobs = execute('jobs', {'root': str(tmp_path / 'jobs')})['jobs']
     assert len(jobs) == 1
     assert jobs[0]['state'] == 'completed'
+
+
+def test_missing_input_file_and_job_policy_failures_keep_exit_codes(tmp_path, capsys):
+    path = str(tmp_path / 'document.byax')
+    execute('new', {'out': path, 'text': 'Plain text'})
+    assert main(['apply', path, '--input', str(tmp_path / 'missing.json'), '--json']) == 2
+    assert json.loads(capsys.readouterr().out)['error']['code'] == 'invalid_input'
+    requirement = tmp_path / 'requirement.json'
+    requirement.write_text(json.dumps({'operations': [{'type': 'set_requirement', 'id': 'r', 'values': {'kind': 'required_text', 'value': 'zzz'}}]}))
+    assert main(['apply', path, '--input', str(requirement), '--json']) == 0
+    capsys.readouterr()
+    assert main(['check', path, '--suite', 'requirements', '--json']) == 4
+    capsys.readouterr()
+    job = tmp_path / 'job.json'
+    job.write_text(json.dumps({'command': 'check', 'arguments': {'path': path, 'suite': ['requirements']}}))
+    assert main(['jobs', '--action', 'submit', '--input', str(job), '--root', str(tmp_path / 'jobs'), '--json']) == 4
+    failed = json.loads(capsys.readouterr().out)
+    assert failed['error']['code'] == 'failed_requirement'
+    assert failed['error']['job']['state'] == 'failed'

@@ -882,51 +882,105 @@ def check_layout(doc):
     return {"findings": findings, "coverage": [{"suite": "print", "rule": "resolved_geometry", "status": "incomplete" if any(f["code"] in incomplete for f in findings) else "completed", "scope": "selected_document", "page_count": resolved_page_count(qdoc)}]}
 
 
+def _line_rule(value):
+    """Widow/orphan settings are line counts; ``True`` means the usual two."""
+    if value is True:
+        return 2
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value):
+        return 0
+    return max(0, min(int(value), 50))
+
+
+def _line_pages(qdoc, block, height):
+    lines = block.layout()
+    top = qdoc.documentLayout().blockBoundingRect(block).top()
+    return [int((top+lines.lineAt(index).y())//height) for index in range(lines.lineCount())]
+
+
+def _break_before(block):
+    fmt = block.blockFormat()
+    if fmt.pageBreakPolicy() & QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore:
+        return False
+    fmt.setPageBreakPolicy(fmt.pageBreakPolicy() | QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore)
+    QTextCursor(block).setBlockFormat(fmt)
+    block.document().documentLayout().documentSize()
+    return True
+
+
 def _apply_keep_rules(qdoc, doc):
-    """Keep fitting paragraphs/headings together by adding derived page breaks.
+    """Resolve keep and widow/orphan rules by adding derived page breaks.
 
     QTextBlockFormat.nonBreakableLines disables line wrapping, so it is not a
     pagination keep flag. Derived breaks preserve normal word wrapping instead.
+    Text is never dropped: a rule that cannot be met yields a located finding.
     """
     _, height, margins = geometry(doc)
     available = height-margins["top"]-margins["bottom"]
+    flowed = []
     for source in doc.get("blocks", []):
         ident = source.get("id")
-        values = {**_style(doc, source.get("style", "body")), **source.get("attrs", {})}
-        if values.get("widow_control") or values.get("orphan_control"):
-            qdoc.byax_findings.append(_finding("pagination_policy", "Explicit widow/orphan line-count rules are not resolved by this backend.", ident))
-        if ident not in qdoc.byax_positions or source.get("type") not in ("heading", "paragraph"):
-            continue
+        if ident in qdoc.byax_positions and source.get("type") in ("heading", "paragraph"):
+            values = {**_style(doc, source.get("style", "body")), **source.get("attrs", {})}
+            flowed.append((ident, source, values))
+    for index, (ident, source, values) in enumerate(flowed):
         together = values.get("keep_together", source.get("type") == "heading")
         with_next = values.get("keep_with_next", source.get("type") == "heading")
-        if not together and not with_next:
-            continue
         block = qdoc.findBlock(qdoc.byax_positions[ident])
         lines = block.layout()
         if lines.lineCount() == 0:
             continue
-        rect = qdoc.documentLayout().blockBoundingRect(block)
-        first_y = rect.top()+lines.lineAt(0).y()
-        last_y = rect.top()+lines.lineAt(lines.lineCount()-1).y()
-        natural = sum(lines.lineAt(index).height() for index in range(lines.lineCount()))
-        split = int(first_y//height) != int(last_y//height)
-        following = block.next()
-        stranded = False
-        needed = natural
-        if with_next and following.isValid():
-            next_rect = qdoc.documentLayout().blockBoundingRect(following)
-            stranded = int(last_y//height) != int(next_rect.top()//height)
-            if following.layout().lineCount():
-                needed += following.layout().lineAt(0).height()+following.blockFormat().topMargin()+block.blockFormat().bottomMargin()
-        if together and natural > available or with_next and needed > available:
-            qdoc.byax_findings.append(_finding("keep_rule_unsatisfiable", "Requested keep rule exceeds the available page/column height; all text remains in flow.", ident))
-            continue
-        if together and split or with_next and stranded:
-            cursor = QTextCursor(block)
-            fmt = block.blockFormat()
-            if fmt.pageBreakPolicy() & QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore:
-                qdoc.byax_findings.append(_finding("keep_rule_unsatisfiable", "Keep rule remains unsatisfied after a page/column break.", ident))
+        natural = sum(lines.lineAt(line).height() for line in range(lines.lineCount()))
+        if together or with_next:
+            line_pages = _line_pages(qdoc, block, height)
+            split = line_pages[0] != line_pages[-1]
+            following = block.next()
+            stranded = False
+            needed = natural
+            if with_next and following.isValid():
+                # Qt can push a following block's first line past its block
+                # rectangle's top, so compare the first rendered line.
+                if following.layout().lineCount():
+                    stranded = line_pages[-1] != _line_pages(qdoc, following, height)[0]
+                else:
+                    stranded = line_pages[-1] != int(qdoc.documentLayout().blockBoundingRect(following).top()//height)
+                if following.layout().lineCount():
+                    needed += following.layout().lineAt(0).height()+following.blockFormat().topMargin()+block.blockFormat().bottomMargin()
+            if together and natural > available or with_next and needed > available:
+                qdoc.byax_findings.append(_finding("keep_rule_unsatisfiable", "Requested keep rule exceeds the available page/column height; all text remains in flow.", ident))
+            elif together and split or with_next and stranded:
+                if not _break_before(block):
+                    qdoc.byax_findings.append(_finding("keep_rule_unsatisfiable", "Keep rule remains unsatisfied after a page/column break.", ident))
                 continue
-            fmt.setPageBreakPolicy(fmt.pageBreakPolicy() | QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore)
-            cursor.setBlockFormat(fmt)
-            qdoc.documentLayout().documentSize()
+        orphans = _line_rule(values.get("orphan_control"))
+        widows = _line_rule(values.get("widow_control"))
+        if not orphans and not widows:
+            continue
+        line_pages = _line_pages(qdoc, block, height)
+        if line_pages[0] == line_pages[-1]:
+            continue
+        orphaned = line_pages.count(line_pages[0]) < orphans
+        widowed = line_pages.count(line_pages[-1]) < widows
+        if not orphaned and not widowed:
+            continue
+        if widowed and not orphaned and natural > available:
+            # Moving lines individually would need a split block; moving the
+            # whole paragraph cannot help when it is longer than a page.
+            qdoc.byax_findings.append(_finding("widow_unsatisfiable", f"Paragraph is longer than a page/column; its last page keeps {line_pages.count(line_pages[-1])} line(s), fewer than the requested {widows}.", ident))
+            continue
+        # Move the paragraph, together with any directly preceding blocks that
+        # keep with it on the same page, so headings are not stranded.
+        target, first = block, index
+        while first > 0:
+            previous_ident, previous, previous_values = flowed[first-1]
+            previous_block = qdoc.findBlock(qdoc.byax_positions[previous_ident])
+            if previous_block.next() != target or not previous_values.get("keep_with_next", previous.get("type") == "heading"):
+                break
+            if _line_pages(qdoc, previous_block, height)[-1] != line_pages[0]:
+                break
+            target, first = previous_block, first-1
+        if not _break_before(target):
+            qdoc.byax_findings.append(_finding("widow_orphan_unsatisfiable", "Widow/orphan rule could not be met by moving this paragraph to the next page/column.", ident))
+            continue
+        line_pages = _line_pages(qdoc, block, height)
+        if line_pages[0] != line_pages[-1] and (line_pages.count(line_pages[0]) < orphans or line_pages.count(line_pages[-1]) < widows):
+            qdoc.byax_findings.append(_finding("widow_orphan_unsatisfiable", "Widow/orphan rule remains unmet after moving this paragraph to the next page/column.", ident))

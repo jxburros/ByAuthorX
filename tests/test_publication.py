@@ -4,10 +4,11 @@ import json
 import zipfile
 
 import pytest
+
+from byax.errors import ByaxError
 from byax.model import new_document, text_of
 from byax.publication import sanitize, save_sanitized
 from byax.storage import load_document
-from byax.errors import ByaxError
 
 
 def test_redaction_removes_recoverable_copies_and_preserves_original(tmp_path):
@@ -41,7 +42,7 @@ def test_sanitize_scalar_range_and_grapheme_validation():
     target = doc['blocks'][0]['id']
     with pytest.raises(ByaxError):
         sanitize(doc, [{'target': target, 'start': 2, 'end': 3}])
-    clean, report = sanitize(doc, [{'target': target, 'start': 2, 'end': 4}])
+    clean, _report = sanitize(doc, [{'target': target, 'start': 2, 'end': 4}])
     assert text_of(clean) == 'A [REDACTED] B'
 
 
@@ -61,7 +62,7 @@ def test_unknown_content_cannot_claim_sanitization():
 
 
 def test_reproduction_checks_actual_pixels_and_reference_integrity(tmp_path):
-    from byax.publication import reproduction_record, reproduce
+    from byax.publication import reproduce, reproduction_record
     doc = new_document(text='Controlled output for comparison.')
     record = reproduction_record(doc, {'reference_dir': str(tmp_path / 'reference'),
                                       'tolerance': {'channel_delta': 0, 'max_changed_fraction': 0}})
@@ -81,7 +82,7 @@ def test_reproduction_checks_actual_pixels_and_reference_integrity(tmp_path):
 
 
 def test_reproduction_refuses_reference_overwrite(tmp_path):
-    from byax.publication import reproduction_record, reproduce
+    from byax.publication import reproduce, reproduction_record
     doc = new_document(text='Never overwrite a comparison reference.')
     record = reproduction_record(doc, {'reference_dir': str(tmp_path / 'reference')})
     with pytest.raises(ByaxError, match='overwrite'):
@@ -105,3 +106,85 @@ def test_clean_native_export_excludes_original_and_hidden_copies(tmp_path):
     assert clean['review']['tracked_changes'] == []
     assert report['publication_policy']['include_originals'] is False
     assert 'Private source material.' in source.read_text()
+
+
+def test_sanitization_verification_checks_values_not_json_syntax(tmp_path, monkeypatch):
+    doc = new_document('Report', 'The body of the document mentions Alice.')
+    for term in ('body', 'document'):
+        assert save_sanitized(doc, tmp_path / f'{term}.byax', [], terms=[term])['validation'] == 'passed'
+    from byax import publication
+    real = publication.sanitize
+    def leaky(source, targets, **options):
+        clean, report = real(source, targets, **options)
+        clean['blocks'][0]['text'] = 'She said "hi"\nthere'
+        return clean, report
+    monkeypatch.setattr(publication, 'sanitize', leaky)
+    with pytest.raises(ByaxError, match='retained text'):
+        save_sanitized(doc, tmp_path / 'leak.byax', [], terms=['"hi"\nthere', 'Alice'])
+    assert not (tmp_path / 'leak.byax').exists()
+
+
+def test_sanitized_output_falls_back_without_hard_links(tmp_path, monkeypatch):
+    import os
+    def no_links(*_args):
+        raise PermissionError('hard links unsupported')
+    monkeypatch.setattr(os, 'link', no_links)
+    output = tmp_path / 'clean.byax'
+    assert save_sanitized(new_document(text='secret'), output, [], terms=['secret'])['validation'] == 'passed'
+    assert text_of(load_document(output)) == '[REDACTED]'
+    with pytest.raises(ByaxError) as error:
+        save_sanitized(new_document(text='secret'), output, [], terms=['secret'])
+    assert error.value.code == 'conflict'
+
+
+def _png(color):
+    import io
+
+    from PIL import Image
+    buffer = io.BytesIO()
+    Image.new('RGB', (4, 4), color).save(buffer, format='PNG')
+    return buffer.getvalue()
+
+
+def test_selective_sanitization_preserves_verified_styles_layout_and_images(tmp_path):
+    import base64
+    doc = new_document('Case file', 'Alice met Bob.')
+    doc['styles']['callout'] = {'bold': True, 'font_size': 14}
+    doc['styles']['Alice notes'] = {'italic': True}
+    doc['blocks'][0].update(style='callout')
+    doc['blocks'][0]['attrs'].update(alignment='center', source_path='/private/Alice.txt')
+    doc['layout']['header'] = {'first': 'Confidential: Alice', 'odd': 'Case file'}
+    doc['layout']['margins']['left'] = 90
+    clean_png, tagged_png = _png('white'), _png('black') + 'Alice'.encode('utf-16-le')
+    for raw, alt in ((clean_png, 'Photo of Alice'), (tagged_png, 'Chart')):
+        digest = hashlib.sha256(raw).hexdigest()
+        doc['assets'][digest] = {'data': base64.b64encode(raw).decode(), 'mime': 'image/png', 'name': 'Alice.png'}
+        doc['blocks'].append({'id': 'img_' + digest[:8], 'type': 'image', 'text': '', 'style': 'body', 'marks': [],
+                              'attrs': {'asset': digest, 'alt': alt, 'width': 120, 'source': '/private/Alice.png'}})
+    original = copy.deepcopy(doc)
+    output = tmp_path / 'selective.byax'
+    report = save_sanitized(doc, output, [], terms=['Alice'], preserve=['styles', 'layout', 'images'])
+    assert report['validation'] == 'passed' and report['review'] == 'required'
+    clean = load_document(output)
+    assert clean['styles']['callout'] == {'bold': True, 'font_size': 14}
+    assert 'Alice notes' not in clean['styles'] and len(report['dropped_style_hashes']) == 1
+    paragraph = clean['blocks'][0]
+    assert paragraph['style'] == 'callout' and paragraph['attrs'] == {'alignment': 'center'}
+    assert clean['layout']['header'] == {'first': 'Confidential: [REDACTED]', 'odd': 'Case file'}
+    assert clean['layout']['margins']['left'] == 90
+    images = [b for b in clean['blocks'] if b['type'] == 'image']
+    assert len(images) == 1 and images[0]['attrs'] == {'width': 120, 'asset': hashlib.sha256(clean_png).hexdigest(), 'alt': 'Photo of [REDACTED]'}
+    assert list(clean['assets']) == [hashlib.sha256(clean_png).hexdigest()]
+    assert report['dropped_assets'] == [hashlib.sha256(tagged_png).hexdigest()]
+    with zipfile.ZipFile(output) as archive:
+        assert all(b'Alice' not in archive.read(name) and 'Alice'.encode('utf-16-le') not in archive.read(name) for name in archive.namelist())
+    assert doc == original
+
+
+def test_preserve_rejects_unknown_categories():
+    with pytest.raises(ByaxError):
+        sanitize(new_document(text='x'), [], terms=['x'], preserve=['history'])
+    with pytest.raises(ByaxError):
+        sanitize(new_document(text='x'), [], terms=['x'], preserve='styles')
+    clean, report = sanitize(new_document(text='x'), [], terms=['x'])
+    assert clean['assets'] == {} and 'layout' in report['removed_categories'] and report['preserved'] == []

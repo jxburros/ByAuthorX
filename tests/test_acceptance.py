@@ -2,12 +2,13 @@
 import copy
 import importlib.util
 import json
-from pathlib import Path
 import subprocess
 import sys
 import zipfile
+from pathlib import Path
 
 import pytest
+
 from byax.errors import ByaxError
 from byax.model import canonical_json, new_document, text_of
 from byax.storage import DocumentLock, load_document, pack, save_document, unpack
@@ -35,7 +36,7 @@ def test_edit_dry_run_commit_retry_reopen_and_source_roundtrip(tmp_path):
     before = copy.deepcopy(next(b for b in doc['blocks'] if b['id'] == 'release_table'))
     envelope = {'schema_version': 1, 'expected_revision': doc['revision'], 'request_id': 'acceptance-release-date',
         'operations': [{'type': 'update_cell', 'target': 'release_table_r2_c1', 'text': '2026-12-01', 'expected_text': '2026-11-01'}]}
-    candidate, preview = apply(doc, envelope, dry_run=True)
+    candidate, _preview = apply(doc, envelope, dry_run=True)
     assert doc == original
     assert '2026-12-01' in text_of(candidate)
     assert len(candidate['history']['revisions']) == len(doc['history']['revisions'])
@@ -101,7 +102,7 @@ except ByaxError as exc:
     sys.exit(exc.exit_code)
 '''
     with DocumentLock(path):
-        result = subprocess.run([sys.executable, '-c', code, str(path)], capture_output=True, text=True, timeout=15)
+        result = subprocess.run([sys.executable, '-c', code, str(path)], check=False, capture_output=True, text=True, timeout=15)
     assert result.returncode == 3, result.stderr
     assert result.stdout.strip() == 'locked'
     assert load_document(path) == doc
@@ -182,7 +183,7 @@ def test_exchange_roundtrip_keeps_selected_text_and_original(format, tmp_path):
 
 
 def test_shared_render_and_pdf_create_actual_outputs(tmp_path):
-    from byax.layout import build_document, render, export_pdf
+    from byax.layout import build_document, export_pdf, render
     doc = _FIXTURES.make_fixture('letter')
     qdoc = build_document(doc)
     rendered = render(doc, tmp_path / 'proof')

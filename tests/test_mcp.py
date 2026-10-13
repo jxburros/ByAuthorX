@@ -66,6 +66,30 @@ def test_service_policy_rejects_escaping_symlink_and_nested_paths(tmp_path):
         policy.check('jobs', {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'configure'}}})
 
 
+
+def test_service_owns_provider_and_job_state_folders(tmp_path):
+    root = tmp_path / 'authorized'
+    (root / 'planted').mkdir(parents=True)
+    policy = AccessPolicy([root])
+    state = (root / '.byax').resolve()
+    args = {'action': 'list'}
+    policy.check('providers', args)
+    assert args['config_dir'] == str(state / 'config')
+    # A client-written providers.json elsewhere in the root cannot be selected.
+    for command, key in (('providers', 'config_dir'), ('transcribe', 'config_dir'), ('transcribe', 'job_root'), ('jobs', 'root')):
+        with pytest.raises(ByaxError):
+            policy.check(command, {'action': 'list', key: str(root / 'planted')})
+    with pytest.raises(ByaxError):
+        policy.check('jobs', {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'test', 'alias': 'x', 'config_dir': str(root / 'planted')}}})
+    # Clients cannot write into the reserved state folder either.
+    for out in (state / 'config' / 'providers.json', state, state / 'jobs' / 'x' / 'job.json'):
+        with pytest.raises(ByaxError):
+            policy.check('export', {'path': str(root / 'd.byax'), 'out': str(out)})
+    nested = {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'list'}}}
+    policy.check('jobs', nested)
+    assert nested['root'] == str(state / 'jobs')
+    assert nested['input']['arguments']['config_dir'] == str(state / 'config')
+
 def test_opt_in_rest_auth_and_actual_request(tmp_path):
     token = 'test-access-token-with-32-characters'
     with pytest.raises(ByaxError):
@@ -96,3 +120,18 @@ def test_opt_in_rest_auth_and_actual_request(tmp_path):
         server.shutdown()
         server.server_close()
         worker.join(timeout=5)
+
+
+def test_mcp_skips_blank_lines_and_keeps_framing_for_parse_errors():
+    import io
+
+    from byax.mcp import run
+    ping = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'ping'}).encode()
+    out = io.BytesIO()
+    run(io.BytesIO(b'\n' + ping + b'\n'), out)
+    assert [json.loads(line)['id'] for line in out.getvalue().splitlines()] == [1]
+    out = io.BytesIO()
+    run(io.BytesIO(b'Content-Length: 3\r\n\r\n{x}'), out)
+    header, body = out.getvalue().split(b'\r\n\r\n', 1)
+    assert header.startswith(b'Content-Length: ')
+    assert json.loads(body)['error']['code'] == -32700
