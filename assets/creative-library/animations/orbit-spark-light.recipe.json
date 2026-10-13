@@ -1,0 +1,89 @@
+{
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "orbit spark"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 1600,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "orbit",
+      "shape": "ellipse",
+      "x": 64,
+      "y": 64,
+      "width": 128,
+      "height": 128,
+      "fill": "none",
+      "stroke": "#b5d5ce",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "center-spark",
+      "shape": "sparkle",
+      "x": 105,
+      "y": 105,
+      "width": 46,
+      "height": 46,
+      "fill": "#183e3d"
+    },
+    {
+      "type": "shape",
+      "name": "orbiting-ink",
+      "shape": "ellipse",
+      "x": 180,
+      "y": 116,
+      "width": 24,
+      "height": 24,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "motion",
+      "recipe": "orbit",
+      "target": "orbiting-ink",
+      "center": [
+        128,
+        128
+      ],
+      "radius": 64,
+      "period": 1600,
+      "duration": 1600,
+      "samples": 48
+    }
+  ]
+}

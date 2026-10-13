@@ -1,0 +1,126 @@
+{
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "background": "#fffdf7"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "paper orbits"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-0",
+      "shape": "ellipse",
+      "x": 950,
+      "y": 120,
+      "width": 600,
+      "height": 600,
+      "fill": "none",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-1",
+      "shape": "ellipse",
+      "x": 975,
+      "y": 148,
+      "width": 550,
+      "height": 550,
+      "fill": "none",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-2",
+      "shape": "ellipse",
+      "x": 1000,
+      "y": 176,
+      "width": 500,
+      "height": 500,
+      "fill": "none",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-3",
+      "shape": "ellipse",
+      "x": 1025,
+      "y": 204,
+      "width": 450,
+      "height": 450,
+      "fill": "none",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-star",
+      "shape": "sparkle",
+      "x": 1246,
+      "y": 371,
+      "width": 80,
+      "height": 80,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-dot",
+      "shape": "ellipse",
+      "x": 1050,
+      "y": 170,
+      "width": 16,
+      "height": 16,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "small-rule",
+      "shape": "path",
+      "x": 110,
+      "y": 790,
+      "width": 120,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L120 0",
+      "stroke": "#677b76",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

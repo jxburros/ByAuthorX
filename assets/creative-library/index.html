@@ -1,0 +1,394 @@
+<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ByAuthorX Creative Library</title><style>
+:root{--ink:#183e3d;--paper:#fffdf7;--sage:#b5d5ce;--gold:#e5c890}*{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,sans-serif}
+header{padding:64px 6vw 42px;border-bottom:1px solid #d8e1d9;background:#e8ede9}.brand{font-size:13px;font-weight:700;letter-spacing:.17em;text-transform:uppercase}
+h1{font-family:Georgia,serif;font-weight:400;font-size:clamp(38px,6vw,70px);letter-spacing:-.04em;margin:20px 0}header p{max-width:660px;line-height:1.65;color:#526b62}
+.controls{display:flex;gap:10px;flex-wrap:wrap;margin:26px 0 0}input,select,button{font:inherit;padding:12px 16px;border:1px solid #bdcdc4;border-radius:9px;background:var(--paper);color:var(--ink)}input{min-width:240px}button{cursor:pointer}button[aria-pressed=true]{background:var(--ink);color:var(--paper)}a{color:inherit;text-underline-offset:3px}a:focus-visible,input:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #bb7661;outline-offset:3px}
+.count{padding:25px 6vw 0;font-size:13px;color:#677b76}.grid{padding:24px 6vw 60px;display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:23px}
+article{border:1px solid #dce4dc;border-radius:16px;overflow:hidden}article[hidden]{display:none}.art{height:220px;display:flex;align-items:center;justify-content:center;background:#edf0e9}.art.dark{background:#102f30}.art img{max-width:100%;max-height:210px;width:100%;object-fit:contain;padding:12px}.details{padding:22px}.eyebrow{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#677b76}h2{font-size:19px;margin:10px 0}article p{font-size:13px;line-height:1.5;min-height:39px;color:#526b62}nav{display:flex;gap:11px;flex-wrap:wrap;font-size:12px;font-weight:650}footer{padding:24px 6vw;border-top:1px solid #d8e1d9;font-size:12px;color:#677b76}
+</style><header><div class="brand">ByAuthorX / Creative resources</div><h1>Room for what comes next.</h1><p>A shelf of original illustrations, small animations, and editorial details, ready for the app or the next campaign. Choose a theme, explore a collection, and download what you need.</p>
+<div class="controls"><input id="search" type="search" placeholder="Find an asset…" aria-label="Search assets"><select id="category" aria-label="Filter collection"><option value="all">All collections</option><option>illustrations</option><option>animations</option><option>icons</option><option>decorations</option><option>backgrounds</option></select><select id="theme" aria-label="Filter theme"><option value="light">Light + universal</option><option value="dark">Dark + universal</option><option value="all">Every variant</option></select><button id="motion" aria-pressed="false">Pause motion</button></div></header>
+<div class="count" id="count" aria-live="polite"></div><main class="grid"><article data-category="illustrations" data-theme="light" data-search="writing desk">
+<div class="art light"><img src="illustrations/writing-desk-light.png"  alt="Writing Desk" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Writing Desk</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/writing-desk-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/writing-desk-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/writing-desk-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/writing-desk-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="writing desk">
+<div class="art dark"><img src="illustrations/writing-desk-dark.png"  alt="Writing Desk" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Writing Desk</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/writing-desk-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/writing-desk-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/writing-desk-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/writing-desk-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="blank page">
+<div class="art light"><img src="illustrations/blank-page-light.png"  alt="Blank Page" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Blank Page</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/blank-page-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/blank-page-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/blank-page-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/blank-page-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="blank page">
+<div class="art dark"><img src="illustrations/blank-page-dark.png"  alt="Blank Page" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Blank Page</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/blank-page-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/blank-page-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/blank-page-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/blank-page-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="story garden">
+<div class="art light"><img src="illustrations/story-garden-light.png"  alt="Story Garden" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Story Garden</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/story-garden-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/story-garden-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/story-garden-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/story-garden-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="story garden">
+<div class="art dark"><img src="illustrations/story-garden-dark.png"  alt="Story Garden" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Story Garden</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/story-garden-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/story-garden-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/story-garden-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/story-garden-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="document library">
+<div class="art light"><img src="illustrations/document-library-light.png"  alt="Document Library" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Document Library</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/document-library-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/document-library-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/document-library-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/document-library-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="document library">
+<div class="art dark"><img src="illustrations/document-library-dark.png"  alt="Document Library" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Document Library</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/document-library-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/document-library-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/document-library-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/document-library-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="review and refine">
+<div class="art light"><img src="illustrations/review-and-refine-light.png"  alt="Review And Refine" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Review And Refine</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/review-and-refine-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/review-and-refine-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/review-and-refine-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/review-and-refine-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="review and refine">
+<div class="art dark"><img src="illustrations/review-and-refine-dark.png"  alt="Review And Refine" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Review And Refine</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/review-and-refine-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/review-and-refine-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/review-and-refine-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/review-and-refine-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="voice to page">
+<div class="art light"><img src="illustrations/voice-to-page-light.png"  alt="Voice To Page" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Voice To Page</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/voice-to-page-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/voice-to-page-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/voice-to-page-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/voice-to-page-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="voice to page">
+<div class="art dark"><img src="illustrations/voice-to-page-dark.png"  alt="Voice To Page" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Voice To Page</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/voice-to-page-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/voice-to-page-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/voice-to-page-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/voice-to-page-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="local and safe">
+<div class="art light"><img src="illustrations/local-and-safe-light.png"  alt="Local And Safe" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Local And Safe</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/local-and-safe-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/local-and-safe-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/local-and-safe-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/local-and-safe-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="local and safe">
+<div class="art dark"><img src="illustrations/local-and-safe-dark.png"  alt="Local And Safe" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Local And Safe</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/local-and-safe-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/local-and-safe-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/local-and-safe-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/local-and-safe-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="export ready">
+<div class="art light"><img src="illustrations/export-ready-light.png"  alt="Export Ready" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Export Ready</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/export-ready-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/export-ready-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/export-ready-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/export-ready-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="export ready">
+<div class="art dark"><img src="illustrations/export-ready-dark.png"  alt="Export Ready" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Export Ready</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/export-ready-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/export-ready-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/export-ready-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/export-ready-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="focus time">
+<div class="art light"><img src="illustrations/focus-time-light.png"  alt="Focus Time" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Focus Time</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/focus-time-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/focus-time-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/focus-time-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/focus-time-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="focus time">
+<div class="art dark"><img src="illustrations/focus-time-dark.png"  alt="Focus Time" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Focus Time</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/focus-time-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/focus-time-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/focus-time-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/focus-time-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="ideas in orbit">
+<div class="art light"><img src="illustrations/ideas-in-orbit-light.png"  alt="Ideas In Orbit" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Ideas In Orbit</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/ideas-in-orbit-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/ideas-in-orbit-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/ideas-in-orbit-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/ideas-in-orbit-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="ideas in orbit">
+<div class="art dark"><img src="illustrations/ideas-in-orbit-dark.png"  alt="Ideas In Orbit" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Ideas In Orbit</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/ideas-in-orbit-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/ideas-in-orbit-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/ideas-in-orbit-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/ideas-in-orbit-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="chapters and outline">
+<div class="art light"><img src="illustrations/chapters-and-outline-light.png"  alt="Chapters And Outline" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Chapters And Outline</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/chapters-and-outline-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/chapters-and-outline-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/chapters-and-outline-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/chapters-and-outline-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="chapters and outline">
+<div class="art dark"><img src="illustrations/chapters-and-outline-dark.png"  alt="Chapters And Outline" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Chapters And Outline</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/chapters-and-outline-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/chapters-and-outline-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/chapters-and-outline-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/chapters-and-outline-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="light" data-search="celebration">
+<div class="art light"><img src="illustrations/celebration-light.png"  alt="Celebration" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / light</span><h2>Celebration</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/celebration-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/celebration-light.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/celebration-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/celebration-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="illustrations" data-theme="dark" data-search="celebration">
+<div class="art dark"><img src="illustrations/celebration-dark.png"  alt="Celebration" loading="lazy"></div>
+<div class="details"><span class="eyebrow">illustrations / dark</span><h2>Celebration</h2><p>Reusable illustration for app or marketing.</p>
+<nav><a href="illustrations/celebration-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="illustrations/celebration-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="illustrations/celebration-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="illustrations/celebration-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="document">
+<div class="art light"><img src="icons/document-light.png"  alt="Document" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Document</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/document-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/document-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/document-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/document-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="document">
+<div class="art dark"><img src="icons/document-dark.png"  alt="Document" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Document</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/document-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/document-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/document-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/document-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="pen">
+<div class="art light"><img src="icons/pen-light.png"  alt="Pen" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Pen</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/pen-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/pen-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/pen-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/pen-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="pen">
+<div class="art dark"><img src="icons/pen-dark.png"  alt="Pen" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Pen</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/pen-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/pen-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/pen-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/pen-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="book">
+<div class="art light"><img src="icons/book-light.png"  alt="Book" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Book</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/book-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/book-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/book-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/book-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="book">
+<div class="art dark"><img src="icons/book-dark.png"  alt="Book" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Book</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/book-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/book-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/book-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/book-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="folder">
+<div class="art light"><img src="icons/folder-light.png"  alt="Folder" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Folder</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/folder-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/folder-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/folder-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/folder-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="folder">
+<div class="art dark"><img src="icons/folder-dark.png"  alt="Folder" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Folder</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/folder-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/folder-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/folder-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/folder-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="search">
+<div class="art light"><img src="icons/search-light.png"  alt="Search" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Search</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/search-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/search-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/search-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/search-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="search">
+<div class="art dark"><img src="icons/search-dark.png"  alt="Search" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Search</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/search-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/search-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/search-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/search-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="review">
+<div class="art light"><img src="icons/review-light.png"  alt="Review" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Review</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/review-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/review-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/review-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/review-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="review">
+<div class="art dark"><img src="icons/review-dark.png"  alt="Review" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Review</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/review-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/review-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/review-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/review-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="layers">
+<div class="art light"><img src="icons/layers-light.png"  alt="Layers" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Layers</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/layers-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/layers-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/layers-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/layers-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="layers">
+<div class="art dark"><img src="icons/layers-dark.png"  alt="Layers" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Layers</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/layers-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/layers-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/layers-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/layers-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="history">
+<div class="art light"><img src="icons/history-light.png"  alt="History" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>History</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/history-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/history-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/history-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/history-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="history">
+<div class="art dark"><img src="icons/history-dark.png"  alt="History" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>History</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/history-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/history-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/history-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/history-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="microphone">
+<div class="art light"><img src="icons/microphone-light.png"  alt="Microphone" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Microphone</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/microphone-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/microphone-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/microphone-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/microphone-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="microphone">
+<div class="art dark"><img src="icons/microphone-dark.png"  alt="Microphone" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Microphone</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/microphone-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/microphone-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/microphone-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/microphone-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="export">
+<div class="art light"><img src="icons/export-light.png"  alt="Export" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Export</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/export-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/export-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/export-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/export-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="export">
+<div class="art dark"><img src="icons/export-dark.png"  alt="Export" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Export</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/export-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/export-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/export-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/export-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="save">
+<div class="art light"><img src="icons/save-light.png"  alt="Save" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Save</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/save-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/save-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/save-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/save-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="save">
+<div class="art dark"><img src="icons/save-dark.png"  alt="Save" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Save</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/save-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/save-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/save-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/save-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="lock">
+<div class="art light"><img src="icons/lock-light.png"  alt="Lock" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Lock</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/lock-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/lock-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/lock-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/lock-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="lock">
+<div class="art dark"><img src="icons/lock-dark.png"  alt="Lock" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Lock</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/lock-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/lock-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/lock-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/lock-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="spark">
+<div class="art light"><img src="icons/spark-light.png"  alt="Spark" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Spark</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/spark-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/spark-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/spark-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/spark-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="spark">
+<div class="art dark"><img src="icons/spark-dark.png"  alt="Spark" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Spark</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/spark-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/spark-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/spark-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/spark-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="success">
+<div class="art light"><img src="icons/success-light.png"  alt="Success" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Success</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/success-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/success-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/success-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/success-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="success">
+<div class="art dark"><img src="icons/success-dark.png"  alt="Success" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Success</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/success-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/success-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/success-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/success-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="warning">
+<div class="art light"><img src="icons/warning-light.png"  alt="Warning" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Warning</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/warning-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/warning-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/warning-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/warning-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="warning">
+<div class="art dark"><img src="icons/warning-dark.png"  alt="Warning" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Warning</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/warning-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/warning-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/warning-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/warning-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="offline">
+<div class="art light"><img src="icons/offline-light.png"  alt="Offline" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Offline</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/offline-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/offline-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/offline-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/offline-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="offline">
+<div class="art dark"><img src="icons/offline-dark.png"  alt="Offline" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Offline</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/offline-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/offline-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/offline-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/offline-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="outline">
+<div class="art light"><img src="icons/outline-light.png"  alt="Outline" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Outline</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/outline-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/outline-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/outline-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/outline-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="outline">
+<div class="art dark"><img src="icons/outline-dark.png"  alt="Outline" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Outline</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/outline-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/outline-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/outline-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/outline-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="light" data-search="focus">
+<div class="art light"><img src="icons/focus-light.png"  alt="Focus" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / light</span><h2>Focus</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/focus-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/focus-light.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/focus-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/focus-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="icons" data-theme="dark" data-search="focus">
+<div class="art dark"><img src="icons/focus-dark.png"  alt="Focus" loading="lazy"></div>
+<div class="details"><span class="eyebrow">icons / dark</span><h2>Focus</h2><p>Reusable icon for app or marketing.</p>
+<nav><a href="icons/focus-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="icons/focus-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="icons/focus-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="icons/focus-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="ink dots">
+<div class="art light"><img src="animations/ink-dots-light.webp" data-static="animations/ink-dots-light.png" data-motion="animations/ink-dots-light.webp" alt="Ink Dots" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Ink Dots</h2><p>Compact indeterminate loading; use at 48–96 px wide.</p>
+<nav><a href="animations/ink-dots-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/ink-dots-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/ink-dots-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/ink-dots-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/ink-dots-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/ink-dots-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/ink-dots-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="ink dots">
+<div class="art dark"><img src="animations/ink-dots-dark.webp" data-static="animations/ink-dots-dark.png" data-motion="animations/ink-dots-dark.webp" alt="Ink Dots" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Ink Dots</h2><p>Compact indeterminate loading; use at 48–96 px wide.</p>
+<nav><a href="animations/ink-dots-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/ink-dots-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/ink-dots-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/ink-dots-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/ink-dots-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/ink-dots-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/ink-dots-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="quill writing">
+<div class="art light"><img src="animations/quill-writing-light.webp" data-static="animations/quill-writing-light.png" data-motion="animations/quill-writing-light.webp" alt="Quill Writing" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Quill Writing</h2><p>Writing, drafting, or text processing in progress.</p>
+<nav><a href="animations/quill-writing-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/quill-writing-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/quill-writing-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/quill-writing-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/quill-writing-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/quill-writing-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/quill-writing-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="quill writing">
+<div class="art dark"><img src="animations/quill-writing-dark.webp" data-static="animations/quill-writing-dark.png" data-motion="animations/quill-writing-dark.webp" alt="Quill Writing" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Quill Writing</h2><p>Writing, drafting, or text processing in progress.</p>
+<nav><a href="animations/quill-writing-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/quill-writing-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/quill-writing-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/quill-writing-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/quill-writing-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/quill-writing-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/quill-writing-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="page breathe">
+<div class="art light"><img src="animations/page-breathe-light.webp" data-static="animations/page-breathe-light.png" data-motion="animations/page-breathe-light.webp" alt="Page Breathe" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Page Breathe</h2><p>Document opening, fetching, or general waiting.</p>
+<nav><a href="animations/page-breathe-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/page-breathe-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/page-breathe-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/page-breathe-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/page-breathe-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/page-breathe-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/page-breathe-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="page breathe">
+<div class="art dark"><img src="animations/page-breathe-dark.webp" data-static="animations/page-breathe-dark.png" data-motion="animations/page-breathe-dark.webp" alt="Page Breathe" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Page Breathe</h2><p>Document opening, fetching, or general waiting.</p>
+<nav><a href="animations/page-breathe-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/page-breathe-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/page-breathe-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/page-breathe-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/page-breathe-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/page-breathe-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/page-breathe-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="orbit spark">
+<div class="art light"><img src="animations/orbit-spark-light.webp" data-static="animations/orbit-spark-light.png" data-motion="animations/orbit-spark-light.webp" alt="Orbit Spark" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Orbit Spark</h2><p>Background processing or optional AI work in progress.</p>
+<nav><a href="animations/orbit-spark-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/orbit-spark-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/orbit-spark-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/orbit-spark-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/orbit-spark-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/orbit-spark-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/orbit-spark-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="orbit spark">
+<div class="art dark"><img src="animations/orbit-spark-dark.webp" data-static="animations/orbit-spark-dark.png" data-motion="animations/orbit-spark-dark.webp" alt="Orbit Spark" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Orbit Spark</h2><p>Background processing or optional AI work in progress.</p>
+<nav><a href="animations/orbit-spark-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/orbit-spark-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/orbit-spark-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/orbit-spark-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/orbit-spark-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/orbit-spark-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/orbit-spark-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="voice wave">
+<div class="art light"><img src="animations/voice-wave-light.webp" data-static="animations/voice-wave-light.png" data-motion="animations/voice-wave-light.webp" alt="Voice Wave" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Voice Wave</h2><p>Dictation in progress; illustrative, not a live audio meter.</p>
+<nav><a href="animations/voice-wave-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/voice-wave-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/voice-wave-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/voice-wave-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/voice-wave-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/voice-wave-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/voice-wave-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="voice wave">
+<div class="art dark"><img src="animations/voice-wave-dark.webp" data-static="animations/voice-wave-dark.png" data-motion="animations/voice-wave-dark.webp" alt="Voice Wave" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Voice Wave</h2><p>Dictation in progress; illustrative, not a live audio meter.</p>
+<nav><a href="animations/voice-wave-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/voice-wave-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/voice-wave-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/voice-wave-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/voice-wave-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/voice-wave-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/voice-wave-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="review scan">
+<div class="art light"><img src="animations/review-scan-light.webp" data-static="animations/review-scan-light.png" data-motion="animations/review-scan-light.webp" alt="Review Scan" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Review Scan</h2><p>Checks or document review in progress.</p>
+<nav><a href="animations/review-scan-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/review-scan-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/review-scan-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/review-scan-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/review-scan-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/review-scan-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/review-scan-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="review scan">
+<div class="art dark"><img src="animations/review-scan-dark.webp" data-static="animations/review-scan-dark.png" data-motion="animations/review-scan-dark.webp" alt="Review Scan" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Review Scan</h2><p>Checks or document review in progress.</p>
+<nav><a href="animations/review-scan-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/review-scan-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/review-scan-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/review-scan-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/review-scan-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/review-scan-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/review-scan-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="book idle">
+<div class="art light"><img src="animations/book-idle-light.webp" data-static="animations/book-idle-light.png" data-motion="animations/book-idle-light.webp" alt="Book Idle" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Book Idle</h2><p>Gentle waiting illustration for larger panels.</p>
+<nav><a href="animations/book-idle-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/book-idle-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/book-idle-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/book-idle-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/book-idle-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/book-idle-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/book-idle-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="book idle">
+<div class="art dark"><img src="animations/book-idle-dark.webp" data-static="animations/book-idle-dark.png" data-motion="animations/book-idle-dark.webp" alt="Book Idle" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Book Idle</h2><p>Gentle waiting illustration for larger panels.</p>
+<nav><a href="animations/book-idle-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/book-idle-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/book-idle-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/book-idle-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/book-idle-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/book-idle-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/book-idle-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="thinking spark">
+<div class="art light"><img src="animations/thinking-spark-light.webp" data-static="animations/thinking-spark-light.png" data-motion="animations/thinking-spark-light.webp" alt="Thinking Spark" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Thinking Spark</h2><p>Idea generation or optional assistance in progress.</p>
+<nav><a href="animations/thinking-spark-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/thinking-spark-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/thinking-spark-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/thinking-spark-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/thinking-spark-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/thinking-spark-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/thinking-spark-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="thinking spark">
+<div class="art dark"><img src="animations/thinking-spark-dark.webp" data-static="animations/thinking-spark-dark.png" data-motion="animations/thinking-spark-dark.webp" alt="Thinking Spark" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Thinking Spark</h2><p>Idea generation or optional assistance in progress.</p>
+<nav><a href="animations/thinking-spark-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/thinking-spark-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/thinking-spark-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/thinking-spark-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/thinking-spark-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/thinking-spark-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/thinking-spark-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="success bloom">
+<div class="art light"><img src="animations/success-bloom-light.webp" data-static="animations/success-bloom-light.png" data-motion="animations/success-bloom-light.webp" alt="Success Bloom" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Success Bloom</h2><p>One-shot completion; hold the last frame after playback.</p>
+<nav><a href="animations/success-bloom-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/success-bloom-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/success-bloom-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/success-bloom-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/success-bloom-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/success-bloom-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/success-bloom-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="success bloom">
+<div class="art dark"><img src="animations/success-bloom-dark.webp" data-static="animations/success-bloom-dark.png" data-motion="animations/success-bloom-dark.webp" alt="Success Bloom" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Success Bloom</h2><p>One-shot completion; hold the last frame after playback.</p>
+<nav><a href="animations/success-bloom-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/success-bloom-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/success-bloom-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/success-bloom-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/success-bloom-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/success-bloom-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/success-bloom-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="light" data-search="saved stamp">
+<div class="art light"><img src="animations/saved-stamp-light.webp" data-static="animations/saved-stamp-light.png" data-motion="animations/saved-stamp-light.webp" alt="Saved Stamp" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / light</span><h2>Saved Stamp</h2><p>One-shot save confirmation; hold the last frame after playback.</p>
+<nav><a href="animations/saved-stamp-light.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/saved-stamp-light.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/saved-stamp-light.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/saved-stamp-light.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/saved-stamp-light.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/saved-stamp-light.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/saved-stamp-light.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="animations" data-theme="dark" data-search="saved stamp">
+<div class="art dark"><img src="animations/saved-stamp-dark.webp" data-static="animations/saved-stamp-dark.png" data-motion="animations/saved-stamp-dark.webp" alt="Saved Stamp" loading="lazy"></div>
+<div class="details"><span class="eyebrow">animations / dark</span><h2>Saved Stamp</h2><p>One-shot save confirmation; hold the last frame after playback.</p>
+<nav><a href="animations/saved-stamp-dark.svg" target="_blank" rel="noopener" download>SVG</a><a href="animations/saved-stamp-dark.png" target="_blank" rel="noopener" download>PNG</a><a href="animations/saved-stamp-dark.vixl" target="_blank" rel="noopener" download>Master</a><a href="animations/saved-stamp-dark.recipe.json" target="_blank" rel="noopener" download>Recipe</a><a href="animations/saved-stamp-dark.webp" target="_blank" rel="noopener" download>WebP</a><a href="animations/saved-stamp-dark.apng" target="_blank" rel="noopener" download>APNG</a><a href="animations/saved-stamp-dark.gif" target="_blank" rel="noopener" download>GIF</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="botanical sprig">
+<div class="art light"><img src="decorations/botanical-sprig.png"  alt="Botanical Sprig" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Botanical Sprig</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/botanical-sprig.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/botanical-sprig.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/botanical-sprig.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/botanical-sprig.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="editorial flourish">
+<div class="art light"><img src="decorations/editorial-flourish.png"  alt="Editorial Flourish" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Editorial Flourish</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/editorial-flourish.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/editorial-flourish.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/editorial-flourish.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/editorial-flourish.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="spark cluster">
+<div class="art light"><img src="decorations/spark-cluster.png"  alt="Spark Cluster" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Spark Cluster</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/spark-cluster.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/spark-cluster.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/spark-cluster.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/spark-cluster.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="ink swoosh">
+<div class="art light"><img src="decorations/ink-swoosh.png"  alt="Ink Swoosh" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Ink Swoosh</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/ink-swoosh.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/ink-swoosh.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/ink-swoosh.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/ink-swoosh.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="laurel pair">
+<div class="art light"><img src="decorations/laurel-pair.png"  alt="Laurel Pair" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Laurel Pair</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/laurel-pair.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/laurel-pair.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/laurel-pair.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/laurel-pair.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="chapter divider">
+<div class="art light"><img src="decorations/chapter-divider.png"  alt="Chapter Divider" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Chapter Divider</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/chapter-divider.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/chapter-divider.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/chapter-divider.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/chapter-divider.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="paper tab">
+<div class="art light"><img src="decorations/paper-tab.png"  alt="Paper Tab" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Paper Tab</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/paper-tab.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/paper-tab.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/paper-tab.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/paper-tab.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="decorations" data-theme="universal" data-search="confetti scatter">
+<div class="art light"><img src="decorations/confetti-scatter.png"  alt="Confetti Scatter" loading="lazy"></div>
+<div class="details"><span class="eyebrow">decorations / universal</span><h2>Confetti Scatter</h2><p>Reusable decoration for app or marketing.</p>
+<nav><a href="decorations/confetti-scatter.svg" target="_blank" rel="noopener" download>SVG</a><a href="decorations/confetti-scatter.png" target="_blank" rel="noopener" download>PNG</a><a href="decorations/confetti-scatter.vixl" target="_blank" rel="noopener" download>Master</a><a href="decorations/confetti-scatter.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="backgrounds" data-theme="universal" data-search="paper orbits">
+<div class="art light"><img src="backgrounds/paper-orbits.png"  alt="Paper Orbits" loading="lazy"></div>
+<div class="details"><span class="eyebrow">backgrounds / universal</span><h2>Paper Orbits</h2><p>Reusable background for app or marketing.</p>
+<nav><a href="backgrounds/paper-orbits.svg" target="_blank" rel="noopener" download>SVG</a><a href="backgrounds/paper-orbits.png" target="_blank" rel="noopener" download>PNG</a><a href="backgrounds/paper-orbits.vixl" target="_blank" rel="noopener" download>Master</a><a href="backgrounds/paper-orbits.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="backgrounds" data-theme="universal" data-search="dark orbits">
+<div class="art light"><img src="backgrounds/dark-orbits.png"  alt="Dark Orbits" loading="lazy"></div>
+<div class="details"><span class="eyebrow">backgrounds / universal</span><h2>Dark Orbits</h2><p>Reusable background for app or marketing.</p>
+<nav><a href="backgrounds/dark-orbits.svg" target="_blank" rel="noopener" download>SVG</a><a href="backgrounds/dark-orbits.png" target="_blank" rel="noopener" download>PNG</a><a href="backgrounds/dark-orbits.vixl" target="_blank" rel="noopener" download>Master</a><a href="backgrounds/dark-orbits.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="backgrounds" data-theme="universal" data-search="botanical margin">
+<div class="art light"><img src="backgrounds/botanical-margin.png"  alt="Botanical Margin" loading="lazy"></div>
+<div class="details"><span class="eyebrow">backgrounds / universal</span><h2>Botanical Margin</h2><p>Reusable background for app or marketing.</p>
+<nav><a href="backgrounds/botanical-margin.svg" target="_blank" rel="noopener" download>SVG</a><a href="backgrounds/botanical-margin.png" target="_blank" rel="noopener" download>PNG</a><a href="backgrounds/botanical-margin.vixl" target="_blank" rel="noopener" download>Master</a><a href="backgrounds/botanical-margin.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="backgrounds" data-theme="universal" data-search="chapter lines">
+<div class="art light"><img src="backgrounds/chapter-lines.png"  alt="Chapter Lines" loading="lazy"></div>
+<div class="details"><span class="eyebrow">backgrounds / universal</span><h2>Chapter Lines</h2><p>Reusable background for app or marketing.</p>
+<nav><a href="backgrounds/chapter-lines.svg" target="_blank" rel="noopener" download>SVG</a><a href="backgrounds/chapter-lines.png" target="_blank" rel="noopener" download>PNG</a><a href="backgrounds/chapter-lines.vixl" target="_blank" rel="noopener" download>Master</a><a href="backgrounds/chapter-lines.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="backgrounds" data-theme="universal" data-search="sage arch">
+<div class="art light"><img src="backgrounds/sage-arch.png"  alt="Sage Arch" loading="lazy"></div>
+<div class="details"><span class="eyebrow">backgrounds / universal</span><h2>Sage Arch</h2><p>Reusable background for app or marketing.</p>
+<nav><a href="backgrounds/sage-arch.svg" target="_blank" rel="noopener" download>SVG</a><a href="backgrounds/sage-arch.png" target="_blank" rel="noopener" download>PNG</a><a href="backgrounds/sage-arch.vixl" target="_blank" rel="noopener" download>Master</a><a href="backgrounds/sage-arch.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article>
+<article data-category="backgrounds" data-theme="universal" data-search="ink contours">
+<div class="art light"><img src="backgrounds/ink-contours.png"  alt="Ink Contours" loading="lazy"></div>
+<div class="details"><span class="eyebrow">backgrounds / universal</span><h2>Ink Contours</h2><p>Reusable background for app or marketing.</p>
+<nav><a href="backgrounds/ink-contours.svg" target="_blank" rel="noopener" download>SVG</a><a href="backgrounds/ink-contours.png" target="_blank" rel="noopener" download>PNG</a><a href="backgrounds/ink-contours.vixl" target="_blank" rel="noopener" download>Master</a><a href="backgrounds/ink-contours.recipe.json" target="_blank" rel="noopener" download>Recipe</a></nav></div></article></main><footer>Made with Vixl · 54 original designs · SVG + PNG + editable masters · Animation posters serve as reduced-motion alternatives.</footer>
+<script>
+const media=matchMedia('(prefers-reduced-motion: reduce)');let paused=media.matches;
+const button=document.querySelector('#motion');
+function setMotion(){button.setAttribute('aria-pressed',String(paused));button.textContent=paused?'Play motion':'Pause motion';document.querySelectorAll('[data-motion]').forEach(img=>img.src=paused?img.dataset.static:img.dataset.motion)}
+button.addEventListener('click',()=>{paused=!paused;setMotion()});media.addEventListener('change',event=>{paused=event.matches;setMotion()});setMotion();
+function filter(){let n=0;document.querySelectorAll('article').forEach(card=>{const category=document.querySelector('#category').value,theme=document.querySelector('#theme').value,q=document.querySelector('#search').value.toLowerCase();card.hidden=!(category==='all'||category===card.dataset.category)||!(theme==='all'||theme===card.dataset.theme||card.dataset.theme==='universal')||!card.dataset.search.includes(q);if(!card.hidden)n++});document.querySelector('#count').textContent=n+' assets shown'}
+['search','category','theme'].forEach(id=>document.getElementById(id).addEventListener('input',filter));filter();
+</script></html>

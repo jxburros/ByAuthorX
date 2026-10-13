@@ -1,0 +1,127 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "confetti scatter"
+    },
+    {
+      "type": "shape",
+      "name": "slip-0",
+      "shape": "rounded-rectangle",
+      "x": 130,
+      "y": 119,
+      "width": 8,
+      "height": 24,
+      "fill": "#b5d5ce",
+      "radius": 3,
+      "rotation": 25
+    },
+    {
+      "type": "shape",
+      "name": "slip-1",
+      "shape": "rounded-rectangle",
+      "x": 210,
+      "y": 70,
+      "width": 8,
+      "height": 24,
+      "fill": "#e5c890",
+      "radius": 3,
+      "rotation": -24
+    },
+    {
+      "type": "shape",
+      "name": "slip-2",
+      "shape": "rounded-rectangle",
+      "x": 325,
+      "y": 195,
+      "width": 8,
+      "height": 24,
+      "fill": "#bb7661",
+      "radius": 3,
+      "rotation": 12
+    },
+    {
+      "type": "shape",
+      "name": "slip-3",
+      "shape": "rounded-rectangle",
+      "x": 432,
+      "y": 101,
+      "width": 8,
+      "height": 24,
+      "fill": "#b5d5ce",
+      "radius": 3,
+      "rotation": 32
+    },
+    {
+      "type": "shape",
+      "name": "slip-4",
+      "shape": "rounded-rectangle",
+      "x": 488,
+      "y": 203,
+      "width": 8,
+      "height": 24,
+      "fill": "#e5c890",
+      "radius": 3,
+      "rotation": -35
+    },
+    {
+      "type": "shape",
+      "name": "slip-5",
+      "shape": "rounded-rectangle",
+      "x": 179,
+      "y": 214,
+      "width": 8,
+      "height": 24,
+      "fill": "#bb7661",
+      "radius": 3,
+      "rotation": -12
+    },
+    {
+      "type": "shape",
+      "name": "spark-one",
+      "shape": "sparkle",
+      "x": 296,
+      "y": 94,
+      "width": 27,
+      "height": 27,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "spark-two",
+      "shape": "sparkle",
+      "x": 401,
+      "y": 206,
+      "width": 15,
+      "height": 15,
+      "fill": "#183e3d"
+    }
+  ]
+}

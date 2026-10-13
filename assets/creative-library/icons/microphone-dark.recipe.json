@@ -1,0 +1,65 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 128,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "microphone"
+    },
+    {
+      "type": "shape",
+      "name": "capsule",
+      "shape": "rounded-rectangle",
+      "x": 49,
+      "y": 19,
+      "width": 30,
+      "height": 59,
+      "fill": "none",
+      "radius": 15,
+      "stroke": "#f4f1e7",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "cradle",
+      "shape": "path",
+      "x": 33,
+      "y": 43,
+      "width": 62,
+      "height": 67,
+      "fill": "none",
+      "path": "M0 0 L0 14 C0 49 62 49 62 14 L62 0 M31 41 L31 65 M13 65 L49 65",
+      "stroke": "#f4f1e7",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

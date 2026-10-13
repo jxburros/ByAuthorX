@@ -1,0 +1,80 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "laurel pair"
+    },
+    {
+      "type": "shape",
+      "name": "left-laurel",
+      "shape": "path",
+      "x": 165,
+      "y": 77,
+      "width": 100,
+      "height": 150,
+      "fill": "#183e3d",
+      "path": "M45 150 C38 110 44 68 70 5 M44 115 C5 110 4 81 10 70 C41 77 47 95 44 115 Z M45 94 C80 88 94 63 88 50 C61 52 48 68 45 94 Z M52 60 C25 52 24 26 30 16 C53 25 59 40 52 60 Z M63 30 C81 29 93 10 90 0 C70 5 64 18 63 30 Z",
+      "stroke": "#183e3d",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "scale",
+      "target": "left-laurel",
+      "factor": 1.05
+    },
+    {
+      "type": "shape",
+      "name": "right-laurel",
+      "shape": "path",
+      "x": 367,
+      "y": 77,
+      "width": 100,
+      "height": 150,
+      "fill": "#183e3d",
+      "path": "M45 150 C38 110 44 68 70 5 M44 115 C5 110 4 81 10 70 C41 77 47 95 44 115 Z M45 94 C80 88 94 63 88 50 C61 52 48 68 45 94 Z M52 60 C25 52 24 26 30 16 C53 25 59 40 52 60 Z M63 30 C81 29 93 10 90 0 C70 5 64 18 63 30 Z",
+      "stroke": "#183e3d",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "scale",
+      "target": "right-laurel",
+      "factor": 1.05
+    },
+    {
+      "type": "flip",
+      "target": "right-laurel",
+      "direction": "horizontal"
+    }
+  ]
+}

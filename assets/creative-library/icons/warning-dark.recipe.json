@@ -1,0 +1,75 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 128,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "warning"
+    },
+    {
+      "type": "shape",
+      "name": "triangle",
+      "shape": "path",
+      "x": 18,
+      "y": 22,
+      "width": 91,
+      "height": 82,
+      "fill": "none",
+      "path": "M45 0 L91 80 L0 80 Z",
+      "stroke": "#f4f1e7",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "exclamation",
+      "shape": "path",
+      "x": 64,
+      "y": 51,
+      "width": 1,
+      "height": 22,
+      "fill": "none",
+      "path": "M0 0 L0 22",
+      "stroke": "#db9c87",
+      "stroke_width": 6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "dot",
+      "shape": "ellipse",
+      "x": 61,
+      "y": 84,
+      "width": 6,
+      "height": 6,
+      "fill": "#db9c87"
+    }
+  ]
+}

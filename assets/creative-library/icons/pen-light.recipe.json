@@ -1,0 +1,60 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 128,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "pen"
+    },
+    {
+      "type": "shape",
+      "name": "nib",
+      "shape": "path",
+      "x": 21,
+      "y": 22,
+      "width": 86,
+      "height": 86,
+      "fill": "none",
+      "path": "M0 45 L25 0 L62 0 L86 45 L43 86 Z M43 41 L43 86",
+      "stroke": "#183e3d",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "breather",
+      "shape": "ellipse",
+      "x": 58,
+      "y": 52,
+      "width": 12,
+      "height": 12,
+      "fill": "#e5c890"
+    }
+  ]
+}

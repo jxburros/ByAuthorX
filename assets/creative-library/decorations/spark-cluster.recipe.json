@@ -1,0 +1,75 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "spark cluster"
+    },
+    {
+      "type": "shape",
+      "name": "spark-0",
+      "shape": "sparkle",
+      "x": 258,
+      "y": 110,
+      "width": 70,
+      "height": 70,
+      "fill": "#183e3d"
+    },
+    {
+      "type": "shape",
+      "name": "spark-1",
+      "shape": "sparkle",
+      "x": 350,
+      "y": 78,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "spark-2",
+      "shape": "sparkle",
+      "x": 203,
+      "y": 190,
+      "width": 18,
+      "height": 18,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "spark-3",
+      "shape": "sparkle",
+      "x": 390,
+      "y": 180,
+      "width": 16,
+      "height": 16,
+      "fill": "#e5c890"
+    }
+  ]
+}

@@ -1,0 +1,191 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "ideas in orbit"
+    },
+    {
+      "type": "shape",
+      "name": "paper-halo",
+      "shape": "ellipse",
+      "x": 94,
+      "y": 54,
+      "width": 430,
+      "height": 355,
+      "fill": "#e8ede9"
+    },
+    {
+      "type": "shape",
+      "name": "sage-halo",
+      "shape": "ellipse",
+      "x": 348,
+      "y": 240,
+      "width": 180,
+      "height": 140,
+      "fill": "#b5d5ce"
+    },
+    {
+      "type": "shape",
+      "name": "accent-star",
+      "shape": "sparkle",
+      "x": 505,
+      "y": 113,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "accent-dot",
+      "shape": "ellipse",
+      "x": 95,
+      "y": 295,
+      "width": 10,
+      "height": 10,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "idea-orbit",
+      "shape": "ellipse",
+      "x": 108,
+      "y": 83,
+      "width": 423,
+      "height": 316,
+      "fill": "none",
+      "stroke": "#b5d5ce",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bulb",
+      "shape": "path",
+      "x": 272,
+      "y": 146,
+      "width": 100,
+      "height": 112,
+      "fill": "#fffdf7",
+      "path": "M48 0 C-3 0 -12 61 21 89 L27 108 L69 108 L75 89 C108 61 99 0 48 0 Z",
+      "stroke": "#183e3d",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bulb-base",
+      "shape": "rounded-rectangle",
+      "x": 299,
+      "y": 256,
+      "width": 43,
+      "height": 12,
+      "fill": "#183e3d",
+      "radius": 5
+    },
+    {
+      "type": "shape",
+      "name": "bulb-tip",
+      "shape": "rounded-rectangle",
+      "x": 307,
+      "y": 274,
+      "width": 27,
+      "height": 8,
+      "fill": "#e5c890",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "filament",
+      "shape": "path",
+      "x": 305,
+      "y": 190,
+      "width": 34,
+      "height": 52,
+      "fill": "none",
+      "path": "M0 0 L16 24 L32 0 M16 24 L16 50",
+      "stroke": "#e5c890",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "satellite-star",
+      "shape": "sparkle",
+      "x": 141,
+      "y": 116,
+      "width": 38,
+      "height": 38,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "satellite-note",
+      "shape": "rounded-rectangle",
+      "x": 449,
+      "y": 287,
+      "width": 55,
+      "height": 70,
+      "fill": "#b5d5ce",
+      "radius": 8,
+      "stroke": "#183e3d",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "note-ink",
+      "shape": "path",
+      "x": 461,
+      "y": 310,
+      "width": 28,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L28 0",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "orbit-dot",
+      "shape": "ellipse",
+      "x": 263,
+      "y": 378,
+      "width": 15,
+      "height": 15,
+      "fill": "#e5c890"
+    }
+  ]
+}

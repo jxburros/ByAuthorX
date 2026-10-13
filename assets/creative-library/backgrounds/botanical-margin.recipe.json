@@ -1,0 +1,120 @@
+{
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "background": "#fffdf7"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "botanical margin"
+    },
+    {
+      "type": "shape",
+      "name": "border-sprig-0",
+      "shape": "path",
+      "x": 1220,
+      "y": 290,
+      "width": 100,
+      "height": 150,
+      "fill": "#b5d5ce",
+      "path": "M45 150 C38 110 44 68 70 5 M44 115 C5 110 4 81 10 70 C41 77 47 95 44 115 Z M45 94 C80 88 94 63 88 50 C61 52 48 68 45 94 Z M52 60 C25 52 24 26 30 16 C53 25 59 40 52 60 Z M63 30 C81 29 93 10 90 0 C70 5 64 18 63 30 Z",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "scale",
+      "target": "border-sprig-0",
+      "factor": 2
+    },
+    {
+      "type": "shape",
+      "name": "border-sprig-1",
+      "shape": "path",
+      "x": 1403,
+      "y": 501,
+      "width": 100,
+      "height": 150,
+      "fill": "#677b76",
+      "path": "M45 150 C38 110 44 68 70 5 M44 115 C5 110 4 81 10 70 C41 77 47 95 44 115 Z M45 94 C80 88 94 63 88 50 C61 52 48 68 45 94 Z M52 60 C25 52 24 26 30 16 C53 25 59 40 52 60 Z M63 30 C81 29 93 10 90 0 C70 5 64 18 63 30 Z",
+      "stroke": "#677b76",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "scale",
+      "target": "border-sprig-1",
+      "factor": 1.7
+    },
+    {
+      "type": "shape",
+      "name": "border-sprig-2",
+      "shape": "path",
+      "x": 1100,
+      "y": 555,
+      "width": 100,
+      "height": 150,
+      "fill": "#b5d5ce",
+      "path": "M45 150 C38 110 44 68 70 5 M44 115 C5 110 4 81 10 70 C41 77 47 95 44 115 Z M45 94 C80 88 94 63 88 50 C61 52 48 68 45 94 Z M52 60 C25 52 24 26 30 16 C53 25 59 40 52 60 Z M63 30 C81 29 93 10 90 0 C70 5 64 18 63 30 Z",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "scale",
+      "target": "border-sprig-2",
+      "factor": 1.8
+    },
+    {
+      "type": "shape",
+      "name": "editorial-rule",
+      "shape": "path",
+      "x": 120,
+      "y": 784,
+      "width": 940,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L940 0",
+      "stroke": "#b5d5ce",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "border-star",
+      "shape": "sparkle",
+      "x": 1340,
+      "y": 187,
+      "width": 32,
+      "height": 32,
+      "fill": "#e5c890"
+    }
+  ]
+}

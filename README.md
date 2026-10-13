@@ -113,6 +113,10 @@ For Windows PowerShell set `$env:QT_QPA_PLATFORM = "offscreen"` before headless 
 
 Build and installation details: [packaging](docs/packaging.md). Architecture: [architecture](docs/architecture.md). Complete requirements: [product specification](ByAuthorX-Product-Specification%20%281%29.md).
 
+## Creative resources
+
+The [creative library](assets/creative-library/README.md) contains 54 original designs for future app and marketing use: illustrations, icons, loading loops, completion animations, decorations, and backgrounds. It includes light/dark variants, editable Vixl masters, SVG/PNG exports, animation formats, and a local browsable catalog. These are optional assets; Vixl is an authoring tool rather than an app dependency.
+
 ## License
 
 MIT for ByAuthorX source. Qt/PySide6 and other dependencies retain their licenses; see [third-party notices](docs/third-party-notices.md). Provider services and downloaded model weights are separate integrations.

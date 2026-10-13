@@ -1,0 +1,138 @@
+{
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "quill writing"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 1600,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "writing-line-track",
+      "shape": "rounded-rectangle",
+      "x": 54,
+      "y": 165,
+      "width": 149,
+      "height": 5,
+      "fill": "#1d4240",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "written-line",
+      "shape": "path",
+      "x": 54,
+      "y": 166,
+      "width": 142,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L142 0",
+      "stroke": "#f4f1e7",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "keyframes",
+      "target": "written-line",
+      "property": "trim_end",
+      "keys": [
+        {
+          "time": 0,
+          "value": 5,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 900,
+          "value": 100,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 1200,
+          "value": 100,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 1600,
+          "value": 5,
+          "easing": "ease-in-out"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "nib",
+      "shape": "path",
+      "x": 106,
+      "y": 87,
+      "width": 48,
+      "height": 70,
+      "fill": "#e5c890",
+      "path": "M0 45 L25 0 L44 14 L26 59 L5 67 Z M5 67 L20 40",
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "keyframes",
+      "target": "nib",
+      "property": "translate-x",
+      "sample": {
+        "fn": "sin",
+        "period": 1600,
+        "amplitude": 28,
+        "offset": 0,
+        "phase": -0.25,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "keyframes",
+      "target": "nib",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 2,
+        "offset": 0,
+        "phase": 0,
+        "samples": 48,
+        "duration": 1600
+      }
+    }
+  ]
+}

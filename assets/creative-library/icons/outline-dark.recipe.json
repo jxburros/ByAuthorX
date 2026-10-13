@@ -1,0 +1,95 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 128,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "outline"
+    },
+    {
+      "type": "shape",
+      "name": "tree",
+      "shape": "path",
+      "x": 29,
+      "y": 28,
+      "width": 26,
+      "height": 72,
+      "fill": "none",
+      "path": "M0 0 L0 69 M0 13 L25 13 M0 38 L25 38 M0 63 L25 63",
+      "stroke": "#acc3ba",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "branch-0",
+      "shape": "rounded-rectangle",
+      "x": 58,
+      "y": 32,
+      "width": 40,
+      "height": 16,
+      "fill": "none",
+      "radius": 4,
+      "stroke": "#f4f1e7",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "branch-1",
+      "shape": "rounded-rectangle",
+      "x": 58,
+      "y": 57,
+      "width": 30,
+      "height": 16,
+      "fill": "none",
+      "radius": 4,
+      "stroke": "#f4f1e7",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "branch-2",
+      "shape": "rounded-rectangle",
+      "x": 58,
+      "y": 82,
+      "width": 40,
+      "height": 16,
+      "fill": "none",
+      "radius": 4,
+      "stroke": "#f4f1e7",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

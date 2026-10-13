@@ -1,0 +1,217 @@
+{
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "voice wave"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 1600,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-0",
+      "shape": "rounded-rectangle",
+      "x": 58,
+      "y": 112.0,
+      "width": 9,
+      "height": 32,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-0",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": 0.0,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-1",
+      "shape": "rounded-rectangle",
+      "x": 80,
+      "y": 101.0,
+      "width": 9,
+      "height": 54,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-1",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": -0.14285714285714285,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-2",
+      "shape": "rounded-rectangle",
+      "x": 102,
+      "y": 87.5,
+      "width": 9,
+      "height": 81,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-2",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": -0.2857142857142857,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-3",
+      "shape": "rounded-rectangle",
+      "x": 124,
+      "y": 79.0,
+      "width": 9,
+      "height": 98,
+      "fill": "#e5c890",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-3",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": -0.42857142857142855,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-4",
+      "shape": "rounded-rectangle",
+      "x": 146,
+      "y": 87.5,
+      "width": 9,
+      "height": 81,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-4",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": -0.5714285714285714,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-5",
+      "shape": "rounded-rectangle",
+      "x": 168,
+      "y": 101.0,
+      "width": 9,
+      "height": 54,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-5",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": -0.7142857142857143,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "wave-bar-6",
+      "shape": "rounded-rectangle",
+      "x": 190,
+      "y": 112.0,
+      "width": 9,
+      "height": 32,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "keyframes",
+      "target": "wave-bar-6",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 800,
+        "amplitude": 0.3,
+        "offset": 0.78,
+        "phase": -0.8571428571428571,
+        "samples": 48,
+        "duration": 1600
+      }
+    }
+  ]
+}

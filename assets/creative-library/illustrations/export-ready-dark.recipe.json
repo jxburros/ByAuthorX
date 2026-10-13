@@ -1,0 +1,303 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "export ready"
+    },
+    {
+      "type": "shape",
+      "name": "paper-halo",
+      "shape": "ellipse",
+      "x": 94,
+      "y": 54,
+      "width": 430,
+      "height": 355,
+      "fill": "#1d4240"
+    },
+    {
+      "type": "shape",
+      "name": "sage-halo",
+      "shape": "ellipse",
+      "x": 348,
+      "y": 240,
+      "width": 180,
+      "height": 140,
+      "fill": "#80b4a7"
+    },
+    {
+      "type": "shape",
+      "name": "accent-star",
+      "shape": "sparkle",
+      "x": 505,
+      "y": 113,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "accent-dot",
+      "shape": "ellipse",
+      "x": 95,
+      "y": 295,
+      "width": 10,
+      "height": 10,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-shadow",
+      "shape": "rounded-rectangle",
+      "x": 112,
+      "y": 126,
+      "width": 165,
+      "height": 245,
+      "fill": "#102f30",
+      "radius": 14
+    },
+    {
+      "type": "shape",
+      "name": "editable-master",
+      "shape": "rounded-rectangle",
+      "x": 105,
+      "y": 117,
+      "width": 165,
+      "height": 245,
+      "fill": "#244b48",
+      "radius": 14,
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-heading",
+      "shape": "rounded-rectangle",
+      "x": 127,
+      "y": 147,
+      "width": 82.5,
+      "height": 9,
+      "fill": "#f4f1e7",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-line-0",
+      "shape": "rounded-rectangle",
+      "x": 127,
+      "y": 181,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-line-1",
+      "shape": "rounded-rectangle",
+      "x": 127,
+      "y": 207,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-line-2",
+      "shape": "rounded-rectangle",
+      "x": 127,
+      "y": 233,
+      "width": 77.44,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-line-3",
+      "shape": "rounded-rectangle",
+      "x": 127,
+      "y": 259,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "editable-master-line-4",
+      "shape": "rounded-rectangle",
+      "x": 127,
+      "y": 285,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "publication-shadow",
+      "shape": "rounded-rectangle",
+      "x": 376,
+      "y": 101,
+      "width": 165,
+      "height": 245,
+      "fill": "#102f30",
+      "radius": 14
+    },
+    {
+      "type": "shape",
+      "name": "publication",
+      "shape": "rounded-rectangle",
+      "x": 369,
+      "y": 92,
+      "width": 165,
+      "height": 245,
+      "fill": "#244b48",
+      "radius": 14,
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "publication-heading",
+      "shape": "rounded-rectangle",
+      "x": 391,
+      "y": 122,
+      "width": 82.5,
+      "height": 9,
+      "fill": "#f4f1e7",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "publication-line-0",
+      "shape": "rounded-rectangle",
+      "x": 391,
+      "y": 156,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "publication-line-1",
+      "shape": "rounded-rectangle",
+      "x": 391,
+      "y": 182,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "publication-line-2",
+      "shape": "rounded-rectangle",
+      "x": 391,
+      "y": 208,
+      "width": 77.44,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "publication-line-3",
+      "shape": "rounded-rectangle",
+      "x": 391,
+      "y": 234,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "publication-line-4",
+      "shape": "rounded-rectangle",
+      "x": 391,
+      "y": 260,
+      "width": 121,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "export-arrow",
+      "shape": "arrow",
+      "x": 283,
+      "y": 192,
+      "width": 73,
+      "height": 45,
+      "fill": "#e5c890",
+      "shaft_width": 13,
+      "head_width": 38
+    },
+    {
+      "type": "shape",
+      "name": "master-mark",
+      "shape": "rounded-rectangle",
+      "x": 144,
+      "y": 303,
+      "width": 76,
+      "height": 27,
+      "fill": "#80b4a7",
+      "radius": 6
+    },
+    {
+      "type": "shape",
+      "name": "publication-mark",
+      "shape": "rounded-rectangle",
+      "x": 409,
+      "y": 277,
+      "width": 76,
+      "height": 27,
+      "fill": "#f4f1e7",
+      "radius": 6
+    },
+    {
+      "type": "shape",
+      "name": "ready-tick",
+      "shape": "checkmark",
+      "x": 431,
+      "y": 281,
+      "width": 33,
+      "height": 19,
+      "fill": "#244b48"
+    }
+  ]
+}
