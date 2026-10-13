@@ -66,6 +66,30 @@ def test_service_policy_rejects_escaping_symlink_and_nested_paths(tmp_path):
         policy.check('jobs', {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'configure'}}})
 
 
+
+def test_service_owns_provider_and_job_state_folders(tmp_path):
+    root = tmp_path / 'authorized'
+    (root / 'planted').mkdir(parents=True)
+    policy = AccessPolicy([root])
+    state = (root / '.byax').resolve()
+    args = {'action': 'list'}
+    policy.check('providers', args)
+    assert args['config_dir'] == str(state / 'config')
+    # A client-written providers.json elsewhere in the root cannot be selected.
+    for command, key in (('providers', 'config_dir'), ('transcribe', 'config_dir'), ('transcribe', 'job_root'), ('jobs', 'root')):
+        with pytest.raises(ByaxError):
+            policy.check(command, {'action': 'list', key: str(root / 'planted')})
+    with pytest.raises(ByaxError):
+        policy.check('jobs', {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'test', 'alias': 'x', 'config_dir': str(root / 'planted')}}})
+    # Clients cannot write into the reserved state folder either.
+    for out in (state / 'config' / 'providers.json', state, state / 'jobs' / 'x' / 'job.json'):
+        with pytest.raises(ByaxError):
+            policy.check('export', {'path': str(root / 'd.byax'), 'out': str(out)})
+    nested = {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'list'}}}
+    policy.check('jobs', nested)
+    assert nested['root'] == str(state / 'jobs')
+    assert nested['input']['arguments']['config_dir'] == str(state / 'config')
+
 def test_opt_in_rest_auth_and_actual_request(tmp_path):
     token = 'test-access-token-with-32-characters'
     with pytest.raises(ByaxError):
