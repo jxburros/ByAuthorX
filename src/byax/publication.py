@@ -102,11 +102,45 @@ def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None) -> tup
     return clean, report
 
 
+def _string_values(value, skip=frozenset()):
+    """String values in parsed JSON, skipping identifiers and generated defaults."""
+    if isinstance(value, str):
+        if value not in skip:
+            yield value
+    elif isinstance(value, dict):
+        for key, item in value.items():
+            if key not in ('id', 'revision', 'base_revision', 'document_id'):
+                yield from _string_values(item, skip)
+    elif isinstance(value, list):
+        for item in value:
+            yield from _string_values(item, skip)
+
+
+def _copy_exclusive(source, destination):
+    import os
+    try:
+        fd = os.open(destination, os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, 'O_BINARY', 0), 0o600)
+    except FileExistsError as exc:
+        raise ByaxError('conflict', 'Sanitized output already exists.') from exc
+    except OSError as exc:
+        raise ByaxError('execution_failure', f'Cannot create sanitized output: {exc.strerror or exc}') from exc
+    try:
+        with os.fdopen(fd, 'wb') as out, open(source, 'rb') as stream:
+            while chunk := stream.read(1 << 20):
+                out.write(chunk)
+            out.flush()
+            os.fsync(out.fileno())
+    except BaseException:
+        os.unlink(destination)
+        raise
+
+
 def save_sanitized(doc, out_path, targets, *, terms=None):
     """Verify the actual staged archive before publishing the sanitized master."""
     import tempfile
     import zipfile
 
+    from .model import new_document
     from .storage import load_document, save_document
     destination = Path(out_path)
     if destination.suffix.lower() != '.byax':
@@ -120,6 +154,7 @@ def save_sanitized(doc, out_path, targets, *, terms=None):
         selector = {'target': selector} if isinstance(selector, str) else selector
         text = nodes[selector['target']]['text']
         needles.append(text[selector.get('start', 0):selector.get('end', len(text))])
+    baseline = set(_string_values(new_document('Sanitized document')))
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(dir=destination.parent) as temp:
         stage = Path(temp) / 'sanitized.byax'
@@ -131,8 +166,11 @@ def save_sanitized(doc, out_path, targets, *, terms=None):
                 # Assets are never allowed in this conservative sanitized format.
                 if not member.filename.endswith('.json'):
                     raise ByaxError('failed_requirement', 'Unexpected binary member in sanitized archive.')
-                decoded = json.dumps(json.loads(raw), ensure_ascii=False)
-                if any(term in decoded for term in needles):
+                # Search decoded string values, not escaped JSON: escaping hid terms
+                # containing quotes or newlines, while keys and generated defaults
+                # caused false failures for ordinary words such as "body".
+                values = _string_values(json.loads(raw), baseline)
+                if any(term in value for value in values for term in needles):
                     raise ByaxError('failed_requirement', 'Serialized sanitization verification found retained text.')
         if checked.get('assets'):
             raise ByaxError('failed_requirement', 'Sanitized archive retained assets.')
@@ -143,6 +181,10 @@ def save_sanitized(doc, out_path, targets, *, terms=None):
             os.link(stage, destination)
         except FileExistsError as exc:
             raise ByaxError('conflict', 'Sanitized output already exists.') from exc
+        except OSError:
+            # FAT/exFAT and some network shares lack hard links; exclusive
+            # creation still refuses to replace an existing file.
+            _copy_exclusive(stage, destination)
     report.update(validation='passed', outputs=[str(destination)])
     report['coverage']['serialized_output'] = 'passed'
     return report

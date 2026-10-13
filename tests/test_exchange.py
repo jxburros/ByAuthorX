@@ -128,3 +128,101 @@ def test_odt_preserves_footnote_association(tmp_path):
     note = next(b for b in loaded['blocks'] if b['type'] == 'footnote')
     assert note['text'] == 'Retained note'
     assert note['attrs']['reference'] == loaded['blocks'][0]['id']
+
+
+def _odt(tmp_path, body, name='hostile.odt'):
+    content = ('<office:document-content xmlns:office="urn:oasis:names:tc:opendocument:xmlns:office:1.0" '
+               'xmlns:text="urn:oasis:names:tc:opendocument:xmlns:text:1.0" '
+               'xmlns:table="urn:oasis:names:tc:opendocument:xmlns:table:1.0" '
+               'xmlns:style="urn:oasis:names:tc:opendocument:xmlns:style:1.0" '
+               'xmlns:fo="urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0">'
+               '<office:body><office:text>' + body + '</office:text></office:body></office:document-content>')
+    path = tmp_path / name
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.writestr('mimetype', 'application/vnd.oasis.opendocument.text')
+        archive.writestr('content.xml', content)
+    return path
+
+
+def test_odt_expansion_bombs_fail_before_allocating(tmp_path):
+    spaces = _odt(tmp_path, '<text:p>' + '<text:s text:c="100000"/>' * 20 + '</text:p>', 'spaces.odt')
+    with pytest.raises(ByaxError) as error:
+        import_document(spaces)
+    assert error.value.code == 'resource_limit'
+    cells = ''.join('<table:table-cell table:number-columns-repeated="1000"><text:p>x</text:p></table:table-cell>' for _ in range(10))
+    table = _odt(tmp_path, f'<table:table><table:table-row table:number-rows-repeated="1000">{cells}</table:table-row></table:table>', 'table.odt')
+    with pytest.raises(ByaxError) as error:
+        import_document(table)
+    assert error.value.code == 'resource_limit'
+    nested = _odt(tmp_path, '<text:p>' + '<text:span>' * 1500 + 'x' + '</text:span>' * 1500 + '</text:p>', 'nested.odt')
+    with pytest.raises(ByaxError) as error:
+        import_document(nested)
+    assert error.value.code == 'resource_limit'
+
+
+def test_odt_malformed_numbers_and_deep_headings(tmp_path):
+    bad = _odt(tmp_path, '<text:p><text:s text:c="lots"/></text:p>', 'bad.odt')
+    with pytest.raises(ByaxError) as error:
+        import_document(bad)
+    assert error.value.code == 'invalid_input'
+    deep = _odt(tmp_path, '<text:h text:outline-level="8">Deep</text:h>', 'deep.odt')
+    doc, report = import_document(deep)
+    assert doc['blocks'][0]['attrs']['level'] == 6
+    assert any(loss['code'] == 'heading_level' for loss in report['losses'])
+
+
+def test_docx_deep_heading_split_grapheme_and_control_characters(tmp_path):
+    from docx import Document
+    word = Document()
+    word.add_paragraph('Deep', style='Heading 7')
+    paragraph = word.add_paragraph()
+    paragraph.add_run('e')
+    paragraph.add_run('́x').bold = True
+    path = tmp_path / 'word.docx'
+    word.save(path)
+    doc, _ = import_document(path)
+    assert doc['blocks'][0]['attrs']['level'] == 6
+    bold = next(m for m in doc['blocks'][1]['marks'] if m['type'] == 'bold')
+    assert (bold['start'], bold['end']) == (0, 3)
+    control = new_document('Escapes', 'Red \x1b[31m text')
+    out = tmp_path / 'control.docx'
+    report = export_document(control, out)
+    assert any(loss['code'] == 'xml_control_characters' for loss in report['losses'])
+    assert Document(out).paragraphs[-1].text == 'Red �[31m text'
+
+
+def test_html_bare_attributes_optional_tags_and_title(tmp_path):
+    path = tmp_path / 'loose.html'
+    path.write_text('<html><head><title>Ignored title</title><body><p><a href>link</a> <img src>'
+                    '<table><tr><td colspan>a<td colspan="²">b<tr><td rowspan="999999999">c<td>d</table>'
+                    '<p>Body text', encoding='utf-8')
+    doc, _ = import_document(path)
+    texts = [b.get('text', '') for b in doc['blocks']]
+    assert 'Ignored title' not in ''.join(texts)
+    assert any('Body text' in text for text in texts)
+    table = next(b for b in doc['blocks'] if b['type'] == 'table')
+    assert [[c['text'] for c in row['cells']] for row in table['rows']] == [['a', 'b'], ['c', 'd']]
+    assert table['rows'][1]['cells'][0]['attrs']['rowspan'] <= 1000
+    export_document(doc, tmp_path / 'spans.odt')
+    exported = tmp_path / 'round.html'
+    export_document(new_document('MyTitle', 'hello'), exported)
+    again, _ = import_document(exported)
+    assert [b['text'] for b in again['blocks']] == ['hello']
+
+
+def test_rtf_font_table_scan_is_linear(tmp_path):
+    import time
+    path = tmp_path / 'fonts.rtf'
+    path.write_text('{\\rtf1{\\fonttbl{\\f0\\froman\\fcharset0 Times New Roman;}}{\\f1 ' + 'a ' * 60000 + '}}', encoding='ascii')
+    started = time.monotonic()
+    import_document(path)
+    assert time.monotonic() - started < 3
+
+
+def test_many_formatting_runs_validate_in_linear_time():
+    import time
+    doc = new_document(text='ab' * 20000)
+    doc['blocks'][0]['marks'] = [{'type': 'bold', 'start': i, 'end': i + 1, 'value': True} for i in range(0, 40000, 2)]
+    started = time.monotonic()
+    validate_document(doc)
+    assert time.monotonic() - started < 3

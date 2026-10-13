@@ -106,3 +106,32 @@ def test_clean_native_export_excludes_original_and_hidden_copies(tmp_path):
     assert clean['review']['tracked_changes'] == []
     assert report['publication_policy']['include_originals'] is False
     assert 'Private source material.' in source.read_text()
+
+
+def test_sanitization_verification_checks_values_not_json_syntax(tmp_path, monkeypatch):
+    doc = new_document('Report', 'The body of the document mentions Alice.')
+    for term in ('body', 'document'):
+        assert save_sanitized(doc, tmp_path / f'{term}.byax', [], terms=[term])['validation'] == 'passed'
+    from byax import publication
+    real = publication.sanitize
+    def leaky(source, targets, *, terms=None):
+        clean, report = real(source, targets, terms=terms)
+        clean['blocks'][0]['text'] = 'She said "hi"\nthere'
+        return clean, report
+    monkeypatch.setattr(publication, 'sanitize', leaky)
+    with pytest.raises(ByaxError, match='retained text'):
+        save_sanitized(doc, tmp_path / 'leak.byax', [], terms=['"hi"\nthere', 'Alice'])
+    assert not (tmp_path / 'leak.byax').exists()
+
+
+def test_sanitized_output_falls_back_without_hard_links(tmp_path, monkeypatch):
+    import os
+    def no_links(*_args):
+        raise PermissionError('hard links unsupported')
+    monkeypatch.setattr(os, 'link', no_links)
+    output = tmp_path / 'clean.byax'
+    assert save_sanitized(new_document(text='secret'), output, [], terms=['secret'])['validation'] == 'passed'
+    assert text_of(load_document(output)) == '[REDACTED]'
+    with pytest.raises(ByaxError) as error:
+        save_sanitized(new_document(text='secret'), output, [], terms=['secret'])
+    assert error.value.code == 'conflict'

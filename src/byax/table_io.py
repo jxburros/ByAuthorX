@@ -47,9 +47,16 @@ def read_csv(path, *, encoding='utf-8-sig', dialect='excel', delimiter=None):
     if source.stat().st_size > MAX_BYTES:
         raise ByaxError('limit_exceeded', 'CSV source exceeds 16 MiB')
     rows, columns, cells, characters = [], None, 0, 0
+    blank = False
     try:
         with source.open(encoding=encoding, newline='') as handle:
             for row in csv.reader(handle, **options):
+                if not row:
+                    blank = True
+                    continue
+                if blank:
+                    # Only trailing blank lines are tolerated.
+                    raise ByaxError('invalid_input', 'CSV rows must be rectangular and nonempty', row=len(rows) + 1)
                 if columns is None:
                     columns = len(row)
                 if not row or len(row) != columns:

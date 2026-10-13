@@ -27,6 +27,9 @@ from .model import new_document
 
 MAX_INPUT = 32 * 1024 * 1024
 MAX_EXPANDED = 128 * 1024 * 1024
+MAX_REPEATED_SPACES = 1_000_000
+MAX_TABLE_CELLS = 100_000
+MAX_DEPTH = 256
 
 
 def _id(prefix="block"):
@@ -171,9 +174,27 @@ def import_document(path):
                            "fingerprints": {b["id"]: _fingerprint(b) for b in doc["blocks"]},
                            "block_order": [b["id"] for b in doc["blocks"]]})
     doc["metadata"]["import"] = provenance
+    _snap_marks(doc)
     from .model import validate_document
     validate_document(doc)
     return doc, _report(fmt, losses, direction="import")
+
+
+def _snap_marks(doc):
+    """Source runs may split grapheme clusters; widen marks to whole clusters."""
+    import regex
+    for block in doc["blocks"]:
+        for item in [block, *(cell for row in block.get("rows", []) for cell in row.get("cells", []))]:
+            marks, text = item.get("marks"), item.get("text", "")
+            if not marks:
+                continue
+            boundaries = sorted({0, len(text)} | {m.end() for m in regex.finditer(r"\X", text)})
+            boundary_set = set(boundaries)
+            for mark in marks:
+                if mark.get("start") not in boundary_set:
+                    mark["start"] = max(x for x in boundaries if x < mark["start"])
+                if mark.get("end") not in boundary_set:
+                    mark["end"] = min(x for x in boundaries if x > mark["end"])
 
 
 def _inline(tokens):
@@ -269,6 +290,25 @@ def _import_markdown(doc, source, losses):
         i += 1
 
 
+MAX_SPAN = 1000
+
+
+def _heading_level(level, losses, target):
+    """The model supports heading levels 1-6; deeper outline levels are reported."""
+    if 1 <= level <= 6:
+        return level
+    _loss(losses, "heading_level", f"Heading level {level} is outside 1-6 and was clamped.", target)
+    return min(6, max(1, level))
+
+
+def _span(value):
+    """Row/column spans are small positive ASCII integers ("²".isdigit() is true)."""
+    value = str(value).strip()
+    if not value.isascii() or not value.isdecimal():
+        return 1
+    return max(1, min(int(value), MAX_SPAN))
+
+
 class _HTMLImport(HTMLParser):
     def __init__(self, doc, losses):
         super().__init__(convert_charrefs=True)
@@ -284,9 +324,28 @@ class _HTMLImport(HTMLParser):
             self.current = None
         self.stack = []
 
+    def _end_cell(self):
+        current = self.tables[-1]
+        if current["cell"] is not None:
+            current["cells"].append(current["cell"])
+            current["cell"] = None
+
+    def _end_row(self):
+        # HTML lets </td>, </th> and </tr> be omitted; close them implicitly.
+        self._end_cell()
+        current = self.tables[-1]
+        if current["row_open"]:
+            current["rows"].append({"id": _id("row"), "cells": current["cells"]})
+            current["cells"], current["row_open"] = [], False
+
     def handle_starttag(self, tag, attrs):
-        attrs = dict(attrs)
-        if tag in ("script", "style", "iframe", "object", "embed", "svg", "math", "head"):
+        # Bare attributes such as <a href> have no value.
+        attrs = {key: value or "" for key, value in attrs}
+        if tag == "title":
+            # Document titles are metadata, never body text; </head> is optional.
+            self.skip += 1
+            return
+        if tag in ("script", "style", "iframe", "object", "embed", "svg", "math"):
             if tag != "embed":
                 self.skip += 1
             _loss(self.losses, "html_inactive_content", f"<{tag}> was not executed or rendered; original HTML remains attached.", f"line:{self.getpos()[0]}")
@@ -310,11 +369,14 @@ class _HTMLImport(HTMLParser):
             self.handle_data("\n")
         elif tag == "table":
             self.flush()
-            self.tables.append({"block": _block(kind="table", header_rows=0), "rows": [], "cells": [], "cell": None})
+            self.tables.append({"block": _block(kind="table", header_rows=0), "rows": [], "cells": [], "cell": None, "row_open": False})
         elif tag == "tr" and self.tables:
-            self.tables[-1]["cells"] = []
+            self._end_row()
+            self.tables[-1]["row_open"] = True
         elif tag in ("th", "td") and self.tables:
-            self.tables[-1]["cell"] = {"id": _id("cell"), "text": "", "attrs": {key: int(attrs[key]) for key in ("rowspan", "colspan") if attrs.get(key, "").isdigit()}}
+            self._end_cell()
+            self.tables[-1]["row_open"] = True
+            self.tables[-1]["cell"] = {"id": _id("cell"), "text": "", "attrs": {key: _span(attrs[key]) for key in ("rowspan", "colspan") if attrs.get(key)}}
             if tag == "th":
                 self.tables[-1]["block"]["attrs"]["header_rows"] = 1
         elif tag == "img":
@@ -340,20 +402,17 @@ class _HTMLImport(HTMLParser):
             _loss(self.losses, "html_css", "CSS styling is not imported by the semantic HTML adapter.", f"line:{self.getpos()[0]}")
 
     def handle_endtag(self, tag):
-        if tag in ("script", "style", "iframe", "object", "svg", "math", "head") and self.skip:
+        if tag in ("script", "style", "iframe", "object", "svg", "math", "title") and self.skip:
             self.skip -= 1
             return
         if self.skip:
             return
         if tag in ("td", "th") and self.tables:
-            current = self.tables[-1]
-            if current["cell"]:
-                current["cells"].append(current["cell"])
-                current["cell"] = None
+            self._end_cell()
         elif tag == "tr" and self.tables:
-            current = self.tables[-1]
-            current["rows"].append({"id": _id("row"), "cells": current["cells"]})
+            self._end_row()
         elif tag == "table" and self.tables:
+            self._end_row()
             current = self.tables.pop()
             current["block"]["rows"] = current["rows"]
             self.doc["blocks"].append(current["block"])
@@ -425,7 +484,7 @@ def _import_docx(doc, raw, losses):
             if paragraph.style:
                 block["style"] = paragraph.style.style_id
             if match:
-                block["attrs"]["level"] = int(match[1])
+                block["attrs"]["level"] = _heading_level(int(match[1]), losses, block["id"])
             alignment = {0: "left", 1: "center", 2: "right", 3: "justify"}.get(paragraph.alignment)
             if alignment:
                 block["attrs"]["alignment"] = alignment
@@ -484,8 +543,13 @@ def _import_odt(doc, raw, losses):
     ns = {"text": "urn:oasis:names:tc:opendocument:xmlns:text:1.0", "table": "urn:oasis:names:tc:opendocument:xmlns:table:1.0", "office": "urn:oasis:names:tc:opendocument:xmlns:office:1.0", "draw": "urn:oasis:names:tc:opendocument:xmlns:drawing:1.0", "xlink": "http://www.w3.org/1999/xlink", "style": "urn:oasis:names:tc:opendocument:xmlns:style:1.0", "fo": "urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0", "svg": "urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0"}
     def attr(element, family, key, default=None):
         return element.get("{"+ns[family]+"}"+key, default)
+    def integer(element, family, key, default):
+        value = attr(element, family, key, default)
+        if not re.fullmatch(r"-?[0-9]{1,9}", str(value).strip()):
+            raise ByaxError("invalid_input", f"ODT {key} must be an integer", field=key)
+        return int(value)
     def points(value):
-        match = re.fullmatch(r"(-?[0-9.]+)(pt|in|cm|mm|px)?", str(value))
+        match = re.fullmatch(r"(-?[0-9]+(?:\.[0-9]+)?|-?\.[0-9]+)(pt|in|cm|mm|px)?", str(value))
         if not match:
             return None
         return float(match[1]) * {None: 1, "pt": 1, "in": 72, "cm": 72/2.54, "mm": 72/25.4, "px": .75}[match[2]]
@@ -540,7 +604,7 @@ def _import_odt(doc, raw, losses):
                         if value is not None:
                             values[key] = value
                     line_height = attr(paragraph, "fo", "line-height", "")
-                    if line_height.endswith("%"):
+                    if re.fullmatch(r"[0-9]+(?:\.[0-9]+)?%", line_height):
                         values["line_spacing"] = float(line_height[:-1])/100
                 if name:
                     doc["styles"][name] = values
@@ -567,16 +631,20 @@ def _import_odt(doc, raw, losses):
             own = doc["styles"].get(name, {})
             return {**style_values(own.get("based_on"), seen), **own}
         inline_keys = {"bold", "italic", "underline", "strikethrough", "font_family", "font_size", "color", "highlight", "superscript", "subscript"}
+        spaces = [0]
         def rich_text(element, block):
-            def walk(node):
+            def walk(node, depth=0):
+                if depth > MAX_DEPTH:
+                    raise ByaxError("resource_limit", "ODT inline nesting is too deep")
                 start = len(block["text"])
                 if node.text:
                     block["text"] += node.text
                 for child in node:
                     name = child.tag.rsplit("}", 1)[-1]
                     if name == "s":
-                        count = int(attr(child, "text", "c", "1"))
-                        if count < 0 or count > 100000:
+                        count = integer(child, "text", "c", "1")
+                        spaces[0] += max(count, 0)
+                        if count < 0 or count > 100000 or spaces[0] > MAX_REPEATED_SPACES:
                             raise ByaxError("resource_limit", "ODT repeated-space limit exceeded")
                         block["text"] += " "*count
                     elif name == "tab":
@@ -602,7 +670,7 @@ def _import_odt(doc, raw, losses):
                             pending_images.append(image)
                     else:
                         child_start = len(block["text"])
-                        walk(child)
+                        walk(child, depth+1)
                         if name == "a":
                             href = attr(child, "xlink", "href", "")
                             if _safe_url(href):
@@ -618,7 +686,7 @@ def _import_odt(doc, raw, losses):
             name = element.tag.rsplit("}", 1)[-1]
             block = _block(kind="heading" if name == "h" else "paragraph")
             if name == "h":
-                block["attrs"]["level"] = int(attr(element, "text", "outline-level", "1"))
+                block["attrs"]["level"] = _heading_level(integer(element, "text", "outline-level", "1"), losses, block["id"])
             style = attr(element, "text", "style-name")
             if style in doc["styles"]:
                 block["style"] = style
@@ -626,7 +694,9 @@ def _import_odt(doc, raw, losses):
                 block["attrs"].update(list=list_kind, level=list_level)
             rich_text(element, block)
             return block
-        def visit(element, level=0, list_kind="bullet"):
+        def visit(element, level=0, list_kind="bullet", depth=0):
+            if depth > MAX_DEPTH:
+                raise ByaxError("resource_limit", "ODT structure nesting is too deep")
             name = element.tag.rsplit("}", 1)[-1]
             if name in ("p", "h"):
                 doc["blocks"].append(paragraph(element, level, list_kind))
@@ -638,7 +708,7 @@ def _import_odt(doc, raw, losses):
                 if name == "list":
                     list_kind = list_styles.get(attr(element, "text", "style-name"), list_kind)
                 for child in element:
-                    visit(child, level+(1 if name == "list" else 0), list_kind)
+                    visit(child, level+(1 if name == "list" else 0), list_kind, depth+1)
                 if name == "section":
                     _loss(losses, "odt_section_geometry", "Section content retained; section-specific geometry requires review.", "body/section")
             elif name == "table":
@@ -650,15 +720,19 @@ def _import_odt(doc, raw, losses):
                     headers = list(header.findall("table:table-row", ns))
                     row_elements = headers + row_elements
                     block["attrs"]["header_rows"] = len(headers)
+                total = 0
                 for row in row_elements:
                     cells = []
-                    row_repeat = int(attr(row, "table", "number-rows-repeated", "1"))
+                    row_repeat = integer(row, "table", "number-rows-repeated", "1")
                     if not 1 <= row_repeat <= 1000:
                         raise ByaxError("resource_limit", "ODT repeated-row limit exceeded")
                     for cell in row:
-                        count = int(attr(cell, "table", "number-columns-repeated", "1"))
+                        count = integer(cell, "table", "number-columns-repeated", "1")
                         if not 1 <= count <= 1000:
                             raise ByaxError("resource_limit", "ODT repeated-column limit exceeded")
+                        # Check before expanding so repeats cannot allocate first.
+                        if total + (len(cells) + count) * row_repeat > MAX_TABLE_CELLS:
+                            raise ByaxError("resource_limit", "ODT table exceeds 100,000 cells")
                         paragraphs = [paragraph(p) for p in cell.findall("text:p", ns)]
                         value = {"id": _id("cell"), "text": "", "marks": [], "attrs": {}}
                         for p in paragraphs:
@@ -668,13 +742,12 @@ def _import_odt(doc, raw, losses):
                             value["marks"].extend({**m, "start": m["start"]+shift, "end": m["end"]+shift} for m in p["marks"])
                         for key, xml in (("rowspan", "number-rows-spanned"), ("colspan", "number-columns-spanned")):
                             if attr(cell, "table", xml):
-                                value["attrs"][key] = int(attr(cell, "table", xml))
+                                value["attrs"][key] = _span(attr(cell, "table", xml))
                         for _ in range(count):
                             cells.append({**copy.deepcopy(value), "id": _id("cell")})
                     for _ in range(row_repeat):
                         block["rows"].append({"id": _id("row"), "cells": [{**copy.deepcopy(c), "id": _id("cell")} for c in cells]})
-                    if sum(len(row["cells"]) for row in block["rows"]) > 100000:
-                        raise ByaxError("resource_limit", "ODT table exceeds 100,000 cells")
+                    total += len(cells) * row_repeat
                 doc["blocks"].append(block)
             elif name in ("sequence-decls", "user-field-decls", "variable-decls"):
                 _loss(losses, "odt_fields", "ODT field definitions retained only in original attachment.", "body/"+name)
@@ -707,6 +780,8 @@ def _import_doc(path):
         if result.returncode or not output.is_file():
             raise ByaxError("adapter_failed", "Local DOC conversion failed", returncode=result.returncode)
         doc, report = import_document(output)
+        # The outer import attaches the original .doc; drop the intermediate .docx copy.
+        doc["assets"].pop(doc["metadata"]["import"]["original_asset"], None)
         _loss(report["losses"], "doc_adapter", "DOC converted by explicitly configured local LibreOffice; cross-application fidelity is not verified.", "source")
         return doc, report
 
@@ -743,7 +818,7 @@ def _html_inline(block):
 
 
 def _html(doc):
-    result = ['<!doctype html><html lang="en"><meta charset="utf-8"><title>'+html.escape(doc.get("metadata", {}).get("title", ""))+'</title><body>']
+    result = ['<!doctype html><html lang="en"><head><meta charset="utf-8"><title>'+html.escape(doc.get("metadata", {}).get("title", ""))+'</title></head><body>']
     for block in doc["blocks"]:
         kind, attrs = block.get("type"), block.get("attrs", {})
         if kind == "table":
@@ -845,6 +920,29 @@ def _markdown(doc, losses):
             return "".join(source_lines)
     _loss(losses, "markdown_normalized", "Markdown regenerated using CommonMark plus tables; source whitespace/syntax may change.", "document")
     return "\n\n".join(_md_block(b) for b in blocks) + "\n"
+
+
+_XML_INVALID = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff\ud800-\udfff]")
+
+
+def _xml_safe(doc, losses):
+    """Replace characters XML cannot carry one-for-one so mark offsets stay valid."""
+    found = []
+    def clean(value):
+        if isinstance(value, str):
+            if _XML_INVALID.search(value):
+                found.append(True)
+                return _XML_INVALID.sub("\ufffd", value)
+            return value
+        if isinstance(value, dict):
+            return {key: clean(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [clean(item) for item in value]
+        return value
+    cleaned = {**doc, **{key: clean(doc[key]) for key in ("blocks", "metadata", "layout", "styles") if key in doc}}
+    if found:
+        _loss(losses, "xml_control_characters", "Control characters that DOCX cannot store were replaced with U+FFFD.", "document")
+    return cleaned
 
 
 def _export_docx(doc, path):
@@ -1081,14 +1179,17 @@ def _export_odt(doc, path):
             headers = TableHeaderRows() if attrs.get("header_rows") else None
             if headers is not None:
                 table.addElement(headers)
-            for r, row in enumerate(block.get("rows", [])):
+            rows = block.get("rows", [])
+            for r, row in enumerate(rows):
                 tr = TableRow()
                 for c, cell in enumerate(row.get("cells", [])):
                     if (r,c) in covered:
                         tr.addElement(CoveredTableCell())
                         continue
                     ca = cell.get("attrs", {})
-                    rs, cs = int(ca.get("rowspan",1)), int(ca.get("colspan",1))
+                    # Spans never reach past the table, so covered stays bounded.
+                    rs = max(1, min(int(ca.get("rowspan",1)), len(rows)-r))
+                    cs = max(1, min(int(ca.get("colspan",1)), len(row.get("cells", []))-c))
                     td = TableCell(numberrowsspanned=rs, numbercolumnsspanned=cs)
                     paragraph = P()
                     add_text(paragraph, cell)
@@ -1280,7 +1381,7 @@ def export_document(doc, path, format=None, profile=None, *, owner=None):
             result = export_pdf(candidate, stage, pages=settings.get("pages"))
             losses.extend(result.get("losses", []))
         elif fmt == "docx":
-            _export_docx(candidate, stage)
+            _export_docx(_xml_safe(candidate, losses), stage)
         elif fmt == "odt":
             _export_odt(candidate, stage)
         else:
@@ -1312,11 +1413,32 @@ def export_document(doc, path, format=None, profile=None, *, owner=None):
     return report
 
 
+def _rtf_group(source, opening):
+    """Return one balanced RTF group so table regexes never scan the whole body."""
+    start = source.find(opening)
+    if start < 0:
+        return ""
+    depth, index = 0, start
+    while index < len(source):
+        char = source[index]
+        if char == "\\":
+            index += 2
+            continue
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return source[start:index+1]
+        index += 1
+    return source[start:]
+
+
 def _import_rtf(doc, source, losses):
     """Parse the editable RTF text/style/table subset without object execution."""
     if not source.lstrip().startswith("{\\rtf"):
         raise ByaxError("invalid_input", "File is not an RTF document")
-    fonts = {int(match.group(1)): match.group(2).strip() for match in re.finditer(r"\{\\f(\d+)[^;{}]*?\s([^;{}\\]+);", source)}
+    fonts = {int(match.group(1)): match.group(2).strip() for match in re.finditer(r"\{\\f(\d+)(?:\\[a-z]+-?\d* ?)*([^;{}\\]*);", _rtf_group(source, "{\\fonttbl"))}
     colors = [None]
     color_match = re.search(r"\{\\colortbl\s*;(.*?)\}", source, re.DOTALL)
     if color_match:

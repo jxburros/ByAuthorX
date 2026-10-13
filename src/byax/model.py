@@ -100,12 +100,15 @@ def validate_document(doc, *, include_history=True):
             fail('Invalid block attributes or marks.', path)
         if b['type'] == 'heading' and (type(b.get('attrs', {}).get('level', 1)) is not int or not 1 <= b.get('attrs', {}).get('level', 1) <= 6):
             fail('Heading levels must be integers from one through six.', path + '.attrs.level')
+        boundaries = None
         for mark in b.get('marks', []):
             if not isinstance(mark, dict) or type(mark.get('start')) is not int or type(mark.get('end')) is not int or not 0 <= mark['start'] <= mark['end'] <= len(b.get('text', '')):
                 fail('Invalid text mark range.', path + '.marks')
             if not isinstance(mark.get('type'), str) or not mark['type']:
                 fail('Text mark type must be a nonempty string.', path + '.marks')
-            boundaries = {0} | {m.end() for m in regex.finditer(r'\X', b.get('text', ''))}
+            if boundaries is None:
+                # Computed once per block; per-mark recomputation was quadratic.
+                boundaries = {0} | {m.end() for m in regex.finditer(r'\X', b.get('text', ''))}
             if mark['start'] not in boundaries or mark['end'] not in boundaries:
                 fail('Text mark cannot split a grapheme cluster.', path + '.marks')
         if b['type'] == 'table':
