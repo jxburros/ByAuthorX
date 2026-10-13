@@ -3,15 +3,15 @@ import base64
 import copy
 import hashlib
 import io
-import json
-from pathlib import Path
 import struct
-import sys
 import subprocess
+import sys
 import zipfile
 import zlib
+from pathlib import Path
 
 import pytest
+
 from byax.errors import ByaxError
 from byax.model import new_document, validate_document
 from byax.storage import DocumentLock, load_document, save_document
@@ -72,8 +72,9 @@ def test_exchange_archive_expansion_budget_is_checked_before_parse(tmp_path, mon
 
 
 def test_html_has_no_network_or_active_content_execution(tmp_path, monkeypatch):
-    from byax.exchange import import_document
     import socket
+
+    from byax.exchange import import_document
     def reject_network(*args, **kwargs):
         raise AssertionError('Import attempted a network connection')
     monkeypatch.setattr(socket, 'create_connection', reject_network)
@@ -107,7 +108,7 @@ except ByaxError as exc:
     sys.exit(exc.exit_code)
 '''
     with DocumentLock(path):
-        result = subprocess.run([sys.executable, '-c', code, str(path)], capture_output=True, text=True, timeout=15)
+        result = subprocess.run([sys.executable, '-c', code, str(path)], check=False, capture_output=True, text=True, timeout=15)
     assert result.returncode == 3, result.stdout + result.stderr
     assert path.read_bytes() == before
 
@@ -138,9 +139,9 @@ def qt_app():
 
 
 def test_noop_native_gui_mapping_has_no_document_operations(qt_app):
+    from byax.engine import apply
     from byax.gui_editor import SemanticEditor
     from byax.layout import build_document
-    from byax.engine import apply
     doc = new_document(text='Heading\nBody text')
     doc['blocks'][0]['type'] = 'heading'
     doc['blocks'][0]['attrs'] = {'level': 1}
@@ -157,10 +158,10 @@ def test_noop_native_gui_mapping_has_no_document_operations(qt_app):
 
 
 def test_typing_deletion_of_image_is_canonical_or_explicitly_rejected(qt_app):
+    from PIL import Image
+
     from byax.gui_editor import SemanticEditor
     from byax.layout import build_document
-    from PIL import Image
-    from PySide6.QtGui import QTextCursor
     raw = io.BytesIO()
     Image.new('RGB', (8, 8), 'red').save(raw, format='PNG')
     image = raw.getvalue()
@@ -192,6 +193,7 @@ def test_render_oversized_page_rejects_before_allocating(qt_app, tmp_path):
 
 def test_page_range_rejects_out_of_bounds_before_expansion(monkeypatch):
     import builtins
+
     from byax import layout
     def bounded_range(*args):
         actual = builtins.range(*args)
@@ -204,10 +206,11 @@ def test_page_range_rejects_out_of_bounds_before_expansion(monkeypatch):
 
 
 def test_image_pixel_budget_rejects_header_before_decode(qt_app):
-    from byax.layout import build_document
     # Tiny original PNG with a forged huge IHDR, using a valid CRC. It must be
     # rejected by dimension preflight before the decoder considers pixel data.
     from PIL import Image
+
+    from byax.layout import build_document
     buffer = io.BytesIO()
     Image.new('RGB', (1, 1), 'white').save(buffer, format='PNG')
     raw = bytearray(buffer.getvalue())
@@ -225,7 +228,7 @@ def test_invalid_imported_html_table_never_returns_unsavable_document(tmp_path):
     path = tmp_path / 'uneven.html'
     path.write_text('<table><tr><td>A</td><td>B</td></tr><tr><td>C</td></tr></table>')
     try:
-        doc, report = import_document(path)
+        doc, _report = import_document(path)
     except ByaxError:
         return  # Explicit rejection is preferable to pretending import succeeded.
     validate_document(doc)
@@ -234,9 +237,9 @@ def test_invalid_imported_html_table_never_returns_unsavable_document(tmp_path):
 
 @pytest.mark.parametrize('kind', ['paragraph', 'table', 'image'])
 def test_excluded_content_survives_unrelated_visible_typing(qt_app, kind):
+    from byax.engine import apply
     from byax.gui_editor import SemanticEditor
     from byax.layout import build_document
-    from byax.engine import apply
     doc = new_document(text='Visible text\nPrivate alternate paragraph')
     hidden = doc['blocks'][1]
     hidden['type'] = kind
@@ -257,7 +260,7 @@ def test_excluded_content_survives_unrelated_visible_typing(qt_app, kind):
     editor.capture_baseline()
     assert editor.navigate(doc['blocks'][0]['id'])
     editor.insertPlainText('New ')
-    operations, tags = editor.collect_changes(doc)
+    operations, _tags = editor.collect_changes(doc)
     changed, _ = apply(doc, {'operations': operations})
     assert next((b for b in changed['blocks'] if b['id'] == hidden['id']), None) == hidden
     editor.close()

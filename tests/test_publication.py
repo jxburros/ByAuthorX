@@ -4,10 +4,11 @@ import json
 import zipfile
 
 import pytest
+
+from byax.errors import ByaxError
 from byax.model import new_document, text_of
 from byax.publication import sanitize, save_sanitized
 from byax.storage import load_document
-from byax.errors import ByaxError
 
 
 def test_redaction_removes_recoverable_copies_and_preserves_original(tmp_path):
@@ -41,7 +42,7 @@ def test_sanitize_scalar_range_and_grapheme_validation():
     target = doc['blocks'][0]['id']
     with pytest.raises(ByaxError):
         sanitize(doc, [{'target': target, 'start': 2, 'end': 3}])
-    clean, report = sanitize(doc, [{'target': target, 'start': 2, 'end': 4}])
+    clean, _report = sanitize(doc, [{'target': target, 'start': 2, 'end': 4}])
     assert text_of(clean) == 'A [REDACTED] B'
 
 
@@ -61,7 +62,7 @@ def test_unknown_content_cannot_claim_sanitization():
 
 
 def test_reproduction_checks_actual_pixels_and_reference_integrity(tmp_path):
-    from byax.publication import reproduction_record, reproduce
+    from byax.publication import reproduce, reproduction_record
     doc = new_document(text='Controlled output for comparison.')
     record = reproduction_record(doc, {'reference_dir': str(tmp_path / 'reference'),
                                       'tolerance': {'channel_delta': 0, 'max_changed_fraction': 0}})
@@ -81,7 +82,7 @@ def test_reproduction_checks_actual_pixels_and_reference_integrity(tmp_path):
 
 
 def test_reproduction_refuses_reference_overwrite(tmp_path):
-    from byax.publication import reproduction_record, reproduce
+    from byax.publication import reproduce, reproduction_record
     doc = new_document(text='Never overwrite a comparison reference.')
     record = reproduction_record(doc, {'reference_dir': str(tmp_path / 'reference')})
     with pytest.raises(ByaxError, match='overwrite'):

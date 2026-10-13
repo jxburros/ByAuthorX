@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 from PySide6.QtGui import QTextCursor
 
-from byax.layout import BLOCK_ID_PROPERTY, build_document, export_pdf, render
+from byax.layout import BLOCK_ID_PROPERTY, _line_pages, build_document, export_pdf, render, resolve_layout
 from byax.model import new_document
 
 
@@ -152,7 +152,21 @@ def test_keep_together_preserves_wrapping_and_moves_fitting_paragraph():
     assert first > 0
 
 
-def test_heading_keeps_following_first_line_and_reports_widow_request():
+def _widow_doc(filler, words, attrs, heading=False):
+    doc = new_document('Widows', 'x')
+    doc['layout'].update(width=300, height=220, margins={key:20 for key in ('left','right','top','bottom')})
+    doc['blocks'] = [{'id': f'f{i}', 'type': 'paragraph', 'text': 'Filler', 'style': 'body', 'marks': [], 'attrs': {}} for i in range(filler)]
+    if heading:
+        doc['blocks'].append({'id': 'h', 'type': 'heading', 'text': 'Heading', 'style': 'heading2', 'marks': [], 'attrs': {'level': 2}})
+    doc['blocks'].append({'id': 'p', 'type': 'paragraph', 'text': 'Word '*words, 'style': 'body', 'marks': [], 'attrs': attrs})
+    return doc
+
+
+def _pages_of(qdoc, ident):
+    return _line_pages(qdoc, qdoc.findBlock(qdoc.byax_positions[ident]), 220)
+
+
+def test_heading_keeps_following_first_line():
     doc = new_document('Keep next', 'Filler\n'*10)
     doc['layout'].update(width=300, height=220, margins={key:20 for key in ('left','right','top','bottom')})
     doc['blocks'] = [doc['blocks'][0]]
@@ -165,4 +179,47 @@ def test_heading_keeps_following_first_line_and_reports_widow_request():
     heading = qdoc.findBlock(qdoc.byax_positions['heading_keep'])
     following = qdoc.findBlock(qdoc.byax_positions['following'])
     assert int(qdoc.documentLayout().blockBoundingRect(heading).top()//220) == int(qdoc.documentLayout().blockBoundingRect(following).top()//220)
-    assert any(f['code'] == 'pagination_policy' and f['target'] == 'following' for f in qdoc.byax_findings)
+    assert not any(f['code'] == 'pagination_policy' for f in qdoc.byax_findings)
+
+
+def test_heading_is_not_stranded_when_qt_pushes_following_first_line():
+    qdoc = build_document(_widow_doc(9, 40, {}, heading=True))
+    assert _pages_of(qdoc, 'h')[-1] == _pages_of(qdoc, 'p')[0]
+
+
+def test_orphan_control_moves_paragraph_with_too_few_first_page_lines():
+    plain = _pages_of(build_document(_widow_doc(10, 40, {})), 'p')
+    assert plain.count(plain[0]) == 1 and plain[0] != plain[-1]
+    controlled = build_document(_widow_doc(10, 40, {'orphan_control': 2}))
+    pages = _pages_of(controlled, 'p')
+    assert pages[0] == pages[-1] == plain[-1]
+    assert not controlled.byax_findings
+
+
+def test_widow_control_line_count_and_heading_chain_move_together():
+    plain = _pages_of(build_document(_widow_doc(8, 40, {})), 'p')
+    assert plain.count(plain[-1]) == 2
+    assert _pages_of(build_document(_widow_doc(8, 40, {'widow_control': 2})), 'p') == plain
+    pages = _pages_of(build_document(_widow_doc(8, 40, {'widow_control': 3})), 'p')
+    assert pages[0] == pages[-1]
+    qdoc = build_document(_widow_doc(8, 40, {'orphan_control': True}, heading=True))
+    assert _pages_of(qdoc, 'h')[-1] == _pages_of(qdoc, 'p')[0] == _pages_of(qdoc, 'p')[-1]
+
+
+def test_unsatisfiable_widow_rule_reports_finding_and_keeps_all_text():
+    def lone_last_line(words):
+        pages = _pages_of(build_document(_widow_doc(0, words, {})), 'p')
+        return pages.count(pages[-1]) == 1 and len(set(pages)) > 1
+    words = next(w for w in range(100, 160, 4) if lone_last_line(w))
+    doc = _widow_doc(0, words, {'widow_control': 2})
+    qdoc = build_document(doc)
+    assert any(f['code'] == 'widow_unsatisfiable' and f['target'] == 'p' for f in qdoc.byax_findings)
+    assert qdoc.findBlock(qdoc.byax_positions['p']).text() == doc['blocks'][-1]['text']
+
+
+def test_orphan_control_applies_within_columns():
+    doc = _widow_doc(9, 60, {'orphan_control': 2})
+    doc['layout'].update(columns=2, width=500)
+    flow = resolve_layout(build_document(doc), doc)['pages'][0]['fragments'][0]['document']
+    pages = _line_pages(flow, flow.findBlock(flow.byax_positions['p']), flow.pageSize().height())
+    assert pages[0] == pages[-1]
