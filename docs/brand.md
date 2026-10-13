@@ -54,6 +54,8 @@ Qt `QPropertyAnimation` uses `OutCubic` for interface fades. Vixl-authored artwo
 
 Busy artwork appears after a 200 ms delay to avoid flashing on quick tasks. A reserved status-bar slot prevents layout shifts. Overlapping workers/jobs keep one indicator active until the last task finishes; completion, cancellation, uncertainty, failure, and polling errors clear the corresponding activity. The loop stops when hidden or minimized. Explicit save confirmation never interrupts a running task, and its artwork hides after 1.2 s.
 
+Native previews show [work in progress](images/editor-busy.png), [explicit save confirmation](images/editor-saved.png), and [a populated review panel](images/editor-review.png). The review illustration gives way to the author's actual review items.
+
 **View → Reduce motion** persists in local QSettings. When enabled, changes appear immediately and active transitions finish immediately. `BYAX_REDUCED_MOTION=1` forces the same behavior for managed desktops or headless runs. Qt accessibility motion preferences, where exposed by the installed Qt/platform combination, also force reduced motion and update live. The preference cannot override an active system/environment request for reduced motion. On older Qt builds without accessibility motion hints, use the menu or environment setting.
 
 ![About window with the approved identity and pen gesture](images/about.png)
