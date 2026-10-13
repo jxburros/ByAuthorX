@@ -32,3 +32,10 @@ def test_heading_and_alt_checks_are_advisory_to_writing():
     report = run_checks(doc, ['accessibility'])
     assert report['validation'] == 'passed'
     assert report['summary']['warnings'] == 1
+
+
+def test_print_check_accepts_image_without_attrs():
+    doc = new_document(text='hello')
+    doc['blocks'].append({'id': 'img', 'type': 'image', 'text': '', 'style': 'body', 'marks': []})
+    report = run_checks(doc, ['print'])
+    assert report['validation'] != 'not_run'

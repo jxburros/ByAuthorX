@@ -310,3 +310,96 @@ def test_threaded_comment_reply_resolves_and_orphans_with_parent():
     assert doc['review']['comments'][0]['replies'][0]['status'] == 'resolved'
     doc, _ = edit(doc, {'type': 'delete_block', 'target': target})
     assert doc['review']['comments'][0]['replies'][0]['replies'][0]['status'] == 'orphaned'
+
+
+def _table_doc():
+    doc = new_document(text='Intro')
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 2, 'columns': 2})
+    return doc, next(b for b in doc['blocks'] if b['type'] == 'table')
+
+
+def test_locks_cover_fields_replacement_and_table_contents():
+    doc = new_document(text='Dear {{name}}')
+    doc['blocks'][0]['attrs']['locked'] = True
+    with pytest.raises(ByaxError) as error:
+        edit(doc, {'type': 'fill_fields', 'values': {'name': 'Bob'}})
+    assert error.value.code == 'protected_edit'
+    with pytest.raises(ByaxError) as error:
+        edit(doc, {'type': 'replace_content', 'blocks': [{'id': 'p_new', 'type': 'paragraph', 'text': 'Gone', 'style': 'body', 'marks': [], 'attrs': {}}]})
+    assert error.value.code == 'protected_edit'
+    # Unchanged locked blocks may be carried through a replacement.
+    kept = copy.deepcopy(doc['blocks'])
+    changed, _ = edit(doc, {'type': 'replace_content', 'blocks': [*kept, {'id': 'p_new', 'type': 'paragraph', 'text': 'Added', 'style': 'body', 'marks': [], 'attrs': {}}]})
+    assert changed['blocks'][0] == doc['blocks'][0]
+    doc, table = _table_doc()
+    table['attrs']['locked'] = True
+    cell = table['rows'][0]['cells'][0]
+    for op in ({'type': 'update_cell', 'target': cell['id'], 'text': 'changed'},
+               {'type': 'remove_row', 'target': table['id'], 'index': 0}):
+        with pytest.raises(ByaxError) as error:
+            edit(doc, op)
+        assert error.value.code == 'protected_edit'
+    doc, table = _table_doc()
+    table['rows'][1]['cells'][1]['attrs']['locked'] = True
+    for op in ({'type': 'remove_row', 'target': table['id'], 'index': 1},
+               {'type': 'remove_column', 'target': table['id'], 'index': 1}):
+        with pytest.raises(ByaxError) as error:
+            edit(doc, op)
+        assert error.value.code == 'protected_edit'
+    edit(doc, {'type': 'remove_row', 'target': table['id'], 'index': 0})
+
+
+def test_column_widths_follow_added_and_removed_columns():
+    doc, table = _table_doc()
+    table['attrs']['column_widths'] = [100, 200]
+    added, _ = edit(doc, {'type': 'add_column', 'target': table['id'], 'index': 1})
+    assert next(b for b in added['blocks'] if b['id'] == table['id'])['attrs']['column_widths'] == [100, 150, 200]
+    removed, _ = edit(doc, {'type': 'remove_column', 'target': table['id'], 'index': 0})
+    assert next(b for b in removed['blocks'] if b['id'] == table['id'])['attrs']['column_widths'] == [200]
+
+
+def test_replacing_text_does_not_spread_inner_formatting():
+    doc = new_document(text='Hello world')
+    target = doc['blocks'][0]['id']
+    doc['blocks'][0]['marks'] = [{'type': 'bold', 'start': 6, 'end': 11, 'value': True}]
+    changed, _ = edit(doc, {'type': 'set_text', 'target': target, 'text': 'Goodbye cruel world'})
+    assert changed['blocks'][0]['marks'] == []
+    # A mark covering the whole replaced range covers the replacement.
+    changed, _ = edit(doc, {'type': 'replace_text', 'target': target, 'match': 'world', 'replacement': 'there'})
+    assert [(m['start'], m['end']) for m in changed['blocks'][0]['marks']] == [(6, 11)]
+    doc['blocks'][0]['marks'] = [{'type': 'bold', 'start': 0, 'end': 8, 'value': True}]
+    changed, _ = edit(doc, {'type': 'replace_text', 'target': target, 'match': 'world', 'replacement': 'everyone'})
+    assert [(m['start'], m['end']) for m in changed['blocks'][0]['marks']] == [(0, 6)]
+
+
+def test_combining_insert_at_mark_edge_keeps_marks_on_grapheme_boundaries():
+    doc = new_document(text='cafe x')
+    target = doc['blocks'][0]['id']
+    doc['blocks'][0]['marks'] = [{'type': 'bold', 'start': 0, 'end': 4, 'value': True}]
+    changed, _ = edit(doc, {'type': 'insert_text', 'target': target, 'offset': 4, 'text': '́'})
+    assert changed['blocks'][0]['text'] == 'café x'
+    assert [(m['start'], m['end']) for m in changed['blocks'][0]['marks']] == [(0, 5)]
+
+
+def test_rejecting_tracked_insert_moves_comments_and_bookmarks_back():
+    doc = new_document(text='Hi')
+    target = doc['blocks'][0]['id']
+    doc, _ = edit(doc, {'type': 'set_settings', 'values': {'track_changes': True}})
+    doc, _ = edit(doc, {'type': 'insert_text', 'target': target, 'offset': 2, 'text': ' there, friend'})
+    doc, _ = edit(doc, {'type': 'add_comment', 'target': target, 'text': 'Note', 'start': 9, 'end': 15},
+                  {'type': 'set_bookmark', 'name': 'end', 'target': target, 'offset': 16})
+    change = doc['review']['tracked_changes'][-1]['id']
+    rejected, _ = edit(doc, {'type': 'reject_change', 'target': change})
+    assert rejected['blocks'][0]['text'] == 'Hi'
+    comment = rejected['review']['comments'][-1]
+    assert comment['end'] <= 2 and comment['anchor_status'] == 'needs_review'
+    assert rejected['settings']['bookmarks']['end']['offset'] <= 2
+
+
+def test_second_checkpoint_name_on_same_revision_is_rejected():
+    doc = new_document(text='Hi')
+    named, _ = engine.checkpoint(doc, 'A')
+    with pytest.raises(ByaxError) as error:
+        engine.checkpoint(named, 'B')
+    assert error.value.code == 'conflict'
+    assert [r.get('name') for r in named['history']['revisions'] if r.get('name')] == ['A']

@@ -115,12 +115,28 @@ def _splice(obj, start, end, replacement):
             pass
         elif a >= end:
             mark['start'], mark['end'] = a + delta, b + delta
-        else:
+        elif mark.get('type') == 'field':
             mark['start'] = min(a, start)
             mark['end'] = max(start + len(replacement), b + delta) if b > end else start + len(replacement)
+        elif a <= start and b >= end:
+            # A mark covering the replaced range covers its replacement.
+            mark['end'] = b + delta
+        elif a >= start and b <= end:
+            # Formatting wholly inside replaced text does not spread over new text.
+            continue
+        elif a < start:
+            mark['end'] = start
+        else:
+            mark['start'], mark['end'] = start + len(replacement), b + delta
         if mark['end'] > mark['start'] or mark.get('type') == 'field':
             marks.append(mark)
     if 'marks' in obj:
+        # Inserted combining characters can extend a grapheme past a mark edge.
+        boundaries = grapheme_boundaries(obj['text'])
+        for mark in marks:
+            for key in ('start', 'end'):
+                if mark[key] not in boundaries:
+                    mark[key] = min(x for x in boundaries if x > mark[key])
         obj['marks'] = marks
 
 def _fill_fields(doc, names, revision):
@@ -138,6 +154,8 @@ def _fill_fields(doc, names, revision):
                     replacements.append((match.start(), match.end(), match.group(1)))
             if not replacements:
                 continue
+            if _is_locked(block) or _is_locked(obj) or any(_is_locked(row) for row in block.get('rows', []) if obj in row['cells']):
+                raise ByaxError('protected_edit', 'A field occurs in locked content.', target=obj['id'])
             before_text, before_marks = obj['text'], copy.deepcopy(obj.get('marks', []))
             for start, end, name in sorted(replacements, reverse=True):
                 value = doc['fields'][name]
@@ -221,9 +239,22 @@ def _target(doc, op):
     obj = find_object(doc, op['target'])
     if op.get('expected_hash') and object_hash(obj) != op['expected_hash']:
         raise ByaxError('precondition_failed', 'Target hash changed.', target=op['target'])
-    if obj.get('attrs', {}).get('locked') or obj.get('locked'):
+    if _is_locked(obj) or any(_is_locked(parent) for parent in _containers(doc, obj['id'])):
         raise ByaxError('protected_edit', 'Target is locked.', target=op['target'])
     return obj
+
+def _is_locked(obj):
+    return bool(obj.get('attrs', {}).get('locked') or obj.get('locked'))
+
+def _containers(doc, target):
+    """Tables and rows that contain a row or cell; locks apply to their contents."""
+    for block in doc['blocks']:
+        for row in block.get('rows', []):
+            if row.get('id') == target:
+                return [block]
+            if any(cell.get('id') == target for cell in row.get('cells', [])):
+                return [block, row]
+    return []
 
 def _find_review(doc, collection, target):
     pending = list(doc['review'][collection])
@@ -459,10 +490,21 @@ def _operation(doc, op, base_revision):
                 cell['text'] = value
             rows.insert(index, row)
         elif kind == 'remove_row':
+            if _is_locked(rows[index]) or any(_is_locked(c) for c in rows[index]['cells']):
+                raise ByaxError('protected_edit', 'Row contains locked content.', target=rows[index]['id'])
             removed_row = rows.pop(index)
             removed_ids = {removed_row['id']} | {c['id'] for c in removed_row['cells']}
             _orphan_review(doc, removed_ids)
         else:
+            if not adding and any(_is_locked(row['cells'][index]) for row in rows):
+                raise ByaxError('protected_edit', 'Column contains locked content.', target=obj['id'])
+            widths = obj.get('attrs', {}).get('column_widths')
+            if isinstance(widths, list) and len(widths) == columns:
+                if adding:
+                    # A new column takes the mean width so existing columns keep their widths.
+                    widths.insert(index, sum(widths) / len(widths))
+                else:
+                    widths.pop(index)
             for ri, row in enumerate(rows):
                 if adding:
                     row['cells'].insert(index, _cell(op['values'][ri] if 'values' in op else ''))
@@ -623,6 +665,7 @@ def _operation(doc, op, base_revision):
                     raise ByaxError('conflict', 'Tracked text has changed again; rejection needs reconciliation.', target=obj['id'])
                 _splice(obj, 0, len(obj['text']), change['before'])
                 obj['marks'] = copy.deepcopy(change.get('before_marks', []))
+                _adjust_anchors(doc, obj['id'], 0, len(change['after']), len(change['before']))
             changed.append(obj['id'])
         change['status'] = 'accepted' if kind == 'accept_change' else 'rejected'
         changed.append(change['id'])
@@ -644,6 +687,11 @@ def _operation(doc, op, base_revision):
             if key in op and not isinstance(op[key], dict):
                 _error('Expected an object.', key)
         old_ids = {b['id'] for b in doc['blocks']} | {c['id'] for b in doc['blocks'] for r in b.get('rows', []) for c in r['cells']}
+        incoming = {b.get('id'): b for b in op['blocks']}
+        for block in doc['blocks']:
+            locked = _is_locked(block) or any(_is_locked(r) or any(_is_locked(c) for c in r['cells']) for r in block.get('rows', []))
+            if locked and incoming.get(block['id']) != block:
+                raise ByaxError('protected_edit', 'Replacement content must keep locked blocks unchanged.', target=block['id'])
         doc['blocks'] = copy.deepcopy(op['blocks'])
         doc['assets'].update(copy.deepcopy(op.get('assets', {})))
         if 'import_provenance' in op:
@@ -894,6 +942,8 @@ def checkpoint(doc, name):
     if record is None:
         record = {'revision': doc['revision'], 'snapshot': snapshot(doc), 'timestamp': datetime.now(UTC).isoformat(), 'origin': 'checkpoint', 'operations': []}
         candidate['history']['revisions'].append(record)
+    if record.get('name'):
+        raise ByaxError('conflict', 'This revision already has a checkpoint name.', target=record['name'])
     if record in doc['history']['revisions']:
         replacement = {k: v for k, v in record.items() if k != 'delta'}
         replacement.update(name=name, snapshot=snapshot(doc))

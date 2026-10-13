@@ -8,6 +8,7 @@ import stat
 import tempfile
 import threading
 import zipfile
+import zlib
 from pathlib import Path, PurePosixPath
 
 from .errors import ByaxError
@@ -194,7 +195,7 @@ def load_document(path):
             return _decode({i.filename: archive.read(i) for i in infos})
     except ByaxError:
         raise
-    except (OSError, zipfile.BadZipFile, RuntimeError) as exc:
+    except (OSError, zipfile.BadZipFile, RuntimeError, zlib.error, EOFError) as exc:
         raise ByaxError('invalid_input', f'Cannot read native package: {exc}', target=str(path)) from exc
 
 def save_document(doc, path, *, owner=None):
@@ -214,6 +215,9 @@ def save_document(doc, path, *, owner=None):
                 stream.flush()
                 os.fsync(stream.fileno())
             load_document(tmp)
+            if target.exists():
+                # mkstemp creates 0600 files; keep the document's existing mode.
+                os.chmod(tmp, stat.S_IMODE(target.stat().st_mode))
             os.replace(tmp, target)
             if os.name != 'nt':
                 dirfd = os.open(target.parent, os.O_DIRECTORY)

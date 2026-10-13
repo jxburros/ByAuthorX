@@ -1,5 +1,7 @@
 import base64
 import hashlib
+import os
+import stat
 import zipfile
 
 import pytest
@@ -99,3 +101,29 @@ def test_edited_source_packs_with_fresh_deterministic_revision_and_keeps_asset_h
     (source / 'assets' / digest).write_bytes(b'tampered')
     with pytest.raises(ByaxError, match='asset'):
         pack(source, tmp_path / 'tampered.byax')
+
+
+def test_corrupt_member_stream_is_invalid_input(tmp_path):
+    path = tmp_path / 'doc.byax'
+    save_document(new_document(text='Corrupt me ' * 200), path)
+    raw = bytearray(path.read_bytes())
+    with zipfile.ZipFile(path) as archive:
+        info = archive.getinfo('document.json')
+    start = info.header_offset + 30 + len(info.filename.encode()) + len(info.extra)
+    for index in range(start + 4, start + 40):
+        raw[index] ^= 0xFF
+    path.write_bytes(bytes(raw))
+    with pytest.raises(ByaxError) as error:
+        load_document(path)
+    assert error.value.code == 'invalid_input'
+
+
+@pytest.mark.skipif(os.name == 'nt', reason='POSIX permission bits')
+def test_save_preserves_existing_file_mode(tmp_path):
+    path = tmp_path / 'shared.byax'
+    doc = new_document(text='Shared')
+    save_document(doc, path)
+    path.chmod(0o644)
+    changed, _ = apply(doc, {'operations': [{'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Edited'}]})
+    save_document(changed, path)
+    assert stat.S_IMODE(path.stat().st_mode) == 0o644

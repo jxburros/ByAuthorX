@@ -164,3 +164,13 @@ def test_template_csv_coerces_declared_types_and_locates_invalid_rows(tmp_path):
     assert rows[1][0] is None
     assert rows[1][1]['error']['field'] == 'count'
     assert rows[1][1]['error']['csv_row'] == 3
+
+
+def test_csv_tolerates_only_trailing_blank_lines(tmp_path):
+    from byax.table_io import read_csv
+    path = tmp_path / 'trailing.csv'
+    path.write_bytes(b'a,b\r\n1,2\r\n\r\n')
+    assert read_csv(path) == [['a', 'b'], ['1', '2']]
+    path.write_bytes(b'a,b\r\n\r\n1,2\r\n')
+    with pytest.raises(ByaxError):
+        read_csv(path)

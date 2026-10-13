@@ -84,17 +84,20 @@ def _read(stream):
             raise ValueError('Incomplete message')
     else:
         raw = line
-    return json.loads(raw.decode('utf-8')), framed
+    return raw, framed
 
 
 def run(input_stream, output_stream) -> int:
     while True:
         framed = False
         try:
-            request, framed = _read(input_stream)
-            if request is None:
+            raw, framed = _read(input_stream)
+            if raw is None:
                 return 0
-            response = handle(request)
+            if not framed and not raw.strip():
+                continue
+            # Parse after framing is known so errors reply in the client's framing.
+            response = handle(json.loads(raw.decode('utf-8')))
         except (ValueError, UnicodeError) as exc:
             response = {'jsonrpc': '2.0', 'id': None, 'error': {'code': -32700, 'message': str(exc)}}
         except Exception:  # noqa: BLE001 - preserve protocol framing on implementation failure
