@@ -482,7 +482,10 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         from .publication import save_sanitized
         _destination(a['out'], False, a['path'])
         doc = _load(a['path'])
-        result = save_sanitized(doc, a['out'], a['input'].get('targets', []), terms=a['input'].get('terms'))
+        if set(a['input']) - {'targets', 'terms', 'preserve'}:
+            _error('invalid_input', 'Redaction input supports targets, terms and preserve', field='input')
+        result = save_sanitized(doc, a['out'], a['input'].get('targets', []), terms=a['input'].get('terms'),
+                                preserve=a['input'].get('preserve'))
         return envelope(result, doc)
     if command == 'reproduction':
         from .publication import reproduce, reproduction_record

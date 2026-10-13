@@ -1,6 +1,7 @@
 """Publication policies, deliberately destructive sanitization of a COPY, and reproduction records."""
 from __future__ import annotations
 
+import base64
 import copy
 import hashlib
 import json
@@ -28,13 +29,43 @@ def _text_targets(doc):
             yield block
 
 
-def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None) -> tuple[dict, dict]:
-    """Rebuild a text-only master with selected text removed everywhere.
+PRESERVABLE = frozenset({'styles', 'layout', 'images'})
+# Formatting-only block attributes that may follow preserved styles.
+_FORMAT_ATTRS = frozenset({'alignment', 'list', 'level', 'start', 'restart', 'space_before', 'space_after', 'indent',
+                           'first_line_indent', 'line_spacing', 'page_break_before', 'keep_together', 'keep_with_next',
+                           'widow_control', 'orphan_control', 'header_rows', 'column_widths', 'rowspan', 'colspan',
+                           'width', 'height', 'wrap'})
 
-    targets contains IDs or {target,start,end} scalar ranges. All assets, review,
-    history, sources, metadata, embedded audio, custom styles and arbitrary extension
-    data are excluded by reconstruction, never merely hidden. The original is untouched.
+
+def _term_encodings(terms):
+    for term in terms:
+        for encoding in ('utf-8', 'utf-16-le', 'utf-16-be'):
+            yield term.encode(encoding)
+        try:
+            yield term.encode('latin-1')
+        except UnicodeEncodeError:
+            pass
+
+
+def _contains_term(value, terms):
+    return any(term in text for text in _string_values(value) for term in terms) or (
+        isinstance(value, dict) and any(isinstance(key, str) and term in key for key in value for term in terms))
+
+
+def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None, preserve=None) -> tuple[dict, dict]:
+    """Rebuild a master with selected text removed everywhere.
+
+    targets contains IDs or {target,start,end} scalar ranges. Review, history,
+    sources, metadata, embedded audio, fields, layers and arbitrary extension data
+    are excluded by reconstruction, never merely hidden. ``preserve`` may opt in to
+    keeping named styles, page layout and embedded images; each is kept only where
+    the redacted terms can be verified absent. The original is untouched.
     """
+    if preserve is not None and not isinstance(preserve, (list, tuple, set)):
+        raise ByaxError('invalid_input', 'Preserve must be a list of categories.', supported=sorted(PRESERVABLE))
+    preserve = set(preserve or [])
+    if preserve - PRESERVABLE:
+        raise ByaxError('invalid_input', 'Preserve may contain only styles, layout and images.', supported=sorted(PRESERVABLE))
     terms = list(terms or [])
     source = copy.deepcopy(doc)
     indexed = {node['id']: node for node in _text_targets(source)}
@@ -70,22 +101,67 @@ def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None) -> tup
 
     clean = new_document('Sanitized document')
     clean['blocks'] = []
-    removed_objects = 0
+    removed_objects, dropped_styles, dropped_assets, preserved_assets = 0, [], [], []
+    if 'styles' in preserve:
+        for name, values in source.get('styles', {}).items():
+            if _contains_term({name: values}, terms):
+                dropped_styles.append(hashlib.sha256(name.encode()).hexdigest())
+            else:
+                clean['styles'][name] = copy.deepcopy(values)
+    if 'layout' in preserve:
+        def scrub_values(value):
+            if isinstance(value, str):
+                return scrub(value)
+            if isinstance(value, dict):
+                return {key: scrub_values(item) for key, item in value.items()}
+            if isinstance(value, list):
+                return [scrub_values(item) for item in value]
+            return value
+        clean['layout'] = scrub_values(copy.deepcopy(source.get('layout', clean['layout'])))
+    encoded = list(_term_encodings(terms))
+
+    def formatting(attrs):
+        if 'styles' not in preserve:
+            return {}
+        return {key: copy.deepcopy(value) for key, value in attrs.items()
+                if key in _FORMAT_ATTRS and not _contains_term(value, terms)}
+
     for block in source['blocks']:
         kind = block.get('type')
+        if kind == 'image' and 'images' in preserve:
+            attrs = block.get('attrs', {})
+            asset = source.get('assets', {}).get(attrs.get('asset'))
+            raw = base64.b64decode(asset.get('data', '')) if isinstance(asset, dict) else b''
+            # Byte scans cannot read pixels; images whose bytes carry a term are removed.
+            if not raw or any(needle in raw for needle in encoded):
+                if raw:
+                    dropped_assets.append(attrs.get('asset'))
+                removed_objects += 1
+                continue
+            digest = hashlib.sha256(raw).hexdigest()
+            clean['assets'][digest] = {'data': base64.b64encode(raw).decode('ascii'), 'mime': asset.get('mime', 'application/octet-stream'), 'name': 'image'}
+            preserved_assets.append(digest)
+            image_attrs = {key: copy.deepcopy(attrs[key]) for key in ('width', 'height', 'wrap', 'alignment')
+                           if key in attrs and not _contains_term(attrs[key], terms)}
+            image_attrs.update(asset=digest, alt=scrub(str(attrs.get('alt', ''))))
+            clean['blocks'].append({'id': 'image_' + uuid.uuid4().hex, 'type': 'image', 'text': '', 'style': 'body', 'marks': [], 'attrs': image_attrs})
+            continue
         if kind in {'image', 'page_break', 'section_break', 'toc'}:
             removed_objects += 1
             continue
         if kind not in {'paragraph', 'heading', 'table', 'footnote'}:
             raise ByaxError('unsupported_feature', 'Cannot verify sanitization of this block type.', target=block.get('id'), block_type=kind)
         out = {'id': 'block_' + uuid.uuid4().hex, 'type': kind if kind != 'footnote' else 'paragraph',
-               'text': scrub(block.get('text', '')), 'style': 'body', 'marks': [], 'attrs': {}}
+               'text': scrub(block.get('text', '')), 'style': 'body', 'marks': [], 'attrs': formatting(block.get('attrs', {}))}
+        if block.get('style') in clean['styles'] and 'styles' in preserve:
+            out['style'] = block['style']
         if kind == 'heading':
             out['attrs']['level'] = min(6, max(1, int(block.get('attrs', {}).get('level', 1))))
-            out['style'] = f"heading{out['attrs']['level']}"
+            if out['style'] == 'body':
+                out['style'] = f"heading{out['attrs']['level']}"
         if kind == 'table':
             out['rows'] = [{'id': 'row_' + uuid.uuid4().hex,
-                            'cells': [{'id': 'cell_' + uuid.uuid4().hex, 'text': scrub(cell.get('text', '')), 'attrs': {}}
+                            'cells': [{'id': 'cell_' + uuid.uuid4().hex, 'text': scrub(cell.get('text', '')), 'attrs': formatting(cell.get('attrs', {}))}
                                       for cell in row.get('cells', [])]}
                            for row in block.get('rows', [])]
         clean['blocks'].append(out)
@@ -94,9 +170,14 @@ def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None) -> tup
     report = {'schema_version': 1, 'execution': 'completed', 'validation': 'not_run',
               'review': 'required', 'document_id': clean['id'], 'base_revision': doc['revision'],
               'revision': clean['revision'], 'selected_ids': selected, 'occurrences_removed': occurrences,
-              'removed_objects': removed_objects, 'removed_categories': ['assets', 'audio', 'review', 'history',
-                  'sources', 'metadata', 'fields', 'layers', 'custom_styles', 'extension_data'],
-              'losses': ['Sanitization rebuilds a text-only document with default styles and page settings.'],
+              'removed_objects': removed_objects,
+              'removed_categories': [category for category in ('assets', 'audio', 'review', 'history', 'sources', 'metadata',
+                  'fields', 'layers', 'custom_styles', 'layout', 'extension_data')
+                  if not (category == 'custom_styles' and 'styles' in preserve or category == 'layout' and 'layout' in preserve)],
+              'preserved': sorted(preserve), 'preserved_assets': preserved_assets,
+              'dropped_style_hashes': dropped_styles, 'dropped_assets': dropped_assets,
+              'losses': ['Sanitization rebuilds the document; marks, review, history and unselected categories are removed.'] + (
+                  ['Preserved images were checked byte-for-byte; text drawn in their pixels is not inspected.'] if preserved_assets else []),
               'term_hashes': [hashlib.sha256(term.encode()).hexdigest() for term in terms],
               'outputs': [], 'coverage': {'serialized_output': 'not_run'}}
     return clean, report
@@ -135,7 +216,7 @@ def _copy_exclusive(source, destination):
         raise
 
 
-def save_sanitized(doc, out_path, targets, *, terms=None):
+def save_sanitized(doc, out_path, targets, *, terms=None, preserve=None):
     """Verify the actual staged archive before publishing the sanitized master."""
     import tempfile
     import zipfile
@@ -147,7 +228,7 @@ def save_sanitized(doc, out_path, targets, *, terms=None):
         raise ByaxError('invalid_input', 'Verified sanitization outputs a .byax master; export it separately.')
     if destination.exists():
         raise ByaxError('conflict', 'Sanitized output already exists; choose a new path.')
-    clean, report = sanitize(doc, targets, terms=terms)
+    clean, report = sanitize(doc, targets, terms=terms, preserve=preserve)
     needles = list(terms or [])
     nodes = {node['id']: node for node in _text_targets(doc)}
     for selector in targets:
@@ -161,18 +242,23 @@ def save_sanitized(doc, out_path, targets, *, terms=None):
         save_document(clean, stage)
         checked = load_document(stage)
         with zipfile.ZipFile(stage) as archive:
+            encoded = list(_term_encodings(needles))
             for member in archive.infolist():
                 raw = archive.read(member)
-                # Assets are never allowed in this conservative sanitized format.
+                # Only explicitly preserved, byte-checked image assets may be binary.
                 if not member.filename.endswith('.json'):
-                    raise ByaxError('failed_requirement', 'Unexpected binary member in sanitized archive.')
+                    if member.filename not in {f'assets/{digest}' for digest in report['preserved_assets']}:
+                        raise ByaxError('failed_requirement', 'Unexpected binary member in sanitized archive.')
+                    if any(needle in raw for needle in encoded):
+                        raise ByaxError('failed_requirement', 'Serialized sanitization verification found retained text.')
+                    continue
                 # Search decoded string values, not escaped JSON: escaping hid terms
                 # containing quotes or newlines, while keys and generated defaults
                 # caused false failures for ordinary words such as "body".
                 values = _string_values(json.loads(raw), baseline)
                 if any(term in value for value in values for term in needles):
                     raise ByaxError('failed_requirement', 'Serialized sanitization verification found retained text.')
-        if checked.get('assets'):
+        if set(checked.get('assets', {})) - set(report['preserved_assets']):
             raise ByaxError('failed_requirement', 'Sanitized archive retained assets.')
         # A same-filesystem hard link publishes the fully written archive atomically
         # and refuses to replace an existing file, including a racing private original.
