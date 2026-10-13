@@ -394,8 +394,11 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                             result['review'] = 'required'
                     else:
                         result = execute(payload['command'], payload['arguments'])
-                    if result_exit_code(result):
-                        _error('failed_requirement', 'Job did not satisfy policy', result=result)
+                    child_code = result_exit_code(result)
+                    if child_code:
+                        # Keep the child's error class so the job exits like a direct call.
+                        code = (result.get('error') or {}).get('code') or _EXIT_ERRORS.get(child_code, 'execution_failure')
+                        _error(code, 'Job did not satisfy policy', result=result)
                     return result
                 job = manager.submit(spec['command'], frozen, worker)
                 result = manager.wait(job['id'])
@@ -403,6 +406,11 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                 if action not in ('status', 'result', 'cancel', 'recover') or not a.get('id'):
                     _error('invalid_input', 'Use submit/list/status/result/cancel/recover; supply --id where required')
                 result = getattr(manager, action)(a['id'])
+            if result.get('state') == 'failed' and isinstance(result.get('error'), dict):
+                from .errors import ByaxError
+                code = result['error'].get('code', 'execution_failure')
+                if ByaxError(code, '').exit_code != 1:
+                    raise ByaxError(code, 'Job ended with an error', job=result)
             return envelope({'job': result}, execution=result.get('state', 'completed'))
         finally:
             manager.close(wait=True)
@@ -613,6 +621,9 @@ def _batch(a):
     return envelope({'items': results, 'total': len(items), 'failed': failed}, execution='failed' if failed else 'completed')
 
 
+_EXIT_ERRORS = {2: 'invalid_input', 3: 'conflict', 4: 'failed_requirement', 5: 'incomplete_coverage', 6: 'cancelled', 7: 'pending'}
+
+
 def result_exit_code(result: dict) -> int:
     state = result.get('execution')
     if state == 'cancelled':
@@ -703,8 +714,11 @@ def main(argv=None) -> int:
             if ns['input'] == '-':
                 raw = sys.stdin.read(16 * 1024 * 1024 + 1)
             else:
-                with Path(ns['input']).open(encoding='utf-8') as handle:
-                    raw = handle.read(16 * 1024 * 1024 + 1)
+                try:
+                    with Path(ns['input']).open(encoding='utf-8') as handle:
+                        raw = handle.read(16 * 1024 * 1024 + 1)
+                except OSError as exc:
+                    _error('invalid_input', f'Cannot read --input file: {exc.strerror or exc}', field='input')
             if len(raw) > 16 * 1024 * 1024:
                 _error('limit_exceeded', 'JSON input exceeds 16 MiB')
             ns['input'] = json.loads(raw)

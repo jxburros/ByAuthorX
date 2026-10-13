@@ -135,7 +135,7 @@ def run_checks(doc, suites=None, *, limit=100, profile=None):
             add('paper.invalid', 'print', 'error', 'Margins leave no printable area.')
         for b in doc['blocks']:
             if b['type'] == 'image':
-                a = b['attrs']
+                a = b.get('attrs', {})
                 if a.get('pixel_width') and a.get('width'):
                     dpi = a['pixel_width'] / a['width'] * 72
                     if dpi < config.get('minimum_dpi', 150):
