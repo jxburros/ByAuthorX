@@ -120,3 +120,18 @@ def test_opt_in_rest_auth_and_actual_request(tmp_path):
         server.shutdown()
         server.server_close()
         worker.join(timeout=5)
+
+
+def test_mcp_skips_blank_lines_and_keeps_framing_for_parse_errors():
+    import io
+
+    from byax.mcp import run
+    ping = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'ping'}).encode()
+    out = io.BytesIO()
+    run(io.BytesIO(b'\n' + ping + b'\n'), out)
+    assert [json.loads(line)['id'] for line in out.getvalue().splitlines()] == [1]
+    out = io.BytesIO()
+    run(io.BytesIO(b'Content-Length: 3\r\n\r\n{x}'), out)
+    header, body = out.getvalue().split(b'\r\n\r\n', 1)
+    assert header.startswith(b'Content-Length: ')
+    assert json.loads(body)['error']['code'] == -32700
