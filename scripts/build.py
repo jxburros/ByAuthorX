@@ -28,6 +28,7 @@ def main():
                '--exclude-module', 'pytest']
         if windowed:
             cmd.append('--windowed')
+            cmd.extend(['--icon', str(ROOT / 'src' / 'byax' / 'resources' / 'brand' / 'byauthorx.ico')])
         cmd.append(str(ROOT / 'packaging' / entry))
         subprocess.run(cmd, cwd=ROOT, check=True)
         shutil.copytree(stage / name, output, dirs_exist_ok=True)

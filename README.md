@@ -1,4 +1,11 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/wordmark-dark.svg">
+  <img src="docs/images/wordmark-light.svg" alt="ByAuthorX" width="360">
+</picture>
+
 # ByAuthorX
+
+**Your words. Your call.**
 
 A native desktop word processor with a shared, programmable document engine. Write in a Qt desktop editor, save editable `.byax` documents, inspect and edit through the CLI or MCP, and export through the same typography engine.
 
@@ -34,6 +41,14 @@ On Ubuntu, install the native Qt dependencies documented in [compatibility](docs
 The editor includes a continuous writing view, a paginated preview, semantic outline, review and layer inspectors, native file dialogs/printing, formatting, tables/images, find/replace, undo/history, templates, local checks, and provider/dictation controls. `.byax` packages retain semantic identities, assets, review, source information, and history. Exporting does not replace the master. Imports and lossy exports return compatibility reports.
 
 Unconfigured AI functions do not prevent writing, saving, printing, or deterministic checks. Each provider requires a chosen model and local configuration; keys stay in OS credential storage or explicit environment references. No accounts, telemetry, or background model polling are required.
+
+## Identity and motion
+
+Warm paper, quiet ink, and familiar controls frame a clean writing page. Manrope is bundled for the interface; IM Fell English gives introductions their print character. Source Serif 4 is available as an optional document font. Your document keeps its chosen styles.
+
+View and inspector changes, and explicit save feedback, use brief 180 ms transitions. The About window plays a custom Vixl-authored pen gesture once. Choose **View → Reduce motion** for immediate transitions; supported system preferences and `BYAX_REDUCED_MOTION=1` also disable motion. There are no looping decorations while writing.
+
+See the [design system and motion contract](docs/brand.md), [editable brand sources](design/brand/README.md), and [supplied brand guide](design/brand/kit/ByAuthorX-brand-guide.pdf).
 
 ## CLI
 

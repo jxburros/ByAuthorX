@@ -1,0 +1,18 @@
+ByAuthorX Brand Kit and Aesthetic Direction
+
+Open ByAuthorX-brand-guide.pdf for the nine-page guide.
+All visuals and PDF exports were made with Vixl 0.26.0.
+The guide and its reusable graphics remain editable in Vixl.
+Keep this folder together: the guide links to logos, graphics and examples.
+For CLI work, set the Vixl workspace to this extracted folder.
+
+logos/primary.svg is the approved C4.2 logo, cropped to remove outer whitespace.
+logos/reversed.svg is the color version for the dark ink background.
+logos/ink.svg and white.svg are one-color reproduction masters.
+The X app icon and favicon are derived supporting assets.
+examples/ contains editable social and native desktop editor concepts.
+implementation/ contains CSS and JSON tokens. fonts/ contains font files and license notices.
+final-validation.json records Vixl final checks and deliberate whitespace decisions.
+
+The logo name is outlined; the guide, headline and interface text remain editable.
+The PDF is a digital reference guide. Obtain the printer profile before producing color-critical print.
