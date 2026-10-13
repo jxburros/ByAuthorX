@@ -19,6 +19,16 @@ def register_bundled_fonts():
 
 
 def bundled_font_path(family, bold=False, italic=False):
+    brand_fonts = {
+        'manrope': 'Manrope-600.ttf' if bold else 'Manrope-400.ttf',
+        'im fell english': 'IM-Fell-English-400.ttf',
+        'source serif 4': 'Source-Serif-4-400.ttf',
+    }
+    if family.casefold() in brand_fonts:
+        # Only supplied faces are fingerprinted; synthetic styles have no font file.
+        if italic or (bold and family.casefold() != 'manrope'):
+            return None
+        return FONT_ROOT / brand_fonts[family.casefold()]
     families = {'DejaVu Sans': ('DejaVuSans', 'Oblique'), 'DejaVu Sans Mono': ('DejaVuSansMono', 'Oblique'),
                 'DejaVu Serif': ('DejaVuSerif', 'Italic')}
     if family not in families:

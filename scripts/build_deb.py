@@ -33,6 +33,10 @@ for dest, source in [('usr/share/applications/byauthorx.desktop', 'byauthorx.des
     path = root / dest
     path.parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(ROOT / 'packaging' / source, path)
+for size in (16, 24, 32, 48, 64, 96, 128, 256, 512):
+    path = root / 'usr' / 'share' / 'icons' / 'hicolor' / f'{size}x{size}' / 'apps' / 'byauthorx.png'
+    path.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(ROOT / 'src' / 'byax' / 'resources' / 'brand' / f'app-{size}.png', path)
 (root / 'usr' / 'bin').mkdir(parents=True)
 for name in ['byax', 'byax-mcp']:
     os.symlink('/opt/byauthorx/' + name, root / 'usr' / 'bin' / name)

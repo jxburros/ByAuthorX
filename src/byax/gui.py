@@ -15,7 +15,7 @@ from pathlib import Path
 
 from platformdirs import user_data_path
 from PySide6.QtCore import QObject, QRunnable, QSettings, QSizeF, Qt, QThreadPool, QTimer, Signal
-from PySide6.QtGui import QAction, QColor, QFont, QKeySequence, QPageSize, QPainter
+from PySide6.QtGui import QAction, QColor, QKeySequence, QPageSize, QPainter
 from PySide6.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PySide6.QtWidgets import (
     QApplication,
@@ -48,7 +48,9 @@ from PySide6.QtWidgets import (
 )
 
 from . import engine, model, storage
+from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .gui_editor import PageCanvas, SemanticEditor
+from .gui_motion import MotionController, PenLineAnimation
 
 FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm);;ByAuthorX (*.byax *.BYAX);;All files (*)'
 
@@ -77,6 +79,10 @@ class MainWindow(QMainWindow):
         self.setWindowTitle('ByAuthorX')
         self.resize(1320, 900)
         self.settings = QSettings('ByAuthorX', 'ByAuthorX')
+        configure_application(QApplication.instance())
+        self.setWindowIcon(app_icon())
+        self.motion = MotionController(self.settings, self)
+        self.setDockOptions(self.dockOptions() & ~QMainWindow.AnimatedDocks)
         self.doc = model.new_document()
         self.path = None
         self.lock = None
@@ -118,19 +124,6 @@ class MainWindow(QMainWindow):
         return action
 
     def _build_ui(self):
-        self.setStyleSheet('''
-            QMainWindow { background: #e8ede9; }
-            QMenuBar, QToolBar { background: #183e3d; color: #f4f1e7; padding: 7px; border: 0; }
-            QMenuBar::item:selected, QToolButton:hover { background: #35605a; }
-            QToolButton { color: #f4f1e7; border: 0; padding: 7px 9px; }
-            QDockWidget { color: #1d4240; font-weight: 600; }
-            QTreeWidget, QListWidget { border: 0; background: #f3f5ef; color: #243b38; padding: 8px; }
-            QTreeWidget::item, QListWidget::item { padding: 7px; }
-            QTreeWidget::item:selected, QListWidget::item:selected { background: #c7ddd3; color: #163b37; }
-            QStatusBar { background: #e8ede9; color: #29453e; padding: 4px; }
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox { min-height: 25px; padding: 2px 5px; }
-            QPushButton { padding: 6px 12px; }
-        ''')
         menus = {name: self.menuBar().addMenu(name) for name in ('&File', '&Edit', 'F&ormat', '&Insert', '&Table', '&Review', '&View', '&Tools', '&Help')}
         file_actions = [('New', self.new_file, QKeySequence.New), ('New from template…', self.templates, None),
                         ('Open…', self.open_file, QKeySequence.Open), ('Save', self.save, QKeySequence.Save),
@@ -150,6 +143,7 @@ class MainWindow(QMainWindow):
         self.stack.addWidget(self.editor)
         self.pages = PageCanvas()
         scroll = QScrollArea()
+        scroll.setObjectName('pagePreview')
         scroll.setWidget(self.pages)
         scroll.setAlignment(Qt.AlignHCenter)
         self.stack.addWidget(scroll)
@@ -162,9 +156,10 @@ class MainWindow(QMainWindow):
         toolbar = QToolBar('Writing tools')
         toolbar.setMovable(False)
         self.addToolBar(toolbar)
-        wordmark = QLabel('  ByAuthorX   /   WRITE  ')
-        wordmark.setStyleSheet('color: #e5c890; font-size: 16px; font-weight: 700; padding: 8px;')
-        toolbar.addWidget(wordmark)
+        self.brand_mark = BrandGraphic('wordmark-light.png', 240, clear_space=20)
+        self.brand_mark.setAccessibleName('ByAuthorX')
+        toolbar.addWidget(self.brand_mark)
+        toolbar.addSeparator()
         self.style_box = QComboBox()
         self.style_box.setAccessibleName('Paragraph style')
         self.style_box.addItems(['body', 'title', 'subtitle', 'heading1', 'heading2', 'heading3', 'quotation', 'caption', 'code'])
@@ -221,11 +216,15 @@ class MainWindow(QMainWindow):
         menus['&Review'].addAction(self.track_action)
         menus['&View'].addAction(self.action('Writing / pages', self.toggle_pages, 'Ctrl+Alt+L'))
         menus['&View'].addAction(self.action('Markdown source…', self.source_view))
+        self.reduce_motion_action = self.action('Reduce motion', self.motion.set_reduced, checkable=True)
+        self.reduce_motion_action.setChecked(self.motion.reduced)
+        self.motion.reducedChanged.connect(self.reduce_motion_action.setChecked)
+        menus['&View'].addAction(self.reduce_motion_action)
         for title, slot in [('Provider settings…', self.provider_settings), ('Import audio…', self.import_audio),
                             ('Dictation…', self.dictation), ('Background jobs…', self.jobs_dialog), ('Document properties…', self.document_properties),
                             ('Document statistics', self.statistics)]:
             menus['&Tools'].addAction(self.action(title, slot))
-        menus['&Help'].addAction(self.action('About ByAuthorX', lambda: self.message('ByAuthorX', 'A native, local-first writing workspace.\nVersion 0.1.0 · MIT license\n\nProvider workflows run only when requested. Checks report actual coverage.')))
+        menus['&Help'].addAction(self.action('About ByAuthorX', self.about))
         self.outline = QTreeWidget()
         self.outline.setHeaderHidden(True)
         self.outline.setAccessibleName('Document outline')
@@ -237,6 +236,7 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, outline_dock)
         self.inspector = QTabWidget()
         self.review_list = QListWidget()
+        self.review_list.setWordWrap(True)
         self.review_list.setAccessibleName('Comments, proposals, and findings')
         self.review_list.itemActivated.connect(self.review_item)
         review = QWidget()
@@ -244,6 +244,8 @@ class MainWindow(QMainWindow):
         rv.addWidget(self.review_list)
         for label, slot in [('Open selected item', self.review_item), ('Reply to comment…', self.reply_comment), ('Resolve / accept…', self.accept_item), ('Reject proposal', self.reject_item)]:
             btn = QPushButton(label)
+            if label == 'Resolve / accept…':
+                btn.setProperty('primary', True)
             btn.clicked.connect(slot)
             rv.addWidget(btn)
         self.inspector.addTab(review, 'Review')
@@ -263,10 +265,43 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.RightDockWidgetArea, inspector_dock)
         menus['&View'].addAction(outline_dock.toggleViewAction())
         menus['&View'].addAction(inspector_dock.toggleViewAction())
+        for dock in (outline_dock, inspector_dock):
+            widget = dock.widget()
+            dock.visibilityChanged.connect(
+                lambda visible, widget=widget: self.motion.fade(widget) if visible else self.motion.finish(widget))
+        self.inspector.currentChanged.connect(lambda index: self.motion.fade(self.inspector.widget(index)))
         self.status_label = QLabel('Ready')
         self.statusBar().addWidget(self.status_label, 1)
         self.word_label = QLabel()
         self.statusBar().addPermanentWidget(self.word_label)
+
+    def create_about_dialog(self):
+        dialog = QDialog(self)
+        dialog.setWindowTitle('About ByAuthorX')
+        dialog.setAttribute(Qt.WA_DeleteOnClose)
+        layout = QVBoxLayout(dialog)
+        layout.setContentsMargins(40, 40, 40, 24)
+        layout.setSpacing(24)
+        wordmark = BrandGraphic('wordmark-light.png', 360)
+        wordmark.setAccessibleName('ByAuthorX')
+        layout.addWidget(wordmark)
+        tagline = QLabel('Your words. Your call.')
+        tagline.setObjectName('brandTagline')
+        layout.addWidget(tagline)
+        layout.addWidget(PenLineAnimation(self.motion))
+        description = QLabel('A native, local-first writing workspace.\n\n'
+                             'Write. Review. Keep what works.\n'
+                             'Provider workflows run only when requested.\n'
+                             'Version 0.1.0 · MIT license')
+        description.setWordWrap(True)
+        layout.addWidget(description)
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        buttons.rejected.connect(dialog.reject)
+        layout.addWidget(buttons)
+        return dialog
+
+    def about(self):
+        self.create_about_dialog().exec()
 
     def message(self, title, text):
         QMessageBox.information(self, title, text)
@@ -646,7 +681,8 @@ class MainWindow(QMainWindow):
             self.dirty = False
             self.recovery_path().unlink(missing_ok=True)
             self.update_status()
-            self.status_label.setText('Saved')
+            self.status_label.setText('Saved locally')
+            self.motion.fade(self.status_label)
             return True
         except Exception as exc:
             self.error(exc)
@@ -785,7 +821,7 @@ class MainWindow(QMainWindow):
                      for target, start, end in self.editor.selection_targets() if end > start])
 
     def choose_color(self, mark):
-        color = QColorDialog.getColor(QColor('#183e3d'), self)
+        color = QColorDialog.getColor(QColor(COLORS['ink']), self)
         if color.isValid():
             self.format_selection(mark, color.name())
 
@@ -1564,6 +1600,7 @@ class MainWindow(QMainWindow):
             self.stack.setCurrentIndex(0)
             self.editor.setFocus()
             self.status_label.setText('Writing view')
+        self.motion.fade(self.stack.currentWidget())
 
     def print_preview(self):
         self.flush_edits()
@@ -1814,7 +1851,6 @@ def main(argv=None):
     app.setApplicationName('ByAuthorX')
     app.setOrganizationName('ByAuthorX')
     app.setStyle('Fusion')
-    app.setFont(QFont('Noto Sans', 10))
     args = sys.argv[1:] if argv is None else argv
     window = MainWindow(args[0] if args else None)
     window.show()

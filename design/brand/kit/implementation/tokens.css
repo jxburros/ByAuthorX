@@ -1,0 +1,15 @@
+:root {
+  --byax-paper: #F4EEE3;
+  --byax-ink: #252927;
+  --byax-green: #367B6C;
+  --byax-red: #AD283E;
+  --byax-surface: #FFFCF7;
+  --byax-rule: #D7D0C3;
+  --byax-muted: #52615B;
+  --byax-greenText: #246052;
+  --byax-display: "IM Fell English", Georgia, serif;
+  --byax-body: "Manrope", system-ui, sans-serif;
+  --byax-reading: "Source Serif 4", Georgia, serif;
+  --byax-radius: 6px;
+  --byax-focus: 2px solid var(--byax-greenText);
+}

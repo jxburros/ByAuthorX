@@ -1,0 +1,186 @@
+[
+  {
+    "asset": "wordmark-light",
+    "source": "masters/wordmark-light.vixl",
+    "vector": "masters/wordmark-light.svg",
+    "pngWidths": [
+      240,
+      480,
+      960,
+      1600
+    ],
+    "folder": "wordmarks"
+  },
+  {
+    "asset": "wordmark-dark",
+    "source": "masters/wordmark-dark.vixl",
+    "vector": "masters/wordmark-dark.svg",
+    "pngWidths": [
+      240,
+      480,
+      960,
+      1600
+    ],
+    "folder": "wordmarks"
+  },
+  {
+    "asset": "wordmark-ink",
+    "source": "masters/wordmark-ink.vixl",
+    "vector": "masters/wordmark-ink.svg",
+    "pngWidths": [
+      240,
+      480,
+      960,
+      1600
+    ],
+    "folder": "wordmarks"
+  },
+  {
+    "asset": "wordmark-white",
+    "source": "masters/wordmark-white.vixl",
+    "vector": "masters/wordmark-white.svg",
+    "pngWidths": [
+      240,
+      480,
+      960,
+      1600
+    ],
+    "folder": "wordmarks"
+  },
+  {
+    "asset": "stacked-light",
+    "source": "masters/stacked-light.vixl",
+    "vector": "masters/stacked-light.svg",
+    "pngWidths": [
+      240,
+      480,
+      960,
+      1440
+    ],
+    "folder": "wordmarks"
+  },
+  {
+    "asset": "stacked-dark",
+    "source": "masters/stacked-dark.vixl",
+    "vector": "masters/stacked-dark.svg",
+    "pngWidths": [
+      240,
+      480,
+      960,
+      1440
+    ],
+    "folder": "wordmarks"
+  },
+  {
+    "asset": "app-light",
+    "source": "masters/app-light.vixl",
+    "vector": "masters/app-light.svg",
+    "pngWidths": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      512,
+      1024
+    ],
+    "folder": "app-icons"
+  },
+  {
+    "asset": "app-dark",
+    "source": "masters/app-dark.vixl",
+    "vector": "masters/app-dark.svg",
+    "pngWidths": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      512,
+      1024
+    ],
+    "folder": "app-icons"
+  },
+  {
+    "asset": "app-transparent",
+    "source": "masters/app-transparent.vixl",
+    "vector": "masters/app-transparent.svg",
+    "pngWidths": [
+      32,
+      48,
+      64,
+      96,
+      128,
+      256,
+      512,
+      1024
+    ],
+    "folder": "app-icons"
+  },
+  {
+    "asset": "micro-light",
+    "source": "masters/micro-light.vixl",
+    "vector": "masters/micro-light.svg",
+    "pngWidths": [
+      16,
+      20,
+      24,
+      32,
+      48,
+      64
+    ],
+    "folder": "favicons"
+  },
+  {
+    "asset": "micro-dark",
+    "source": "masters/micro-dark.vixl",
+    "vector": "masters/micro-dark.svg",
+    "pngWidths": [
+      16,
+      20,
+      24,
+      32,
+      48,
+      64
+    ],
+    "folder": "favicons"
+  },
+  {
+    "asset": "micro-transparent",
+    "source": "masters/micro-transparent.vixl",
+    "vector": "masters/micro-transparent.svg",
+    "pngWidths": [
+      16,
+      20,
+      24,
+      32,
+      48,
+      64
+    ],
+    "folder": "favicons"
+  },
+  {
+    "asset": "avatar-light",
+    "source": "masters/avatar-light.vixl",
+    "vector": "masters/avatar-light.svg",
+    "pngWidths": [
+      400,
+      800,
+      1024
+    ],
+    "folder": "social"
+  },
+  {
+    "asset": "avatar-dark",
+    "source": "masters/avatar-dark.vixl",
+    "vector": "masters/avatar-dark.svg",
+    "pngWidths": [
+      400,
+      800,
+      1024
+    ],
+    "folder": "social"
+  }
+]

@@ -11,6 +11,8 @@ uv run python scripts/build.py --bundle-only
 
 The three entry points share `dist/ByAuthorX/_internal`. Keep that directory intact. The build excludes Qt WebEngine and uses the native Widgets surface. Third-party license files are copied into the distribution. Signing credentials and model weights are not included.
 
+The wheel and frozen bundles include the identity resources and font notices under `byax/resources`. PyInstaller embeds the supplied Windows ICO into the GUI executable; Inno Setup uses it for the installer and the executable for uninstall/file-association icons. Ubuntu installs the supplied scalable icon and transparent PNG sizes into the hicolor icon theme. Editable Vixl sources and the reference PDFs live in `design/brand` and are not bundled into the executable. The rendered README and brand documentation use graphics in the bundled `docs/images` folder.
+
 Ubuntu 24.04:
 
 ```bash
