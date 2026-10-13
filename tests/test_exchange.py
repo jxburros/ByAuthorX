@@ -226,3 +226,15 @@ def test_many_formatting_runs_validate_in_linear_time():
     started = time.monotonic()
     validate_document(doc)
     assert time.monotonic() - started < 3
+
+
+def test_rtf_alternating_runs_import_quickly_with_scalar_offsets(tmp_path):
+    import time
+    path = tmp_path / 'runs.rtf'
+    path.write_text('{\\rtf1 ' + ''.join(('\\b ' if i % 2 else '\\b0 ') + 'w ' for i in range(5000)) + '\\u-10179?\\u-8704?\\b z}', encoding='ascii')
+    started = time.monotonic()
+    doc, _ = import_document(path)
+    assert time.monotonic() - started < 3
+    block = doc['blocks'][0]
+    assert block['text'].endswith('w \U0001F600z')
+    assert (block['marks'][-1]['start'], block['marks'][-1]['end']) == (len(block['text']) - 4, len(block['text']))

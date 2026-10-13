@@ -1447,6 +1447,7 @@ def _import_rtf(doc, source, losses):
             if all(numbers):
                 colors.append("#"+"".join(f"{min(255, int(n.group(1))):02x}" for n in numbers))
     state = {"marks": {}, "attrs": {}, "uc": 1, "skip": False, "star": False}
+    tails = {}
     stack, block, cells, table = [], _block(), [], None
     fallback, row_active, position = 0, False, 0
     skipped = set()
@@ -1463,13 +1464,18 @@ def _import_rtf(doc, source, losses):
             return
         start = len(block["text"])
         block["text"] += value
+        latest = tails.setdefault(block["id"], {})
         for name, setting in state["marks"].items():
             if setting is not None and setting is not False:
-                existing = next((m for m in reversed(block["marks"]) if m["type"] == name and m["value"] == setting and m["end"] == start), None)
-                if existing:
+                # Only the newest mark of a kind can end where this run starts;
+                # scanning every mark was quadratic for alternating runs.
+                key = (name, repr(setting))
+                existing = latest.get(key)
+                if existing is not None and existing["end"] == start:
                     existing["end"] += len(value)
                 else:
-                    block["marks"].append({"start": start, "end": start+len(value), "type": name, "value": setting})
+                    latest[key] = {"start": start, "end": start+len(value), "type": name, "value": setting}
+                    block["marks"].append(latest[key])
 
     def normalized():
         raw = block["text"]
@@ -1477,8 +1483,20 @@ def _import_rtf(doc, source, losses):
             return value.encode("utf-16-le", errors="surrogatepass").decode("utf-16-le", errors="replace")
         output = copy.deepcopy(block)
         output["text"] = scalar(raw)
-        for mark in output["marks"]:
-            mark["start"], mark["end"] = len(scalar(raw[:mark["start"]])), len(scalar(raw[:mark["end"]]))
+        if len(output["text"]) != len(raw):
+            # Map UTF-16 offsets to scalar offsets in one pass; a surrogate pair
+            # becomes one scalar. Re-encoding each prefix per mark was quadratic.
+            offsets, count, index = [0]*(len(raw)+1), 0, 0
+            while index < len(raw):
+                offsets[index] = count
+                pair = "\ud800" <= raw[index] <= "\udbff" and index+1 < len(raw) and "\udc00" <= raw[index+1] <= "\udfff"
+                if pair:
+                    offsets[index+1] = count+1
+                index += 2 if pair else 1
+                count += 1
+            offsets[len(raw)] = count
+            for mark in output["marks"]:
+                mark["start"], mark["end"] = offsets[mark["start"]], offsets[mark["end"]]
         output["attrs"].update(state["attrs"])
         return output
 
