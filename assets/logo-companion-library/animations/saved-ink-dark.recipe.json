@@ -1,0 +1,201 @@
+{
+  "canvas": {
+    "width": 320,
+    "height": 224,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "saved ink"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 180,
+      "fps": 24,
+      "loop": 1,
+      "loop_mode": "off"
+    },
+    {
+      "type": "shape",
+      "name": "saved-page",
+      "shape": "path",
+      "x": 115,
+      "y": 26,
+      "width": 95,
+      "height": 156,
+      "fill": "#303735",
+      "path": "M4 1 L90 0 L95 5 L93 153 L87 156 L0 155 L2 8 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "saved-page-line-0",
+      "shape": "path",
+      "x": 134,
+      "y": 66,
+      "width": 57,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q25.650000000000002 0 57 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "saved-page-line-1",
+      "shape": "path",
+      "x": 134,
+      "y": 94,
+      "width": 57,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q25.650000000000002 3 57 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "saved-page-line-2",
+      "shape": "path",
+      "x": 134,
+      "y": 122,
+      "width": 41.04,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q18.468 0 41.04 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "save-check",
+      "shape": "path",
+      "x": 167,
+      "y": 156,
+      "width": 43,
+      "height": 29,
+      "fill": "none",
+      "path": "M0 13 L12 26 L40 0",
+      "stroke": "#367B6C",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "saved-ink-body",
+      "shape": "path",
+      "x": 103,
+      "y": 180,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "saved-ink-body",
+      "width": 11.363265306122448,
+      "height": 12.0
+    },
+    {
+      "type": "shape",
+      "name": "saved-ink-fleck",
+      "shape": "path",
+      "x": 102.70612274285715,
+      "y": 188.57142857142858,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "saved-ink-fleck",
+      "width": 2.057142857142857,
+      "height": 2.742857142857143
+    },
+    {
+      "type": "group",
+      "name": "saved-ink",
+      "targets": [
+        "saved-ink-body",
+        "saved-ink-fleck"
+      ]
+    },
+    {
+      "type": "group",
+      "name": "save-confirmation",
+      "targets": [
+        "save-check",
+        "saved-ink"
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "save-confirmation",
+      "property": "opacity",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0.35,
+          "easing": "ease-out"
+        },
+        {
+          "time": 180,
+          "value": 1,
+          "easing": "ease-out"
+        }
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "save-confirmation",
+      "property": "translate-y",
+      "keys": [
+        {
+          "time": 0,
+          "value": 3,
+          "easing": "ease-out"
+        },
+        {
+          "time": 180,
+          "value": 0,
+          "easing": "ease-out"
+        }
+      ]
+    }
+  ]
+}

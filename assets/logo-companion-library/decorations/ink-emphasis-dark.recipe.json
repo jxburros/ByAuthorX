@@ -1,0 +1,92 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "ink emphasis"
+    },
+    {
+      "type": "shape",
+      "name": "emphasis",
+      "shape": "path",
+      "x": 171,
+      "y": 107,
+      "width": 300,
+      "height": 98,
+      "fill": "none",
+      "path": "M0 46 C-4 6 187 -7 253 6 C344 26 289 91 135 90 C51 91 -1 76 0 46 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "emphasis-ink-body",
+      "shape": "path",
+      "x": 471,
+      "y": 126,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "emphasis-ink-body",
+      "width": 19.885714285714283,
+      "height": 21.0
+    },
+    {
+      "type": "shape",
+      "name": "emphasis-ink-fleck",
+      "shape": "path",
+      "x": 470.4857148,
+      "y": 141.0,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "emphasis-ink-fleck",
+      "width": 3.5999999999999996,
+      "height": 4.8
+    },
+    {
+      "type": "group",
+      "name": "emphasis-ink",
+      "targets": [
+        "emphasis-ink-body",
+        "emphasis-ink-fleck"
+      ]
+    }
+  ]
+}

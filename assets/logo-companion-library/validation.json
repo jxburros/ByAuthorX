@@ -1,0 +1,139 @@
+{
+  "passed": true,
+  "designs": 24,
+  "variants": 44,
+  "categories": {
+    "illustrations": 16,
+    "animations": 12,
+    "decorations": 12,
+    "backgrounds": 4
+  },
+  "masters_reopened": 44,
+  "images_decoded": 123,
+  "vectors_verified": 44,
+  "frame_archives_verified": 0,
+  "animations": [
+    {
+      "id": "ink-blot-loader-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "ink-blot-loader-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "pen-loop-wait-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "pen-loop-wait-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "reading-breath-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "reading-breath-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "margin-review-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "margin-review-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "saved-ink-light",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "saved-ink-dark",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "signature-settle-light",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "signature-settle-dark",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    }
+  ],
+  "loop_seam_max_mean_error": 0,
+  "vector_raster_max_mean_error": 1.1360630580357143,
+  "source_reference_hashes_verified": true,
+  "catalog": {
+    "passed": true,
+    "browser": "Chromium",
+    "local_file_catalog": true,
+    "filters_and_search": true,
+    "individual_download": true,
+    "reduced_motion_initial_and_changes": true,
+    "manual_motion_control": true,
+    "mobile_no_horizontal_overflow": true,
+    "javascript_errors": []
+  }
+}

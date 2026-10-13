@@ -1,6 +1,8 @@
 # ByAuthorX creative library
 
-54 original designs, with 94 variants, made with [Vixl](https://github.com/jxburros/Vixl). This is a reserve of reusable artwork for future app surfaces and marketing. The app's deep teal, warm paper, sage, and gold palette ties the collection together. No campaign wording is baked into the artwork.
+For a closer match to the current logo's green pen loop and red ink mark, see the additional [logo companion collection](../logo-companion-library/README.md): 24 designs with 44 variants using the supplied logo geometry and canonical brand colors.
+
+54 original designs, with 94 variants, made with [Vixl](https://github.com/jxburros/Vixl). This is a reserve of reusable artwork for future app surfaces and marketing. Deep teal, warm paper, sage, and gold give this first collection a coordinated editorial style. No campaign wording is baked into the artwork.
 
 Open **[index.html](index.html)** to browse, search, filter by collection or theme, pause motion, and open/save individual files. It works locally without a server, network requests, or dependencies. Browsers may open media links in a new tab when browsing local files; use Save As there. When served over HTTP, the same links download directly. **[contact-sheet.jpg](contact-sheet.jpg)** shows every design at a glance. **[manifest.json](manifest.json)** lists paths, dimensions, themes, usage ideas, timing, and validation results.
 

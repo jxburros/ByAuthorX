@@ -575,14 +575,17 @@ def build_one(out, category, slug, theme, art):
                                 ("gif", dict(colors=64, dither="none"))]:
             # GIF uses an opaque theme matte because binary GIF alpha cannot preserve edges.
             if suffix == "gif":
-                options["background"] = "#fffdf7" if art.theme == "light" else "#102f30"
+                options["background"] = art.c["paper"] if art.theme == "light" else art.c["shade"]
             output = directory / f"{stem}.{suffix}"
             report = export_timeline(p, output, fps=24, overwrite=True, **options)
             if not art.loop:
                 one_play(output)
             export_reports.append(report)
             exports.append(suffix)
-        export_timeline(p, directory / f"{stem}-sheet.png", format="sheet", fps=4, columns=4, overwrite=True)
+        sheet_fps = 4 if art.duration >= 1000 else 24
+        sheet_columns = min(4, max(1, math.ceil(art.duration*sheet_fps/1000)))
+        export_timeline(p, directory / f"{stem}-sheet.png", format="sheet", fps=sheet_fps,
+                        columns=sheet_columns, overwrite=True)
         exports.append("sheet.png")
         if slug in ("ink-dots", "quill-writing", "orbit-spark"):
             export_timeline(p, directory / f"{stem}-frames.zip", format="frames", fps=24, overwrite=True)
