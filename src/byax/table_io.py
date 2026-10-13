@@ -62,7 +62,9 @@ def read_csv(path, *, encoding='utf-8-sig', dialect='excel', delimiter=None):
                     raise ByaxError('limit_exceeded', 'CSV exceeds 10000 rows, 1000 columns, or 100000 cells')
                 if any('\x00' in value for value in row):
                     raise ByaxError('invalid_input', 'CSV cells cannot contain NUL characters', row=len(rows) + 1)
-                rows.append(row)
+                # CSV readers retain quoted CRLF/CR characters. Rich document
+                # text uses LF soft breaks regardless of the source platform.
+                rows.append([value.replace('\r\n', '\n').replace('\r', '\n') for value in row])
     except (UnicodeError, csv.Error, LookupError) as exc:
         raise ByaxError('invalid_input', f'CSV decoding failed: {exc}') from exc
     if not rows:

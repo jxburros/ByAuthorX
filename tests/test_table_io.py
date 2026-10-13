@@ -23,11 +23,12 @@ def document_with_table():
     return doc, table
 
 
-def test_csv_updates_values_preserving_ids_attributes_and_unrelated_content(tmp_path):
+@pytest.mark.parametrize('line_ending', ['\n', '\r\n', '\r'])
+def test_csv_updates_values_preserving_ids_attributes_and_unrelated_content(tmp_path, line_ending):
     doc, table = document_with_table()
     original = copy.deepcopy(doc)
     path = tmp_path / 'values.csv'
-    path.write_text('Name,Amount\n"Café, Inc.","Line one\nLine two"\n', encoding='utf-8')
+    path.write_bytes('Name,Amount\n"Café, Inc.","Line one\nLine two"\n'.replace('\n', line_ending).encode('utf-8'))
     updated, report = import_csv(doc, table['id'], path, expected_revision=doc['revision'], request_id='table-import-1')
     target = next(block for block in updated['blocks'] if block['id'] == table['id'])
     assert target['attrs'] == table['attrs']
