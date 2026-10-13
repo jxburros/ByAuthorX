@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=ByAuthorX
+Comment=Write, review, and publish documents
+Exec=/opt/byauthorx/ByAuthorX %f
+Icon=byauthorx
+Terminal=false
+Categories=Office;WordProcessor;
+MimeType=application/x-byauthorx;text/markdown;text/plain;
+StartupWMClass=ByAuthorX

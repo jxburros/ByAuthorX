@@ -1,0 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "byauthorx"
+version = "0.1.0"
+description = "Native, programmable desktop word processor"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = ["PySide6-Essentials>=6.8,<7", "PySide6-Addons>=6.8,<7", "regex>=2024.11", "httpx>=0.28,<1", "keyring>=25,<26", "markdown-it-py>=3,<5", "python-docx>=1.1,<2", "odfpy>=1.4,<2", "Pillow>=11,<13", "platformdirs>=4,<5", "striprtf>=0.0.28", "defusedxml>=0.7", "pyspellchecker>=0.8"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-qt>=4", "ruff>=0.9", "pyinstaller>=6"]
+
+[project.scripts]
+byax = "byax.cli:main"
+byauthorx = "byax.gui:main"
+byax-mcp = "byax.mcp:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/byax"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
