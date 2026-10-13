@@ -49,21 +49,24 @@ def stylesheet():
     return f'''
         QMainWindow, QDialog {{ background: {c['paper']}; color: {c['ink']}; }}
         QMenuBar, QToolBar, QStatusBar {{ background: {c['surface']}; color: {c['ink']};
-            border: 0; padding: 8px; }}
-        QToolBar {{ border-bottom: 1px solid {c['rule']}; spacing: 8px; }}
+            border: 0; padding: 4px; }}
+        QToolBar {{ border-bottom: 1px solid {c['rule']}; spacing: 6px; }}
+        QStatusBar {{ border-top: 1px solid {c['rule']}; }}
         QMenu {{ background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['rule']}; }}
         QMenu::item {{ padding: 8px 24px; }}
         QMenu::item:selected, QMenuBar::item:selected {{ background: {c['paper']}; color: {c['greenText']}; }}
         QToolButton, QPushButton {{ background: {c['surface']}; color: {c['ink']};
             border: 1px solid {c['rule']}; border-radius: {control}px; padding: 8px 12px; }}
         QToolButton:hover, QPushButton:hover {{ background: {c['paper']}; border-color: {c['green']}; }}
+        QToolBar QToolButton {{ border-color: transparent; padding: 8px 10px; }}
+        QToolBar QToolButton:hover {{ background: {c['paper']}; border-color: {c['rule']}; }}
         QToolButton:pressed, QPushButton:pressed, QToolButton:checked {{
             background: {c['greenText']}; color: white; }}
         QPushButton[primary="true"] {{ background: {c['green']}; color: white; border-color: {c['green']}; }}
         QPushButton[primary="true"]:hover {{ background: {c['greenText']}; }}
         QPushButton:disabled, QToolButton:disabled {{ color: {c['muted']}; background: {c['paper']}; }}
-        QDockWidget {{ color: {c['muted']}; font-weight: 600; }}
-        QDockWidget::title {{ background: {c['paper']}; padding: 12px 8px; }}
+        QDockWidget {{ color: {c['ink']}; font-weight: 600; }}
+        QDockWidget::title {{ background: {c['surface']}; padding: 12px; }}
         QTreeWidget, QListWidget {{ border: 0; background: {c['surface']}; color: {c['ink']}; padding: 8px; }}
         QTreeWidget::item, QListWidget::item {{ padding: 8px; }}
         QTreeWidget::item:selected, QListWidget::item:selected {{ background: {c['greenText']}; color: white; }}
@@ -80,6 +83,12 @@ def stylesheet():
         QDoubleSpinBox:focus, QToolButton:focus, QPushButton:focus {{ border: 2px solid {c['greenText']}; }}
         QScrollArea#pagePreview {{ background: {c['paper']}; border: 0; }}
         QLabel#brandTagline {{ font-family: "IM Fell English"; font-size: 32px; color: {c['ink']}; }}
+        QWidget#writingWorkspace {{ background: {c['paper']}; }}
+        QLabel#documentTitle {{ font-size: 16px; font-weight: 600; color: {c['ink']}; }}
+        QLabel#documentState, QLabel#workspaceView {{ color: {c['muted']}; font-size: 12px; }}
+        QWidget#emptyPanel {{ background: {c['surface']}; }}
+        QLabel#emptyHeading {{ font-weight: 600; font-size: 15px; color: {c['ink']}; }}
+        QLabel#emptyDescription {{ color: {c['muted']}; font-size: 13px; }}
     '''
 
 

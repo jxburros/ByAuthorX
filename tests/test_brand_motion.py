@@ -90,8 +90,8 @@ def test_vixl_frames_end_in_exact_resting_pose(qtbot, monkeypatch, tmp_path):
     assert pen.frame_times[-1] == pen.animation.duration()
     qtbot.waitUntil(lambda: pen.animation.state() == QAbstractAnimation.Stopped, timeout=1500)
     assert pen.progress == 1.0
-    with Image.open(BRAND_ROOT / 'pen-settle.png') as sprite, Image.open(
-            BRAND_ROOT / 'pen-settle-rest.png') as rest:
+    with Image.open(BRAND_ROOT / 'ui/about-write-sprite.png') as sprite, Image.open(
+            BRAND_ROOT / 'ui/about-write-poster.png') as rest:
         width, height = rest.size
         assert sprite.size == (width * len(pen.frame_times), height)
         assert sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes() == rest.tobytes()

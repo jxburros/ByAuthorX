@@ -1,0 +1,7 @@
+{
+  "review-empty.png": {
+    "source": "assets/logo-companion-library/illustrations/margin-notes-light.png",
+    "source_sha256": "1501892108766ef0b37cc3bfa9b006193d800b0b87e2a8bbb211e4c051a42a73"
+  },
+  "note": "Made with Vixl. Native playback uses only committed PNG/JSON files."
+}

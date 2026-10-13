@@ -46,7 +46,7 @@ Unconfigured AI functions do not prevent writing, saving, printing, or determini
 
 Warm paper, quiet ink, and familiar controls frame a clean writing page. Manrope is bundled for the interface; IM Fell English gives introductions their print character. Source Serif 4 is available as an optional document font. Your document keeps its chosen styles.
 
-View and inspector changes, and explicit save feedback, use brief 180 ms transitions. The About window plays a custom Vixl-authored pen gesture once. Choose **View → Reduce motion** for immediate transitions; supported system preferences and `BYAX_REDUCED_MOTION=1` also disable motion. There are no looping decorations while writing.
+View and inspector changes use brief 180 ms transitions. Review has a small branded empty-state illustration; a writing/erasing pen loop appears only while work is running. Explicit save draws a brief checkmark, and About writes the signature once. Controls use clean Manrope typography and restrained native styling. Choose **View → Reduce motion** for static artwork and immediate transitions; supported system preferences and `BYAX_REDUCED_MOTION=1` also disable motion. Typing and autosave remain quiet.
 
 See the [design system and motion contract](docs/brand.md), [editable brand sources](design/brand/README.md), and [supplied brand guide](design/brand/kit/ByAuthorX-brand-guide.pdf).
 

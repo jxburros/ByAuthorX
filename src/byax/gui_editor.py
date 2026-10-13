@@ -63,7 +63,7 @@ class SemanticEditor(QTextEdit):
         self.setUndoRedoEnabled(False)
         self.setTabChangesFocus(False)
         self.setStyleSheet(f'''QTextEdit {{ background: white; color: {COLORS['ink']};
-            border: 2px solid {COLORS['rule']}; padding: 24px;
+            border: 2px solid {COLORS['rule']}; border-radius: 8px; padding: 24px;
             selection-background-color: {COLORS['greenText']}; selection-color: white; }}
             QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}''')
 
