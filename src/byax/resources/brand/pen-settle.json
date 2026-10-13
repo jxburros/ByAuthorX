@@ -1,0 +1,24 @@
+{
+  "generator": "Vixl 0.26.0",
+  "source": "design/brand/motion/pen-settle.vixl",
+  "source_sha256": "092ff6aa8c31055867b03721f3b67eb4f05df14af718ebba355871dd71b70f81",
+  "durationMs": 180,
+  "frameWidth": 680,
+  "frameHeight": 100,
+  "frameTimesMs": [
+    0,
+    17,
+    34,
+    51,
+    68,
+    85,
+    102,
+    119,
+    136,
+    153,
+    170,
+    180
+  ],
+  "loop": false,
+  "reducedMotion": "pen-settle-rest.png"
+}

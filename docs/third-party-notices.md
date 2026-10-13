@@ -9,3 +9,5 @@ Python and its standard library retain the PSF license. Other direct dependencie
 OpenAI, Anthropic, Gemini, Ollama, ElevenLabs, whisper.cpp and LibreOffice are independent integrations. API accounts, downloaded model weights, and locally installed converter executables are not included or licensed by this repository. No provider subscription is required for local editing.
 
 Baseline DejaVu Sans, Serif and Sans Mono fonts are bundled under the Bitstream Vera license (DejaVu changes are public domain). Their unmodified font files and complete notices are in `src/byax/resources/fonts`. These licenses permit embedding and distribution with the application.
+
+The supplied Manrope (Regular and Semibold), IM FELL English (Regular), and Source Serif 4 (Regular) fonts use the SIL Open Font License 1.1. Unmodified binaries and each family's full license notice are bundled in `src/byax/resources/fonts` and collected into frozen distributions. The ByAuthorX graphics and Vixl masters were supplied by the product owner for this integration; the font licenses apply to the fonts, not to the logo artwork. No Vixl runtime or third-party animation service is bundled.

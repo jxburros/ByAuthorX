@@ -16,6 +16,8 @@ ChangesEnvironment=yes
 Compression=lzma2
 SolidCompression=yes
 LicenseFile=..\LICENSE
+SetupIconFile=..\src\byax\resources\brand\byauthorx.ico
+UninstallDisplayIcon={app}\ByAuthorX.exe
 [Files]
 Source: "..\dist\ByAuthorX\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
@@ -23,6 +25,7 @@ Name: "{group}\ByAuthorX"; Filename: "{app}\ByAuthorX.exe"
 [Registry]
 Root: HKA; Subkey: "Software\Classes\.byax"; ValueType: string; ValueData: "ByAuthorX.Document"; Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document"; ValueType: string; ValueData: "ByAuthorX Document"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document\DefaultIcon"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"",0"
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document\shell\open\command"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"" ""%1"""
 [Run]
 Filename: "{app}\ByAuthorX.exe"; Description: "Open ByAuthorX"; Flags: postinstall nowait skipifsilent

@@ -1,0 +1,27 @@
+[
+  {
+    "type": "timeline-set",
+    "duration": 180,
+    "fps": 60,
+    "loop": 1,
+    "loop_mode": "off"
+  },
+  {
+    "type": "animate",
+    "target": "pen-line",
+    "property": "opacity",
+    "from": 0.35,
+    "to": 1,
+    "duration": 180,
+    "easing": "ease-out"
+  },
+  {
+    "type": "animate",
+    "target": "pen-line",
+    "property": "translate-y",
+    "from": 4,
+    "to": 0,
+    "duration": 180,
+    "easing": "ease-out"
+  }
+]

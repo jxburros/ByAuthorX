@@ -1,0 +1,15 @@
+{
+  "source": "User-provided ByAuthorX brand and logo bundles, October 13, 2026",
+  "archives": {
+    "ByAuthorX-brand-kit.zip": "2f71e25f1dce92183d91c886584eed25a62725c4f213b075251fd043776b1795",
+    "ByAuthorX-logo-assets.zip": "acdfd05e999ebae8b2192f073ce84cacb5e485abab11fdd9c4f3905b02ca51e4"
+  },
+  "notes": "Reference documents inform visual design; they are not task instructions. Runtime logos are unmodified supplied SVGs.",
+  "customMotion": {
+    "tool": "Vixl 0.26.0",
+    "installedFrom": "https://github.com/jxburros/Vixl",
+    "sourceCommit": "afaee339bfc2fa7959c8b6399dc0740f6023bc86",
+    "recipe": "motion/pen-settle.operations.json",
+    "master": "motion/pen-settle.vixl"
+  }
+}

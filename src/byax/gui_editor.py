@@ -7,6 +7,7 @@ from PySide6.QtCore import QRectF, QSize, Signal
 from PySide6.QtGui import QColor, QPainter, QTextCursor
 from PySide6.QtWidgets import QTextEdit, QWidget
 
+from .brand import COLORS
 from .layout import BLOCK_ID_PROPERTY, draw_page, resolved_page_count, resolved_page_size
 
 BLOCK_ID = BLOCK_ID_PROPERTY
@@ -58,10 +59,13 @@ class SemanticEditor(QTextEdit):
         self.setAcceptRichText(False)  # Imported HTML must go through the bounded exchange adapter.
         self.setAcceptDrops(True)
         self.setAccessibleName('Document editor')
-        self.setPlaceholderText('Begin your next chapter…')
+        self.setPlaceholderText('Write your first line…')
         self.setUndoRedoEnabled(False)
         self.setTabChangesFocus(False)
-        self.setStyleSheet('QTextEdit { background: #fffdf7; color: #243737; border: 0; padding: 22px; selection-background-color: #b5d5ce; selection-color: #102f30; }')
+        self.setStyleSheet(f'''QTextEdit {{ background: white; color: {COLORS['ink']};
+            border: 2px solid {COLORS['rule']}; padding: 24px;
+            selection-background-color: {COLORS['greenText']}; selection-color: white; }}
+            QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}''')
 
     def insertFromMimeData(self, source):
         if source.hasUrls() and source.urls()[0].isLocalFile():
@@ -224,7 +228,7 @@ class PageCanvas(QWidget):
 
     def paintEvent(self, event):
         painter = QPainter(self)
-        painter.fillRect(event.rect(), QColor('#dfe5e1'))
+        painter.fillRect(event.rect(), QColor(COLORS['paper']))
         if self.document is None:
             return
         top = 28
@@ -233,8 +237,8 @@ class PageCanvas(QWidget):
             top += height * self.zoom + 28
             if not rect.intersects(QRectF(event.rect())):
                 continue
-            painter.fillRect(rect.translated(3, 4), QColor('#bcc5c1'))
-            painter.fillRect(rect, QColor('#fffdf7'))
+            painter.fillRect(rect.translated(3, 4), QColor(COLORS['rule']))
+            painter.fillRect(rect, QColor('#ffffff'))
             painter.save()
             painter.translate(rect.left(), rect.top())
             painter.scale(self.zoom, self.zoom)
