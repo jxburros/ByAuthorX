@@ -25,6 +25,7 @@ SOURCES = {
     "wordmark-dark": "src/byax/resources/brand/wordmark-dark.png",
 }
 PARTS = {}
+STROKES = {}
 TOKENS = {}
 
 
@@ -55,6 +56,30 @@ class BrandArt(library.Art):
 
     def gesture(self, name, x, y, width=380):
         return self.source_part("pen-line", "pen-line", name, x, y, width/629.0314643198849)
+
+    def drawable_part(self, source, part, name, x, y, scale=1):
+        # Recover the approved centerline before the source's outline-stroke edit.
+        original = STROKES[source][part]
+        self.path(name, original["path"], "none", original["stroke"], original["stroke_width"],
+                  x=x, y=y, w=original["width"], h=original["height"])
+        if scale != 1:
+            self.ops.append(dict(type="resize", target=name, width=original["width"]*scale,
+                                 height=original["height"]*scale))
+            self.ops.append(dict(type="shape", target=name,
+                                 stroke_width=original["stroke_width"]*scale))
+        return name
+
+    def write_erase(self, target, draw_start=120, draw_end=1080, erase_start=1440, erase_end=2160):
+        # Erase from the start in the writing direction. Reset both trims only
+        # while they are equal, so the reset cannot flash a fully drawn line.
+        reset = self.duration-119
+        self.keys(target,"trim_end",[(0,0,"hold"),(draw_start,0,"linear"),
+                  (draw_end,100,"hold"),(reset-1,100,"hold"),(reset,0,"hold"),
+                  (self.duration,0,"hold")])
+        self.keys(target,"trim_start",[(0,0,"hold"),(erase_start,0,"linear"),
+                  (erase_end,100,"hold"),(reset-1,100,"hold"),(reset,0,"hold"),
+                  (self.duration,0,"hold")])
+        self.poster_time = 1200
 
     def blot(self, name, x, y, size=18):
         scale = size/17.5
@@ -100,6 +125,13 @@ ILLUSTRATIONS = ["signature-manuscript", "margin-notes", "loop-bound-book", "aut
 ANIMATIONS = ["ink-blot-loader", "pen-loop-wait", "reading-breath", "margin-review", "saved-ink", "signature-settle"]
 DECORATIONS = ["signature-underline", "loop-corner", "margin-gesture", "chapter-stop", "author-seal", "ink-emphasis"]
 BACKGROUNDS = ["manuscript-paper", "green-margin", "midnight-signature", "editorial-frame"]
+MOTION_TITLES = {
+    "pen-loop-wait": "Pen Loop — Write and Erase",
+    "reading-breath": "Reading — Write and Erase",
+    "margin-review": "Margin Review — Write and Erase",
+    "saved-ink": "Saved — Draw the Check",
+    "signature-settle": "Signature — Write Once",
+}
 USES = {
     "signature-manuscript": "Opening, empty-state, or editorial artwork with the supplied pen gesture.",
     "margin-notes": "Review and annotation surfaces; a green margin gesture connects the notes.",
@@ -110,11 +142,11 @@ USES = {
     "revision-pages": "Revisions, comparisons, or history; handwritten green annotation on working pages.",
     "ready-to-share": "Export or completion artwork with one green editorial gesture.",
     "ink-blot-loader": "Compact indeterminate loading from the actual red ink blot and its fleck.",
-    "pen-loop-wait": "A gentle processing loop using the supplied green loop, with a still ink accent.",
-    "reading-breath": "A quiet waiting pose for a book or document panel.",
-    "margin-review": "Review in progress; the supplied pen gesture travels down a margin.",
-    "saved-ink": "A 180 ms save confirmation; hold the completed pose after one play.",
-    "signature-settle": "A 180 ms pen-gesture settle for an explicit panel reveal or marketing transition.",
+    "pen-loop-wait": "The original green pen loop writes itself, holds, and erases in the writing direction.",
+    "reading-breath": "Book lines and the signature underline write themselves, hold, and erase.",
+    "margin-review": "Review in progress; the original green margin stroke writes and erases in place.",
+    "saved-ink": "A 180 ms save confirmation draws the checkmark; hold the completed pose after one play.",
+    "signature-settle": "The original pen gesture writes itself once in 180 ms for an explicit reveal.",
 }
 
 
@@ -185,34 +217,31 @@ def animation(slug,theme):
         a.wave("ink","scale-y",.08,1,phase=-.25)
         a.wave("ink","translate-y",2)
     elif slug=="pen-loop-wait":
-        a.source_part("mark","loop","waiting-loop",92,65,1.3)
-        a.wave("waiting-loop","translate-y",3)
-        a.blot("waiting-ink",63,131,17)
+        a.drawable_part("mark","loop","waiting-loop",92,65,1.3)
+        a.write_erase("waiting-loop")
+        a.blot("waiting-ink",80,128,17)
     elif slug=="reading-breath":
         a.book_page("reading",74,64,172)
-        targets=[op["name"] for op in a.ops if op["type"]=="shape"]
-        a.group("reading-book",targets)
-        a.wave("reading-book","translate-y",2)
-        a.gesture("reading-gesture",60,165,205)
+        for i in range(8):
+            a.write_erase(f"reading-text-{i//4}-{i%4}",draw_start=120+i*75,
+                          draw_end=340+i*75,erase_start=1440+i*60,erase_end=1720+i*60)
+        a.drawable_part("pen-line","pen-line","reading-gesture",60,165,205/629.0314643198849)
+        a.write_erase("reading-gesture")
         a.blot("reading-ink",47,178,11)
     elif slug=="margin-review":
         a.page("review-page",72,32,137,162,4)
-        a.source_part("mark","loop","margin-loop",199,56,.5)
-        a.wave("margin-loop","translate-y",30,35,phase=-.25)
+        a.drawable_part("mark","loop","margin-loop",199,97,.5)
+        a.write_erase("margin-loop")
         a.blot("review-ink",89,47,9)
     elif slug=="saved-ink":
         a.page("saved-page",115,26,95,156,3)
         a.path("save-check","M0 13 L12 26 L40 0",stroke="green",sw=4,x=167,y=156,w=43,h=29)
         a.blot("saved-ink",103,180,12)
-        a.group("save-confirmation",["save-check","saved-ink"])
-        a.keys("save-confirmation","opacity",[(0,.35,"ease-out"),(duration,1,"ease-out")])
-        a.keys("save-confirmation","translate-y",[(0,3,"ease-out"),(duration,0,"ease-out")])
+        a.keys("save-check","trim_end",[(0,0,"ease-out"),(duration,100,"ease-out")])
     elif slug=="signature-settle":
-        a.gesture("settling-pen",35,91,253)
+        a.drawable_part("pen-line","pen-line","settling-pen",35,91,253/629.0314643198849)
         a.blot("settling-ink",24,110,12)
-        a.group("settling-signature",["settling-pen","settling-ink"])
-        a.keys("settling-signature","opacity",[(0,.35,"ease-out"),(duration,1,"ease-out")])
-        a.keys("settling-signature","translate-y",[(0,4,"ease-out"),(duration,0,"ease-out")])
+        a.keys("settling-pen","trim_end",[(0,0,"ease-out"),(duration,100,"ease-out")])
     return a
 
 
@@ -336,6 +365,8 @@ def main():
         elif source.suffix == ".vixl":
             p=Project.load(source,workspace=ROOT)
             PARTS[name]={l["name"]:l for l in p.state["layers"] if l["type"]=="shape"}
+            STROKES[name]={op["name"]:op for node in p.nodes.values() for op in node["operations"]
+                           if op.get("type")=="shape" and op.get("stroke") and op.get("path")}
         target=out/"reference"/(name+source.suffix)
         if source.resolve()!=target.resolve():
             shutil.copy2(source,target)
@@ -358,6 +389,9 @@ def main():
                 entry=library.build_one(out,category,slug,theme,art)
                 entry["use"]=USES.get(slug,"Reusable logo-led editorial artwork for app or marketing.")
                 entry["family"]="logo-companions"
+                if slug in MOTION_TITLES:
+                    entry["title"] = MOTION_TITLES[slug]
+                    entry["motion_behavior"] = "write-erase" if art.loop else "write-once"
                 entries.append(entry)
     if args.only:
         library.write_json(out/f"{args.only}-review.json",entries)

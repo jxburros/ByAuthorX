@@ -558,7 +558,7 @@ def build_one(out, category, slug, theme, art):
     p.save(master, overwrite=True)
     write_json(directory / f"{stem}.recipe.json", dict(canvas=dict(width=art.width, height=art.height,
                background=art.background), operations=operations))
-    poster_time = art.duration if art.duration and not art.loop else 0
+    poster_time = getattr(art, "poster_time", art.duration if art.duration and not art.loop else 0)
     p.export(directory / f"{stem}.svg", svg_policy="strict", time=poster_time, overwrite=True)
     p.export(directory / f"{stem}.png", time=poster_time, alpha="keep", overwrite=True)
     exports = ["svg", "png"]
@@ -599,6 +599,7 @@ def build_one(out, category, slug, theme, art):
                  checks=checks, contract=contract, export_warnings=warnings)
     if art.duration:
         entry.update(duration_ms=art.duration, fps=24, loop=art.loop,
+                     poster_time_ms=poster_time,
                      animation=f"{category}/{stem}.webp", reduced_motion=f"{category}/{stem}.png",
                      apng=f"{category}/{stem}.apng", gif=f"{category}/{stem}.gif",
                      on_complete="hold-last-frame" if not art.loop else None)

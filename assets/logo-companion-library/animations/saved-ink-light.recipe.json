@@ -156,43 +156,18 @@
       ]
     },
     {
-      "type": "group",
-      "name": "save-confirmation",
-      "targets": [
-        "save-check",
-        "saved-ink"
-      ]
-    },
-    {
       "type": "keyframes",
-      "target": "save-confirmation",
-      "property": "opacity",
+      "target": "save-check",
+      "property": "trim_end",
       "keys": [
         {
           "time": 0,
-          "value": 0.35,
-          "easing": "ease-out"
-        },
-        {
-          "time": 180,
-          "value": 1,
-          "easing": "ease-out"
-        }
-      ]
-    },
-    {
-      "type": "keyframes",
-      "target": "save-confirmation",
-      "property": "translate-y",
-      "keys": [
-        {
-          "time": 0,
-          "value": 3,
-          "easing": "ease-out"
-        },
-        {
-          "time": 180,
           "value": 0,
+          "easing": "ease-out"
+        },
+        {
+          "time": 180,
+          "value": 100,
           "easing": "ease-out"
         }
       ]
