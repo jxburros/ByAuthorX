@@ -42,6 +42,29 @@ Other empty states use companion stills in the same way, always beside a readabl
 
 `gui_art.themed_art()` chooses the light or dark variant from the effective window palette (window lightness below 50% selects dark). The current application palette is light, so dark variants are dormant until a dark palette ships.
 
+Dialogs and results use a second set of illustrations from the [logo UI library](../assets/logo-ui-library/README.md), again beside a readable heading and explanation:
+
+| Surface | Design | Runtime file (`ui/`) |
+| --- | --- | --- |
+| Document checks finished with nothing flagged | `checks-clear` | `checks-clear-{light,dark}.png` |
+| Document checks found items | `proofread-marks` | `proofread-marks-{light,dark}.png` |
+| Export finished | `export-ready` | `export-ready-{light,dark}.png` |
+| Background jobs, empty queue | `jobs-empty` | `jobs-empty-{light,dark}.png` |
+| Dictation dialog | `dictation-ready` | `dictation-ready-{light,dark}.png` |
+| Provider settings | `provider-keys` | `provider-keys-{light,dark}.png` |
+
+A result dialog shows its illustration only when the result proves what the picture says. `checks-clear` appears for a passed check with no findings; a check that could not measure everything shows no artwork, so the application never claims a document is clean without evidence.
+
+![Hand-inked marks, icons and chrome in the writing view](images/editor-marks.png)
+
+## Interface icons
+
+The toolbar and menus carry a hand-inked icon set drawn in Vixl from the logo's own pen line, ink blot and mark (55 designs; [see the library](../assets/logo-ui-library/README.md)). Ink draws the object, one pen-green gesture draws the action, and ink red appears only at a point of origin (the start of a comment). Strokes are 6 units on a 96-unit grid, so they stay legible at 16 px.
+
+Icons always accompany a label or an accessible name. Comment, Check and Pages show icon and text in the toolbar. Bold, Italic and Underline are icon-only because their glyphs are the letters themselves, and keep their name, shortcut and tooltip. Menus draw icons at 20 px for actions that have an established image; other actions stay text-only rather than inventing a symbol. About uses the logo's own micro mark from the application icon, never a redraw.
+
+`gui_icons.themed_icon(name, widget)` slices the baked atlases (16, 24, 32 and 48 px, rendered from the vectors, not resampled) into a `QIcon`, so every logical size has an exact pixmap on ordinary and 2x displays, and chooses light or dark from the effective palette like the stills. Pressed and checked toolbar buttons use a paper background with a deep-green border instead of a solid green block, so an ink icon never sits on dark green.
+
 Manrope Regular/Semibold provides interface type (11 pt by default). IM FELL English appears in the About headline. Source Serif 4 is registered and selectable for reading/document styles. All three families are bundled with their SIL OFL notices. Existing document styles, content, revision history, and export typography are preserved; branding does not inject decoration into authored documents. The writing page stays white.
 
 ## Logos and platform icons
@@ -63,6 +86,9 @@ The Qt application icon uses the simplified micro mark at 16–24 px and the X/l
 | About opens | Original green signature stroke writes itself once | 180 ms, ease out |
 | AI assistant request in flight | Red ink blot (`ink-blot-loader`) breathes beside “… is thinking” in the AI tab | 2.4 s loop, only while the request is pending |
 | Spelling check running | Green margin gesture (`margin-review`) writes and erases beside **Check spelling** | 2.4 s loop, only while the check runs |
+| Document checks running | Ticks write beside each line of a page (`checking-page`), replacing the still in the empty Review panel | 2.4 s loop, only while checks run; same size as the still, so nothing moves |
+| Dictation recording | The pen line becomes the voice (`listening-wave`), replacing the still in the Dictation dialog | 2.4 s loop, only while audio is recording; pause, stop, failure and closing the dialog all end it |
+| A proofreader's mark appears | The stroke writes itself left to right | 180 ms, ease out; instant under reduced motion; only for marks not already shown |
 
 Qt `QPropertyAnimation` uses `OutCubic` for interface fades. Vixl-authored artwork uses a linear playback clock because its stroke timing is already baked. About and save feedback include the exact 180 ms endpoint; their original centerlines, proportions, stroke widths, and colors are preserved. Finished fade effects are removed. Rapid view switches settle at full visibility. Typing, autosave, and idle time do not trigger artwork.
 
@@ -75,6 +101,18 @@ Native previews show [work in progress](images/editor-busy.png), [explicit save 
 **View → Reduce motion** persists in local QSettings. When enabled, changes appear immediately and active transitions finish immediately. `BYAX_REDUCED_MOTION=1` forces the same behavior for managed desktops or headless runs. Qt accessibility motion preferences, where exposed by the installed Qt/platform combination, also force reduced motion and update live. The preference cannot override an active system/environment request for reduced motion. On older Qt builds without accessibility motion hints, use the menu or environment setting.
 
 ![About window with the approved identity and pen gesture](images/about.png)
+
+## Hand-drawn marks and rules
+
+Lines that sit on the page are drawn the way the logo's underline is: a pen line with a slight wave and uneven crests, not a ruler.
+
+**Proofreader's marks.** Findings from the spelling and grammar suites (the AI tab's spelling check, and **Run document checks** when a checking profile includes them) are drawn under the exact words: a red pen squiggle for spelling, a green pen squiggle for grammar. They are interface only. They are never saved into a document, and never appear in Pages, print or any export. A mark records the text of the block it was measured on and is drawn only while the block still reads exactly that, so it hides the moment you edit the block and can never sit under the wrong word. Replacing a word, ignoring it or adding it to the dictionary removes its mark with its list entry. Hover a mark for its label (the same text the lists show), so meaning never rests on color alone. New marks write themselves in over 180 ms; reduced motion draws them at once.
+
+**Underline and strikethrough.** In the writing view, authored underline and strikethrough are drawn as pen strokes in the text's own color. The editor stores them as custom character properties instead of Qt's native lines, so typing inside a struck run simply continues the stroke. Pages, print and every export are resolved from the document model by `layout.resolve_pages`, which always builds typographically exact lines whatever the editor is doing, and the switch is thread-local so a background export can never inherit it. Hyperlinks keep their native underline.
+
+**Preference.** **View → Hand-drawn marks** (on by default; stored as `appearance/handDrawnMarks`) switches the editor between pen strokes and plain lines: native underline and strikethrough, and regular zigzag proof marks. When the platform asks for high contrast, marks use the text color at a heavier weight.
+
+**Chrome rules.** The quiet `Rule` separators (under the toolbar and dock titles, above the status bar, between menu items and between toolbar groups) are Vixl-authored hand-inked strokes applied through the stylesheet (`ui/rule-h`, `rule-v`), and the selected tab's underline is a short pen-green stroke (`tab-underline`). They are decoration only: the keyboard focus ring stays a 2 px solid deep-green border, and the platform high-contrast theme clears the brand stylesheet and the rules with it.
 
 ## Authoring with Vixl
 
@@ -92,10 +130,19 @@ On Windows use `.venv-assets\Scripts\python.exe`. The bake script renders all fr
 
 The AI-tab loops and empty-state stills do not need Vixl: `scripts/build_ui_art.py --companions-only` unpacks the delivered transparent APNG frames with Pillow (no resampling), crops transparent margins, closes each loop on its opening pose, uses the delivered reduced-motion PNG as the poster, and copies the illustration PNGs. Each manifest records the APNG and poster hashes and the library's Vixl check result; `provenance.json` records each still's source and hash. A full `build_ui_art.py` run also refreshes them.
 
+The icons, dialog illustrations, the checking and dictation loops and the chrome rules come from the [logo UI library](../assets/logo-ui-library/README.md). Rebuild them in the same authoring environment, then refresh the runtime copies (Pillow only, no Vixl needed for the second step):
+
+```bash
+.venv-assets/bin/python scripts/build_logo_ui.py
+.venv-assets/bin/python scripts/build_ui_art.py --companions-only
+```
+
+Every design passes Vixl's bounds, motion and composition checks and an asset contract; each icon also carries a palette rule limited to ink, pen green and ink red. Renders and animations are byte-identical between builds. The runtime icon atlases (`ui/icons-{light,dark}-{16,24,32,48}.png`, `ui/icons.json`) and each still, loop and rule record their source and hash in `ui/provenance.json`.
+
 The earlier [pen-settle experiment](../design/brand/motion/pen-settle.vixl), its contact sheet, and `scripts/build_brand_motion.py` remain as source references. They do not rebuild the current `ui/` profiles.
 
 ## Verification
 
 The [editable sources](../design/brand/README.md) preserve the supplied guide, examples, and new timeline. Vixl is the animation authoring tool; native playback stays in `gui_motion.py`. Preserve the immediate reduced-motion path when adding transitions.
 
-`tests/test_brand_motion.py`, `tests/test_ui_art.py`, and `tests/test_gui_ai.py` exercise resources, companion provenance and loop endpoints, palette-based variant choice, task-owned AI/spelling loops, exact sprite endpoints, completion/interruption, reduced motion, hidden/minimized windows, concurrent workers, terminal job states, explicit save versus autosave, style-key mapping, and document preservation. Existing GUI and engine tests remain required. Screenshots are captured from Qt's offscreen native renderer using a sample document; its Source Serif 4 style is an explicit specimen choice. The busy capture holds a local task open for inspection. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.
+`tests/test_ui_icons_marks.py` checks the library against its own checksums and manifest, the icon atlases (every designed icon present, exact pixmaps at every size, distinct drawings, brand colors only), the new stills, loops and rules with their provenance, icons and icon-only buttons in the toolbar and menus, the illustrated result headers and when they appear, the checking and dictation loops starting and stopping with their tasks (including failure and closing), that pen-stroke decorations exist only in the editing view and never reach `resolve_pages` or another thread, that marks sit under the word they measure, hide when their block changes, write over 180 ms and not under reduced motion, never enter the document, and fall back to plain lines. `tests/test_brand_motion.py`, `tests/test_ui_art.py`, and `tests/test_gui_ai.py` exercise resources, companion provenance and loop endpoints, palette-based variant choice, task-owned AI/spelling loops, exact sprite endpoints, completion/interruption, reduced motion, hidden/minimized windows, concurrent workers, terminal job states, explicit save versus autosave, style-key mapping, and document preservation. Existing GUI and engine tests remain required. Screenshots are captured from Qt's offscreen native renderer using a sample document; its Source Serif 4 style is an explicit specimen choice. The busy capture holds a local task open for inspection. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.

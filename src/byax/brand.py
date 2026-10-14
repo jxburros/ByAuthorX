@@ -78,6 +78,11 @@ def configure_application(app: QApplication):
     app.setStyleSheet(stylesheet())
 
 
+def rule_url(name, theme='light'):
+    """A Vixl-authored hand-inked rule for the stylesheet (Qt picks the @2x file on high-DPI displays)."""
+    return f'url("{(BRAND_ROOT / "ui" / f"{name}-{theme}.png").as_posix()}")'
+
+
 def stylesheet():
     c = COLORS
     control, panel = TOKENS['radius']['control'], TOKENS['radius']['panel']
@@ -85,30 +90,42 @@ def stylesheet():
         QMainWindow, QDialog {{ background: {c['paper']}; color: {c['ink']}; }}
         QMenuBar, QToolBar, QStatusBar {{ background: {c['surface']}; color: {c['ink']};
             border: 0; padding: 4px; }}
-        QToolBar {{ border-bottom: 1px solid {c['rule']}; spacing: 6px; }}
-        QStatusBar {{ border-top: 1px solid {c['rule']}; }}
-        QMenu {{ background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['rule']}; }}
-        QMenu::item {{ padding: 8px 24px; }}
+        QToolBar {{ spacing: 6px; background-image: {rule_url('rule-h')}; background-repeat: repeat-x;
+            background-position: bottom left; background-origin: border; }}
+        QToolBar::separator {{ width: 7px; margin: 6px 6px; background-image: {rule_url('rule-v')};
+            background-repeat: no-repeat; background-position: center; }}
+        QStatusBar {{ background-image: {rule_url('rule-h')}; background-repeat: repeat-x;
+            background-position: top left; background-origin: border; }}
+        QMenu {{ background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['rule']};
+            icon-size: 20px; }}
+        QMenu::item {{ padding: 8px 24px 8px 12px; }}
+        QMenu::separator {{ height: 6px; margin: 4px 10px; background-image: {rule_url('rule-h')};
+            background-repeat: repeat-x; background-position: center left; }}
+        QMenu::icon {{ padding-left: 8px; }}
         QMenu::item:selected, QMenuBar::item:selected {{ background: {c['paper']}; color: {c['greenText']}; }}
         QToolButton, QPushButton {{ background: {c['surface']}; color: {c['ink']};
             border: 1px solid {c['control']}; border-radius: {control}px; padding: 8px 12px; }}
         QToolButton:hover, QPushButton:hover {{ background: {c['paper']}; border-color: {c['green']}; }}
         QToolBar QToolButton {{ border-color: transparent; padding: 8px 10px; }}
         QToolBar QToolButton:hover {{ background: {c['paper']}; border-color: {c['rule']}; }}
+        QToolBar QToolButton:pressed, QToolBar QToolButton:checked {{
+            background: {c['paper']}; color: {c['greenText']}; border-color: {c['greenText']}; }}
         QToolButton:pressed, QPushButton:pressed, QToolButton:checked {{
             background: {c['greenText']}; color: white; }}
         QPushButton[primary="true"] {{ background: {c['green']}; color: white; border-color: {c['green']}; }}
         QPushButton[primary="true"]:hover {{ background: {c['greenText']}; }}
         QPushButton:disabled, QToolButton:disabled {{ color: {c['muted']}; background: {c['paper']}; }}
         QDockWidget {{ color: {c['ink']}; font-weight: 600; }}
-        QDockWidget::title {{ background: {c['surface']}; padding: 12px; }}
+        QDockWidget::title {{ background: {c['surface']}; padding: 12px; background-image: {rule_url('rule-h')};
+            background-repeat: repeat-x; background-position: bottom left; background-origin: border; }}
         QTreeWidget, QListWidget {{ border: 0; background: {c['surface']}; color: {c['ink']}; padding: 8px; }}
         QTreeWidget::item, QListWidget::item {{ padding: 8px; }}
         QTreeWidget::item:selected, QListWidget::item:selected {{ background: {c['greenText']}; color: white; }}
         QTabWidget::pane {{ border: 1px solid {c['rule']}; border-radius: {panel}px; background: {c['surface']}; }}
-        QTabBar::tab {{ padding: 8px 16px; color: {c['muted']}; background: {c['paper']}; }}
+        QTabBar::tab {{ padding: 8px 16px 2px 16px; color: {c['muted']}; background: {c['paper']};
+            border-bottom: 8px solid transparent; }}
         QTabBar::tab:selected {{ color: {c['greenText']}; background: {c['surface']};
-            border-bottom: 2px solid {c['greenText']}; }}
+            border-image: {rule_url('tab-underline')} 0 0 8 0 stretch stretch; border-bottom: 8px solid; }}
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
             background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['control']};
             border-radius: {control}px; padding: 4px 8px; selection-background-color: {c['greenText']};
