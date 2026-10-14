@@ -182,6 +182,11 @@ def test_character_and_paragraph_styles_inherit_independently_with_override_repo
         target
     ]
     assert engine.inspect(doc, section='formatting', target=target)['items'][0]['has_overrides']
+    # Broken imported style references are reported instead of failing inspection.
+    doc['styles']['orphan'] = {'based_on': 'nowhere'}
+    doc['blocks'][1]['style'] = 'orphan'
+    assert element_report(doc, doc['blocks'][1])['style_problems'][0]['style'] == 'orphan'
+    assert {s['name']: s for s in style_report(doc)}['orphan']['problems']
 
 
 def test_clear_formatting_keeps_text_semantic_marks_and_structure_and_is_tracked():

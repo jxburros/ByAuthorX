@@ -1043,13 +1043,27 @@ def _register_proposal(doc, values, base_revision, *, allow_empty=False):
         - created
         - links
     )
-    target_ids = {t for t in target_ids if t not in doc.get('dependencies', {})}
+    preconditions = {}
+    for target in sorted(target_ids):
+        try:
+            preconditions[target] = object_hash(find_object(doc, target))
+        except ByaxError:
+            # Dependencies and review records are revalidated by their own operations.
+            if target not in doc.get('dependencies', {}):
+                for collection in ('comments', 'proposals', 'tracked_changes'):
+                    try:
+                        _find_review(doc, collection, target)
+                        break
+                    except ByaxError:
+                        continue
+                else:
+                    raise
     proposal = {
         **values,
         'id': new_id('proposal'),
         'status': 'pending',
         'expected_revision': values.get('expected_revision', base_revision),
-        'preconditions': {target: object_hash(find_object(doc, target)) for target in sorted(target_ids)},
+        'preconditions': preconditions,
         'edits': _plan_edits(doc, operations, explicit),
     }
     doc['review']['proposals'].append(proposal)
@@ -1102,11 +1116,13 @@ def _revalidate(doc, proposal, selected):
         else:
             for reference in _edited_ids(operation) - created:
                 digest = proposal.get('preconditions', {}).get(reference)
+                if digest is None:
+                    continue
                 try:
                     current = object_hash(find_object(doc, reference))
                 except ByaxError:
                     _stale('Proposal target no longer exists.', target=reference, edit=edit['id'])
-                if digest is not None and current != digest:
+                if current != digest:
                     _stale(
                         'Proposal target changed since it was reviewed.', target=reference, edit=edit['id']
                     )
@@ -2283,6 +2299,24 @@ def _record_parents(candidate, parents, provenance):
     history = candidate['history']
     history['parents'] = {**history.get('parents', {}), candidate['revision']: list(dict.fromkeys(parents))}
     history['provenance'] = {**history.get('provenance', {}), candidate['revision']: provenance}
+    keep = (
+        {r['revision'] for r in history['revisions']}
+        | set(history['branches'].values())
+        | {candidate['revision']}
+    )
+    if len(history['parents']) > 2 * len(keep) + 100:
+        # Compacted revisions leave the graph; their children inherit their parents
+        # so retained ancestors (merge bases) stay reachable.
+        graph = dict(history['parents'])
+        for revision in [r for r in graph if r not in keep]:
+            removed = graph.pop(revision)
+            for child, links in graph.items():
+                if revision in links:
+                    graph[child] = list(
+                        dict.fromkeys(p for link in links for p in (removed if link == revision else [link]))
+                    )
+        history['parents'] = graph
+        history['provenance'] = {k: v for k, v in history['provenance'].items() if k in keep}
 
 
 REQUEST_RETENTION = 1000

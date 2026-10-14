@@ -179,8 +179,8 @@ def _run_boundaries(obj):
 def element_report(doc, obj):
     """Inherited, local and effective formatting with explicit overrides."""
     name = obj.get('style')
-    chain = style_chain(doc, name) if name else []
-    inherited = style_values(doc, name) if name else {}
+    problems = []
+    chain, inherited = _safe_chain(doc, name, problems)
     local = {k: v for k, v in obj.get('attrs', {}).items() if k in PARAGRAPH_FORMAT}
     overrides = [
         {'property': key, 'style_value': inherited.get(key), 'local_value': value, 'source': 'paragraph'}
@@ -197,8 +197,7 @@ def element_report(doc, obj):
         character = [m['value'] for m in active if m.get('type') == CHARACTER_MARK]
         character_values, character_chain = {}, []
         if character:
-            character_chain = style_chain(doc, character[-1])
-            character_values = style_values(doc, character[-1])
+            character_chain, character_values = _safe_chain(doc, character[-1], problems)
         direct = {
             m['type']: m.get('value', True)
             for m in active
@@ -232,7 +231,18 @@ def element_report(doc, obj):
         'overrides': overrides,
         'runs': runs,
         'has_overrides': bool(overrides or any(r['overrides'] for r in runs)),
+        'style_problems': problems,
     }
+
+
+def _safe_chain(doc, name, problems):
+    if not name:
+        return [], {}
+    try:
+        return style_chain(doc, name), style_values(doc, name)
+    except ByaxError as exc:
+        problems.append({'style': name, 'message': exc.message, **exc.details})
+        return [], {}
 
 
 def style_report(doc, name=None):
@@ -241,15 +251,18 @@ def style_report(doc, name=None):
     for item in names:
         if item not in doc['styles']:
             raise ByaxError('missing_target', 'Named style does not exist.', target=item)
+        problems = []
+        chain, values = _safe_chain(doc, item, problems)
         result.append(
             {
                 'name': item,
                 'kind': style_kind(doc, item),
                 'based_on': doc['styles'][item].get('based_on'),
-                'chain': style_chain(doc, item),
-                'values': style_values(doc, item),
+                'chain': chain,
+                'values': values,
                 'dependents': dependents(doc, item),
                 'affected_ids': affected_ids(doc, item),
+                'problems': problems,
             }
         )
     return result

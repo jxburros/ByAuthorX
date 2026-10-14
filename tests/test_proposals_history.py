@@ -294,6 +294,11 @@ def test_merge_is_available_through_the_cli(tmp_path):
     switched = execute('history', {'path': str(path), 'action': 'switch_branch', 'name': 'draft'})
     assert switched['execution'] == 'completed'
     assert load_document(path)['history']['current_branch'] == 'draft'
+    for section in ('requests', 'dependencies', 'lists', 'formatting', 'style_inheritance'):
+        inspected = execute('inspect', {'path': str(path), 'section': section})
+        assert inspected['execution'] == 'completed', section
+    retention = execute('inspect', {'path': str(path), 'section': 'requests'})['items'][-1]['retention']
+    assert retention['complete'] is True
 
 
 def test_request_retention_keeps_replay_and_mismatch_across_boundaries(tmp_path):
@@ -359,3 +364,58 @@ def test_interrupted_unsaved_work_replays_once_after_reopen(tmp_path):
     save_document(applied, path)
     again, result = engine.apply(load_document(path), envelope)
     assert result['execution'] == 'already_committed' and again['blocks'][0]['text'] == 'Draft!'
+
+
+def test_ancestry_stays_bounded_after_compaction_and_keeps_merge_base():
+    doc = new_document(text='0\nother')
+    target, other = (b['id'] for b in doc['blocks'])
+    doc['settings']['history_limit'] = 6
+    doc, _ = engine.checkpoint(doc, 'base')
+    doc, _ = engine.branch(doc, 'draft')
+    doc, _ = edit(doc, {'type': 'set_text', 'target': other, 'text': 'draft change'})
+    doc, _ = engine.switch_branch(doc, 'main')
+    for number in range(1, 140):
+        doc, _ = engine.apply(
+            doc,
+            {'operations': [{'type': 'set_text', 'target': target, 'text': str(number)}]},
+            auto_compact_history=True,
+        )
+    history = doc['history']
+    assert len(history['parents']) < 130 and len(history['provenance']) <= len(history['parents'])
+    assert engine.merge_base(doc, 'draft') == engine._revision(doc, 'base')['revision']
+    doc, result = engine.apply(
+        doc, {'operations': [{'type': 'propose_merge', 'source': 'draft'}]}, auto_compact_history=True
+    )
+    merged, _ = engine.apply(
+        doc,
+        {'operations': [{'type': 'accept_proposal', 'target': result['changed_ids'][0]}]},
+        auto_compact_history=True,
+    )
+    assert [b['text'] for b in merged['blocks']] == ['139', 'draft change']
+
+
+def test_proposals_may_target_dependencies_and_review_records_but_not_unknown_ids():
+    import base64
+
+    doc = new_document(text='Body')
+    target = doc['blocks'][0]['id']
+    doc, result = edit(
+        doc,
+        {'type': 'add_comment', 'target': target, 'text': 'Fix'},
+        {'type': 'link_asset', 'uri': 'pic.png', 'id': 'dep_pic', 'mime': 'image/png'},
+    )
+    comment = result['changed_ids'][0]
+    data = base64.b64encode(b'png bytes').decode()
+    doc, proposal = _proposal(
+        doc,
+        [
+            {'type': 'refresh_dependency', 'target': 'dep_pic', 'data': data},
+            {'type': 'resolve_comment', 'target': comment},
+        ],
+    )
+    accepted, _ = edit(doc, {'type': 'accept_proposal', 'target': proposal})
+    assert accepted['dependencies']['dep_pic']['status'] == 'current'
+    assert accepted['review']['comments'][0]['status'] == 'resolved'
+    with pytest.raises(ByaxError) as error:
+        _proposal(doc, [{'type': 'set_text', 'target': 'p_missing', 'text': 'x'}])
+    assert error.value.code == 'missing_target'
