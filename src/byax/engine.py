@@ -13,6 +13,8 @@ from .checks import run_checks
 from .errors import ByaxError
 from .model import canonical_json, find_object, new_id, object_hash, snapshot, text_of, validate_document
 
+REQUEST_LIMIT = 500
+
 # Required fields, optional fields. Unknown fields are always rejected.
 OP_SCHEMAS = {
     'insert_text': ('target offset text', ''),
@@ -1228,15 +1230,42 @@ def _candidate(doc):
     return result
 
 
+def _order_diff(old, new):
+    # Splices turning the previous block order into the new one: [start, end, ids]
+    # against the previous order, applied back to front.
+    if old == new:
+        return None
+    start, limit = 0, min(len(old), len(new))
+    while start < limit and old[start] == new[start]:
+        start += 1
+    end_old, end_new = len(old), len(new)
+    while end_old > start and end_new > start and old[end_old - 1] == new[end_new - 1]:
+        end_old, end_new = end_old - 1, end_new - 1
+    if end_old - start <= 64 and end_new - start <= 64:
+        return [[start, end_old, new[start:end_new]]]
+    matcher = difflib.SequenceMatcher(None, old[start:end_old], new[start:end_new], autojunk=False)
+    return [
+        [start + i1, start + i2, new[start + j1 : start + j2]]
+        for tag, i1, i2, j1, j2 in matcher.get_opcodes()
+        if tag != 'equal'
+    ]
+
+
+def _view(doc):
+    return {k: v for k, v in doc.items() if k not in ('history', 'requests')}
+
+
 def _delta(before, after):
+    before, after = _view(before), _view(after)
     old, new = {b['id']: b for b in before['blocks']}, {b['id']: b for b in after['blocks']}
     delta = {
         'set': {k: copy.deepcopy(v) for k, v in after.items() if k != 'blocks' and before.get(k) != v},
         'delete': [k for k in before if k not in after],
         'blocks': {k: copy.deepcopy(v) for k, v in new.items() if old.get(k) != v},
     }
-    if list(old) != list(new):
-        delta['block_order'] = list(new)
+    order = _order_diff(list(old), list(new))
+    if order is not None:
+        delta['block_order_diff'] = order
     return delta
 
 
@@ -1247,9 +1276,54 @@ def _patch(state, delta):
         result.pop(key, None)
     blocks = {b['id']: b for b in result['blocks']}
     blocks.update(copy.deepcopy(delta['blocks']))
-    order = delta.get('block_order', [b['id'] for b in result['blocks']])
+    if 'block_order' in delta:
+        order = delta['block_order']
+    else:
+        order = [b['id'] for b in result['blocks']]
+        for start, end, inserted in reversed(delta.get('block_order_diff', [])):
+            order[start:end] = inserted
     result['blocks'] = [blocks[key] for key in order]
     return result
+
+
+# Recently committed states keyed by revision. Committed documents are replaced,
+# never mutated, so these read-only references let a commit diff against the
+# previous record without replaying the delta chain.
+_STATES = {}
+_STATE_CACHE = 8
+# A snapshot is taken once the deltas since the previous one add up to that
+# snapshot's size, so history bytes per edit stay proportional to the edit.
+_SNAPSHOT_MIN_BYTES = 16 * 1024
+_SNAPSHOT_MAX_CHAIN = 400
+
+
+def _remember(doc):
+    _STATES.pop(doc['revision'], None)
+    _STATES[doc['revision']] = doc
+    while len(_STATES) > _STATE_CACHE:
+        _STATES.pop(next(iter(_STATES)))
+
+
+def _cached(revision):
+    state = _STATES.get(revision)
+    return state if state is not None and state.get('revision') == revision else None
+
+
+def _record_bytes(record):
+    if 'bytes' in record:
+        return record['bytes']
+    return len(canonical_json(record.get('snapshot', record.get('delta'))))
+
+
+def _needs_snapshot(records):
+    accumulated = 0
+    for count, record in enumerate(reversed(records)):
+        if 'snapshot' in record:
+            return count >= _SNAPSHOT_MAX_CHAIN or accumulated >= max(
+                _SNAPSHOT_MIN_BYTES, _record_bytes(record)
+            )
+        accumulated += _record_bytes(record)
+    return True
 
 
 def _compact_history(doc, keep_last):
@@ -1293,12 +1367,17 @@ def _commit(before, candidate, operations, request_id=None, origin='api', *, aut
             'request_id': request_id,
             'operations': copy.deepcopy(operations),
         }
-        if not history['revisions'] or len(history['revisions']) % 20 == 0:
+        if _needs_snapshot(history['revisions']):
             record['snapshot'] = snapshot(before)
+            record['bytes'] = len(canonical_json(record['snapshot']))
         else:
-            previous = _revision(before, history['revisions'][-1]['revision'])
-            record['delta'] = _delta(previous, snapshot(before))
+            previous = _cached(history['revisions'][-1]['revision'])
+            if previous is None:
+                previous = _revision(before, history['revisions'][-1]['revision'])
+            record['delta'] = _delta(previous, before)
+            record['bytes'] = len(canonical_json(record['delta']))
         history['revisions'].append(record)
+    _remember(before)
     candidate['revision'] = new_id('rev')
     history['branches'][history['current_branch']] = candidate['revision']
     limit = candidate['settings'].get('history_limit', 1000)
@@ -1425,7 +1504,7 @@ def apply(doc, envelope, *, dry_run=False, allow_policy_changes=False, auto_comp
             'reason': 'Semantic dry run does not render candidate pages.',
         }
         return candidate, result
-    if snapshot(candidate) == snapshot(doc) and candidate['history'] == doc['history']:
+    if _view(candidate) == _view(doc) and candidate['history'] == doc['history']:
         result = _result(candidate, doc['revision'], [], 'unchanged', report)
     else:
         _commit(
@@ -1437,8 +1516,14 @@ def apply(doc, envelope, *, dry_run=False, allow_policy_changes=False, auto_comp
             auto_compact_history=auto_compact_history,
         )
         result = _result(candidate, doc['revision'], changed, report=report)
-    if request_id:
-        candidate['requests'][request_id] = {'fingerprint': fingerprint, 'result': copy.deepcopy(result)}
+    if request_id and envelope.get('origin') != 'gui':
+        # Desktop commits are never retried by identity; other callers keep a
+        # bounded idempotency window of the most recent request identities.
+        requests = candidate['requests']
+        requests.pop(request_id, None)
+        requests[request_id] = {'fingerprint': fingerprint, 'result': copy.deepcopy(result)}
+        for stale in list(requests)[: max(0, len(requests) - REQUEST_LIMIT)]:
+            del requests[stale]
     return candidate, result
 
 
@@ -1469,11 +1554,12 @@ def _revision(doc, revision):
     )
     if target_index is not None:
         start = target_index
-        while start >= 0 and 'snapshot' not in records[start]:
+        while start >= 0 and 'snapshot' not in records[start] and _cached(records[start]['revision']) is None:
             start -= 1
         if start < 0:
             raise ByaxError('invalid_input', 'History delta has no reconstructable base.', target=revision)
-        state = copy.deepcopy(records[start]['snapshot'])
+        cached = _cached(records[start]['revision'])
+        state = snapshot(cached) if cached is not None else copy.deepcopy(records[start]['snapshot'])
         for record in records[start + 1 : target_index + 1]:
             state = (
                 copy.deepcopy(record['snapshot']) if 'snapshot' in record else _patch(state, record['delta'])
@@ -1508,8 +1594,8 @@ def diff(doc, from_revision):
 def restore(doc, revision, *, auto_compact_history=False):
     state = _revision(doc, revision)
     candidate = {
-        **copy.deepcopy(state),
-        'history': copy.deepcopy(doc['history']),
+        **state,
+        'history': _candidate({'history': doc['history']})['history'],
         'requests': copy.deepcopy(doc['requests']),
     }
     _preserve(doc, candidate, doc['settings'].get('protections', []))

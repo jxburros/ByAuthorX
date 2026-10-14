@@ -101,7 +101,7 @@ def test_open_session_lock_blocks_other_writer(window, tmp_path):
         storage.save_document(doc, path)
     window.editor.insertPlainText('Edit ')
     assert window.flush_edits()
-    assert window.save()
+    assert window.save(wait=True)
     assert storage.load_document(path)['blocks'][0]['text'] == 'Edit Locked'
 
 
@@ -110,6 +110,7 @@ def test_autosave_and_undo(window):
     window.editor.insertPlainText('Recovered text')
     assert window.flush_edits()
     window.autosave()
+    assert window.wait_for_save()
     recovered = storage.load_document(window.recovery_path())
     assert recovered['blocks'][0]['text'] == 'Recovered text'
     window.undo()
@@ -143,7 +144,7 @@ def test_markdown_no_edit_save_preserves_original_bytes(window, tmp_path):
     assert window.flush_edits()
     assert window.doc['revision'] == revision
     assert not window.dirty
-    assert window.save()
+    assert window.save(wait=True)
     assert path.read_bytes() == original
     assert not window.test_errors
 
@@ -157,7 +158,7 @@ def test_markdown_visual_edit_preserves_unrelated_source(window, tmp_path):
     window.editor.navigate(target)
     window.editor.insertPlainText('Edited ')
     assert window.flush_edits()
-    assert window.save()
+    assert window.save(wait=True)
     assert path.read_bytes() == b'# Title\r\n\r\nEdited A paragraph.\r\n\r\n<!-- keep raw source -->\r\n'
 
 
@@ -175,7 +176,7 @@ def test_markdown_source_edit_preserves_master_identity(window, tmp_path):
     assert window.apply_markdown_source(source_doc)
     assert window.doc['id'] == doc_id
     assert [b['id'] for b in window.doc['blocks']] == original_ids
-    assert window.save()
+    assert window.save(wait=True)
     assert path.read_text() == '# Title\n\nChanged paragraph.\n'
 
 
@@ -306,7 +307,7 @@ def test_1500_typing_bursts_reopen_and_checkpoint_survival(window, tmp_path):
     assert window.open_path(path)
     window.editor.insertPlainText('y')
     assert window.flush_edits()
-    assert window.save()
+    assert window.save(wait=True)
     assert storage.load_document(path)['blocks'][0]['text'] == 'y' + 'x' * 1500 + 'Start'
     window.undo()
     assert window.doc['blocks'][0]['text'] == 'x' * 1500 + 'Start'

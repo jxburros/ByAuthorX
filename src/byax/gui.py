@@ -94,6 +94,9 @@ class MainWindow(QMainWindow):
         self.dirty = False
         self._refreshing = False
         self._disk_stamp = None
+        self._save_task = None
+        self._save_again = False
+        self._last_save_ok = None
         self._undo = []
         self._redo = []
         self._workers = set()
@@ -833,7 +836,13 @@ class MainWindow(QMainWindow):
         self.document_title.setText(title)
         self.document_title.setToolTip(title)
         self.document_state.setText(
-            'Unsaved changes' if self.dirty else 'Saved locally' if self.path else 'New document'
+            'Saving…'
+            if self._save_task is not None and self._save_task['path'] == self.path
+            else 'Unsaved changes'
+            if self.dirty
+            else 'Saved locally'
+            if self.path
+            else 'New document'
         )
 
     def selection_changed(self):
@@ -961,6 +970,7 @@ class MainWindow(QMainWindow):
 
     def confirm_discard(self):
         self.flush_edits()
+        self.wait_for_save()
         if not self.dirty:
             return True
         answer = QMessageBox.question(
@@ -971,7 +981,7 @@ class MainWindow(QMainWindow):
             QMessageBox.Save,
         )
         if answer == QMessageBox.Save:
-            return self.save()
+            return self.save(wait=True)
         return answer == QMessageBox.Discard
 
     def release_lock(self):
@@ -1036,50 +1046,117 @@ class MainWindow(QMainWindow):
             return (stat.st_mtime_ns, stat.st_size)
         return None
 
-    def save(self):
+    def save(self, *, wait=False):
         if not self.flush_edits():
             return False
         if not self.path:
-            return self.save_as()
+            return self.save_as(wait=wait)
+        if self._save_task is not None:
+            # One write at a time: the newest model is saved once the current write ends.
+            self._save_again = True
+            return self.wait_for_save() if wait else True
         if self.file_stamp(self.path) != self._disk_stamp:
             self.error('The file changed outside this session. Save as a new file to preserve both versions.')
             return False
-        try:
-            if self.path.suffix.lower() in ('.md', '.markdown'):
-                from .exchange import export_document
+        if self.path.suffix.lower() in ('.md', '.markdown'):
+            return self._save_markdown()
+        path = self.path
 
-                with tempfile.TemporaryDirectory(prefix='.byax-save-', dir=self.path.parent) as temporary:
-                    stage = Path(temporary) / 'document.md'
-                    result = export_document(self.doc, stage)
-                    normalized = [
-                        loss
-                        for loss in result.get('losses', [])
-                        if loss.get('code', loss.get('type')) == 'markdown_normalized'
-                    ]
-                    if (
-                        normalized
-                        and QMessageBox.question(
-                            self,
-                            'Normalize Markdown source?',
-                            'The structural changes require regenerating Markdown whitespace and syntax. Save these changes?',
-                        )
-                        != QMessageBox.Yes
-                    ):
-                        return False
-                    os.replace(stage, self.path)
-            else:
-                storage.save_document(self.doc, self.path, owner=self.owner)
+        def finished(task, error):
+            if error is not None:
+                self.error(error)
+                return
+            if self.path == path:
+                self._disk_stamp = self.file_stamp(path)
+                self._mark_saved(task['revision'])
+
+        self._start_save(path, finished)
+        return self.wait_for_save() if wait else True
+
+    def _save_markdown(self):
+        from .exchange import export_document
+
+        try:
+            with tempfile.TemporaryDirectory(prefix='.byax-save-', dir=self.path.parent) as temporary:
+                stage = Path(temporary) / 'document.md'
+                result = export_document(self.doc, stage)
+                normalized = [
+                    loss
+                    for loss in result.get('losses', [])
+                    if loss.get('code', loss.get('type')) == 'markdown_normalized'
+                ]
+                if (
+                    normalized
+                    and QMessageBox.question(
+                        self,
+                        'Normalize Markdown source?',
+                        'The structural changes require regenerating Markdown whitespace and syntax. Save these changes?',
+                    )
+                    != QMessageBox.Yes
+                ):
+                    return False
+                os.replace(stage, self.path)
             self._disk_stamp = self.file_stamp(self.path)
-            self.dirty = False
-            self.recovery_path().unlink(missing_ok=True)
-            self.update_status()
-            self._saved_feedback()
+            self._mark_saved(self.doc['revision'])
             return True
         except Exception as exc:
             self.error(exc)
             return False
 
-    def save_as(self):
+    def _mark_saved(self, revision):
+        # Edits made while the write was running keep the document dirty.
+        if self.doc['revision'] == revision and not self.edit_timer.isActive():
+            self.dirty = False
+            self.recovery_path().unlink(missing_ok=True)
+        self.update_status()
+        self._saved_feedback()
+
+    def _start_save(self, path, finished, *, label='Saving…', quiet=False):
+        # Committed documents are replaced rather than mutated, so a shallow copy
+        # is a stable model for the worker while editing continues.
+        doc = copy.copy(self.doc)
+        task = {'path': path, 'revision': doc['revision'], 'ok': None}
+        worker = Worker(lambda: storage.save_document(doc, path, owner=self.owner))
+        self._save_task = task
+        self._workers.add(worker)
+        if not quiet:
+            self._begin_activity(worker, label)
+        self.update_status()
+
+        def complete(error=None):
+            self._workers.discard(worker)
+            self._save_task = None
+            task['ok'] = error is None
+            self._last_save_ok = task['ok']
+            if not quiet:
+                self._end_activity(worker, 'Ready' if error is None else 'Save failed')
+            try:
+                finished(task, error)
+            finally:
+                if self._save_again:
+                    self._save_again = False
+                    if self.dirty:
+                        self.save()
+
+        worker.signals.done.connect(lambda _result: complete())
+        worker.signals.failed.connect(complete)
+        QThreadPool.globalInstance().start(worker)
+        return task
+
+    def wait_for_save(self):
+        """Process events until queued writes finish; returns whether the last write succeeded."""
+        from PySide6.QtCore import QEventLoop
+
+        while self._save_task is not None or self._save_again:
+            if self._save_task is None:
+                self._save_again = False
+                if not (self.dirty and self.save()):
+                    break
+                continue
+            QApplication.processEvents(QEventLoop.ExcludeUserInputEvents | QEventLoop.WaitForMoreEvents, 50)
+        return bool(self._last_save_ok)
+
+    def save_as(self, *, wait=False):
         if not self.flush_edits():
             return False
         path, _ = QFileDialog.getSaveFileName(
@@ -1095,36 +1172,43 @@ class MainWindow(QMainWindow):
             target = target.with_suffix('.byax')
         target = target.resolve()
         if target == self.path:
-            return self.save()
+            return self.save(wait=wait)
+        self.wait_for_save()
         candidate_lock = storage.DocumentLock(target, owner=self.owner)
         try:
             candidate_lock.acquire()
-            storage.save_document(self.doc, target, owner=self.owner)
+        except Exception as exc:
+            self.error(exc)
+            return False
+
+        def finished(task, error):
+            if error is not None:
+                candidate_lock.release()
+                self.error(error)
+                return
             self.release_lock()
             self.lock, self.path = candidate_lock, target
             self._disk_stamp = self.file_stamp(target)
-            self.dirty = False
-            self.recovery_path().unlink(missing_ok=True)
             self.add_recent(target)
-            self.update_status()
-            self._saved_feedback()
-            return True
-        except Exception as exc:
-            candidate_lock.release()
-            self.error(exc)
-            return False
+            self._mark_saved(task['revision'])
+
+        self._start_save(target, finished)
+        return self.wait_for_save() if wait else True
 
     def recovery_path(self):
         return self.recovery_dir / (self.doc['id'] + '.byax')
 
     def autosave(self):
-        if self.dirty and self.flush_edits():
-            try:
-                storage.save_document(self.doc, self.recovery_path(), owner=self.owner)
-                if not self._active_tasks:
-                    self.status_label.setText('Recovery copy saved')
-            except Exception as exc:
-                self.status_label.setText('Recovery copy failed: ' + str(exc))
+        if self._save_task is not None or not self.dirty or not self.flush_edits():
+            return
+
+        def finished(task, error):
+            if error is not None:
+                self.status_label.setText('Recovery copy failed: ' + str(error))
+            elif not self._active_tasks:
+                self.status_label.setText('Recovery copy saved')
+
+        self._start_save(self.recovery_path(), finished, quiet=True)
 
     def recover(self):
         files = sorted(self.recovery_dir.glob('*.byax'), key=lambda p: p.stat().st_mtime, reverse=True)
@@ -1143,7 +1227,7 @@ class MainWindow(QMainWindow):
                 self.error(exc)
 
     def check_external_change(self):
-        if self.path and self.file_stamp(self.path) != self._disk_stamp:
+        if self._save_task is None and self.path and self.file_stamp(self.path) != self._disk_stamp:
             self.status_label.setText(
                 'File changed outside ByAuthorX. Save as a new file to preserve both versions.'
             )
@@ -2723,7 +2807,7 @@ class MainWindow(QMainWindow):
             path, _ = QFileDialog.getOpenFileName(self, 'Open template', '', 'ByAuthorX (*.byax)')
             if path and self.open_path(path):
                 self.release_lock()
-                self.doc['id'] = 'doc_' + uuid.uuid4().hex
+                self.doc = {**self.doc, 'id': 'doc_' + uuid.uuid4().hex}
                 self.path, self.dirty = None, True
             return
         if not self.confirm_discard():

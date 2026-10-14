@@ -144,7 +144,7 @@ def test_explicit_save_has_finite_feedback_but_autosave_is_quiet(qtbot, monkeypa
     storage.save_document(window.doc, path)
     assert window.open_path(path)
     window.editor.insertPlainText('The first line.')
-    assert window.save()
+    assert window.save(wait=True)
     assert window.activity_graphic.mode == 'saved'
     qtbot.waitUntil(lambda: window.activity_graphic.animation.state() == QAbstractAnimation.Stopped)
     assert window.document_state.text() == 'Saved locally'
