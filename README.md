@@ -162,3 +162,6 @@ The additional [logo companion library](assets/logo-companion-library/README.md)
 ## License
 
 MIT for ByAuthorX source. Qt/PySide6 and other dependencies retain their licenses; see [third-party notices](docs/third-party-notices.md). Provider services and downloaded model weights are separate integrations.
+
+Library and citation workflows, the expanded ribbon and review checks are described in
+[the library and citations guide](docs/library-and-citations-guide.md).

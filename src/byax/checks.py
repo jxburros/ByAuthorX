@@ -61,6 +61,7 @@ RULES = {
     'consistency.term_variant': ('consistency', 'consistency', 'balanced', None, 'warning'),
     'consistency.acronym': ('consistency', 'consistency', 'conservative', None, 'warning'),
     'factual.quotation': ('factual', 'factual', 'conservative', None, 'warning'),
+    'factual.library_citation': ('factual', 'factual', 'conservative', None, 'warning'),
 }
 # Coverage that deterministic rules never provide; always reported for the suite.
 UNMEASURED = {
@@ -143,12 +144,28 @@ def run_checks(doc, suites=None, *, limit=100, profile=None, scope=None, previou
     if 'print' in expanded:
         expanded.add('layout')
     selection = resolve_scope(doc, scope)
+    library_expansion = (
+        'factual' in expanded
+        and selection['kind'] != 'document'
+        and any(source.get('library') for source in doc.get('references', {}).values())
+    )
+    if library_expansion:
+        selection = resolve_scope(doc, None)
     ctx = _Context(doc, config, profile_id, sorted(expanded), selection)
+    if 'factual' in expanded:
+        ctx.prepare_library_evidence()
     compatible = _compatible(previous, ctx)
     units, evaluation = (
         {},
         {'mode': 'incremental' if compatible else 'full', 'rechecked': [], 'reused': [], 'expanded': []},
     )
+    if library_expansion:
+        evaluation['expanded'].append(
+            {
+                'unit': 'library citations',
+                'reason': 'External library dependencies may have changed; factual scope expanded to the whole document.',
+            }
+        )
     if previous is not None and not compatible:
         evaluation['reason'] = (
             'Previous report used different suites, scope, profile or engine; every unit was rechecked.'
@@ -458,6 +475,8 @@ class _Context:
         )
         self.sections = section_map(doc)
         self._profiles = {}
+        self.library_evidence = {}
+        self.library_fingerprints = {}
         settings = doc.get('settings', {})
         self.env = object_hash(
             {
@@ -470,6 +489,30 @@ class _Context:
             }
         )
 
+    def prepare_library_evidence(self):
+        from .library_checks import evidence_key, read_citation
+
+        for block in self.doc.get('blocks', []):
+            snapshots = {}
+            objects = (
+                [block]
+                if block.get('type') != 'table'
+                else [cell for row in block.get('rows', []) for cell in row['cells']]
+            )
+            for obj in objects:
+                config = self.config_for(obj['id'])[0]
+                for mark in _marks(obj):
+                    if mark.get('type') not in ('citation', 'reference'):
+                        continue
+                    source_id = mark.get('value')
+                    snapshot = read_citation(self.doc, source_id, mark, config)
+                    if snapshot is not None:
+                        key = evidence_key(source_id, mark)
+                        snapshots[key] = snapshot
+                        self.library_evidence[(obj['id'], key)] = snapshot
+            if snapshots:
+                self.library_fingerprints[block['id']] = object_hash(snapshots)
+
     def parameters(self):
         return {
             'suites': self.suites,
@@ -479,6 +522,7 @@ class _Context:
             if self.profile_label and self.profile_label.startswith('inline:')
             else None,
             'engine': ENGINE,
+            'library_fingerprints': self.library_fingerprints,
         }
 
     def profile_for(self, identity):
@@ -541,6 +585,7 @@ class _Context:
                 'block': block,
                 'env': self.env,
                 'sources': sources,
+                'library': self.library_fingerprints.get(block['id']),
                 'assets': assets,
                 'profile': resolved['fingerprint'] if resolved else None,
             }
@@ -740,7 +785,8 @@ def _evaluate_block(ctx, block, key):
             if 'spelling' in suites:
                 _spelling(sink, ctx, block, target, text, language)
     if 'factual' in suites:
-        _factual(sink, ctx, block)
+        for obj in objects:
+            _factual(sink, ctx, obj)
     if 'accessibility' in suites:
         _accessibility_block(sink, ctx, block, attrs)
     return sink.findings, sink.coverage
@@ -985,6 +1031,13 @@ def _factual(sink, ctx, block):
                 targets=[block['id']],
             )
             continue
+        if source.get('library'):
+            from .library_checks import check_citation, evidence_key
+
+            snapshot = ctx.library_evidence.get((block['id'], evidence_key(source_id, mark)))
+            if snapshot is not None:
+                check_citation(sink, block, mark, source_id, snapshot)
+                continue
         quoted = re.fullmatch(r'\s*["“](.+?)["”]\s*', claim, re.DOTALL)
         version = {
             'version': source.get('version'),
@@ -1795,6 +1848,8 @@ def _current_unit_fingerprints(doc, parameters, keys):
         parameters['suites'],
         selection,
     )
+    # Commit/typing paths use the prior explicit check's snapshot; no library I/O.
+    ctx.library_fingerprints = parameters.get('library_fingerprints', {})
     current = ctx.unit_fingerprints()
     return {key: current.get(key) for key in keys}
 

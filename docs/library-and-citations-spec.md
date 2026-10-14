@@ -1,6 +1,6 @@
 # Reference libraries, retrieval and citations
 
-Status: **proposed specification, not implemented.** This document extends sections 5.2, 12, 13, 14, 16 and 17 of the product specification. It records the design agreed in discussion before any code is written. Nothing here is verified behavior; see [the acceptance matrix](acceptance-matrix.md) for what is built.
+Status: **implemented first-release paths, with later capabilities still pending.** This document extends sections 5.2, 12, 13, 14, 16 and 17 of the product specification. The local keyword library, citation, context/review and configured embedding paths are implemented; optional downloadable model weights and phase 5 remain pending. See [the usage and limitations guide](library-and-citations-guide.md) and [the acceptance matrix](acceptance-matrix.md) for delivered behavior and evidence.
 
 Normative words follow the product specification: "shall" is a requirement, "may" is optional, "should" is a recommendation that can be departed from with a stated reason.
 

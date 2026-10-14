@@ -31,6 +31,19 @@ def is_path_argument(name):
 def check_provider_admin(command, arguments):
     if not isinstance(arguments, dict):
         raise ByaxError('invalid_input', 'Arguments must be an object')
+    if command in ('apply', 'transact', 'review'):
+        _check_source_claims(arguments.get('input', {}))
+    if command == 'library' and arguments.get('action', 'list') not in (
+        'list',
+        'status',
+        'search',
+        'read',
+        'refresh',
+    ):
+        raise ByaxError(
+            'unsupported_feature',
+            'Manage library attachments and configuration through the local CLI or desktop',
+        )
     if command == 'dependencies' and arguments.get('action') == 'refresh':
         raise ByaxError(
             'unsupported_feature',
@@ -45,12 +58,40 @@ def check_provider_admin(command, arguments):
         check_provider_admin(spec.get('command'), spec.get('arguments', {}))
 
 
+def _check_source_claims(value):
+    if isinstance(value, dict):
+        if (
+            value.get('type', value.get('op')) == 'set_settings'
+            and isinstance(value.get('values'), dict)
+            and 'libraries' in value['values']
+        ):
+            raise ByaxError(
+                'unsupported_feature', 'Manage library attachments through the local CLI or desktop'
+            )
+        if value.get('type', value.get('op')) == 'add_reference':
+            source = value.get('values', {})
+            if isinstance(source, dict) and source.get('verification') in ('manual', 'verified'):
+                raise ByaxError(
+                    'invalid_input', 'Transport clients cannot assert manual or verified source status'
+                )
+        for child in value.values():
+            _check_source_claims(child)
+    elif isinstance(value, list):
+        for child in value:
+            _check_source_claims(child)
+
+
 # Spec 16.2 command families mapped to every interface. CLI commands are also MCP
 # tools (byax_<name>) and REST commands (POST /v1/execute), all dispatched through
 # cli.execute; library entries are importable callables; GUI entries name the menu
 # action, or None when the operation is headless-only. Kept in sync with
 # docs/interface-parity.md by tests/test_interface_parity.py.
 INTERFACE_INVENTORY = (
+    ('Inspection', 'attached libraries', 'library', 'byax.cli_libraries.library_command', None),
+    ('Search and targeting', 'library search', 'library-search', 'byax.cli_libraries.library_search', None),
+    ('Inspection', 'library passage', 'library-read', 'byax.cli_libraries.library_read', None),
+    ('Review', 'citation sources', 'source', 'byax.cli_libraries.source_command', None),
+    ('Editing', 'insert citation', 'cite', 'byax.cli_libraries.cite_command', None),
     (
         'Inspection',
         'document statistics',

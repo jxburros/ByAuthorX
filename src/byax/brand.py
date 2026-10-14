@@ -162,7 +162,7 @@ def stylesheet(colors=None, theme='light'):
         QTabBar::tab {{ padding: 8px 16px 2px 16px; color: {c['muted']}; background: {c['paper']};
             border-bottom: 8px solid transparent; }}
         QTabBar::tab:selected {{ color: {c['greenText']}; background: {c['surface']};
-            border-image: {rule_url('tab-underline', theme)} 0 0 8 0 stretch stretch; border-bottom: 8px solid; }}
+            border-bottom: 8px solid transparent; }}
         QTextEdit {{ background: {c['surface']}; color: {c['ink']};
             border: 2px solid {c['control']}; border-radius: 8px; padding: 24px;
             selection-background-color: {c['greenText']}; selection-color: {selected_text}; }}

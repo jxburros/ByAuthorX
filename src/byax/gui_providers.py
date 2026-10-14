@@ -102,6 +102,15 @@ class ProviderDialog(QDialog):
             control.setAccessibleName(label)
             form.addRow(label, control)
         form.addRow(self.policy)
+        self.data_policies = {}
+        for category, label in (
+            ('library_passages', 'Allow library passages for this provider'),
+            ('library_embeddings', 'Allow library uploads for embeddings'),
+            ('citation_lookup', 'Allow outside citation metadata lookups'),
+        ):
+            control = QCheckBox(self.tr(label))
+            self.data_policies[category] = control
+            form.addRow(control)
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
         save = buttons.addButton(self.tr('Save provider'), QDialogButtonBox.ActionRole)
         test = buttons.addButton(self.tr('Test connection…'), QDialogButtonBox.ActionRole)
@@ -125,6 +134,11 @@ class ProviderDialog(QDialog):
         self.kind.setCurrentText(config.kind)
         self.timeout.setValue(config.timeout)
         self.policy.setChecked(config.allow_remote)
+        from .retrieval import ConsentRegistry
+
+        consent = ConsentRegistry(self.registry.config_dir)
+        for category, control in self.data_policies.items():
+            control.setChecked(consent.allows(alias, category))
 
     def save_config(self):
         try:
@@ -140,6 +154,11 @@ class ProviderDialog(QDialog):
                     allow_remote=self.policy.isChecked(),
                 )
             )
+            from .retrieval import ConsentRegistry
+
+            consent = ConsentRegistry(self.registry.config_dir)
+            for category, control in self.data_policies.items():
+                consent.set(self.alias.text().strip(), category, control.isChecked())
             if self.key.text():
                 self.registry.set_credential(self.alias.text().strip(), self.key.text())
                 self.key.clear()
@@ -213,7 +232,7 @@ def authorize_payload(window, title, preview):
     return bool(dialog.exec())
 
 
-def review_document(window):
+def review_document(window, *, check=None, instructions=None):
     window.flush_edits()
     from .profiles import filter_findings, validate_profile
 
@@ -242,7 +261,7 @@ def review_document(window):
         return
     selected = window.editor.textCursor().selectedText().replace('\u2029', '\n')
     text = selected or model.text_of(frozen)
-    selected_sources = profile['references'] if profile else []
+    selected_sources = profile['references'] if profile else list(frozen['references'])
     blocks = copy.deepcopy(frozen['blocks'])
     if selected:
         blocks = []
@@ -280,7 +299,22 @@ def review_document(window):
         'blocks': blocks,
         'protections': copy.deepcopy(frozen.get('settings', {}).get('protections', [])),
     }
+    if check:
+        context['requested_check'] = {'kind': check, 'instructions': instructions or ''}
+    library_authorized = False
     try:
+        if check in {'repository', 'factual'} and frozen.get('settings', {}).get('libraries'):
+            from .gui_retrieval import select_passages
+            from .retrieval import augment_context, retrieve_context
+
+            remote = registry.preview(alias, kind='chat')['remote']
+            retrieval = retrieve_context(frozen, text[:4096], profile=profile, remote=remote)
+            if retrieval['included']:
+                retrieval = select_passages(window, retrieval, alias, remote)
+                if retrieval is None:
+                    return
+                library_authorized = True
+            context = augment_context(context, retrieval)
         preview = registry.preview(alias, text=text, context=context)
     except Exception as exc:
         window.error(exc)
@@ -315,7 +349,13 @@ def review_document(window):
 
     window.background(
         QCoreApplication.translate('Providers', 'Reviewing with ') + alias + '…',
-        lambda: registry.review(alias, text, context=context, authorized=True),
+        lambda: registry.review(
+            alias,
+            text,
+            context=context,
+            authorized=True,
+            **({'library_authorized': True} if library_authorized else {}),
+        ),
         finished,
     )
 

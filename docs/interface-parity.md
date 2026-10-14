@@ -141,3 +141,11 @@ verification items.
 | Files | settings collections | `collection` | `byax_collection` | execute | `byax.profiles.export_settings` | Tools > Reusable settings… |
 
 Linked asset retrieval requires explicit authorization in the local CLI or desktop. MCP/REST can inspect or embed already retrieved content; they cannot retrieve embedded file/HTTP URIs, which are outside transport path authorization.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | attached libraries | `byax library` | `byax_library` | `POST /v1/execute` | `byax.cli_libraries.library_command` | Library / Cite |
+| Search and targeting | library search | `byax library-search` | `byax_library_search` | `POST /v1/execute` | `byax.cli_libraries.library_search` | Library / Cite |
+| Inspection | library passage | `byax library-read` | `byax_library_read` | `POST /v1/execute` | `byax.cli_libraries.library_read` | Library / Cite |
+| Review | citation sources | `byax source` | `byax_source` | `POST /v1/execute` | `byax.cli_libraries.source_command` | Library / Cite |
+| Editing | insert citation | `byax cite` | `byax_cite` | `POST /v1/execute` | `byax.cli_libraries.cite_command` | Library / Cite |

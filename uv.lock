@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = ">=3.11"
 resolution-markers = [
     "python_full_version >= '3.15'",
@@ -102,10 +102,22 @@ wheels = [
 ]
 
 [[package]]
+name = "bibtexparser"
+version = "1.4.4"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyparsing" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/44/1c/577d3ce406e88f370e80a6ebf76ae52a2866521e0b585e8ec612759894f1/bibtexparser-1.4.4.tar.gz", hash = "sha256:093b6c824f7a71d3a748867c4057b71f77c55b8dbc07efc993b781771520d8fb", size = 55594, upload-time = "2026-01-29T18:58:01.366Z" }
+
+[[package]]
 name = "byauthorx"
 version = "0.1.1"
 source = { editable = "." }
 dependencies = [
+    { name = "bibtexparser" },
+    { name = "citeproc-py" },
+    { name = "citeproc-py-styles" },
     { name = "defusedxml" },
     { name = "httpx" },
     { name = "keyring" },
@@ -113,6 +125,7 @@ dependencies = [
     { name = "odfpy" },
     { name = "pillow" },
     { name = "platformdirs" },
+    { name = "pypdf" },
     { name = "pyside6-addons" },
     { name = "pyside6-essentials" },
     { name = "pyspellchecker" },
@@ -133,6 +146,9 @@ dev = [
 
 [package.metadata]
 requires-dist = [
+    { name = "bibtexparser", specifier = ">=1.4,<2" },
+    { name = "citeproc-py", specifier = ">=0.9,<1" },
+    { name = "citeproc-py-styles", specifier = ">=0.1,<1" },
     { name = "defusedxml", specifier = ">=0.7" },
     { name = "httpx", specifier = ">=0.28,<1" },
     { name = "keyring", specifier = ">=25,<26" },
@@ -142,6 +158,7 @@ requires-dist = [
     { name = "pillow", specifier = ">=11,<13" },
     { name = "platformdirs", specifier = ">=4,<5" },
     { name = "pyinstaller", marker = "extra == 'dev'", specifier = ">=6" },
+    { name = "pypdf", specifier = ">=5,<7" },
     { name = "pyside6-addons", specifier = ">=6.8,<7" },
     { name = "pyside6-essentials", specifier = ">=6.8,<7" },
     { name = "pyspellchecker", specifier = ">=0.8" },
@@ -225,6 +242,31 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/52/86/2976131c639aead931c5bee5aba67e4b09fbeb8018b6f282f70803f923a7/cffi-2.1.1-cp315-cp315t-manylinux2014_x86_64.manylinux_2_17_x86_64.whl", hash = "sha256:363e05fa78e15116c3c32c210ee36884fd6b9afa6d440e47112c3bd511d64cb6", size = 223835, upload-time = "2026-08-03T21:21:07.539Z" },
     { url = "https://files.pythonhosted.org/packages/ac/0c/33a7aeab2f9c76918c52e084beb39c570db3588133412929e8ec06fab90b/cffi-2.1.1-cp315-cp315t-musllinux_1_2_aarch64.whl", hash = "sha256:770de9db11e84213beec501cfcaa013b019820ca881e03344dea5844f7876d94", size = 226705, upload-time = "2026-08-03T21:21:08.774Z" },
     { url = "https://files.pythonhosted.org/packages/e3/26/2cde30fdde421130bfc18f70395731a6e6b2053c6a1978a5258ff04e72fa/cffi-2.1.1-cp315-cp315t-musllinux_1_2_x86_64.whl", hash = "sha256:7da0c5eff80f0197f3b3d1232ec5a682a9325f4ae9016a78f5f5ca35f9ced1f5", size = 225539, upload-time = "2026-08-03T21:21:09.911Z" },
+]
+
+[[package]]
+name = "citeproc-py"
+version = "0.11.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/a1/24/4d8fe0564741603f49267a41459158e8946fea50819d3f75c852234921e6/citeproc_py-0.11.1.tar.gz", hash = "sha256:f2f9a64cd980706a0cac5deb7579e6f8acc87ce0140520cc9f30262d20c35307", size = 277750, upload-time = "2026-09-01T20:52:27.988Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/0c/03/13057d4b5f57289e53ee03b84ce0cea45b3b71a1d8ebeaaf8a3cec074485/citeproc_py-0.11.1-py3-none-any.whl", hash = "sha256:086db0be0f09552bf4e5cb19bd0c5291f910e555cb0e641a0a4e7ec8a09529e3", size = 387680, upload-time = "2026-09-01T20:52:26.775Z" },
+]
+
+[[package]]
+name = "citeproc-py-styles"
+version = "0.1.6"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "lxml" },
+    { name = "six" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/8f/c9/88cdec9fccaea98f97a23b0c8826b3824f8c878ba84dfd4a17dd667d7541/citeproc_py_styles-0.1.6.tar.gz", hash = "sha256:6499914e1425f2d7275f15d8c8417982314b5b79c1b63a9669719fdaeb833169", size = 6348333, upload-time = "2026-07-07T22:20:37.855Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/7e/d4/c58e3bf20e37fadaae939d9f98fe90ca37f219ec6a1765aacd4af19396dc/citeproc_py_styles-0.1.6-py2.py3-none-any.whl", hash = "sha256:f1720fe9004c88ea9117a7312e9f44e5753cf5436a995b56f77297aaee03590a", size = 15543542, upload-time = "2026-07-07T22:20:34.996Z" },
 ]
 
 [[package]]
@@ -1110,6 +1152,24 @@ wheels = [
 ]
 
 [[package]]
+name = "pyparsing"
+version = "3.3.3"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e4/11/b213bebff182584360cb8d17c72c1677fec5c5c228de439e63bcf8ab1c8f/pyparsing-3.3.3.tar.gz", hash = "sha256:928ae7e20211f3b6f3915a72f06a0cfd29ab9d24279dd6346b6b1a7146397d36", size = 1050487, upload-time = "2026-09-20T20:59:05.609Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/38/bb/d215ee7c73b61497b28a5503f9f53523f294fcc936762b7caf90e0c1c2b5/pyparsing-3.3.3-py3-none-any.whl", hash = "sha256:ece8c00a69cf01b45d0b1dedabb469c90d8caf996d4fda40f147627a122849a4", size = 126420, upload-time = "2026-09-20T20:59:04.025Z" },
+]
+
+[[package]]
+name = "pypdf"
+version = "6.20.1"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/e2/c1/da25a099164cf4b210d63b957c902ad687139f4b8c12c20aec7953a4a266/pypdf-6.20.1.tar.gz", hash = "sha256:28f5a9d2fdc2749264612d94e6a58de54c11d730d9f0cabf8ad34117c4942b45", size = 7075352, upload-time = "2026-10-12T16:14:24.784Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/71/f8/4cbd09988b4b158260b7e0df38bf16f19e998bf0e257a18661a8da04280e/pypdf-6.20.1-py3-none-any.whl", hash = "sha256:aa5a55ddcffdc5e5ab291d5decb23f6383f4e56f8e3263dc39af41fff03885ad", size = 402665, upload-time = "2026-10-12T16:14:22.556Z" },
+]
+
+[[package]]
 name = "pyside6-addons"
 version = "6.12.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1391,6 +1451,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/97/ca/a4415e6218e0dff764fe2b2d30db2fc8f499a08ace07634232ade3f73adc/shiboken6-6.12.0-cp310-abi3-manylinux_2_39_aarch64.whl", hash = "sha256:ff72a72b3277b418902d562b987b33a6f6818bed9fe40a49d634d09bc67f620e", size = 276562, upload-time = "2026-10-08T09:10:44.25Z" },
     { url = "https://files.pythonhosted.org/packages/2a/b6/bee97e7a2edeab72aafabb46ee5adc939790a638d107860b4cad7a20e407/shiboken6-6.12.0-cp310-abi3-win_amd64.whl", hash = "sha256:a1906cb8116869178c64b6bab52623bbc8b4ceed7b30bfc3c9aa0f6e67f6438e", size = 1265476, upload-time = "2026-10-08T09:10:45.627Z" },
     { url = "https://files.pythonhosted.org/packages/8c/d5/5894d35f8a470ca8acff0d1cd8f15b1c94cbfdfe0ce4a6ec0fcf10b95bd1/shiboken6-6.12.0-cp310-abi3-win_arm64.whl", hash = "sha256:da382e68f0815b31b6dc2bce11a465b148c4f42c37b91546a361de1576567d10", size = 1838851, upload-time = "2026-10-08T09:10:47.123Z" },
+]
+
+[[package]]
+name = "six"
+version = "1.17.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/94/e7/b2c673351809dca68a0e064b6af791aa332cf192da575fd474ed7d6f16a2/six-1.17.0.tar.gz", hash = "sha256:ff70335d468e7eb6ec65b95b99d3a2836546063f63acc5171de367e834932a81", size = 34031, upload-time = "2024-12-04T17:35:28.174Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl", hash = "sha256:4721f391ed90541fddacab5acf947aa0d3dc7d27b2e1e8eda2be8970586c3274", size = 11050, upload-time = "2024-12-04T17:35:26.475Z" },
 ]
 
 [[package]]

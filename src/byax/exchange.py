@@ -2997,11 +2997,23 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
     from .formats import output_document
 
     candidate, policy_losses = output_document(doc, fmt, include_hidden=settings.get('include_hidden', False))
+    if fmt != 'byax':
+        from .citation_render import citation_view
+
+        candidate = citation_view(candidate, footnotes=fmt in ('pdf', 'odt', 'rtf'))
     if settings.get('layout'):
         candidate['layout'].update(settings['layout'])
     if settings.get('metadata') == 'omit' or settings.get('include_metadata') is False:
         candidate['metadata'] = {'title': '', 'author': '', 'language': 'en'}
     losses = list(policy_losses)
+    for target in candidate.get('_citation_footnotes_downgraded', []):
+        _loss(
+            losses,
+            'citation_footnotes_as_endnotes',
+            f'{fmt.upper()} export renders citation footnotes as numbered endnotes because '
+            'this exporter does not support native footnotes.',
+            target,
+        )
     _exchange_losses(candidate, fmt, losses)
     markdown = None
     if fmt in ('md', 'markdown'):

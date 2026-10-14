@@ -25,6 +25,11 @@ Handler = Callable[[Args, str | None], Result]
 
 SCHEMA_VERSION = 1
 COMMANDS = {
+    'library': 'Manage attached local libraries and indexing jobs',
+    'library-search': 'Search attached library passages (read only)',
+    'library-read': 'Read an indexed attached library passage (read only)',
+    'source': 'Search, import, export and suggest citation sources',
+    'cite': 'Insert a citation referencing an existing source',
     'statistics': 'Count authored, publication and selected text',
     'collection': 'Inspect, export or apply reusable document settings',
     'dependencies': 'Inspect, explicitly refresh or embed linked assets',
@@ -63,6 +68,67 @@ COMMANDS = {
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
+    'library': {
+        'path': 'string',
+        'action': 'string',
+        'library_id': 'string',
+        'query': 'string',
+        'document_id': 'string',
+        'chunk_id': 'string',
+        'limit': 'integer',
+        'offset': 'integer',
+        'input': 'object',
+        'role': 'string',
+        'allow_remote': 'boolean',
+        'rebuild': 'boolean',
+        'expect_revision': 'string',
+    },
+    'library-search': {
+        'path': 'string',
+        'library_id': 'string',
+        'query': 'string',
+        'limit': 'integer',
+        'offset': 'integer',
+    },
+    'library-read': {
+        'offset': 'integer',
+        'path': 'string',
+        'library_id': 'string',
+        'document_id': 'string',
+        'chunk_id': 'string',
+        'limit': 'integer',
+    },
+    'source': {
+        'path': 'string',
+        'action': 'string',
+        'query': 'string',
+        'target': 'string',
+        'start': 'integer',
+        'end': 'integer',
+        'limit': 'integer',
+        'offset': 'integer',
+        'text': 'string',
+        'format': 'string',
+        'style': 'string',
+        'expect_revision': 'string',
+        'request_id': 'string',
+        'dry_run': 'boolean',
+    },
+    'cite': {
+        'path': 'string',
+        'target': 'string',
+        'start': 'integer',
+        'end': 'integer',
+        'source': 'string',
+        'quote': 'string',
+        'kind': 'string',
+        'prefix': 'string',
+        'suffix': 'string',
+        'input': 'object',
+        'expect_revision': 'string',
+        'request_id': 'string',
+        'dry_run': 'boolean',
+    },
     'statistics': {
         'path': 'string',
         'format': 'string',
@@ -104,7 +170,16 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'whole_word': 'boolean',
         'regex': 'boolean',
     },
-    'context': {'path': 'string', 'target': 'string', 'limit': 'integer', 'profile': 'string'},
+    'context': {
+        'path': 'string',
+        'target': 'string',
+        'limit': 'integer',
+        'profile': 'string',
+        'library_query': 'string',
+        'library_limit': 'integer',
+        'library_chars': 'integer',
+        'remote_bound': 'boolean',
+    },
     'apply': {
         'path': 'string',
         'input': 'object',
@@ -281,7 +356,14 @@ REQUIRED = {
     'redact': ['path', 'out', 'input'],
     'reproduction': ['path'],
 }
-for _name in ('inspect', 'context', 'history', 'check', 'review'):
+REQUIRED.update(
+    {
+        'library-search': ['path', 'library_id', 'query'],
+        'library-read': ['path', 'library_id', 'document_id'],
+        'cite': ['path', 'target', 'start', 'end', 'source'],
+    }
+)
+for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source'):
     REQUIRED[_name] = ['path']
 
 
@@ -330,8 +412,10 @@ def _validate(command: str, args: Args) -> None:
             continue
         if not isinstance(value, types[kind]) or (kind == 'integer' and isinstance(value, bool)):
             _error('invalid_input', f'{key} must be {kind}', field=key)
-        if key in ('limit', 'workers') and value < 1:
+        if key in ('limit', 'workers', 'library_limit', 'library_chars') and value < 1:
             _error('invalid_input', f'{key} must be positive', field=key)
+        if key == 'offset' and value < 0:
+            _error('invalid_input', 'offset must be nonnegative', field=key)
         if kind == 'array' and not all(isinstance(x, int if key == 'pages' else str) for x in value):
             _error('invalid_input', f'Invalid elements in {key}', field=key)
 
@@ -591,6 +675,19 @@ def _cmd_context(a: Args, owner: str | None) -> Result:
     result = engine.context(
         doc, target=a.get('target'), limit=a.get('limit', 10000), profile=a.get('profile')
     )
+    if a.get('library_query'):
+        from .retrieval import augment_context, retrieve_context
+
+        retrieval = retrieve_context(
+            doc,
+            a['library_query'],
+            target=a.get('target'),
+            profile=a.get('profile'),
+            limit=a.get('library_limit', 12),
+            max_chars=a.get('library_chars', 12000),
+            remote=a.get('remote_bound', False),
+        )
+        result = augment_context(result, retrieval)
     return envelope(result, doc)
 
 
@@ -1240,7 +1337,14 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
     _error('invalid_input', 'Use fonts --action inspect, glyphs or embed')
 
 
+from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+
 _HANDLERS: dict[str, Handler] = {
+    'library': library_command,
+    'library-search': library_search,
+    'library-read': library_read,
+    'source': source_command,
+    'cite': cite_command,
     'statistics': _cmd_statistics,
     'collection': _cmd_collection,
     'dependencies': _cmd_dependencies,

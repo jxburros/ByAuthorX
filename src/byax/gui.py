@@ -68,9 +68,11 @@ from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
+from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
 from .gui_views import FileViews
 from .gui_workflows import WorkflowPanels
+from .gui_workspace import InspectorTabBar, WorkspacePanels
 
 TEMPLATE_CHOICES = ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…']
 FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm);;ByAuthorX (*.byax *.BYAX);;All files (*)'
@@ -94,7 +96,7 @@ class Worker(QRunnable):
             self.signals.failed.emit(str(exc))
 
 
-class MainWindow(FileViews, WorkflowPanels, QMainWindow):
+class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMainWindow):
     def __init__(self, path=None):
         super().__init__()
         self.setWindowTitle(self.tr('ByAuthorX'))
@@ -489,6 +491,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         outline_dock.setMinimumWidth(195)
         self.addDockWidget(Qt.LeftDockWidgetArea, outline_dock)
         self.inspector = QTabWidget()
+        self.inspector.setTabBar(InspectorTabBar(self.inspector))
         self.review_list = QListWidget()
         self.review_list.setSelectionMode(QListWidget.ExtendedSelection)
         self.review_list.setWordWrap(True)
@@ -554,10 +557,15 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         self.inspector.addTab(layers, self.tr('Layers'))
         self.ai_panel = AIPanel(self)
         self.inspector.addTab(self.ai_panel, self.tr('AI'))
+        from .gui_review import ReviewChecks
+
+        self.review_checks = ReviewChecks(self)
+        rv.insertWidget(0, self.review_checks)
         inspector_dock = QDockWidget(self.tr('Inspector'), self)
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(260)
         self.addDockWidget(Qt.RightDockWidgetArea, inspector_dock)
+        self.build_workspace_sidebars(outline_dock, inspector_dock)
         self.resizeDocks([outline_dock, inspector_dock], [230, 300], Qt.Horizontal)
         menus['&View'].addAction(outline_dock.toggleViewAction())
         menus['&View'].addAction(inspector_dock.toggleViewAction())
@@ -611,6 +619,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         )
         menus['&Help'].addAction(self.action(self.tr('Download updates…'), self.open_releases))
         self.build_file_views(toolbar, menus, workspace_layout)
+        self.build_format_ribbon(toolbar, menus)
         theme_menu = menus['&View'].addMenu(self.tr('Theme'))
         for key, label in (('system', 'System'), ('light', 'Light'), ('dark', 'Dark')):
             theme_menu.addAction(self.action(self.tr(label), lambda checked=False, t=key: self.set_theme(t)))
@@ -983,6 +992,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
             self.set_source_mode(1)
 
     def update_sidebar(self):
+        self.update_workspace_sidebars()
         self.outline.clear()
         for block in self.doc['blocks']:
             if block['type'] in ('heading', 'table', 'image', 'footnote', 'section_break') or block.get(
@@ -1094,6 +1104,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         )
 
     def selection_changed(self):
+        self.sync_ribbon_format()
         if not hasattr(self, 'word_label'):
             return
         block = next((block for block in self.doc['blocks'] if block['id'] == self.editor.current_id()), None)
@@ -1294,6 +1305,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
             self._redo.clear()
             self.refresh(0)
             self.add_recent(selected)
+            self.refresh_attached_libraries()
             if report and report.get('losses'):
                 self.report(self.tr('Import compatibility report'), report)
             return True
@@ -2573,8 +2585,11 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
 
         ProfileDialog(self).exec()
 
-    def run_checks(self):
+    def run_checks(self, suites=None):
         from .checks import run_checks
+
+        if isinstance(suites, bool):  # QAction.triggered supplies its checked state.
+            suites = None
 
         self.flush_edits()
         frozen = copy.deepcopy(self.doc)
@@ -2600,7 +2615,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         self.review_empty.set_busy(True)
         self.background(
             self.tr('Checking document…'),
-            lambda: run_checks(frozen, profile=profile),
+            lambda: run_checks(frozen, suites=suites, profile=profile),
             finished,
             failed=lambda: self.review_empty.set_busy(False),
         )

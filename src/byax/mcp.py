@@ -65,6 +65,8 @@ def handle(request: dict) -> dict | None:
                             'context',
                             'diff',
                             'check',
+                            'library-search',
+                            'library-read',
                         ),
                         'openWorldHint': name in ('providers', 'transcribe'),
                     },
