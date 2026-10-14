@@ -73,7 +73,7 @@ def test_gui_soak_open_edit_save_undo(window, tmp_path):
         _edit(rng, window.editor)
         assert window.flush_edits(), step
         if step % 60 == 59:
-            assert window.save()
+            assert window.save(wait=True)
             saved = storage.load_document(path)
             model.validate_document(saved)
             assert _text(saved) == _text(window.doc)
@@ -89,6 +89,6 @@ def test_gui_soak_open_edit_save_undo(window, tmp_path):
     for _ in range(40):
         window.redo()
     assert _text(window.doc) == final
-    assert window.save()
+    assert window.save(wait=True)
     assert _text(storage.load_document(path)) == final
     assert not window.test_errors

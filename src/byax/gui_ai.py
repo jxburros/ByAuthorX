@@ -81,9 +81,9 @@ class AIPanel(QWidget):
         self.provider_status.setObjectName('emptyDescription')
         self.provider_status.setWordWrap(True)
         layout.addWidget(self.provider_status)
-        self.keys_button = QPushButton('Add or manage API keys…')
-        self.keys_button.setAccessibleName('Add or manage API keys')
-        self.keys_button.setToolTip('Open provider settings to add a hosted or local model')
+        self.keys_button = QPushButton(self.tr('Add or manage API keys…'))
+        self.keys_button.setAccessibleName(self.tr('Add or manage API keys'))
+        self.keys_button.setToolTip(self.tr('Open provider settings to add a hosted or local model'))
         self.keys_button.clicked.connect(self.manage_keys)
         layout.addWidget(self.keys_button)
 
@@ -94,22 +94,24 @@ class AIPanel(QWidget):
     # Spelling ------------------------------------------------------------
 
     def _build_spelling(self):
-        box = QGroupBox('Spelling')
+        box = QGroupBox(self.tr('Spelling'))
         layout = QVBoxLayout(box)
         row = QHBoxLayout()
-        self.spell_button = QPushButton('Check spelling')
-        self.spell_button.setToolTip('Check the selection, or the whole document when nothing is selected')
+        self.spell_button = QPushButton(self.tr('Check spelling'))
+        self.spell_button.setToolTip(
+            self.tr('Check the selection, or the whole document when nothing is selected')
+        )
         self.spell_button.clicked.connect(self.check_spelling)
         row.addWidget(self.spell_button, 1)
         self.spell_loop = TaskLoop(self.window.motion, 'spelling-review', 40, self)
         row.addWidget(self.spell_loop)
         layout.addLayout(row)
-        self.spell_status = QLabel('Checks use the local dictionary. Nothing leaves this computer.')
+        self.spell_status = QLabel(self.tr('Checks use the local dictionary. Nothing leaves this computer.'))
         self.spell_status.setWordWrap(True)
         self.spell_status.setObjectName('emptyDescription')
         layout.addWidget(self.spell_status)
         self.spell_list = QListWidget()
-        self.spell_list.setAccessibleName('Possible misspellings')
+        self.spell_list.setAccessibleName(self.tr('Possible misspellings'))
         self.spell_list.setMinimumHeight(90)
         self.spell_list.setWordWrap(True)
         self.spell_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
@@ -120,23 +122,23 @@ class AIPanel(QWidget):
         self.spell_stack.addWidget(self.spell_list)
         self.spell_stack.addWidget(
             EmptyPanel(
-                'No misspellings found',
-                'Every checked word is in the local or document dictionary.',
+                self.tr('No misspellings found'),
+                self.tr('Every checked word is in the local or document dictionary.'),
                 graphic=themed_art('spelling-clean', self),
             )
         )
         self.spell_stack.setVisible(False)
         layout.addWidget(self.spell_stack)
         self.suggestions = QComboBox()
-        self.suggestions.setAccessibleName('Spelling suggestion')
+        self.suggestions.setAccessibleName(self.tr('Spelling suggestion'))
         layout.addWidget(self.suggestions)
-        self.replace_button = QPushButton('Replace with suggestion')
+        self.replace_button = QPushButton(self.tr('Replace with suggestion'))
         self.replace_button.clicked.connect(self.replace_selected)
-        self.dictionary_button = QPushButton('Add to dictionary')
-        self.dictionary_button.setToolTip('Store this word in the document dictionary')
+        self.dictionary_button = QPushButton(self.tr('Add to dictionary'))
+        self.dictionary_button.setToolTip(self.tr('Store this word in the document dictionary'))
         self.dictionary_button.clicked.connect(self.add_to_dictionary)
-        self.ignore_button = QPushButton('Ignore')
-        self.ignore_button.setToolTip('Ignore this word until the document is closed')
+        self.ignore_button = QPushButton(self.tr('Ignore'))
+        self.ignore_button.setToolTip(self.tr('Ignore this word until the document is closed'))
         self.ignore_button.clicked.connect(self.ignore_selected)
         layout.addWidget(self.replace_button)
         actions = QHBoxLayout()
@@ -188,7 +190,9 @@ class AIPanel(QWidget):
                 return {'error': str(exc)}
 
         window.background(
-            'Checking spelling…', work, lambda result: self._spelling_done(token, result, bool(scope))
+            self.tr('Checking spelling…'),
+            work,
+            lambda result: self._spelling_done(token, result, bool(scope)),
         )
 
     def _spelling_done(self, token, result, selection):
@@ -197,7 +201,7 @@ class AIPanel(QWidget):
         self.spell_loop.stop()
         self.spell_button.setEnabled(True)
         if 'error' in result:
-            self.spell_status.setText('Spelling check failed: ' + result['error'])
+            self.spell_status.setText(self.tr('Spelling check failed: ') + result['error'])
             return
         self.spell_list.clear()
         for finding in result['findings']:
@@ -210,8 +214,12 @@ class AIPanel(QWidget):
         where = 'selection' if selection else 'document'
         self.spell_status.setText(
             ' '.join(unmeasured)
-            or (f'{count} possible misspelling{"s" * (count != 1)} in the {where}.' if count else '')
-            or f'No misspellings in the {where}.'
+            or (
+                self.tr('{0} possible misspelling{1} in the {2}.').format(count, 's' * (count != 1), where)
+                if count
+                else ''
+            )
+            or self.tr('No misspellings in the {0}.').format(where)
         )
         self.spell_stack.setVisible(True)
         self._show_spelling_page(0 if count else 1)
@@ -267,7 +275,7 @@ class AIPanel(QWidget):
             return
         operation = self.replacement_operation(finding, replacement)
         if operation is None:
-            self.spell_status.setText('The text changed since the check. Checking again…')
+            self.spell_status.setText(self.tr('The text changed since the check. Checking again…'))
             self.check_spelling()
             return
         if self.window.commit([operation]):
@@ -332,9 +340,13 @@ class AIPanel(QWidget):
         if alias in configs:
             config = configs[alias]
             self.window.settings.setValue('ai/provider', alias)
-            self.provider_status.setText(f'AI provider: {alias} · {config["kind"]} · {config["model"]}')
+            self.provider_status.setText(
+                self.tr('AI provider: {0} · {1} · {2}').format(alias, config['kind'], config['model'])
+            )
         else:
-            self.provider_status.setText('No AI provider configured. Writing and spelling work without one.')
+            self.provider_status.setText(
+                self.tr('No AI provider configured. Writing and spelling work without one.')
+            )
         self.chat_stack.setCurrentIndex(0 if configs else 1)
         self.provider_box.setVisible(bool(configs))
         self._sync_send()
@@ -342,26 +354,26 @@ class AIPanel(QWidget):
     # Assistant -----------------------------------------------------------
 
     def _build_assistant(self):
-        box = QGroupBox('Assistant')
+        box = QGroupBox(self.tr('Assistant'))
         layout = QVBoxLayout(box)
         controls = QHBoxLayout()
         self.mode_group = QButtonGroup(self)
         self.mode_group.setExclusive(True)
         self.mode_switch = QWidget()
-        self.mode_switch.setAccessibleName('Assistant mode')
+        self.mode_switch.setAccessibleName(self.tr('Assistant mode'))
         switch = QHBoxLayout(self.mode_switch)
         switch.setContentsMargins(0, 0, 0, 0)
         switch.setSpacing(0)
         self.mode_buttons = {}
         for mode, label, tip in (
-            ('chat', 'Chat', 'Chat: the assistant only answers and never changes the document'),
-            ('work', 'Work', 'Work: the assistant may suggest exact edits for you to review'),
+            ('chat', self.tr('Chat'), 'Chat: the assistant only answers and never changes the document'),
+            ('work', self.tr('Work'), 'Work: the assistant may suggest exact edits for you to review'),
         ):
             button = QToolButton()
             button.setText(label)
             button.setCheckable(True)
             button.setToolTip(tip)
-            button.setAccessibleName(label + ' mode')
+            button.setAccessibleName(label + self.tr(' mode'))
             button.setAccessibleDescription(tip)
             self.mode_group.addButton(button)
             self.mode_buttons[mode] = button
@@ -373,7 +385,7 @@ class AIPanel(QWidget):
         controls.addStretch()
         layout.addLayout(controls)
         self.provider_box = QComboBox()
-        self.provider_box.setAccessibleName('Assistant provider and model')
+        self.provider_box.setAccessibleName(self.tr('Assistant provider and model'))
         self.provider_box.setSizeAdjustPolicy(QComboBox.AdjustToMinimumContentsLengthWithIcon)
         self.provider_box.setMinimumContentsLength(12)
         self.provider_box.currentIndexChanged.connect(self._provider_changed)
@@ -389,13 +401,15 @@ class AIPanel(QWidget):
         cv.setContentsMargins(0, 0, 0, 0)
         self.history_stack = QStackedWidget()
         self.history = QTextBrowser()
-        self.history.setAccessibleName('Assistant conversation')
+        self.history.setAccessibleName(self.tr('Assistant conversation'))
         self.history.setOpenLinks(False)
         self.history.setMinimumHeight(180)
         self.history_stack.addWidget(
             EmptyPanel(
-                'Ask about your writing',
-                'Chat answers questions. Switch to Work to get exact edits you review before anything changes.',
+                self.tr('Ask about your writing'),
+                self.tr(
+                    'Chat answers questions. Switch to Work to get exact edits you review before anything changes.'
+                ),
                 graphic=themed_art('ai-empty', self),
             )
         )
@@ -409,12 +423,12 @@ class AIPanel(QWidget):
         thinking.addWidget(self.thinking_label, 1)
         cv.addLayout(thinking)
         self.input = QPlainTextEdit()
-        self.input.setAccessibleName('Message to the assistant')
-        self.input.setPlaceholderText('Ask about the document or selection…')
+        self.input.setAccessibleName(self.tr('Message to the assistant'))
+        self.input.setPlaceholderText(self.tr('Ask about the document or selection…'))
         self.input.setFixedHeight(72)
         self.input.textChanged.connect(self._sync_send)
         cv.addWidget(self.input)
-        self.send_button = QPushButton('Send')
+        self.send_button = QPushButton(self.tr('Send'))
         self.send_button.setProperty('primary', True)
         self.send_button.setShortcut('Ctrl+Return')
         self.send_button.clicked.connect(self.send)
@@ -422,10 +436,12 @@ class AIPanel(QWidget):
         self.chat_stack.addWidget(conversation)
         self.chat_stack.addWidget(
             EmptyPanel(
-                'Connect an AI provider to chat',
-                'Add your own API key or a local model. Writing, saving, and spelling never need one.',
+                self.tr('Connect an AI provider to chat'),
+                self.tr(
+                    'Add your own API key or a local model. Writing, saving, and spelling never need one.'
+                ),
                 graphic=themed_art('ai-setup', self),
-                action=('Add or manage API keys…', self.manage_keys),
+                action=(self.tr('Add or manage API keys…'), self.manage_keys),
             )
         )
         layout.addWidget(self.chat_stack, 1)
@@ -439,9 +455,11 @@ class AIPanel(QWidget):
     def _mode_changed(self, *_):
         self.window.settings.setValue('ai/mode', self.mode)
         self.mode_hint.setText(
-            'Chat mode: answers only. The document is never changed.'
+            self.tr('Chat mode: answers only. The document is never changed.')
             if self.mode == 'chat'
-            else 'Work mode: suggested edits are shown exactly and added to Review only after you confirm.'
+            else self.tr(
+                'Work mode: suggested edits are shown exactly and added to Review only after you confirm.'
+            )
         )
 
     def _sync_send(self, *_):
@@ -506,7 +524,7 @@ class AIPanel(QWidget):
         token = object()
         self._pending = token
         self._sync_send()
-        self.thinking_label.setText(f'{alias} is thinking…')
+        self.thinking_label.setText(self.tr('{0} is thinking…').format(alias))
         self.thinking.start()
 
         def work():
@@ -516,7 +534,9 @@ class AIPanel(QWidget):
                 return {'error': str(exc)}
 
         window.background(
-            f'Asking {alias}…', work, lambda result: self._answered(token, mode, frozen, result)
+            self.tr('Asking {0}…').format(alias),
+            work,
+            lambda result: self._answered(token, mode, frozen, result),
         )
 
     def _answered(self, token, mode, frozen, result):
@@ -555,10 +575,11 @@ class AIPanel(QWidget):
             return False
         box = QMessageBox(window)
         box.setIcon(QMessageBox.Question)
-        box.setWindowTitle('Add suggested edits to Review?')
+        box.setWindowTitle(self.tr('Add suggested edits to Review?'))
         box.setText(
-            f'The assistant suggested {len(proposals)} exact edit(s). Add them to Review as pending proposals? '
-            'Nothing changes until you accept each one in Review.'
+            self.tr(
+                'The assistant suggested {0} exact edit(s). Add them to Review as pending proposals? Nothing changes until you accept each one in Review.'
+            ).format(len(proposals))
         )
         box.setDetailedText(listing)
         box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)

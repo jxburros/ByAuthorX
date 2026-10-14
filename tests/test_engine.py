@@ -576,7 +576,7 @@ def test_history_delta_omits_unchanged_order_and_reads_legacy_order():
     assert engine._patch(copy.deepcopy(before), legacy) == after
     after['blocks'].reverse()
     structural = engine._delta(before, after)
-    assert 'block_order' in structural
+    assert 'block_order_diff' in structural and 'block_order' not in structural
     assert engine._patch(copy.deepcopy(before), structural) == after
 
 

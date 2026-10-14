@@ -10,6 +10,7 @@ import regex
 
 from .errors import ByaxError
 
+_SURROGATE = regex.compile('[\ud800-\udfff]')
 BLOCK_TYPES = {'paragraph', 'heading', 'table', 'image', 'page_break', 'section_break', 'toc', 'footnote'}
 # Current document schema. Older supported versions are upgraded by explicit
 # transitions in ``migration``; newer versions are rejected without rewriting.
@@ -177,7 +178,7 @@ def validate_document(doc, *, include_history=True):
         seen.add(obj['id'])
 
     def text(value, path):
-        if not isinstance(value, str) or any(0xD800 <= ord(c) <= 0xDFFF for c in value):
+        if not isinstance(value, str) or _SURROGATE.search(value):
             fail('Expected Unicode scalar text.', path)
 
     for i, b in enumerate(doc['blocks']):

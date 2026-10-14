@@ -172,7 +172,7 @@ class TaskLoop(PenLineAnimation):
         self.name = name
         self.running = False
         self.animation.setLoopCount(-1)
-        self.setAccessibleName('Working')
+        self.setAccessibleName(self.tr('Working'))
         self.hide()
 
     def start(self):

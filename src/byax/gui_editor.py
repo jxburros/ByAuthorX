@@ -67,12 +67,12 @@ class SemanticEditor(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)  # Imported HTML must go through the bounded exchange adapter.
         self.setAcceptDrops(True)
-        self.setAccessibleName('Document editor')
-        self.setPlaceholderText('Write your first line…')
+        self.setAccessibleName(self.tr('Document editor'))
+        self.setPlaceholderText(self.tr('Write your first line…'))
         self.setUndoRedoEnabled(False)
         self.setTabChangesFocus(False)
         self.setStyleSheet(f"""QTextEdit {{ background: white; color: {COLORS['ink']};
-            border: 2px solid {COLORS['rule']}; border-radius: 8px; padding: 24px;
+            border: 2px solid {COLORS['control']}; border-radius: 8px; padding: 24px;
             selection-background-color: {COLORS['greenText']}; selection-color: white; }}
             QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}""")
 
@@ -250,7 +250,7 @@ class PageCanvas(QWidget):
         super().__init__(parent)
         self.document = None
         self.zoom = 1.0
-        self.setAccessibleName('Paginated print preview')
+        self.setAccessibleName(self.tr('Paginated print preview'))
 
     def set_document(self, document, canonical=None):
         self.document = document

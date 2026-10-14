@@ -347,6 +347,17 @@ def open_document(path: str | os.PathLike[str]) -> tuple[dict[str, Any], dict[st
         raise ByaxError('invalid_input', f'Cannot read native package: {exc}', target=str(path)) from exc
 
 
+def _verify_written(path, members):
+    # The members were produced from a validated document; re-reading the archive
+    # proves the bytes reached the disk intact without re-parsing the JSON.
+    with zipfile.ZipFile(path) as archive:
+        if sorted(archive.namelist()) != sorted(members):
+            raise ByaxError('invalid_input', 'Written package does not list the expected resources.')
+        for name, data in members.items():
+            if archive.read(name) != data:
+                raise ByaxError('invalid_input', 'Written package failed verification.', target=name)
+
+
 def save_document(
     doc: dict[str, Any], path: str | os.PathLike[str], *, owner: str | None = None
 ) -> dict[str, Any]:
@@ -377,7 +388,7 @@ def save_document(
                         archive.writestr(info, data)
                 stream.flush()
                 os.fsync(stream.fileno())
-            load_document(tmp)
+            _verify_written(tmp, members)
             if target.exists():
                 # mkstemp creates 0600 files; keep the document's existing mode.
                 os.chmod(tmp, stat.S_IMODE(target.stat().st_mode))
