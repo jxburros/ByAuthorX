@@ -10,9 +10,21 @@ from typing import Any
 
 import regex as unicode_regex
 
+from . import anchors, formatting
 from .checks import run_checks
+from .compare import compare as semantic_compare
+from .compare import plan_merge
 from .errors import ByaxError
-from .model import canonical_json, find_object, new_id, object_hash, snapshot, text_of, validate_document
+from .model import (
+    canonical_json,
+    dependency_id,
+    find_object,
+    new_id,
+    object_hash,
+    snapshot,
+    text_of,
+    validate_document,
+)
 
 # Required fields, optional fields. Unknown fields are always rejected.
 OP_SCHEMAS = {
@@ -22,7 +34,7 @@ OP_SCHEMAS = {
     'set_text': ('target text', 'expected_text'),
     'insert_paragraph': ('text', 'after style id'),
     'delete_block': ('target', ''),
-    'move_block': ('target', 'after'),
+    'move_block': ('target', 'after before'),
     'move_section': ('target', 'after'),
     'reorder_row': ('target index to_index', ''),
     'reorder_column': ('target index to_index', ''),
@@ -55,12 +67,26 @@ OP_SCHEMAS = {
     'unprotect': ('target kind', ''),
     'set_tracking': ('enabled', ''),
     'propose': ('values', ''),
-    'accept_proposal': ('target', ''),
-    'reject_proposal': ('target', ''),
+    'accept_proposal': ('target', 'edits'),
+    'reject_proposal': ('target', 'edits'),
+    'propose_merge': ('source', 'explanation author'),
+    'resolve_conflict': ('target conflict choice', 'values'),
     'set_requirement': ('id values', ''),
     'set_profile': ('id values', ''),
     'accept_change': ('target', ''),
     'reject_change': ('target', ''),
+    'accept_changes': ('', 'targets author origin kind object group'),
+    'reject_changes': ('', 'targets author origin kind object group'),
+    'set_list': ('target values', ''),
+    'apply_character_style': ('target start end', 'style'),
+    'clear_formatting': ('target', 'start end scope'),
+    'set_block': ('target values', ''),
+    'insert_block': ('block', 'after'),
+    'link_asset': ('uri', 'id mime name kind'),
+    'place_linked_image': ('link alt', 'after width height'),
+    'refresh_dependency': ('target data', 'mime'),
+    'mark_dependency_missing': ('target', 'reason'),
+    'embed_dependency': ('target', ''),
     'compact_history': ('keep_last', ''),
     'replace_content': ('blocks', 'assets import_provenance'),
     'set_bookmark': ('name target', 'offset'),
@@ -168,6 +194,18 @@ def _validate_op(op, index):
         'author',
         'kind',
         'expected_hash',
+        'before',
+        'uri',
+        'link',
+        'source',
+        'conflict',
+        'choice',
+        'reason',
+        'scope',
+        'explanation',
+        'group',
+        'origin',
+        'object',
     ):
         if key in op and not isinstance(op[key], str) and not (key == 'after' and op[key] is None):
             _error('Expected a string.', f'operations[{index}].{key}')
@@ -181,6 +219,13 @@ def _validate_op(op, index):
         _error('Expected an object.', f'operations[{index}].values')
     if 'enabled' in op and type(op['enabled']) is not bool:
         _error('Expected a boolean.', f'operations[{index}].enabled')
+    for key in ('edits', 'targets'):
+        if key in op and (
+            not isinstance(op[key], list) or not op[key] or any(not isinstance(v, str) for v in op[key])
+        ):
+            _error('Expected a nonempty array of identities.', f'operations[{index}].{key}')
+    if 'block' in op and not isinstance(op['block'], dict):
+        _error('Expected a block object.', f'operations[{index}].block')
     return kind
 
 
@@ -228,30 +273,7 @@ def _splice(obj, start, end, replacement):
     original = obj.get('text', '')
     _boundaries(original, start, end)
     obj['text'] = original[:start] + replacement + original[end:]
-    delta = len(replacement) - (end - start)
-    marks = []
-    for mark in obj.get('marks', []):
-        mark = copy.deepcopy(mark)
-        a, b = mark['start'], mark['end']
-        if b <= start:
-            pass
-        elif a >= end:
-            mark['start'], mark['end'] = a + delta, b + delta
-        elif mark.get('type') == 'field':
-            mark['start'] = min(a, start)
-            mark['end'] = max(start + len(replacement), b + delta) if b > end else start + len(replacement)
-        elif a <= start and b >= end:
-            # A mark covering the replaced range covers its replacement.
-            mark['end'] = b + delta
-        elif a >= start and b <= end:
-            # Formatting wholly inside replaced text does not spread over new text.
-            continue
-        elif a < start:
-            mark['end'] = start
-        else:
-            mark['start'], mark['end'] = start + len(replacement), b + delta
-        if mark['end'] > mark['start'] or mark.get('type') == 'field':
-            marks.append(mark)
+    marks = anchors.transform_marks(obj.get('marks', []), start, end, len(replacement))
     if 'marks' in obj:
         # Inserted combining characters can extend a grapheme past a mark edge.
         boundaries = grapheme_boundaries(obj['text'])
@@ -318,79 +340,28 @@ def _fill_fields(doc, names, revision):
                 obj['marks'].append(
                     {'type': 'field', 'value': name, 'start': start, 'end': start + len(replacement)}
                 )
-                _adjust_anchors(doc, obj['id'], start, end, len(replacement))
+                anchors.remap_splice(doc, obj, start, end, len(replacement))
             changed.append(obj['id'])
-            if doc['settings'].get('track_changes') and before_text != obj['text']:
-                doc['review']['tracked_changes'].append(
-                    {
-                        'id': new_id('change'),
-                        'target': obj['id'],
-                        'before': before_text,
-                        'after': obj['text'],
-                        'before_marks': before_marks,
-                        'after_marks': copy.deepcopy(obj['marks']),
-                        'status': 'pending',
-                        'base_revision': revision,
-                    }
-                )
+            anchors.track_text(
+                doc, obj, before_text, before_marks, 0, len(before_text), obj['text'], revision
+            )
     return changed
 
 
 def _orphan_review(doc, removed_ids):
-    for bookmark in doc['settings'].get('bookmarks', {}).values():
-        if bookmark.get('target') in removed_ids:
-            bookmark['status'] = 'orphaned'
-    for collection in ('comments', 'proposals', 'tracked_changes'):
-        pending = list(doc['review'][collection])
-        while pending:
-            item = pending.pop()
-            if collection == 'comments':
-                pending.extend(item.get('replies', []))
-            targets = {item.get('target')} | {o.get('target') for o in item.get('operations', [])}
-            if targets & removed_ids:
-                item['status'] = 'orphaned'
+    anchors.orphan(doc, removed_ids)
 
 
 def _format_state(obj):
-    return copy.deepcopy({k: obj[k] for k in ('marks', 'style', 'attrs', 'type') if k in obj})
+    return anchors.format_state(obj)
 
 
 def _track_format(doc, obj, before, revision):
-    after = _format_state(obj)
-    if doc['settings'].get('track_changes') and before != after:
-        doc['review']['tracked_changes'].append(
-            {
-                'id': new_id('change'),
-                'kind': 'formatting',
-                'target': obj['id'],
-                'before': before,
-                'after': after,
-                'status': 'pending',
-                'base_revision': revision,
-            }
-        )
+    anchors.track_format(doc, obj, before, revision)
 
 
 def _adjust_anchors(doc, target, start, end, inserted):
-    delta = inserted - (end - start)
-    for bookmark in doc['settings'].get('bookmarks', {}).values():
-        if bookmark.get('target') == target:
-            offset = bookmark.get('offset', 0)
-            bookmark['offset'] = (
-                offset if offset <= start else offset + delta if offset >= end else start + inserted
-            )
-    for comment in doc['review']['comments']:
-        if comment.get('target') != target or comment.get('start') is None:
-            continue
-        a, b = comment['start'], comment['end']
-        if b <= start:
-            continue
-        if a >= end:
-            comment['start'], comment['end'] = a + delta, b + delta
-        else:
-            comment['start'] = min(a, start)
-            comment['end'] = max(start + inserted, b + delta)
-            comment['anchor_status'] = 'needs_review'
+    anchors.remap_splice(doc, find_object(doc, target), start, end, inserted)
 
 
 def _paragraph(text, style='body', identity=None):
@@ -558,21 +529,9 @@ def _op_text_edit(doc, op, base_revision, kind, changed, allow_policy_changes):
         )
     before_marks = copy.deepcopy(obj.get('marks', []))
     _splice(obj, start, end, replacement)
-    _adjust_anchors(doc, obj['id'], start, end, len(replacement))
+    anchors.remap_splice(doc, obj, start, end, len(replacement))
     changed.append(obj['id'])
-    if doc['settings'].get('track_changes') and original != obj['text']:
-        doc['review']['tracked_changes'].append(
-            {
-                'id': new_id('change'),
-                'target': obj['id'],
-                'before': original,
-                'after': obj['text'],
-                'before_marks': before_marks,
-                'after_marks': copy.deepcopy(obj.get('marks', [])),
-                'status': 'pending',
-                'base_revision': base_revision,
-            }
-        )
+    anchors.track_text(doc, obj, original, before_marks, start, end, replacement, base_revision)
 
 
 def _op_insert_paragraph(doc, op, base_revision, kind, changed, allow_policy_changes):
@@ -587,11 +546,20 @@ def _op_delete_or_move_block(doc, op, base_revision, kind, changed, allow_policy
     obj = _target(doc, op)
     if obj not in doc['blocks']:
         _error('Target must be a top-level block.', 'target')
-    if op.get('after') == obj['id']:
-        _error('Block cannot be moved after itself.', 'after')
+    if op.get('after') == obj['id'] or op.get('before') == obj['id']:
+        _error('Block cannot be moved relative to itself.', 'after')
+    if 'after' in op and 'before' in op:
+        _error('Use either after or before.', 'before')
     doc['blocks'].remove(obj)
-    if kind == 'move_block':
+    if kind == 'move_block' and 'before' in op:
+        index = next((i for i, b in enumerate(doc['blocks']) if b['id'] == op['before']), None)
+        if index is None:
+            raise ByaxError('missing_target', 'Insertion anchor is missing.', target=op['before'])
+        doc['blocks'].insert(index, obj)
+        anchors.report_moved(doc, [obj['id']])
+    elif kind == 'move_block':
         _insert(doc, obj, op.get('after'))
+        anchors.report_moved(doc, [obj['id']])
     else:
         removed = (
             {obj['id']}
@@ -603,7 +571,9 @@ def _op_delete_or_move_block(doc, op, base_revision, kind, changed, allow_policy
 
 
 def _op_move_section(doc, op, base_revision, kind, changed, allow_policy_changes):
-    changed.extend(_move_section(doc, op))
+    moved = _move_section(doc, op)
+    anchors.report_moved(doc, moved)
+    changed.extend(moved)
 
 
 def _op_split_block(doc, op, base_revision, kind, changed, allow_policy_changes):
@@ -621,19 +591,13 @@ def _op_split_block(doc, op, base_revision, kind, changed, allow_policy_changes)
         if m['end'] > offset
     ]
     obj['marks'] = [dict(m, end=min(m['end'], offset)) for m in obj['marks'] if m['start'] < offset]
+    # The continuation stays in the same list; a restart belongs only to the first item.
+    for key in ('restart', 'start'):
+        new.get('attrs', {}).pop(key, None)
+    if any(b['id'] == new['id'] for b in doc['blocks']):
+        raise ByaxError('conflict', 'Split identity already exists.', target=new['id'])
     _insert(doc, new, obj['id'])
-    for bookmark in doc['settings'].get('bookmarks', {}).values():
-        if bookmark.get('target') == obj['id'] and bookmark.get('offset', 0) > offset:
-            bookmark['target'], bookmark['offset'] = new['id'], bookmark['offset'] - offset
-    for comment in doc['review']['comments']:
-        if comment.get('target') == obj['id'] and comment.get('start', -1) >= offset:
-            comment['target'], comment['start'], comment['end'] = (
-                new['id'],
-                comment['start'] - offset,
-                comment['end'] - offset,
-            )
-        elif comment.get('target') == obj['id'] and comment.get('end', 0) > offset:
-            comment['end'], comment['anchor_status'] = offset, 'needs_review'
+    anchors.remap_split(doc, obj, new, offset)
     changed.extend((obj['id'], new['id']))
 
 
@@ -648,17 +612,26 @@ def _op_join_blocks(doc, op, base_revision, kind, changed, allow_policy_changes)
         _error('Join requires consecutive text blocks.', 'next')
     offset = len(obj['text'])
     obj['text'] += other['text']
-    obj['marks'].extend(dict(m, start=m['start'] + offset, end=m['end'] + offset) for m in other['marks'])
+    joined = [dict(m, start=m['start'] + offset, end=m['end'] + offset) for m in other['marks']]
+    for mark in list(joined):
+        # A mark divided by an earlier split becomes one mark again.
+        match = next(
+            (
+                m
+                for m in obj['marks']
+                if m['end'] == offset == mark['start']
+                and m.get('type') != 'field'
+                and {k: v for k, v in m.items() if k not in ('start', 'end')}
+                == {k: v for k, v in mark.items() if k not in ('start', 'end')}
+            ),
+            None,
+        )
+        if match is not None:
+            match['end'] = mark['end']
+            joined.remove(mark)
+    obj['marks'].extend(joined)
     doc['blocks'].remove(other)
-    for bookmark in doc['settings'].get('bookmarks', {}).values():
-        if bookmark.get('target') == other['id']:
-            bookmark['target'], bookmark['offset'] = obj['id'], bookmark.get('offset', 0) + offset
-    for item in doc['review']['comments']:
-        if item.get('target') == other['id']:
-            item['target'] = obj['id']
-            if item.get('start') is not None:
-                item['start'] += offset
-                item['end'] += offset
+    anchors.remap_join(doc, obj, other, offset)
     changed.extend((obj['id'], other['id']))
 
 
@@ -667,6 +640,8 @@ def _op_apply_style(doc, op, base_revision, kind, changed, allow_policy_changes)
     before_format = _format_state(obj)
     if op['style'] not in doc['styles']:
         _error('Unknown named style.', 'style')
+    if formatting.style_kind(doc, op['style']) != 'paragraph':
+        _error('Character styles apply to text ranges; use apply_character_style.', 'style')
     obj['style'] = op['style']
     _track_format(doc, obj, before_format, base_revision)
     changed.append(obj['id'])
@@ -735,8 +710,12 @@ def _op_set_properties(doc, op, base_revision, kind, changed, allow_policy_chang
 
 
 def _op_define_style(doc, op, base_revision, kind, changed, allow_policy_changes):
+    formatting.validate_style(doc, op['name'], op['values'])
+    affected = formatting.affected_ids(doc, op['name']) if op['name'] in doc['styles'] else []
     doc['styles'][op['name']] = copy.deepcopy(op['values'])
     changed.append('styles')
+    # Content is untouched; report every element whose formatting depends on the style.
+    changed.extend(dict.fromkeys(affected + formatting.affected_ids(doc, op['name'])))
 
 
 def _op_insert_table(doc, op, base_revision, kind, changed, allow_policy_changes):
@@ -974,13 +953,122 @@ def _op_policy_change(doc, op, base_revision, kind, changed, allow_policy_change
         changed.append('settings')
 
 
-def _op_propose(doc, op, base_revision, kind, changed, allow_policy_changes):
-    values = copy.deepcopy(op['values'])
-    if not isinstance(values.get('operations'), list) or not values['operations']:
+def _edit_number(identity):
+    return int(identity.split('_')[1])
+
+
+_ANCHOR_MODES = {
+    'insert_text': 'point',
+    'split_block': 'point',
+    'set_bookmark': 'point',
+    'delete_text': 'range',
+    'format_text': 'range',
+    'add_comment': 'range',
+    'apply_character_style': 'range',
+    'clear_formatting': 'range',
+    'replace_text': 'match',
+    'set_text': 'whole',
+    'update_cell': 'whole',
+}
+
+
+def _op_kind(operation):
+    return operation.get('type', operation.get('op'))
+
+
+def _created_ids(operation):
+    kind = _op_kind(operation)
+    if kind in ('insert_paragraph', 'split_block', 'link_asset') and operation.get('id'):
+        return {operation['id']}
+    if kind == 'insert_block' and isinstance(operation.get('block'), dict) and operation['block'].get('id'):
+        return {operation['block']['id']}
+    return set()
+
+
+def _edited_ids(operation):
+    return {operation[k] for k in ('target', 'next') if isinstance(operation.get(k), str)}
+
+
+def _anchor(doc, operation):
+    mode = _ANCHOR_MODES.get(_op_kind(operation))
+    try:
+        obj = find_object(doc, operation['target'])
+    except (ByaxError, KeyError):
+        return None
+    text = obj.get('text', '')
+    if mode == 'point':
+        start = end = operation.get('offset', 0)
+    elif mode == 'range':
+        if 'start' not in operation:
+            return None
+        start, end = operation['start'], operation.get('end', operation['start'])
+    elif mode == 'match':
+        positions = (
+            [m.start() for m in re.finditer(re.escape(operation['match']), text)]
+            if operation['match']
+            else []
+        )
+        occurrence = operation.get('occurrence', 1)
+        if not 1 <= occurrence <= len(positions) or (len(positions) > 1 and 'occurrence' not in operation):
+            return None
+        start = positions[occurrence - 1]
+        end = start + len(operation['match'])
+    elif mode == 'whole':
+        start, end = 0, len(text)
+    else:
+        return None
+    if not 0 <= start <= end <= len(text):
+        return None
+    return {'target': obj['id'], 'start': start, 'end': end, 'text': text[start:end]}
+
+
+def _plan_edits(doc, operations, explicit=None, existing=None):
+    """Per-edit identities, inferred dependencies and anchors for one proposal."""
+    existing = existing or []
+    edits, created_by, last_touch = [], {}, {}
+    for index, operation in enumerate(operations):
+        identity = f'edit_{index + 1}'
+        references = _edited_ids(operation) | {
+            operation[k] for k in ('after', 'before', 'link') if isinstance(operation.get(k), str)
+        }
+        depends = {created_by[r] for r in references if r in created_by}
+        depends |= {last_touch[r] for r in _edited_ids(operation) if r in last_touch}
+        depends |= set((explicit or {}).get(identity, []))
+        root = operation.get('target') not in created_by and operation.get('target') not in last_touch
+        for reference in _edited_ids(operation):
+            last_touch[reference] = identity
+        for created in _created_ids(operation):
+            created_by[created] = last_touch[created] = identity
+        if index < len(existing):
+            edits.append(existing[index])
+            continue
+        edits.append(
+            {
+                'id': identity,
+                'index': index,
+                'type': _op_kind(operation),
+                'target': operation.get('target'),
+                'depends_on': sorted(depends, key=_edit_number),
+                'status': 'pending',
+                'state': 'exact',
+                'anchor': _anchor(doc, operation) if root and operation.get('target') else None,
+            }
+        )
+    for edit in edits:
+        edit['required_by'] = sorted(
+            (e['id'] for e in edits if edit['id'] in e['depends_on']), key=_edit_number
+        )
+    return edits
+
+
+def _register_proposal(doc, values, base_revision, *, allow_empty=False):
+    values = copy.deepcopy(values)
+    operations = values.get('operations')
+    if not isinstance(operations, list) or (not operations and not allow_empty):
         _error('Proposal requires exact operations.', 'values.operations')
-    for i, operation in enumerate(values['operations']):
+    for i, operation in enumerate(operations):
         proposed_kind = _validate_op(operation, i)
-        if proposed_kind in ('propose', 'accept_proposal', 'reject_proposal'):
+        if proposed_kind in _REVIEW_MANAGEMENT:
             _error('Proposals cannot contain review-management operations.', 'values.operations')
     if values.get('expected_revision', base_revision) != base_revision:
         raise ByaxError(
@@ -989,31 +1077,204 @@ def _op_propose(doc, op, base_revision, kind, changed, allow_policy_changes):
             expected=values['expected_revision'],
             actual=base_revision,
         )
-    target_ids = {o[k] for o in values['operations'] for k in ('target', 'after', 'next') if o.get(k)}
+    explicit = values.pop('dependencies', None)
+    if explicit is not None:
+        known = {f'edit_{i + 1}' for i in range(len(operations))}
+        if not isinstance(explicit, dict) or any(
+            key not in known
+            or not isinstance(v, list)
+            or any(d not in known or _edit_number(d) >= _edit_number(key) for d in v)
+            for key, v in explicit.items()
+        ):
+            _error('Dependencies must map edit identities to earlier edit identities.', 'values.dependencies')
+    created = set().union(*(_created_ids(o) for o in operations)) if operations else set()
+    links = {o['link'] for o in operations if isinstance(o.get('link'), str)}
+    target_ids = (
+        {o[k] for o in operations for k in ('target', 'next', 'after', 'before') if isinstance(o.get(k), str)}
+        - created
+        - links
+    )
+    preconditions = {}
+    for target in sorted(target_ids):
+        try:
+            preconditions[target] = object_hash(find_object(doc, target))
+        except ByaxError:
+            # Dependencies and review records are revalidated by their own operations.
+            if target not in doc.get('dependencies', {}):
+                for collection in ('comments', 'proposals', 'tracked_changes'):
+                    try:
+                        _find_review(doc, collection, target)
+                        break
+                    except ByaxError:
+                        continue
+                else:
+                    raise
     proposal = {
         **values,
         'id': new_id('proposal'),
         'status': 'pending',
         'expected_revision': values.get('expected_revision', base_revision),
-        'preconditions': {target: object_hash(find_object(doc, target)) for target in target_ids},
+        'preconditions': preconditions,
+        'edits': _plan_edits(doc, operations, explicit),
     }
     doc['review']['proposals'].append(proposal)
-    changed.append(proposal['id'])
+    return proposal
+
+
+def _op_propose(doc, op, base_revision, kind, changed, allow_policy_changes):
+    changed.append(_register_proposal(doc, op['values'], base_revision)['id'])
+
+
+def _proposal_edits(doc, proposal):
+    if 'edits' not in proposal:
+        # Proposals recorded before per-edit selection revalidate by object hash only.
+        proposal['edits'] = _plan_edits(doc, proposal.get('operations', []))
+        for edit in proposal['edits']:
+            edit['anchor'] = None
+    return proposal['edits']
+
+
+def _stale(message, **details):
+    raise ByaxError('stale_revision', message, **details)
+
+
+def _revalidate(doc, proposal, selected):
+    operations = proposal['operations']
+    created = set().union(*(_created_ids(o) for o in operations)) if operations else set()
+    for edit in selected:
+        operation = operations[edit['index']]
+        if edit.get('state') in ('unresolved', 'orphaned'):
+            _stale(
+                'Proposal target changed since it was reviewed.',
+                target=edit.get('target'),
+                edit=edit['id'],
+                reason=edit.get('reason', edit['state']),
+            )
+        if edit.get('state') == 'remapped' and edit.get('anchor'):
+            anchor = edit['anchor']
+            try:
+                text = find_object(doc, anchor['target']).get('text', '')
+            except ByaxError:
+                _stale('Remapped proposal target no longer exists.', target=anchor['target'], edit=edit['id'])
+            if text[anchor['start'] : anchor['end']] != anchor['text']:
+                _stale('Remapped proposal text no longer matches.', target=anchor['target'], edit=edit['id'])
+            if _op_kind(operation) == 'replace_text' and _anchor(doc, operation) != anchor:
+                _stale(
+                    'Quoted text no longer identifies the reviewed occurrence.',
+                    target=anchor['target'],
+                    edit=edit['id'],
+                )
+        else:
+            for reference in _edited_ids(operation) - created:
+                digest = proposal.get('preconditions', {}).get(reference)
+                if digest is None:
+                    continue
+                try:
+                    current = object_hash(find_object(doc, reference))
+                except ByaxError:
+                    _stale('Proposal target no longer exists.', target=reference, edit=edit['id'])
+                if current != digest:
+                    _stale(
+                        'Proposal target changed since it was reviewed.', target=reference, edit=edit['id']
+                    )
+        for key in ('after', 'before'):
+            reference = operation.get(key)
+            if isinstance(reference, str) and reference not in created:
+                try:
+                    find_object(doc, reference)
+                except ByaxError:
+                    _stale('Proposal insertion anchor no longer exists.', target=reference, edit=edit['id'])
+
+
+def _select_edits(proposal, edits, op):
+    by_id = {e['id']: e for e in edits}
+    if 'edits' not in op:
+        return [e for e in edits if e['status'] == 'pending'], by_id
+    unknown = [i for i in op['edits'] if i not in by_id]
+    if unknown:
+        raise ByaxError(
+            'missing_target', 'Proposal edit does not exist.', target=proposal['id'], edits=unknown
+        )
+    done = [i for i in op['edits'] if by_id[i]['status'] != 'pending']
+    if done:
+        raise ByaxError('conflict', 'Proposal edits are not pending.', target=proposal['id'], edits=done)
+    return sorted(
+        {by_id[i]['index']: by_id[i] for i in op['edits']}.values(), key=lambda e: e['index']
+    ), by_id
+
+
+def _finish_proposal(proposal, edits):
+    statuses = {e['status'] for e in edits}
+    if 'pending' in statuses:
+        proposal['status'] = 'pending'
+    elif statuses == {'accepted'}:
+        proposal['status'] = 'accepted'
+    elif statuses == {'rejected'}:
+        proposal['status'] = 'rejected'
+    else:
+        proposal['status'] = 'partially_accepted'
 
 
 def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_changes):
     proposal = _find_review(doc, 'proposals', op['target'])
     if proposal['status'] != 'pending':
         raise ByaxError('conflict', 'Proposal is not pending.', target=op['target'])
+    edits = _proposal_edits(doc, proposal)
+    selected, by_id = _select_edits(proposal, edits, op)
+    if not selected:
+        raise ByaxError('conflict', 'Proposal has no pending edits.', target=op['target'])
+    chosen = {e['id'] for e in selected}
     if kind == 'accept_proposal':
+        unresolved = [c['id'] for c in proposal.get('conflicts', []) if c.get('status') == 'unresolved']
+        if unresolved:
+            raise ByaxError(
+                'conflict',
+                'Merge conflicts require explicit resolution before acceptance.',
+                target=op['target'],
+                conflicts=unresolved,
+            )
+        missing = sorted(
+            {
+                d
+                for e in selected
+                for d in e['depends_on']
+                if d not in chosen and by_id[d]['status'] != 'accepted'
+            }
+        )
+        if missing:
+            raise ByaxError(
+                'conflict',
+                'Selected edits depend on edits that are not selected or were rejected.',
+                target=op['target'],
+                missing_dependencies=missing,
+                dependencies={e['id']: e['depends_on'] for e in selected},
+            )
+        _revalidate(doc, proposal, selected)
         proposal_before = _candidate(doc)
-        for target, digest in proposal.get('preconditions', {}).items():
-            if object_hash(find_object(doc, target)) != digest:
-                raise ByaxError(
-                    'stale_revision', 'Proposal target changed since it was reviewed.', target=target
-                )
-        for operation in proposal['operations']:
-            changed.extend(_operation(doc, operation, base_revision))
+        current = anchors.journal()
+        saved = {k: current.get(k) for k in ('skip_proposal', 'attribution')} if current is not None else None
+        author = proposal.get('author') or (proposal.get('provenance') or {}).get('model') or ''
+        accepted_by = (current or {}).get('attribution', {})
+        if current is not None:
+            current['skip_proposal'] = proposal['id']
+            current['attribution'] = {
+                **accepted_by,
+                'author': author,
+                'origin': 'proposal',
+                'proposal': proposal['id'],
+                'accepted_by': accepted_by.get('author', ''),
+            }
+        touched = set()
+        try:
+            for edit in selected:
+                operation = proposal['operations'][edit['index']]
+                if current is not None:
+                    current['attribution']['edit'] = edit['id']
+                changed.extend(_operation(doc, operation, base_revision))
+                touched |= _edited_ids(operation) | _created_ids(operation)
+        finally:
+            if current is not None:
+                current.update(saved)
         _preserve(proposal_before, doc, proposal.get('protect', []))
         required = proposal.get('required_suites', [])
         if required:
@@ -1030,19 +1291,51 @@ def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_cha
                     findings=report['findings'],
                     coverage=report['coverage'],
                 )
-        proposal['status'] = 'accepted'
+        for edit in selected:
+            edit['status'] = 'accepted'
+        preconditions = dict(proposal.get('preconditions', {}))
+        for identity in touched:
+            try:
+                preconditions[identity] = object_hash(find_object(doc, identity))
+            except ByaxError:
+                preconditions.pop(identity, None)
+        proposal['preconditions'] = preconditions
     else:
-        proposal['status'] = 'rejected'
+        blocked, frontier = set(), set(chosen)
+        while frontier:
+            frontier = {
+                e['id'] for e in edits if e['status'] == 'pending' and set(e['depends_on']) & frontier
+            } - blocked
+            blocked |= frontier
+        blocked -= chosen
+        if blocked:
+            raise ByaxError(
+                'conflict',
+                'Rejecting these edits strands dependent edits; select them too.',
+                target=op['target'],
+                dependent_edits=sorted(blocked, key=_edit_number),
+            )
+        for edit in selected:
+            edit['status'] = 'rejected'
+    _finish_proposal(proposal, edits)
+    if proposal.get('kind') == 'merge' and proposal['status'] in ('accepted', 'partially_accepted'):
+        merge = proposal.get('merge', {})
+        anchors.note('merge_parents', merge.get('source_revision'))
+        doc['history']['merges'] = [
+            *doc['history'].get('merges', []),
+            {'proposal': proposal['id'], **merge, 'status': proposal['status']},
+        ]
     changed.append(proposal['id'])
 
 
-def _op_resolve_change(doc, op, base_revision, kind, changed, allow_policy_changes):
-    change = _find_review(doc, 'tracked_changes', op['target'])
+def _resolve_tracked(doc, change, accept, changed):
     if change['status'] != 'pending':
-        raise ByaxError('conflict', 'Tracked change is not pending.', target=op['target'])
-    if kind == 'reject_change':
+        raise ByaxError('conflict', 'Tracked change is not pending.', target=change['id'])
+    if not accept:
         obj = _target(doc, {'target': change['target']})
-        if change.get('kind') == 'formatting':
+        if change.get('kind') == 'formatting' and 'added_marks' in change:
+            anchors.reject_format(obj, change)
+        elif change.get('kind') == 'formatting':
             if _format_state(obj) != change['after']:
                 raise ByaxError(
                     'conflict',
@@ -1050,6 +1343,8 @@ def _op_resolve_change(doc, op, base_revision, kind, changed, allow_policy_chang
                     target=obj['id'],
                 )
             obj.update(copy.deepcopy(change['before']))
+        elif 'start' in change:
+            anchors.reject_text(doc, obj, change, _splice)
         else:
             if obj['text'] != change['after']:
                 raise ByaxError(
@@ -1059,10 +1354,506 @@ def _op_resolve_change(doc, op, base_revision, kind, changed, allow_policy_chang
                 )
             _splice(obj, 0, len(obj['text']), change['before'])
             obj['marks'] = copy.deepcopy(change.get('before_marks', []))
-            _adjust_anchors(doc, obj['id'], 0, len(change['after']), len(change['before']))
+            anchors.remap_splice(
+                doc, obj, 0, len(change['after']), len(change['before']), skip_change=change['id']
+            )
         changed.append(obj['id'])
-    change['status'] = 'accepted' if kind == 'accept_change' else 'rejected'
+    change['status'] = 'accepted' if accept else 'rejected'
+    change['resolution'] = {
+        k: v for k, v in anchors.attribution().items() if k in ('author', 'origin', 'timestamp')
+    }
     changed.append(change['id'])
+
+
+def _op_resolve_change(doc, op, base_revision, kind, changed, allow_policy_changes):
+    _resolve_tracked(
+        doc, _find_review(doc, 'tracked_changes', op['target']), kind == 'accept_change', changed
+    )
+
+
+def _change_matches(change, op):
+    kind = change.get('kind', 'text')
+    return (
+        ('targets' not in op or change['id'] in op['targets'])
+        and ('author' not in op or change.get('author', '') == op['author'])
+        and ('origin' not in op or change.get('origin', '') == op['origin'])
+        and ('kind' not in op or kind == op['kind'] or (op['kind'] == 'text' and kind != 'formatting'))
+        and ('object' not in op or change.get('target') == op['object'])
+        and ('group' not in op or change.get('group', change['id']) == op['group'])
+    )
+
+
+def _op_resolve_changes(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if not set(op) & {'targets', 'author', 'origin', 'kind', 'object', 'group'}:
+        _error('Select tracked changes by identity or at least one filter.', 'targets')
+    changes = doc['review']['tracked_changes']
+    if 'targets' in op:
+        known = {c['id']: c for c in changes}
+        missing = [t for t in op['targets'] if t not in known]
+        if missing:
+            raise ByaxError(
+                'missing_target', 'Tracked change does not exist.', target=missing[0], missing=missing
+            )
+        done = [t for t in op['targets'] if known[t]['status'] != 'pending']
+        if done:
+            raise ByaxError('conflict', 'Tracked changes are not pending.', target=done[0], changes=done)
+    selected = [c for c in changes if c['status'] == 'pending' and _change_matches(c, op)]
+    if not selected:
+        raise ByaxError('missing_target', 'No pending tracked changes match the selection.')
+    accept = kind == 'accept_changes'
+    # Later edits unwind first so earlier ranges are restored onto the text they produced.
+    for change in selected if accept else reversed(selected):
+        _resolve_tracked(doc, change, accept, changed)
+
+
+def _merge_base(doc, ours, theirs, source):
+    history = doc['history']
+    parents = history.get('parents', {})
+
+    def ancestors(revision):
+        order, pending, seen = [], [revision], set()
+        while pending:
+            current = pending.pop(0)
+            if current in seen or current is None:
+                continue
+            seen.add(current)
+            order.append(current)
+            pending.extend(parents.get(current, []))
+        return order
+
+    mine = set(ancestors(ours))
+    for revision in ancestors(theirs):
+        if revision in mine:
+            return revision
+    forks = history.get('forks', {})
+    for name in (source, history.get('current_branch')):
+        if forks.get(name):
+            return forks[name]
+    raise ByaxError(
+        'missing_target',
+        'The merge base is not recorded in retained history; compare the branches and propose edits manually.',
+        target=source,
+    )
+
+
+def merge_base(doc, source):
+    return _merge_base(doc, doc['revision'], doc['history']['branches'].get(source), source)
+
+
+def _op_propose_merge(doc, op, base_revision, kind, changed, allow_policy_changes):
+    history = doc['history']
+    source = op['source']
+    if source not in history.get('branches', {}):
+        raise ByaxError('missing_target', 'Branch does not exist.', target=source)
+    if source == history.get('current_branch'):
+        raise ByaxError('conflict', 'A branch cannot be merged into itself.', target=source)
+    source_revision = history['branches'][source]
+    base_revision_id = _merge_base(doc, doc['revision'], source_revision, source)
+    base, theirs = _revision(doc, base_revision_id), _revision(doc, source_revision)
+    operations, conflicts, not_merged = plan_merge(base, snapshot(doc), theirs)
+    if not operations and not conflicts:
+        raise ByaxError('conflict', 'The branch has no changes to merge.', target=source)
+    proposal = _register_proposal(
+        doc,
+        {
+            'kind': 'merge',
+            'operations': operations,
+            'conflicts': conflicts,
+            'explanation': op.get('explanation')
+            or f'Merge branch {source} into {history.get("current_branch")}',
+            'author': op.get('author', anchors.attribution().get('author', '')),
+            'merge': {
+                'source_branch': source,
+                'source_revision': source_revision,
+                'target_branch': history.get('current_branch'),
+                'base_revision': base_revision_id,
+                'not_merged': not_merged,
+            },
+            'comparison': semantic_compare(base, theirs)['summary'],
+        },
+        base_revision,
+        allow_empty=True,
+    )
+    changed.append(proposal['id'])
+
+
+def _conflict_operations(doc, conflict, choice, values):
+    kind, target = conflict['kind'], conflict['target']
+    if choice == 'ours':
+        return []
+    if choice == 'custom' and values is None:
+        _error('Custom resolutions require values.', 'values')
+    chosen = values if choice == 'custom' else conflict.get('theirs')
+    if kind.startswith('block') or kind == 'order':
+        if kind == 'order':
+            if choice == 'custom':
+                _error('Order conflicts resolve with ours or theirs.', 'choice')
+            order = [b['id'] for b in doc['blocks'] if b['id'] in set(chosen)]
+            moves = []
+            for position, identity in enumerate(chosen):
+                if order.index(identity) != position and identity in order:
+                    moves.append(
+                        {'type': 'move_block', 'target': identity, 'after': chosen[position - 1]}
+                        if position
+                        else {'type': 'move_block', 'target': identity, 'before': order[0]}
+                    )
+                    order.remove(identity)
+                    order.insert(position, identity)
+            return moves
+        if chosen is None:
+            return [{'type': 'delete_block', 'target': target}]
+        if not isinstance(chosen, dict) or chosen.get('id', target) != target:
+            _error('Resolved block must keep the conflicting identity.', 'values')
+        chosen = {**chosen, 'id': target}
+        if any(b['id'] == target for b in doc['blocks']):
+            return [{'type': 'set_block', 'target': target, 'values': chosen}]
+        return [{'type': 'insert_block', 'block': chosen, 'after': conflict.get('after')}]
+    if chosen is None:
+        raise ByaxError(
+            'unsupported_feature', 'Removing definitions is not merged; resolve with ours or custom.'
+        )
+    if kind == 'style':
+        return [{'type': 'define_style', 'name': target, 'values': chosen}]
+    if kind == 'reference':
+        return [{'type': 'add_reference', 'id': target, 'values': chosen}]
+    if kind in ('layout', 'metadata'):
+        value = chosen.get('value') if choice == 'custom' else chosen
+        return [{'type': 'set_' + kind, 'values': {target: value}}]
+    raise ByaxError(
+        'unsupported_feature', 'This conflict kind resolves only with ours.', target=conflict['id']
+    )
+
+
+def _op_resolve_conflict(doc, op, base_revision, kind, changed, allow_policy_changes):
+    proposal = _find_review(doc, 'proposals', op['target'])
+    if proposal['status'] != 'pending' or proposal.get('kind') != 'merge':
+        raise ByaxError('conflict', 'Only pending merge proposals have conflicts.', target=op['target'])
+    conflict = next((c for c in proposal.get('conflicts', []) if c['id'] == op['conflict']), None)
+    if conflict is None:
+        raise ByaxError('missing_target', 'Merge conflict does not exist.', target=op['conflict'])
+    if conflict['status'] != 'unresolved':
+        raise ByaxError('conflict', 'Merge conflict is already resolved.', target=op['conflict'])
+    if op['choice'] not in ('ours', 'theirs', 'custom'):
+        _error('Choice must be ours, theirs or custom.', 'choice')
+    operations = _conflict_operations(doc, conflict, op['choice'], op.get('values'))
+    for i, operation in enumerate(operations):
+        _validate_op(operation, i)
+    first = len(proposal['operations'])
+    proposal['operations'].extend(operations)
+    proposal['edits'] = _plan_edits(doc, proposal['operations'], existing=_proposal_edits(doc, proposal))
+    preconditions = dict(proposal.get('preconditions', {}))
+    for operation in operations:
+        for reference in _edited_ids(operation):
+            if reference not in preconditions:
+                try:
+                    preconditions[reference] = object_hash(find_object(doc, reference))
+                except ByaxError:
+                    pass
+    proposal['preconditions'] = preconditions
+    conflict.update(
+        status='resolved',
+        choice=op['choice'],
+        edits=[e['id'] for e in proposal['edits'][first:]],
+        resolution=anchors.attribution(),
+    )
+    changed.extend((proposal['id'], conflict['id']))
+
+
+def _op_set_list(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if obj not in doc['blocks'] or obj.get('type') not in ('paragraph', 'heading'):
+        _error('Lists apply to top-level paragraphs.', 'target')
+    before = _format_state(obj)
+    values = dict(op['values'])
+    if values.pop('new_list', False) is True:
+        values['list_id'] = new_id('list')
+    index = doc['blocks'].index(obj)
+    earlier = {b['id'] for b in doc['blocks'][:index]}
+    preceding = [entry for entry in formatting.resolve_lists(doc) if entry['id'] in earlier]
+    unknown = set(values) - {'kind', 'level', 'list_id', 'restart', 'start'}
+    if unknown:
+        _error('Unknown list fields.', 'values', unknown=sorted(unknown))
+    obj['attrs'] = formatting.list_attrs(obj.get('attrs', {}), values, preceding)
+    _track_format(doc, obj, before, base_revision)
+    changed.append(obj['id'])
+
+
+def _op_apply_character_style(doc, op, base_revision, kind, changed, allow_policy_changes):
+    style = op.get('style')
+    if style is not None:
+        if style not in doc['styles']:
+            _error('Unknown named style.', 'style')
+        if formatting.style_kind(doc, style) != 'character':
+            _error('Paragraph styles apply to whole paragraphs; use apply_style.', 'style')
+    _op_format_text(
+        doc,
+        {
+            'target': op['target'],
+            'start': op['start'],
+            'end': op['end'],
+            'marks': [{'type': formatting.CHARACTER_MARK, 'value': style}],
+        },
+        base_revision,
+        'format_text',
+        changed,
+        allow_policy_changes,
+    )
+
+
+def _op_clear_formatting(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    scope = op.get('scope', 'all')
+    if scope not in ('text', 'paragraph', 'all'):
+        _error('Scope must be text, paragraph or all.', 'scope')
+    if ('start' in op) != ('end' in op):
+        _error('Ranges require both start and end.', 'range')
+    text = obj.get('text', '')
+    start, end = op.get('start', 0), op.get('end', len(text))
+    _boundaries(text, start, end)
+    before = _format_state(obj)
+    if scope in ('text', 'all'):
+        formatting.clear_marks(obj, start, end)
+    if scope in ('paragraph', 'all'):
+        formatting.clear_paragraph(obj)
+    _track_format(doc, obj, before, base_revision)
+    changed.append(obj['id'])
+
+
+def _op_set_block(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if obj not in doc['blocks']:
+        _error('Target must be a top-level block.', 'target')
+    values = copy.deepcopy(op['values'])
+    if values.get('id', obj['id']) != obj['id']:
+        _error('Stable object identities cannot be changed.', 'values.id')
+    old_ids = {r['id'] for r in obj.get('rows', [])} | {
+        c['id'] for r in obj.get('rows', []) for c in r['cells']
+    }
+    original, before_marks, before = (
+        obj.get('text', ''),
+        copy.deepcopy(obj.get('marks', [])),
+        _format_state(obj),
+    )
+    obj.clear()
+    obj.update(values, id=op['target'])
+    new_ids = {r['id'] for r in obj.get('rows', [])} | {
+        c['id'] for r in obj.get('rows', []) for c in r['cells']
+    }
+    _orphan_review(doc, old_ids - new_ids)
+    if obj.get('text', '') != original:
+        position, deleted, inserted = anchors.minimal_change(original, 0, len(original), obj.get('text', ''))
+        anchors.remap_splice(doc, obj, position, position + len(deleted), len(inserted))
+        anchors.track_text(
+            doc, obj, original, before_marks, 0, len(original), obj.get('text', ''), base_revision
+        )
+    else:
+        _track_format(doc, obj, before, base_revision)
+    changed.append(obj['id'])
+
+
+def _op_insert_block(doc, op, base_revision, kind, changed, allow_policy_changes):
+    block = copy.deepcopy(op['block'])
+    if not isinstance(block.get('id'), str) or not block['id']:
+        _error('Inserted blocks require a stable identity.', 'block.id')
+    try:
+        find_object(doc, block['id'])
+    except ByaxError:
+        pass
+    else:
+        raise ByaxError('conflict', 'Block identity already exists.', target=block['id'])
+    block.setdefault('attrs', {})
+    block.setdefault('marks', [])
+    if 'after' in op and op['after'] is None:
+        doc['blocks'].insert(0, block)
+    else:
+        _insert(doc, block, op.get('after'))
+    changed.append(block['id'])
+
+
+def _dependency(doc, identity):
+    dependency = doc.get('dependencies', {}).get(identity)
+    if dependency is None:
+        raise ByaxError('missing_target', 'External dependency does not exist.', target=identity)
+    return dependency
+
+
+def _linked_blocks(doc, identity):
+    return [b for b in doc['blocks'] if b.get('attrs', {}).get('link') == identity]
+
+
+def _op_link_asset(doc, op, base_revision, kind, changed, allow_policy_changes):
+    from urllib.parse import urlsplit
+
+    uri = op['uri']
+    parts = urlsplit(uri)
+    scheme = parts.scheme.lower()
+    if len(scheme) == 1:
+        scheme = ''  # Windows drive letter in a local path.
+    if scheme not in ('', 'file', 'http', 'https') or not uri.strip():
+        _error('External dependencies must be local paths, file, http or https URIs.', 'uri')
+    if parts.username or parts.password:
+        raise ByaxError('invalid_input', 'Credentials cannot be embedded in dependency URIs.', field='uri')
+    identity = op.get('id') or dependency_id(uri)
+    if identity in doc['dependencies']:
+        raise ByaxError('conflict', 'Dependency identity already exists.', target=identity)
+    doc['dependencies'][identity] = {
+        'id': identity,
+        'uri': uri,
+        'kind': op.get('kind', 'image'),
+        'policy': 'link',
+        'status': 'unresolved',
+        'sha256': None,
+        'asset': None,
+        **({'mime': op['mime']} if 'mime' in op else {}),
+        **({'name': op['name']} if 'name' in op else {}),
+    }
+    changed.append(identity)
+
+
+def _op_place_linked_image(doc, op, base_revision, kind, changed, allow_policy_changes):
+    dependency = _dependency(doc, op['link'])
+    if dependency['policy'] != 'link':
+        _error('Dependency is embedded; place its asset instead.', 'link')
+    attrs = {'link': op['link'], 'alt': op['alt'], **{k: op[k] for k in ('width', 'height') if k in op}}
+    if dependency.get('asset'):
+        attrs['asset'] = dependency['asset']
+    obj = {'id': new_id('image'), 'type': 'image', 'text': '', 'style': 'body', 'marks': [], 'attrs': attrs}
+    _insert(doc, obj, op.get('after'))
+    changed.append(obj['id'])
+
+
+def _asset_referenced(doc, digest):
+    return any(b.get('attrs', {}).get('asset') == digest for b in doc['blocks']) or any(
+        d.get('asset') == digest for d in doc['dependencies'].values()
+    )
+
+
+def _op_refresh_dependency(doc, op, base_revision, kind, changed, allow_policy_changes):
+    dependency = _dependency(doc, op['target'])
+    if dependency['policy'] != 'link':
+        raise ByaxError(
+            'conflict', 'Embedded content is no longer linked and cannot be refreshed.', target=op['target']
+        )
+    try:
+        data = base64.b64decode(op['data'], validate=True)
+    except ValueError as exc:
+        raise ByaxError('schema_error', 'Asset must be base64 encoded.', field='data') from exc
+    if len(data) > 64 * 1024 * 1024:
+        raise ByaxError('limit_exceeded', 'Asset exceeds 64 MiB.', limit='64 MiB per asset')
+    mime = op.get('mime') or dependency.get('mime')
+    if not mime:
+        _error('A media type is required for the first refresh.', 'mime')
+    blocks = _linked_blocks(doc, op['target'])
+    for block in blocks:
+        _target(doc, {'target': block['id']})
+    digest = hashlib.sha256(data).hexdigest()
+    previous, old_asset = dependency.get('sha256'), dependency.get('asset')
+    doc['assets'][digest] = {
+        'data': op['data'],
+        'mime': mime,
+        'name': dependency.get('name') or dependency['uri'].rstrip('/').rsplit('/', 1)[-1],
+        'dependency': op['target'],
+    }
+    dependency.update(
+        sha256=digest,
+        asset=digest,
+        mime=mime,
+        bytes=len(data),
+        status='current',
+        refreshed_at=anchors.attribution().get('timestamp'),
+        content_changed=previous is not None and previous != digest,
+    )
+    if previous and previous != digest:
+        dependency['previous_sha256'] = previous
+    dependency.pop('reason', None)
+    for block in blocks:
+        block['attrs']['asset'] = digest
+        changed.append(block['id'])
+    if old_asset and old_asset != digest and not _asset_referenced(doc, old_asset):
+        del doc['assets'][old_asset]
+    changed.extend((op['target'], digest))
+
+
+def _op_mark_dependency_missing(doc, op, base_revision, kind, changed, allow_policy_changes):
+    dependency = _dependency(doc, op['target'])
+    if dependency['policy'] != 'link':
+        raise ByaxError('conflict', 'Embedded content does not depend on its source.', target=op['target'])
+    dependency['status'] = 'missing'
+    dependency['reason'] = op.get('reason', 'The linked source could not be retrieved.')
+    changed.append(op['target'])
+    changed.extend(b['id'] for b in _linked_blocks(doc, op['target']))
+
+
+def _op_embed_dependency(doc, op, base_revision, kind, changed, allow_policy_changes):
+    dependency = _dependency(doc, op['target'])
+    if dependency['policy'] != 'link':
+        raise ByaxError('conflict', 'Dependency is already embedded.', target=op['target'])
+    if not dependency.get('asset'):
+        raise ByaxError(
+            'conflict',
+            'Refresh the dependency with authorized content before embedding.',
+            target=op['target'],
+        )
+    blocks = _linked_blocks(doc, op['target'])
+    for block in blocks:
+        _target(doc, {'target': block['id']})
+        block['attrs'].pop('link')
+        block['attrs']['asset'] = dependency['asset']
+        changed.append(block['id'])
+    dependency.update(policy='embedded', status='embedded')
+    doc['assets'][dependency['asset']]['source_uri'] = dependency['uri']
+    changed.append(op['target'])
+
+
+def dependency_report(doc):
+    """External dependencies with semantic locations and located findings."""
+    items, findings = [], []
+    for identity, dependency in sorted(doc.get('dependencies', {}).items()):
+        used = [b['id'] for b in doc['blocks'] if b.get('attrs', {}).get('link') == identity]
+        used += [
+            b['id']
+            for b in doc['blocks']
+            if any(
+                isinstance(i, dict) and i.get('link') == identity
+                for i in b.get('attrs', {}).get('external_images', [])
+            )
+        ]
+        items.append({**copy.deepcopy(dependency), 'used_by': used})
+        if dependency['policy'] == 'link' and dependency['status'] in ('unresolved', 'missing'):
+            for target in used or [identity]:
+                findings.append(
+                    {
+                        'rule': 'dependency.' + dependency['status'],
+                        'severity': 'warning',
+                        'target': target,
+                        'dependency': identity,
+                        'uri': dependency['uri'],
+                        'cached': bool(dependency.get('asset')),
+                        'explanation': 'Linked content has not been retrieved; refresh requires explicit authorization.'
+                        if dependency['status'] == 'unresolved'
+                        else dependency.get(
+                            'reason', 'Linked content is missing; the last cached copy is used.'
+                        ),
+                    }
+                )
+    return {
+        'schema_version': 1,
+        'document_id': doc['id'],
+        'revision': doc['revision'],
+        'dependencies': items,
+        'findings': findings,
+    }
+
+
+_REVIEW_MANAGEMENT = (
+    'propose',
+    'accept_proposal',
+    'reject_proposal',
+    'propose_merge',
+    'resolve_conflict',
+    'accept_changes',
+    'reject_changes',
+)
 
 
 def _op_set_bookmark(doc, op, base_revision, kind, changed, allow_policy_changes):
@@ -1296,6 +2087,20 @@ _HANDLERS = {
     'reject_proposal': _op_resolve_proposal,
     'accept_change': _op_resolve_change,
     'reject_change': _op_resolve_change,
+    'accept_changes': _op_resolve_changes,
+    'reject_changes': _op_resolve_changes,
+    'propose_merge': _op_propose_merge,
+    'resolve_conflict': _op_resolve_conflict,
+    'set_list': _op_set_list,
+    'apply_character_style': _op_apply_character_style,
+    'clear_formatting': _op_clear_formatting,
+    'set_block': _op_set_block,
+    'insert_block': _op_insert_block,
+    'link_asset': _op_link_asset,
+    'place_linked_image': _op_place_linked_image,
+    'refresh_dependency': _op_refresh_dependency,
+    'mark_dependency_missing': _op_mark_dependency_missing,
+    'embed_dependency': _op_embed_dependency,
     'set_bookmark': _op_set_bookmark,
     'remove_bookmark': _op_remove_bookmark,
     'replace_content': _op_replace_content,
@@ -1670,11 +2475,14 @@ def apply(
         'protect',
         'required_suites',
         'origin',
+        'author',
     }
     if unknown:
         _error('Unknown edit envelope fields.', '$', unknown=sorted(unknown))
     if type(envelope.get('schema_version', 1)) is not int or envelope.get('schema_version', 1) != 1:
         _error('Unsupported operation schema version.', 'schema_version')
+    if 'author' in envelope and not isinstance(envelope['author'], str):
+        _error('Expected a string.', 'author')
     for key in ('request_id', 'expected_revision', 'origin'):
         if key in envelope and (not isinstance(envelope[key], str) or not envelope[key]):
             _error('Expected a nonempty string.', key)
@@ -1697,7 +2505,13 @@ def apply(
             raise ByaxError(
                 'conflict', 'Request identity was already used for different operations.', target=request_id
             )
-        result = copy.deepcopy(previous['result'])
+        if 'result' in previous:
+            result = copy.deepcopy(previous['result'])
+        else:
+            # Retention pruned the stored outcome; the commit itself is still known.
+            result = _result(doc, None, [], 'already_committed')
+            result.update(revision=previous.get('revision'), result_available=False)
+            result['request_retention'] = _retention(doc)
         result['execution'] = 'already_committed'
         result['current_revision'] = doc['revision']
         return copy.deepcopy(doc), result
@@ -1712,6 +2526,33 @@ def apply(
     for i, operation in enumerate(operations):
         _validate_op(operation, i)
     _separate_corrections(operations)
+    journal = {
+        'attribution': {
+            'author': envelope.get('author', ''),
+            'origin': envelope.get('origin', 'api'),
+            'timestamp': datetime.now(UTC).isoformat(),
+        }
+    }
+    token = anchors._JOURNAL.set(journal)
+    try:
+        candidate, result = _apply_operations(
+            doc, envelope, operations, rules, suites, dry_run, allow_policy_changes, auto_compact_history
+        )
+    finally:
+        anchors._JOURNAL.reset(token)
+    for key in ('anchor_mappings', 'identity_changes'):
+        if journal.get(key):
+            result[key] = journal[key]
+    if request_id and not dry_run:
+        _record_request(candidate, request_id, fingerprint, result, envelope.get('origin', 'api'))
+        if candidate['history'].get('request_log', {}).get('forgotten'):
+            result['request_retention'] = _retention(candidate)
+    return candidate, result
+
+
+def _apply_operations(
+    doc, envelope, operations, rules, suites, dry_run, allow_policy_changes, auto_compact_history
+):
     candidate = _candidate(doc)
     changed = []
     for i, operation in enumerate(operations):
@@ -1760,9 +2601,12 @@ def apply(
     if dry_run:
         result = _result(candidate, doc['revision'], changed, 'dry_run', report)
         result['changes'] = _compare(doc, candidate)
+        result['semantic'] = semantic_compare(doc, candidate)
         from .checks import layout_effects
 
         result['layout_effects'] = layout_effects(doc, candidate, changed)
+        if isinstance(result['layout_effects'], dict):
+            result['layout_effects']['layout_changes'] = result['semantic']['layout']
         return candidate, result
     if snapshot(candidate) == snapshot(doc) and candidate['history'] == doc['history']:
         result = _result(candidate, doc['revision'], [], 'unchanged', report)
@@ -1771,14 +2615,122 @@ def apply(
             doc,
             candidate,
             operations,
-            request_id,
+            envelope.get('request_id'),
             envelope.get('origin', 'api'),
             auto_compact_history=auto_compact_history,
         )
+        merged = [r for r in (anchors.journal() or {}).get('merge_parents', []) if r]
+        attribution = (anchors.journal() or {}).get('attribution', {})
+        _record_parents(
+            candidate,
+            [doc['revision'], *merged],
+            {
+                **attribution,
+                'request_id': envelope.get('request_id'),
+                'operations': [_op_kind(o) for o in operations],
+            },
+        )
         result = _result(candidate, doc['revision'], changed, report=report)
-    if request_id:
-        candidate['requests'][request_id] = {'fingerprint': fingerprint, 'result': copy.deepcopy(result)}
     return candidate, result
+
+
+def _record_parents(candidate, parents, provenance):
+    """Revision ancestry for merge bases plus compact provenance of the producing commit."""
+    history = candidate['history']
+    history['parents'] = {**history.get('parents', {}), candidate['revision']: list(dict.fromkeys(parents))}
+    history['provenance'] = {**history.get('provenance', {}), candidate['revision']: provenance}
+    keep = (
+        {r['revision'] for r in history['revisions']}
+        | set(history['branches'].values())
+        | {candidate['revision']}
+    )
+    if len(history['parents']) > 2 * len(keep) + 100:
+        # Compacted revisions leave the graph; their children inherit their parents
+        # so retained ancestors (merge bases) stay reachable.
+        graph = dict(history['parents'])
+        for revision in [r for r in graph if r not in keep]:
+            removed = graph.pop(revision)
+            for child, links in graph.items():
+                if revision in links:
+                    graph[child] = list(
+                        dict.fromkeys(p for link in links for p in (removed if link == revision else [link]))
+                    )
+        history['parents'] = graph
+        history['provenance'] = {k: v for k, v in history['provenance'].items() if k in keep}
+
+
+REQUEST_RETENTION = 1000
+TOMBSTONE_FACTOR = 10
+
+
+def _retention(doc):
+    limit = doc['settings'].get('request_retention', REQUEST_RETENTION)
+    log = doc['history'].get('request_log', {})
+    return {
+        'full_results': limit,
+        'identities': limit * TOMBSTONE_FACTOR,
+        'pruned_results': log.get('pruned', 0),
+        'forgotten_identities': log.get('forgotten', 0),
+        'forgotten_through_sequence': log.get('forgotten_through_sequence'),
+        'complete': not log.get('forgotten'),
+    }
+
+
+def _record_request(candidate, request_id, fingerprint, result, origin):
+    """Store a replay record; the oldest outcomes become fingerprint-only tombstones."""
+    history = candidate['history']
+    log = dict(history.get('request_log', {}))
+    sequence = log.get('next_sequence', len(candidate['requests'])) + 1
+    log['next_sequence'] = sequence
+    requests = candidate['requests']
+    requests[request_id] = {
+        'fingerprint': fingerprint,
+        'result': copy.deepcopy(result),
+        'revision': result['revision'],
+        'origin': origin,
+        'sequence': sequence,
+    }
+    limit = candidate['settings'].get('request_retention', REQUEST_RETENTION)
+    full = sorted(
+        (k for k, v in requests.items() if 'result' in v), key=lambda k: requests[k].get('sequence', 0)
+    )
+    for key in full[: max(0, len(full) - limit)]:
+        record = requests[key]
+        requests[key] = {
+            'fingerprint': record['fingerprint'],
+            'revision': record.get('revision', record['result'].get('revision')),
+            'sequence': record.get('sequence', 0),
+            'pruned': True,
+        }
+        log['pruned'] = log.get('pruned', 0) + 1
+    tombstones = sorted(
+        (k for k, v in requests.items() if v.get('pruned')), key=lambda k: requests[k]['sequence']
+    )
+    for key in tombstones[: max(0, len(tombstones) - limit * TOMBSTONE_FACTOR)]:
+        log['forgotten'] = log.get('forgotten', 0) + 1
+        log['forgotten_through_sequence'] = max(
+            log.get('forgotten_through_sequence') or 0, requests[key]['sequence']
+        )
+        del requests[key]
+    history['request_log'] = log
+
+
+def request_status(doc, request_id):
+    """Whether a request identity is replayable, with the disclosed retention limits."""
+    record = doc['requests'].get(request_id)
+    state = 'unknown' if record is None else 'pruned' if record.get('pruned') else 'recorded'
+    return {
+        'schema_version': 1,
+        'document_id': doc['id'],
+        'revision': doc['revision'],
+        'request_id': request_id,
+        'state': state,
+        'committed_revision': None
+        if record is None
+        else record.get('revision', record.get('result', {}).get('revision')),
+        'result_available': state == 'recorded',
+        'retention': _retention(doc),
+    }
 
 
 def _compare(before, after):
@@ -1832,6 +2784,7 @@ def diff(doc: dict[str, Any], from_revision: str) -> dict[str, Any]:
         'from_revision': before['revision'],
         'revision': doc['revision'],
         'changes': _compare(before, doc),
+        'semantic': semantic_compare(before, doc),
         'text_diff': '\n'.join(
             difflib.unified_diff(
                 text_of(before).splitlines(),
@@ -1857,6 +2810,11 @@ def restore(
     validate_document(candidate, include_history=False)
     _commit(
         doc, candidate, [{'type': 'restore', 'revision': revision}], auto_compact_history=auto_compact_history
+    )
+    _record_parents(
+        candidate,
+        [doc['revision']],
+        {'origin': 'restore', 'timestamp': datetime.now(UTC).isoformat(), 'restored_from': revision},
     )
     return candidate, _result(candidate, doc['revision'], [b['id'] for b in candidate['blocks']])
 
@@ -1894,9 +2852,64 @@ def branch(doc: dict[str, Any], name: str) -> tuple[dict[str, Any], dict[str, An
     if name in doc['history']['branches']:
         raise ByaxError('conflict', 'Branch already exists.', target=name)
     candidate = copy.deepcopy(doc)
+    # The branch being left keeps an explicit head so it can be switched back to.
+    candidate['history']['branches'].setdefault(candidate['history']['current_branch'], doc['revision'])
     candidate['history']['branches'][name] = doc['revision']
+    candidate['history'].setdefault('forks', {})[name] = doc['revision']
     candidate['history']['current_branch'] = name
     return candidate, _result(candidate, doc['revision'])
+
+
+def switch_branch(doc, name, *, allow_policy_changes=False):
+    """Make another branch head the working document without creating a revision."""
+    history = doc['history']
+    if name not in history.get('branches', {}):
+        raise ByaxError('missing_target', 'Branch does not exist.', target=name)
+    if name == history.get('current_branch'):
+        raise ByaxError('conflict', 'Branch is already current.', target=name)
+    candidate = _candidate(doc)
+    if not any(r['revision'] == doc['revision'] for r in candidate['history']['revisions']):
+        candidate['history']['revisions'].append(
+            {
+                'revision': doc['revision'],
+                'snapshot': snapshot(doc),
+                'timestamp': datetime.now(UTC).isoformat(),
+                'origin': 'branch_switch',
+                'operations': [],
+            }
+        )
+    state = _revision(candidate, history['branches'][name])
+    switched = {**state, 'history': candidate['history'], 'requests': candidate['requests']}
+    switched['history']['branches'][history.get('current_branch', 'main')] = doc['revision']
+    switched['history']['current_branch'] = name
+    _preserve(doc, switched, [], allow_policy_changes=allow_policy_changes)
+    validate_document(switched, include_history=False)
+    return switched, _result(switched, doc['revision'], [b['id'] for b in switched['blocks']])
+
+
+def compare_documents(before, after):
+    """Readable semantic comparison of two documents or revisions."""
+    return {
+        'schema_version': 1,
+        'from_revision': before.get('revision'),
+        'revision': after.get('revision'),
+        **semantic_compare(before, after),
+    }
+
+
+def preview_proposal(doc, proposal, edits=None):
+    """Dry-run acceptance of selected proposal edits with dependency disclosure."""
+    record = _find_review(doc, 'proposals', proposal)
+    operation = {'type': 'accept_proposal', 'target': proposal, **({'edits': edits} if edits else {})}
+    candidate, result = apply(doc, {'operations': [operation]}, dry_run=True)
+    selected = _find_review(candidate, 'proposals', proposal)
+    result['proposal'] = {
+        'id': proposal,
+        'status': selected['status'],
+        'edits': copy.deepcopy(selected.get('edits', [])),
+        'conflicts': copy.deepcopy(record.get('conflicts', [])),
+    }
+    return result
 
 
 def _token(doc, kind, params, offset):
@@ -2103,6 +3116,8 @@ def inspect(
         from .checks import health
 
         items = [health(doc)]
+    elif target and section == 'formatting':
+        items = [formatting.element_report(doc, find_object(doc, target))]
     elif target:
         items = [copy.deepcopy(find_object(doc, target))]
     elif section == 'outline':
@@ -2113,6 +3128,23 @@ def inspect(
         ]
     elif section in ('comments', 'proposals', 'tracked_changes'):
         items = copy.deepcopy(doc['review'][section])
+    elif section == 'dependencies':
+        report = dependency_report(doc)
+        items = report['dependencies'] + [{'finding': f} for f in report['findings']]
+    elif section == 'lists':
+        items = formatting.resolve_lists(doc)
+    elif section == 'formatting':
+        items = [formatting.element_report(doc, b) for b in doc['blocks'] if b.get('type') != 'table']
+    elif section == 'style_inheritance':
+        items = formatting.style_report(doc)
+    elif section == 'requests':
+        items = [
+            {
+                'request_id': k,
+                **{key: v[key] for key in ('revision', 'sequence', 'pruned', 'origin') if key in v},
+            }
+            for k, v in doc['requests'].items()
+        ] + [{'retention': _retention(doc)}]
     elif section in (
         'metadata',
         'styles',
@@ -2266,32 +3298,7 @@ def find(
     }
 
 
-def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuation=None):
-    """Bounded, exact context package with a complete inclusion and omission report.
-
-    Only document data and explicitly selected (profile-authorized) references are
-    used; no files, accounts or providers are consulted and nothing is retrieved.
-    Required information that exceeds the bound makes the package incomplete with
-    a continuation token; omitted optional context is reported, never silently lost.
-    """
-    from .profiles import request_settings
-
-    pending = None
-    if continuation is not None:
-        payload = _read_token(doc, continuation, 'context')
-        target, profile, radius, pending = (
-            payload['params'][k] for k in ('target', 'profile', 'radius', 'pending')
-        )
-    if type(limit) is not int or limit < 0:
-        _error('Context limit must be a nonnegative integer.', 'limit')
-    if type(radius) is not int or not 0 <= radius <= 100:
-        _error('Radius must be an integer from 0 to 100.', 'radius')
-    if profile and profile not in doc['profiles']:
-        raise ByaxError('missing_target', 'Unknown profile.', target=profile)
-    settings = (
-        request_settings(doc, target, profile) if (profile or target) else request_settings(doc, None, None)
-    )
-    config = settings['profile'] or {}
+def _context_selection(doc, target, radius):
     if target:
         selected_object = find_object(doc, target)
         index = _block_index(doc, target)
@@ -2316,10 +3323,13 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
             + [c['id'] for r in b.get('rows', []) for c in r['cells']]
         )
     }
-    protections = doc['settings'].get('protections', [])
-    applicable = [p for p in protections if p.get('target') in selection_ids]
-    authorized = config.get('references', []) if settings['profile'] else []
-    # Candidate items in priority order: required policy and selected content first.
+    return selected_blocks, nearby, selection_ids
+
+
+def _context_candidates(
+    doc, settings, config, selected_blocks, nearby, selection_ids, applicable, authorized
+):
+    """Candidate items in priority order: required policy and selected content first."""
     candidates = [
         (
             'profile',
@@ -2356,12 +3366,11 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
             False,
         )
     )
-    omitted, missing_refs = [], []
+    omitted = []
     for identity in authorized:
         if identity in doc['references']:
             candidates.append(('reference', identity, doc['references'][identity], False))
         else:
-            missing_refs.append(identity)
             omitted.append(
                 {
                     'kind': 'reference',
@@ -2394,14 +3403,10 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
             'stale',
         ):
             candidates.append(('finding', finding.get('id', 'finding'), finding, False))
-    if pending is not None:
-        wanted = {tuple(item) for item in pending}
-        candidates = [
-            c
-            for c in candidates
-            if c[3] and c[0] in ('profile', 'protections', 'requirements') or (c[0], c[1]) in wanted
-        ]
-        omitted = []
+    return candidates, omitted
+
+
+def _context_include(candidates, limit, omitted):
     remaining, included, report = limit, {}, []
     for kind, identity, value, required in candidates:
         length = len(canonical_json(value))
@@ -2419,12 +3424,35 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
                     'required': required,
                 }
             )
-    blocks = [dict(value, hash=object_hash(value)) for _, value in included.get('block', [])]
-    nearby_blocks = [dict(value, hash=object_hash(value)) for _, value in included.get('nearby', [])]
-    references = {identity: value for identity, value in included.get('reference', [])}
+    return remaining, included, report
+
+
+def _context_provenance(config, settings, references):
     from .profiles import source_hash
 
-    summaries = [
+    authority = config.get('source_authority', 'exclusive') if settings['profile'] else 'exclusive'
+    return {
+        'engine': 'byax/1',
+        'retrieval': 'none',
+        'accounts_consulted': [],
+        'files_read': [],
+        'source_authority': authority,
+        'outside_retrieval': 'not permitted'
+        if authority == 'exclusive'
+        else 'not performed; outside research requires a separate explicit workflow',
+        'source_versions': {
+            k: {
+                'version': v.get('version'),
+                'retrieved_at': v.get('retrieved_at'),
+                'content_hash': source_hash(v),
+            }
+            for k, v in references.items()
+        },
+    }
+
+
+def _context_summaries(doc, omitted):
+    return [
         {
             'id': o['id'],
             'kind': 'derived_summary',
@@ -2436,10 +3464,71 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
         for o in omitted
         if o['kind'] in ('block', 'nearby')
     ][:50]
+
+
+def _context_continuation(doc, target, profile, radius, budget_omitted):
+    if not budget_omitted:
+        return None
+    params = {
+        'target': target,
+        'profile': profile,
+        'radius': radius,
+        'pending': [[o['kind'], o['id']] for o in budget_omitted],
+    }
+    return {
+        'token': _token(doc, 'context', params, 0),
+        'target_ids': [o['id'] for o in budget_omitted],
+        'pending': len(budget_omitted),
+    }
+
+
+def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuation=None):
+    """Bounded, exact context package with a complete inclusion and omission report.
+
+    Only document data and explicitly selected (profile-authorized) references are
+    used; no files, accounts or providers are consulted and nothing is retrieved.
+    Required information that exceeds the bound makes the package incomplete with
+    a continuation token; omitted optional context is reported, never silently lost.
+    """
+    from .profiles import request_settings
+
+    pending = None
+    if continuation is not None:
+        payload = _read_token(doc, continuation, 'context')
+        target, profile, radius, pending = (
+            payload['params'][k] for k in ('target', 'profile', 'radius', 'pending')
+        )
+    if type(limit) is not int or limit < 0:
+        _error('Context limit must be a nonnegative integer.', 'limit')
+    if type(radius) is not int or not 0 <= radius <= 100:
+        _error('Radius must be an integer from 0 to 100.', 'radius')
+    if profile and profile not in doc['profiles']:
+        raise ByaxError('missing_target', 'Unknown profile.', target=profile)
+    settings = (
+        request_settings(doc, target, profile) if (profile or target) else request_settings(doc, None, None)
+    )
+    config = settings['profile'] or {}
+    selected_blocks, nearby, selection_ids = _context_selection(doc, target, radius)
+    protections = doc['settings'].get('protections', [])
+    applicable = [p for p in protections if p.get('target') in selection_ids]
+    authorized = config.get('references', []) if settings['profile'] else []
+    candidates, omitted = _context_candidates(
+        doc, settings, config, selected_blocks, nearby, selection_ids, applicable, authorized
+    )
+    if pending is not None:
+        wanted = {tuple(item) for item in pending}
+        candidates = [
+            c
+            for c in candidates
+            if c[3] and c[0] in ('profile', 'protections', 'requirements') or (c[0], c[1]) in wanted
+        ]
+        omitted = []
+    remaining, included, report = _context_include(candidates, limit, omitted)
+    blocks = [dict(value, hash=object_hash(value)) for _, value in included.get('block', [])]
+    references = {identity: value for identity, value in included.get('reference', [])}
     budget_omitted = [o for o in omitted if o['reason'] == 'Context payload limit exceeded.']
-    required_missing = any(o['required'] for o in budget_omitted)
     profile_value = dict(included.get('profile', [(None, {})])[0][1])
-    authority = config.get('source_authority', 'exclusive') if settings['profile'] else 'exclusive'
+    terminology = (included.get('terminology') or [(None, {})])[0][1]
     result = {
         'schema_version': 1,
         'document_id': doc['id'],
@@ -2448,34 +3537,17 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
         'profile': profile_value.get('settings', {}),
         'effective_settings': {k: v for k, v in profile_value.items() if k != 'settings'},
         'blocks': blocks,
-        'nearby': nearby_blocks,
+        'nearby': [dict(value, hash=object_hash(value)) for _, value in included.get('nearby', [])],
         'styles': dict(included.get('style', [])),
-        'terminology': (included.get('terminology') or [(None, {})])[0][1].get('dictionary', []),
-        'preferred_terms': (included.get('terminology') or [(None, {})])[0][1].get('preferred', {}),
+        'terminology': terminology.get('dictionary', []),
+        'preferred_terms': terminology.get('preferred', {}),
         'protections': (included.get('protections') or [(None, [])])[0][1],
         'requirements': (included.get('requirements') or [(None, {})])[0][1],
         'references': references,
         'fields': dict(included.get('field', [])),
         'findings': [value for _, value in included.get('finding', [])],
-        'summaries': summaries,
-        'provenance': {
-            'engine': 'byax/1',
-            'retrieval': 'none',
-            'accounts_consulted': [],
-            'files_read': [],
-            'source_authority': authority,
-            'outside_retrieval': 'not permitted'
-            if authority == 'exclusive'
-            else 'not performed; outside research requires a separate explicit workflow',
-            'source_versions': {
-                k: {
-                    'version': v.get('version'),
-                    'retrieved_at': v.get('retrieved_at'),
-                    'content_hash': source_hash(v),
-                }
-                for k, v in references.items()
-            },
-        },
+        'summaries': _context_summaries(doc, omitted),
+        'provenance': _context_provenance(config, settings, references),
         'inclusion_report': {
             'included_ids': [b['id'] for b in blocks],
             'included': report,
@@ -2490,24 +3562,8 @@ def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuati
             'used': limit - remaining,
             'excludes': 'Report framing, identities, hashes, summaries, provenance and omission diagnostics',
         },
-        'execution': 'incomplete' if required_missing else 'completed',
-        'continuation': {
-            'token': _token(
-                doc,
-                'context',
-                {
-                    'target': target,
-                    'profile': profile,
-                    'radius': radius,
-                    'pending': [[o['kind'], o['id']] for o in budget_omitted],
-                },
-                0,
-            ),
-            'target_ids': [o['id'] for o in budget_omitted],
-            'pending': len(budget_omitted),
-        }
-        if budget_omitted
-        else None,
+        'execution': 'incomplete' if any(o['required'] for o in budget_omitted) else 'completed',
+        'continuation': _context_continuation(doc, target, profile, radius, budget_omitted),
     }
     from .storage import _check_secrets
 

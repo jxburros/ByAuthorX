@@ -25,7 +25,7 @@ from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 
 from .errors import ByaxError
-from .model import new_document
+from .model import link_external_image, new_document
 
 MAX_INPUT = 32 * 1024 * 1024
 MAX_EXPANDED = 128 * 1024 * 1024
@@ -667,6 +667,8 @@ class _HTMLImport(HTMLParser):
                 except ValueError:
                     _loss(self.losses, 'invalid_image', 'Malformed embedded image data.', block['id'])
             else:
+                if attrs.get('src'):
+                    link_external_image(self.doc, block, attrs['src'])
                 _loss(
                     self.losses,
                     'external_image',
@@ -1424,6 +1426,7 @@ def _import_odt(doc, raw, losses):
                                 )
                             else:
                                 image['attrs']['source'] = source
+                                link_external_image(doc, image, source)
                                 _loss(
                                     losses,
                                     'odt_external_image',

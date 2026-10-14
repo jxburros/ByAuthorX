@@ -616,7 +616,7 @@ def export_clean(doc, path, format=None, profile=None, *, owner=None, overwrite=
                 for child in value:
                     collect_assets(child)
 
-        for category in ('blocks', 'layers', 'styles', 'layout', 'references'):
+        for category in ('blocks', 'layers', 'styles', 'layout', 'references', 'dependencies'):
             collect_assets(clean[category])
         clean['assets'] = {
             key: value

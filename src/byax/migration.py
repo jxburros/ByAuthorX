@@ -1,0 +1,224 @@
+"""Explicit, deterministic document schema transitions.
+
+Every supported historical version has exactly one registered transition to its
+successor. Migration copies its input, upgrades the live document and every
+retained history state, reports each transformation, and validates identities
+and references before the result can be saved. Unknown versions are rejected
+without rewriting anything.
+"""
+
+import copy
+
+from .errors import ByaxError
+from .model import SCHEMA_VERSION, dependency_id, validate_document
+
+
+def _v1_to_v2(state):
+    """Schema 2 adds explicit external dependency records (spec 5.2)."""
+    transformations = []
+    existing = state.get('dependencies')
+    if existing is not None:
+        raise ByaxError(
+            'unsupported_feature',
+            'A version 1 document already contains an unknown "dependencies" construct; '
+            'it cannot be upgraded without risking loss.',
+            field='dependencies',
+        )
+    dependencies = {}
+    for block in state.get('blocks', []):
+        attrs = block.get('attrs', {})
+        source = attrs.get('source')
+        if (
+            block.get('type') == 'image'
+            and isinstance(source, str)
+            and source
+            and not source.startswith('data:')
+            and 'asset' not in attrs
+            and 'link' not in attrs
+        ):
+            identity = dependency_id(source, block['id'])
+            dependencies[identity] = {
+                'id': identity,
+                'uri': source,
+                'kind': 'image',
+                'policy': 'link',
+                'status': 'unresolved',
+                'sha256': None,
+                'asset': None,
+            }
+            attrs['link'] = identity
+            transformations.append(
+                {
+                    'kind': 'external_image_dependency',
+                    'target': block['id'],
+                    'dependency': identity,
+                    'uri': source,
+                }
+            )
+        for index, image in enumerate(attrs.get('external_images', [])):
+            uri = image.get('src') if isinstance(image, dict) else None
+            if isinstance(uri, str) and uri and 'link' not in image:
+                identity = dependency_id(uri, f'{block["id"]}#{index}')
+                dependencies[identity] = {
+                    'id': identity,
+                    'uri': uri,
+                    'kind': 'image',
+                    'policy': 'link',
+                    'status': 'unresolved',
+                    'sha256': None,
+                    'asset': None,
+                }
+                image['link'] = identity
+                transformations.append(
+                    {
+                        'kind': 'inline_image_dependency',
+                        'target': block['id'],
+                        'dependency': identity,
+                        'uri': uri,
+                    }
+                )
+    state['dependencies'] = dependencies
+    transformations.append({'kind': 'added_resource', 'field': 'dependencies', 'count': len(dependencies)})
+    return transformations
+
+
+# from_version: (to_version, description, transition)
+TRANSITIONS = {
+    1: (2, 'Explicit external dependency records for linked images', _v1_to_v2),
+}
+SUPPORTED_VERSIONS = frozenset(TRANSITIONS) | {SCHEMA_VERSION}
+
+
+def _comments(items):
+    pending = list(items)
+    while pending:
+        item = pending.pop()
+        pending.extend(item.get('replies', []))
+        yield item
+
+
+def reference_problems(doc):
+    """Dangling identities, hashes and references, independent of schema version."""
+    problems = set()
+    ids = set()
+    for block in doc.get('blocks', []):
+        ids.add(block.get('id'))
+        for row in block.get('rows', []):
+            ids.add(row.get('id'))
+            ids.update(cell.get('id') for cell in row.get('cells', []))
+    assets, dependencies = doc.get('assets', {}), doc.get('dependencies', {})
+    for block in doc.get('blocks', []):
+        attrs = block.get('attrs', {})
+        if 'asset' in attrs and attrs['asset'] not in assets:
+            problems.add(('asset', block['id'], attrs['asset']))
+        if 'link' in attrs and attrs['link'] not in dependencies:
+            problems.add(('dependency', block['id'], attrs['link']))
+        for mark in block.get('marks', []):
+            if mark.get('type') in ('citation', 'reference') and mark.get('value') not in doc.get(
+                'references', {}
+            ):
+                problems.add(('reference', block['id'], mark.get('value')))
+    for identity, dependency in dependencies.items():
+        if isinstance(dependency, dict) and dependency.get('asset') not in (None, *assets):
+            problems.add(('dependency_asset', identity, dependency.get('asset')))
+    review = doc.get('review', {})
+    for collection, items in (
+        ('comment', _comments(review.get('comments', []))),
+        ('proposal', review.get('proposals', [])),
+        ('tracked_change', review.get('tracked_changes', [])),
+    ):
+        for item in items:
+            if item.get('target') and item['target'] not in ids and item.get('status') != 'orphaned':
+                problems.add((collection, item.get('id'), item['target']))
+    for name, bookmark in doc.get('settings', {}).get('bookmarks', {}).items():
+        if bookmark.get('target') not in ids and bookmark.get('status') != 'orphaned':
+            problems.add(('bookmark', name, bookmark.get('target')))
+    return problems
+
+
+def _history_states(history):
+    from .engine import _patch
+
+    state = None
+    for record in history.get('revisions', []):
+        if 'snapshot' in record:
+            state = copy.deepcopy(record['snapshot'])
+        else:
+            if state is None:
+                raise ByaxError(
+                    'invalid_input',
+                    'History delta has no reconstructable base.',
+                    target=record.get('revision'),
+                )
+            state = _patch(state, record['delta'])
+        yield record, copy.deepcopy(state)
+
+
+def _version(state):
+    version = state.get('schema_version')
+    if type(version) is not int or version not in SUPPORTED_VERSIONS:
+        raise ByaxError(
+            'unsupported_version',
+            f'Document schema version {version!r} is not supported; the file was not modified.',
+            found=version,
+            supported=sorted(SUPPORTED_VERSIONS),
+        )
+    return version
+
+
+def _upgrade(state, steps=None):
+    while _version(state) != SCHEMA_VERSION:
+        source = state['schema_version']
+        target, description, transition = TRANSITIONS[source]
+        transformations = transition(state)
+        state['schema_version'] = target
+        if steps is not None:
+            steps.append(
+                {'from': source, 'to': target, 'description': description, 'transformations': transformations}
+            )
+    return state
+
+
+def migrate_document(doc):
+    """Return an upgraded copy and a transformation report; ``doc`` is never modified."""
+    if not isinstance(doc, dict):
+        raise ByaxError('invalid_input', 'Document must be an object.')
+    source_version = _version(doc)
+    if source_version == SCHEMA_VERSION:
+        return doc, None
+    from .engine import _delta
+
+    before = reference_problems(doc)
+    result = copy.deepcopy(doc)
+    steps = []
+    live = _upgrade({k: v for k, v in result.items() if k not in ('history', 'requests')}, steps)
+    history = result.get('history', {})
+    rebuilt, previous = [], None
+    for record, state in _history_states(history):
+        upgraded = _upgrade(state)
+        retained = {k: v for k, v in record.items() if k not in ('snapshot', 'delta')}
+        if previous is None or 'snapshot' in record:
+            retained['snapshot'] = upgraded
+        else:
+            retained['delta'] = _delta(previous, upgraded)
+        rebuilt.append(retained)
+        previous = copy.deepcopy(upgraded)
+    migrated = {**live, 'history': {**history, 'revisions': rebuilt}, 'requests': result.get('requests', {})}
+    introduced = reference_problems(migrated) - before
+    if introduced:
+        raise ByaxError(
+            'migration_failed',
+            'Migration would introduce dangling identities or references; the original is unchanged.',
+            problems=sorted(map(list, introduced)),
+        )
+    validate_document(migrated)
+    report = {
+        'from_version': source_version,
+        'to_version': SCHEMA_VERSION,
+        'document_id': migrated['id'],
+        'revision': migrated['revision'],
+        'steps': steps,
+        'history_revisions_migrated': len(rebuilt),
+        'preexisting_reference_problems': sorted(map(list, before)),
+    }
+    return migrated, report

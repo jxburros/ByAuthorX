@@ -1,0 +1,258 @@
+{
+  "assets": {
+    "2b1da20a14b97d8f01f0a809d9f7d53eeefc59df6312eaa5a0c8b5c1228d1d7f": {
+      "mime": "image/png",
+      "name": "dot.png",
+      "resource": "assets/2b1da20a14b97d8f01f0a809d9f7d53eeefc59df6312eaa5a0c8b5c1228d1d7f"
+    }
+  },
+  "blocks": [
+    {
+      "attrs": {
+        "level": 1
+      },
+      "id": "p_00000000000000000000000000000003",
+      "marks": [],
+      "style": "body",
+      "text": "Heading",
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 1,
+        "list": "ordered"
+      },
+      "id": "p_00000000000000000000000000000004",
+      "marks": [],
+      "style": "body",
+      "text": "First item",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 1,
+        "list": "ordered"
+      },
+      "id": "p_00000000000000000000000000000005",
+      "marks": [],
+      "style": "body",
+      "text": "Second item, revised",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {},
+      "id": "p_00000000000000000000000000000006",
+      "marks": [
+        {
+          "end": 4,
+          "start": 0,
+          "type": "bold",
+          "value": true
+        }
+      ],
+      "style": "body",
+      "text": "Body text with a remote picture. Thanks.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "alt": "Dot",
+        "asset": "2b1da20a14b97d8f01f0a809d9f7d53eeefc59df6312eaa5a0c8b5c1228d1d7f"
+      },
+      "id": "image_00000000000000000000000000000008",
+      "marks": [],
+      "style": "body",
+      "text": "",
+      "type": "image"
+    },
+    {
+      "attrs": {
+        "alt": "Remote chart",
+        "source": "https://example.com/chart.png"
+      },
+      "id": "image_remote",
+      "marks": [],
+      "style": "body",
+      "text": "",
+      "type": "image"
+    }
+  ],
+  "fields": {},
+  "history": {
+    "branches": {},
+    "current_branch": "main",
+    "revisions": []
+  },
+  "id": "doc_00000000000000000000000000000001",
+  "layers": [],
+  "layout": {
+    "height": 792,
+    "margins": {
+      "bottom": 72,
+      "left": 72,
+      "right": 72,
+      "top": 72
+    },
+    "paper": "Letter",
+    "width": 612
+  },
+  "metadata": {
+    "author": "",
+    "language": "en",
+    "title": "Schema v1 letter"
+  },
+  "profiles": {},
+  "references": {},
+  "requests": {},
+  "review": {
+    "comments": [
+      {
+        "author": "Ann",
+        "end": 9,
+        "id": "comment_0000000000000000000000000000000b",
+        "revision": "rev_0000000000000000000000000000000a",
+        "start": 5,
+        "status": "open",
+        "target": "p_00000000000000000000000000000006",
+        "text": "Check wording"
+      }
+    ],
+    "findings": [],
+    "proposals": [
+      {
+        "expected_revision": "rev_0000000000000000000000000000000f",
+        "explanation": "Clarify",
+        "id": "proposal_00000000000000000000000000000010",
+        "operations": [
+          {
+            "target": "p_00000000000000000000000000000004",
+            "text": "Primary item",
+            "type": "set_text"
+          }
+        ],
+        "preconditions": {
+          "p_00000000000000000000000000000004": "021f4a37067bed94b1716070ccb637d6d723cb01fbff50bc9d33307145dc8194"
+        },
+        "status": "pending"
+      }
+    ],
+    "tracked_changes": [
+      {
+        "after": "Body text with a remote picture. Thanks.",
+        "after_marks": [
+          {
+            "end": 4,
+            "start": 0,
+            "type": "bold",
+            "value": true
+          }
+        ],
+        "base_revision": "rev_0000000000000000000000000000000d",
+        "before": "Body text with a remote picture.",
+        "before_marks": [
+          {
+            "end": 4,
+            "start": 0,
+            "type": "bold",
+            "value": true
+          }
+        ],
+        "id": "change_0000000000000000000000000000000e",
+        "status": "pending",
+        "target": "p_00000000000000000000000000000006"
+      },
+      {
+        "after": "Second item, revised",
+        "after_marks": [],
+        "base_revision": "rev_00000000000000000000000000000011",
+        "before": "Second item",
+        "before_marks": [],
+        "id": "change_00000000000000000000000000000012",
+        "status": "pending",
+        "target": "p_00000000000000000000000000000005"
+      }
+    ]
+  },
+  "revision": "rev_00000000000000000000000000000013",
+  "schema_version": 1,
+  "settings": {
+    "bookmarks": {
+      "remote": {
+        "offset": 17,
+        "target": "p_00000000000000000000000000000006"
+      }
+    },
+    "track_changes": true
+  },
+  "styles": {
+    "body": {
+      "font_family": "DejaVu Sans",
+      "font_size": 11
+    },
+    "caption": {
+      "based_on": "body",
+      "font_size": 9,
+      "italic": true
+    },
+    "code": {
+      "font_family": "DejaVu Sans Mono",
+      "font_size": 10
+    },
+    "heading1": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 24
+    },
+    "heading2": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 18
+    },
+    "heading3": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 14
+    },
+    "heading4": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 12
+    },
+    "heading5": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 11
+    },
+    "heading6": {
+      "based_on": "body",
+      "font_size": 11,
+      "italic": true
+    },
+    "list": {
+      "based_on": "body",
+      "font_size": 11
+    },
+    "quotation": {
+      "based_on": "body",
+      "italic": true,
+      "left_margin": 24
+    },
+    "subtitle": {
+      "based_on": "body",
+      "font_size": 16
+    },
+    "title": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 30
+    }
+  },
+  "x_extension": {
+    "payload": [
+      1,
+      2,
+      3
+    ],
+    "vendor": "future-tool"
+  }
+}
