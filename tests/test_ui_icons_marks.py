@@ -425,14 +425,18 @@ def test_marks_sit_under_the_word_they_measure(qtbot, monkeypatch, tmp_path):
     qtbot.wait(20)
     after = snapshot(editor)
     assert changed_pixels(before, after) > 20
-    # Every changed pixel lies in the word's own column, below its baseline.
+    # Every changed pixel lies in the word's own column, below its baseline. The pen stroke is seeded
+    # by the (random) block id, so its crests differ per run. Pixel (x, y) covers [x, x + 1) x [y, y + 1),
+    # so it belongs to the allowed region when any part of it does: comparing the integer row to the
+    # fractional bound flagged faint antialiasing in a row the stroke legitimately reaches.
     diff = [
         (x, y)
         for x in range(after.width())
         for y in range(after.height())
         if before.pixel(x, y) != after.pixel(x, y)
     ]
-    assert all(x1 - 3 <= x <= x2 + 3 and y >= top + ascent - 1 for x, y in diff)
+    outside = [(x, y) for x, y in diff if not (x + 1 > x1 - 3 and x < x2 + 3 and y + 1 > top + ascent - 1)]
+    assert not outside, f'pixels outside the word column or above its baseline: {outside[:8]}'
     window.dirty = False
 
 

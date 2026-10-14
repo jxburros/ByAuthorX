@@ -7,6 +7,29 @@ number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any 
 disagrees or if the version has no entry below. The release workflow publishes a version's
 entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
+## [0.1.1] - 2026-10-14
+
+The first release with installers attached. Version 0.1.0 was tagged, but its release page has no
+installers, so install 0.1.1 instead. The application itself is unchanged.
+
+### Fixed
+
+- The Ubuntu build failed intermittently, and a failure there stopped the release. One test of the
+  hand-drawn spelling marks compared whole pixel rows against a fractional boundary, so faint edge
+  pixels of a squiggle that stayed inside the allowed area were reported as outside it. The pen
+  stroke is seeded by a random block id, so this happened on some runs only. It failed every
+  post-merge Ubuntu run, which skipped the Ubuntu package build, and publishing waits for both
+  platforms, so no Windows installer was attached either. The test now allows for the area a pixel
+  covers. The drawn marks are unchanged.
+- When a GitHub Release already exists for the tag, for example one created from the GitHub web
+  page, the release workflow now also replaces its title and notes with this changelog entry
+  instead of only attaching files.
+
+### Known limitations
+
+The known limitations listed for 0.1.0 below still apply: the installers are unsigned and have not
+been verified on physical Windows 11 or Ubuntu 24.04 desktops.
+
 ## [0.1.0] - 2026-10-14
 
 First tagged version of ByAuthorX. It is an **unsigned** build for Windows 11 x64 and
@@ -61,4 +84,5 @@ limitations below before relying on it.
   [open-issue audit](https://github.com/jxburros/ByAuthorX/blob/main/docs/issue-audit-2026-10-14.md)
   list verified behaviour and the remaining gaps.
 
+[0.1.1]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.0
