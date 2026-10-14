@@ -2,3 +2,6 @@
 src/byax/resources/fonts/*-LICENSE.txt whitespace=-blank-at-eol
 design/brand/kit/fonts/*-LICENSE.txt whitespace=-blank-at-eol
 assets/logo-companion-library/fonts/*-LICENSE.txt whitespace=-blank-at-eol
+
+# Test fixtures are byte-exact (hashes, round trips); never convert line endings on checkout.
+tests/fixtures/** -text
