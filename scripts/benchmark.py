@@ -48,7 +48,7 @@ def measure(callback, samples):
 
 def cpu_identity():
     value = platform.processor()
-    if not value and Path('/proc/cpuinfo').exists():
+    if value in ('', platform.machine()) and Path('/proc/cpuinfo').exists():
         for line in Path('/proc/cpuinfo').read_text().splitlines():
             if line.startswith('model name'):
                 return line.partition(':')[2].strip()
