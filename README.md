@@ -9,7 +9,9 @@
 
 A native desktop word processor with a shared, programmable document engine. Write in a Qt desktop editor, save editable `.byax` documents, inspect and edit through the CLI or MCP, and export through the same typography engine.
 
-**Implementation status:** runnable development application, with automated engine, format, provider-contract, desktop, and integration tests. The complete product specification remains the acceptance target. See [the acceptance matrix](docs/acceptance-matrix.md) for verified behavior and material gaps; this repository does not claim all specification scenarios are complete. Windows 11 and Ubuntu 24.04 x64 are the intended installation targets. Live model services and physical desktop integrations require separate verification.
+**Version 0.1.0** (first release; see the [changelog](CHANGELOG.md)). Installers are unsigned and have not been verified on physical Windows 11 or Ubuntu 24.04 desktops.
+
+**Implementation status:** runnable application, with automated engine, format, provider-contract, desktop, and integration tests. The complete product specification remains the acceptance target. See [the acceptance matrix](docs/acceptance-matrix.md) for verified behavior and material gaps; this repository does not claim all specification scenarios are complete. Windows 11 and Ubuntu 24.04 x64 are the intended installation targets. Live model services and physical desktop integrations require separate verification.
 
 ![Native ByAuthorX desktop editor](docs/images/editor.png)
 
@@ -147,7 +149,7 @@ QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py --out artifacts/ben
 uv run python scripts/build.py --bundle-only
 ```
 
-For Windows PowerShell set `$env:QT_QPA_PLATFORM = "offscreen"` before headless tests. The build script freezes the native GUI, CLI and MCP executables into `dist/ByAuthorX`. Run `python scripts/build_deb.py` **on Ubuntu 24.04** to build the Ubuntu package, or Inno Setup `iscc packaging/windows.iss` on Windows for the Windows 11 installer. CI contains both build jobs. A Linux binary built on a newer glibc host is not a validated Ubuntu 24.04 binary.
+For Windows PowerShell set `$env:QT_QPA_PLATFORM = "offscreen"` before headless tests. The build script freezes the native GUI, CLI and MCP executables into `dist/ByAuthorX`. Run `python scripts/build_deb.py` **on Ubuntu 24.04** to build the Ubuntu package, or Inno Setup `iscc packaging/windows.iss` on Windows for the Windows 11 installer. CI contains both build jobs, and pushing a `vX.Y.Z` tag publishes the installers as a GitHub Release (see [packaging](docs/packaging.md#cutting-a-release)). A Linux binary built on a newer glibc host is not a validated Ubuntu 24.04 binary.
 
 Build and installation details: [packaging](docs/packaging.md). Architecture: [architecture](docs/architecture.md). Complete requirements: [product specification](ByAuthorX-Product-Specification%20%281%29.md).
 

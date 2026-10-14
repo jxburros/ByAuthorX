@@ -17,7 +17,7 @@ Ubuntu 24.04:
 
 ```bash
 uv run python scripts/build_deb.py
-sudo apt install ./dist/byauthorx_0.1.0_amd64.deb
+sudo apt install ./dist/byauthorx_<version>_amd64.deb
 ```
 
 The package installs under `/opt/byauthorx`, provides `/usr/bin/byauthorx`, `/usr/bin/byax`, and `/usr/bin/byax-mcp`, and registers the desktop launcher and case-insensitive `.byax` MIME association. Do not distribute a package frozen on a newer glibc system as an Ubuntu 24.04 build.
@@ -28,27 +28,40 @@ Windows:
 iscc packaging/windows.iss
 ```
 
-The installer registers `.byax` and a Start menu shortcut. The installer adds the installation directory to your user PATH; open a new terminal to run `byax` and `byax-mcp`. Uninstall removes that directory from the user PATH. It requires Windows 11 build 22000 or later. Current packages are unsigned development builds. Signing credentials are not configured, so these are not signed production releases. The explicit update workflow below is the distribution policy for development builds.
+The installer registers `.byax` and a Start menu shortcut. The installer adds the installation directory to your user PATH; open a new terminal to run `byax` and `byax-mcp`. Uninstall removes that directory from the user PATH. It requires Windows 11 build 22000 or later. Signing credentials are not configured, so the installer is unsigned and Windows SmartScreen warns on first run. Installers are distributed as GitHub Releases published from version tags (see "Cutting a release").
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` tests and freezes on Ubuntu 24.04 and a Windows Server 2022 x64 build runner, then prepares native installers. A Windows build runner is not evidence of physical Windows 11 acceptance. CI is configured but its remote execution results must be inspected after pushing; local test results do not establish remote CI success.
+`.github/workflows/ci.yml` tests and freezes on Ubuntu 24.04 and a Windows Server 2022 x64 build runner, then prepares native installers; `release.yml` calls it unchanged on version tags. A Windows build runner is not evidence of physical Windows 11 acceptance. CI is configured but its remote execution results must be inspected after pushing; local test results do not establish remote CI success.
 
-## Verification still required for release
+## Verification still outstanding
 
-Install the generated packages on clean Windows 11 and Ubuntu 24.04 desktops. Exercise file associations, PowerShell/UTF-8 CLI, native dialogs, clipboard, input methods, display scaling, accessibility services, physical printing, keyring access and microphone capture. Provider integrations require selected accounts or installed local executables and models. Record these results in the acceptance matrix rather than implying they were tested by offscreen unit tests.
+Releases are published from CI builds without a physical-desktop installation pass, and each changelog entry's known limitations say so. These checks remain open and do not gate a release: install the generated packages on clean Windows 11 and Ubuntu 24.04 desktops. Exercise file associations, PowerShell/UTF-8 CLI, native dialogs, clipboard, input methods, display scaling, accessibility services, physical printing, keyring access and microphone capture. Provider integrations require selected accounts or installed local executables and models. Record these results in the acceptance matrix rather than implying they were tested by offscreen unit tests.
+
+## Cutting a release
+
+The version lives in `src/byax/__init__.py` (`__version__`). `pyproject.toml`, `uv.lock` and the `MyAppVersion` define in `packaging/windows.iss` must carry the same value; the About dialog, `byax version` and the `.deb` name read it from source. `tests/test_release_metadata.py` fails when any copy disagrees or `CHANGELOG.md` has no `## [x.y.z]` entry.
+
+1. Change `__version__`, `pyproject.toml` and `packaging/windows.iss`, run `uv lock` to refresh `uv.lock`, and add the changelog entry with its date and known limitations.
+2. Run the CI gates locally (format, lint, mypy, tests with the coverage floor, `scripts/build.py --bundle-only`) and merge to `main` only when CI is green on both runners.
+3. Tag the merge commit `vX.Y.Z` and push the tag. `.github/workflows/release.yml` does the rest: it checks that the tag matches `__version__`, that `CHANGELOG.md` has the entry and that the commit is on `main`; it reruns the full CI workflow (gates, frozen builds, Ubuntu package, Windows installer) on the tagged commit; and it publishes a GitHub Release with the installer, the `.deb`, `SHA256SUMS.txt` and the changelog entry as notes. Nothing is uploaded by hand. Re-running the workflow for the same tag replaces the attached files. The workflow cannot be tested before a real tag is pushed, so watch the first run.
+
+Changelog entries become the release notes verbatim, so they must use absolute links.
+
+The `.deb` is written to `dist/byauthorx_<version>_amd64.deb` and the Windows installer to `dist/ByAuthorX-<version>-windows-x64-setup.exe`.
 
 ## Explicit update and rollback policy
 
 Help → Download updates opens the official GitHub Releases page only when requested.
 The application never polls for updates, downloads an installer or replaces itself in the background.
 Choose the installer for the supported platform and retain the previous installer until the new version
-has passed local acceptance. CI artifacts are development packages, not signed production releases.
-There is no claim that signing, notarization or SmartScreen reputation has been established.
+has passed local acceptance. Only builds attached to a GitHub Release are meant for distribution; CI
+artifacts from other commits are for testing. There is no claim that signing, notarization or
+SmartScreen reputation has been established.
 
 Before upgrading, save and keep a separate copy of working documents. Close the application, install the
 selected version using the platform package manager, and reopen the copies. To roll back, close the new
 version, reinstall the retained prior package and open a pre-upgrade document copy. Native migration
 retains schema backups as documented in `architecture.md`; an older application refuses newer schemas
-instead of silently downgrading them. Release signing remains blocked on separately provisioned signing
-identities and a real Windows 11 / Ubuntu 24.04 installation audit.
+instead of silently downgrading them. Releases stay unsigned until signing identities are provisioned
+separately; neither that nor a Windows 11 / Ubuntu 24.04 installation audit gates publishing.

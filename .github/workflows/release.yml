@@ -1,0 +1,87 @@
+name: Release
+on:
+  push:
+    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+permissions:
+  contents: read
+jobs:
+  verify:
+    name: Verify tag
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Tag matches the packaged version and the changelog
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          packaged="$(grep -oP "__version__ = '\K[^']+" src/byax/__init__.py)"
+          if [ "$version" != "$packaged" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match byax.__version__ ($packaged)"
+            exit 1
+          fi
+          if ! grep -qF "## [$version]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no entry for $version"
+            exit 1
+          fi
+      - name: Tagged commit is on main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor HEAD origin/main; then
+            echo "::error::$GITHUB_REF_NAME does not point at a commit on main"
+            exit 1
+          fi
+  ci:
+    name: Build and test
+    needs: verify
+    uses: ./.github/workflows/ci.yml
+  publish:
+    name: Publish GitHub Release
+    needs: ci
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+      - name: Collect installers and checksums
+        run: |
+          mkdir release
+          find artifacts \( -name '*_amd64.deb' -o -name '*-windows-x64-setup.exe' \) -exec cp {} release/ \;
+          ls -l release
+          if [ "$(ls release | wc -l)" -ne 2 ]; then
+            echo "::error::Expected exactly one .deb and one Windows installer"
+            exit 1
+          fi
+          (cd release && sha256sum * > SHA256SUMS.txt)
+          cat release/SHA256SUMS.txt
+      - name: Release notes from the changelog
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1 { found = 1; next }
+            found && /^## \[/ { exit }
+            found && /^\[[^]]+\]: / { next }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if [ ! -s release-notes.md ]; then
+            echo "::error::Could not extract release notes for $version"
+            exit 1
+          fi
+          printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt`.\n' >> release-notes.md
+          cat release-notes.md
+      - name: Publish the release
+        run: |
+          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
+            gh release upload "$GITHUB_REF_NAME" release/* --clobber
+          else
+            gh release create "$GITHUB_REF_NAME" release/* \
+              --verify-tag \
+              --title "ByAuthorX ${GITHUB_REF_NAME#v}" \
+              --notes-file release-notes.md
+          fi
