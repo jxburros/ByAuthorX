@@ -9,7 +9,7 @@
 
 A native desktop word processor with a shared, programmable document engine. Write in a Qt desktop editor, save editable `.byax` documents, inspect and edit through the CLI or MCP, and export through the same typography engine.
 
-**Version 0.1.0** (first release; see the [changelog](CHANGELOG.md)). Installers are unsigned and have not been verified on physical Windows 11 or Ubuntu 24.04 desktops.
+**Version 0.1.1** (see the [changelog](CHANGELOG.md)). Installers are unsigned and have not been verified on physical Windows 11 or Ubuntu 24.04 desktops.
 
 **Implementation status:** runnable application, with automated engine, format, provider-contract, desktop, and integration tests. The complete product specification remains the acceptance target. See [the acceptance matrix](docs/acceptance-matrix.md) for verified behavior and material gaps; this repository does not claim all specification scenarios are complete. Windows 11 and Ubuntu 24.04 x64 are the intended installation targets. Live model services and physical desktop integrations require separate verification.
 
