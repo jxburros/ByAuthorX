@@ -52,3 +52,21 @@ version, reinstall the retained prior package and open a pre-upgrade document co
 retains schema backups as documented in `architecture.md`; an older application refuses newer schemas
 instead of silently downgrading them. Release signing remains blocked on separately provisioned signing
 identities and a real Windows 11 / Ubuntu 24.04 installation audit.
+
+## Downloadable Windows installer
+
+The Windows installer workflow builds a self-contained setup executable and SHA-256
+checksum. Run **Actions → Windows installer → Run workflow** to obtain a development
+installer from the run's **ByAuthorX-Windows-installer** artifact. Extract the artifact
+and run `ByAuthorX-<version>-windows-x64-setup.exe`. No Python installation is needed.
+Setup installs into the current user's LocalAppData Programs directory without elevation.
+
+For a release, update the version in `pyproject.toml`, then push the matching
+`v<version>` tag. The workflow rejects mismatched tags, tests the app, freezes its three
+entry points, compiles setup, and verifies silent installation, the installed CLI,
+document open command, PATH registration, and uninstallation on a disposable runner.
+It publishes the installer and checksum to a GitHub prerelease after these checks pass.
+Unsigned development builds still require the physical Windows 11 checks listed above.
+
+When compiling manually with a changed version, pass
+`iscc /DMyAppVersion=<version> packaging/windows.iss`.

@@ -1,9 +1,11 @@
+#ifndef MyAppVersion
 #define MyAppVersion "0.1.0"
+#endif
 [Setup]
 AppId={{405848A2-B0A7-41AD-9879-BA490F248A52}
 AppName=ByAuthorX
 AppVersion={#MyAppVersion}
-DefaultDirName={autopf}\ByAuthorX
+DefaultDirName={localappdata}\Programs\ByAuthorX
 DefaultGroupName=ByAuthorX
 OutputDir=..\dist
 OutputBaseFilename=ByAuthorX-{#MyAppVersion}-windows-x64-setup
