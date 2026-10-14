@@ -3003,7 +3003,8 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
             'conflict', 'Conversion must preserve the imported original; choose a separate output path'
         )
     candidate = copy.deepcopy(doc)
-    candidate['blocks'] = [b for b in candidate['blocks'] if not b.get('attrs', {}).get('excluded')]
+    if not settings.get('include_hidden'):
+        candidate['blocks'] = [b for b in candidate['blocks'] if not b.get('attrs', {}).get('excluded')]
     if settings.get('layout'):
         candidate['layout'].update(settings['layout'])
     if settings.get('metadata') == 'omit' or settings.get('include_metadata') is False:
@@ -3110,6 +3111,11 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         publish_file(stage, destination, overwrite=overwrite, owner=owner)
     report = _report(fmt, losses, [str(destination.resolve())])
     report['review'] = 'required' if losses else 'not_required'
+    if fmt == 'pdf':
+        from .fonts import glyph_fallbacks
+
+        # Controlled output records the fonts that actually shaped each glyph.
+        report['font_dependencies'] = glyph_fallbacks(candidate)
     if markdown:
         report['markdown'] = markdown
     if result:

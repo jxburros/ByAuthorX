@@ -94,7 +94,7 @@ def test_visual_edits_localize_source_changes_in_nested_constructs(tmp_path, end
     removed = sorted(line[2:].rstrip('\r\n') for line in changes if line.startswith('- '))
     added = sorted(line[2:].rstrip('\r\n') for line in changes if line.startswith('+ '))
     assert removed == sorted(
-        ['Project Notes', '  - Nested child', '> spanning two lines.', '    return "tildes"', '| alpha | 1 |']
+        ['Project Notes', '  - Nested child', '> spanning two lines.', "    return 'tildes'", '| alpha | 1 |']
     )
     assert sorted(added) == sorted(
         [
