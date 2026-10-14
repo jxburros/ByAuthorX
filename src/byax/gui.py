@@ -52,7 +52,8 @@ from PySide6.QtWidgets import (
 
 from . import engine, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
-from .gui_art import ActivityGraphic, EmptyPanel
+from .gui_ai import AIPanel
+from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_editor import PageCanvas, SemanticEditor
 from .gui_motion import MotionController, PenLineAnimation
 
@@ -358,7 +359,11 @@ class MainWindow(QMainWindow):
         self.outline_stack = QStackedWidget()
         self.outline_stack.addWidget(self.outline)
         self.outline_stack.addWidget(
-            EmptyPanel('Your document outline', 'Headings, tables, images, and bookmarks appear here.')
+            EmptyPanel(
+                'Your document outline',
+                'Headings, tables, images, and bookmarks appear here.',
+                graphic=themed_art('outline-empty'),
+            )
         )
         outline_dock = QDockWidget('Outline', self)
         outline_dock.setWidget(self.outline_stack)
@@ -408,7 +413,11 @@ class MainWindow(QMainWindow):
         self.layer_stack = QStackedWidget()
         self.layer_stack.addWidget(self.layer_list)
         self.layer_stack.addWidget(
-            EmptyPanel('No document layers', 'Add a watermark or a layer from the Insert menu.')
+            EmptyPanel(
+                'No document layers',
+                'Add a watermark or a layer from the Insert menu.',
+                graphic=themed_art('layers-empty'),
+            )
         )
         ll.addWidget(self.layer_stack)
         for label, slot in [
@@ -420,6 +429,8 @@ class MainWindow(QMainWindow):
             button.clicked.connect(slot)
             ll.addWidget(button)
         self.inspector.addTab(layers, 'Layers')
+        self.ai_panel = AIPanel(self)
+        self.inspector.addTab(self.ai_panel, 'AI')
         inspector_dock = QDockWidget('Inspector', self)
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(260)

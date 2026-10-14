@@ -416,3 +416,24 @@ def _field_filled(field):
         except (ValueError, TypeError):
             return False
     return isinstance(value, str) and bool(value.strip())
+
+
+def spelling_suggestions(doc, words, *, limit=5):
+    """Ranked local-dictionary candidates for unknown words; advisory, never applied."""
+    language = doc.get('metadata', {}).get('language', 'en').split('-')[0]
+    try:
+        from spellchecker import SpellChecker
+
+        checker = SpellChecker(language=language)
+    except (ImportError, ValueError):
+        return {word: [] for word in words}
+    checker.word_frequency.load_words(doc.get('settings', {}).get('dictionary', []))
+    result = {}
+    for word in words:
+        lower = word.lower()
+        ranked = sorted(checker.candidates(lower) or (), key=lambda c: (-checker.word_usage_frequency(c), c))
+        ranked = [c for c in ranked if c != lower][:limit]
+        if word[:1].isupper():
+            ranked = [c[:1].upper() + c[1:] for c in ranked]
+        result[word] = ranked
+    return result
