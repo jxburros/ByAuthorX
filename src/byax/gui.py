@@ -109,6 +109,8 @@ class MainWindow(QMainWindow):
         self.recovery_dir.mkdir(parents=True, exist_ok=True)
         self._build_ui()
         gui_a11y.describe_menus(self.menuBar())
+        if not self.inspector.accessibleName():
+            self.inspector.setAccessibleName(self.tr('Inspector panels'))
         gui_a11y.ensure_accessible(self)
         gui_a11y.watch(self)
         self.edit_timer = QTimer(self)

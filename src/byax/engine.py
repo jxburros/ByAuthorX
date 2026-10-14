@@ -5,6 +5,7 @@ import copy
 import difflib
 import hashlib
 import re
+import threading
 from datetime import UTC, datetime
 
 import regex as unicode_regex
@@ -1290,6 +1291,7 @@ def _patch(state, delta):
 # never mutated, so these read-only references let a commit diff against the
 # previous record without replaying the delta chain.
 _STATES = {}
+_STATES_LOCK = threading.Lock()
 _STATE_CACHE = 8
 # A snapshot is taken once the deltas since the previous one add up to that
 # snapshot's size, so history bytes per edit stay proportional to the edit.
@@ -1298,14 +1300,16 @@ _SNAPSHOT_MAX_CHAIN = 400
 
 
 def _remember(doc):
-    _STATES.pop(doc['revision'], None)
-    _STATES[doc['revision']] = doc
-    while len(_STATES) > _STATE_CACHE:
-        _STATES.pop(next(iter(_STATES)))
+    with _STATES_LOCK:
+        _STATES.pop(doc['revision'], None)
+        _STATES[doc['revision']] = doc
+        while len(_STATES) > _STATE_CACHE:
+            _STATES.pop(next(iter(_STATES)))
 
 
 def _cached(revision):
-    state = _STATES.get(revision)
+    with _STATES_LOCK:
+        state = _STATES.get(revision)
     return state if state is not None and state.get('revision') == revision else None
 
 
