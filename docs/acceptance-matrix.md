@@ -414,3 +414,19 @@ Remaining file-view acceptance: exhaustive per-feature/format round trips (espec
 The complete open-issue audit is in [issue-audit-2026-10-14.md](issue-audit-2026-10-14.md). It records remaining implementation work as well as external acceptance prerequisites; passing CI must not close the umbrella completion issue.
 
 Additional backlog evidence: `test_backlog_workflows.py` exercises native export-policy creation and collection/storage round-trips, staged DOCX publication, master region editing with artwork preservation and undo, section-profile override preservation/removal, and layer geometry/grouping/output policies. `test_file_views.py` checks the registered inline capabilities against all six import/export adapters, ODT direct spacing, and hidden-content randomized tail insert/delete sequences across all seven export views. These are bounded regressions, not the complete nine-scenario or physical-platform acceptance suite.
+
+
+## Reference libraries, citations and editor workspace
+
+| Requirement | Implemented behavior | Evidence / limits |
+| --- | --- | --- |
+| #99 ribbon; selectable sidebars | Two formatting rows; local persistent panel selectors for outline/inspector, bookmarks, statistics, scratchpad and Library | `test_gui_workspace.py`; native offscreen GUI checks |
+| #98 Inspector tab underlines | Selected-tab pen underline clipped to its tab | Pixel regression in `test_gui_workspace.py` |
+| Review selector | Dropdown + Go; spelling moved from AI; grammar, health, repository, factual, voice and custom checks; explicit apply | `test_gui_review.py`, existing AI/provider tests |
+| Library spec phase 1 | Local registry/relink, safe mixed parsers, SQLite WAL/FTS, per-file leases/cancellation, bounded read/search, transport restrictions and separate passage consent | `test_libraries.py`, `test_library_interfaces.py`, `test_retrieval.py`; no reference-hardware performance claims |
+| Library spec phase 2 | Source records and typed cite locators; picker; verification; APA/MLA/Chicago and bibliography; CSL/BibTeX/RIS imports/exports | `test_citations.py`, `test_gui_libraries.py`; exporters without native footnotes use numbered endnotes |
+| Library spec phase 3 | Explicit context retrieval; Chat/Work and review passage preview; source proposals; indexed quotation checks and stale findings | `test_library_interfaces.py`, `test_library_checks.py`, provider/AI tests; unknown dependencies expand factual scope |
+| Library spec phase 4 (configured providers) | Ollama/OpenAI-compatible embedding contract, model fingerprints, explicit hybrid ranking, independent embedding consent | `test_embeddings.py`; configured providers only, no bundled/downloadable weights |
+| Library spec phase 5 | Deferred as specified | No outside DOI/catalog lookup or Zotero local API; manual DOI/URL entry and Zotero file imports work |
+
+See [the guide](library-and-citations-guide.md) for commands, limits and local storage.

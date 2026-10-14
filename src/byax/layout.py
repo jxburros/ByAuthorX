@@ -2302,6 +2302,9 @@ def _resolve_pages(doc, output=None):
     """
     ensure_app()
     view, visibility = output_view(doc, output)
+    from .citation_render import citation_view
+
+    view = citation_view(view)
     targets = _dependent_targets(view)
     labels = {}
     resolved = None

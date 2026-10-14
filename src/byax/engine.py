@@ -57,6 +57,7 @@ OP_SCHEMAS = {
     'add_comment': ('target text', 'start end author'),
     'resolve_comment': ('target', ''),
     'add_reference': ('id values', ''),
+    'cite': ('target start end source', 'locator quote kind prefix suffix'),
     'fill_fields': ('values', ''),
     'add_layer': ('values', ''),
     'update_layer': ('target values', ''),
@@ -860,13 +861,61 @@ def _op_document_record(doc, op, base_revision, kind, changed, allow_policy_chan
         if kind == 'set_profile'
         else doc['settings'].setdefault('requirements', {})
     )
-    if kind == 'set_profile':
+    if kind == 'add_reference':
+        from .citations import validate_source
+
+        collection[op['id']] = validate_source(op['values'], op['id'])
+    elif kind == 'set_profile':
         from .profiles import validate_profile
 
         collection[op['id']] = validate_profile(op['values'])
     else:
         collection[op['id']] = copy.deepcopy(op['values'])
     changed.append(op['id'])
+
+
+def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if 'text' not in obj:
+        _error('Citations require an editable text target.', 'target')
+    _boundaries(obj['text'], op['start'], op['end'])
+    if op['start'] == op['end']:
+        _error('Select the text supported by this citation.', 'end')
+    if op['source'] not in doc['references']:
+        _error('Citation source does not exist.', 'source')
+    citation_kind = op.get('kind', 'paraphrase')
+    if citation_kind not in ('quotation', 'paraphrase', 'inference'):
+        _error('Unknown citation evidence kind.', 'kind')
+    locator = op.get('locator', {})
+
+    def valid_locator(key, value):
+        if key == 'heading_path':
+            return isinstance(value, list) and all(isinstance(part, str) for part in value)
+        if key in ('start', 'end', 'ordinal'):
+            return type(value) is int and value >= 0
+        if key in ('page', 'paragraph'):
+            return isinstance(value, str) or (type(value) is int and value >= 0)
+        return key in ('block', 'chunk', 'label', 'text') and isinstance(value, str)
+
+    if not isinstance(locator, dict) or any(not valid_locator(key, value) for key, value in locator.items()):
+        _error('Citation locator contains unsupported fields or invalid values.', 'locator')
+    for key in ('quote', 'prefix', 'suffix'):
+        if key in op and not isinstance(op[key], str):
+            _error('Expected citation text.', key)
+    mark = {
+        'type': 'citation',
+        'value': op['source'],
+        'start': op['start'],
+        'end': op['end'],
+        'kind': citation_kind,
+        'quote': op.get('quote', obj['text'][op['start'] : op['end']]),
+    }
+    for key in ('locator', 'prefix', 'suffix'):
+        if key in op:
+            mark[key] = copy.deepcopy(op[key])
+    if mark not in obj.setdefault('marks', []):
+        obj['marks'].append(mark)
+    changed.append(obj['id'])
 
 
 def _op_add_layer(doc, op, base_revision, kind, changed, allow_policy_changes):
@@ -964,6 +1013,7 @@ _ANCHOR_MODES = {
     'set_bookmark': 'point',
     'delete_text': 'range',
     'format_text': 'range',
+    'cite': 'range',
     'add_comment': 'range',
     'apply_character_style': 'range',
     'clear_formatting': 'range',
@@ -979,7 +1029,7 @@ def _op_kind(operation):
 
 def _created_ids(operation):
     kind = _op_kind(operation)
-    if kind in ('insert_paragraph', 'split_block', 'link_asset') and operation.get('id'):
+    if kind in ('insert_paragraph', 'split_block', 'link_asset', 'add_reference') and operation.get('id'):
         return {operation['id']}
     if kind == 'insert_block' and isinstance(operation.get('block'), dict) and operation['block'].get('id'):
         return {operation['block']['id']}
@@ -1030,7 +1080,7 @@ def _plan_edits(doc, operations, explicit=None, existing=None):
     for index, operation in enumerate(operations):
         identity = f'edit_{index + 1}'
         references = _edited_ids(operation) | {
-            operation[k] for k in ('after', 'before', 'link') if isinstance(operation.get(k), str)
+            operation[k] for k in ('after', 'before', 'link', 'source') if isinstance(operation.get(k), str)
         }
         depends = {created_by[r] for r in references if r in created_by}
         depends |= {last_touch[r] for r in _edited_ids(operation) if r in last_touch}
@@ -1069,6 +1119,11 @@ def _register_proposal(doc, values, base_revision, *, allow_empty=False):
         _error('Proposal requires exact operations.', 'values.operations')
     for i, operation in enumerate(operations):
         proposed_kind = _validate_op(operation, i)
+        if proposed_kind == 'add_reference' and operation['values'].get('verification') in (
+            'verified',
+            'manual',
+        ):
+            _error('Proposed sources cannot assert verified or manual status.', 'values.operations')
         if proposed_kind in _REVIEW_MANAGEMENT:
             _error('Proposals cannot contain review-management operations.', 'values.operations')
     if values.get('expected_revision', base_revision) != base_revision:
@@ -2080,6 +2135,7 @@ _HANDLERS = {
     'reply_comment': _op_reply_comment,
     'resolve_comment': _op_resolve_comment,
     'add_reference': _op_document_record,
+    'cite': _op_cite,
     'set_profile': _op_document_record,
     'set_requirement': _op_document_record,
     'add_layer': _op_add_layer,

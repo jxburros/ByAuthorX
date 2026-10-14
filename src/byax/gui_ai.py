@@ -1,6 +1,6 @@
 # ruff: noqa: BLE001
 # GUI event boundaries report errors rather than terminating the application.
-"""Inspector AI tab: deterministic spelling, provider status, and a guarded assistant chat.
+"""Assistant panel and the local spelling controller used by Review.
 
 Chat mode only answers. Work mode may suggest exact range edits, which are shown to
 the author and, after confirmation, registered as pending Review proposals; nothing
@@ -16,6 +16,7 @@ import re
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QButtonGroup,
+    QCheckBox,
     QComboBox,
     QFrame,
     QGroupBox,
@@ -33,6 +34,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from shiboken6 import isValid
 
 from . import engine, model
 from .gui_art import EmptyPanel, TaskLoop, themed_art
@@ -88,7 +90,8 @@ class AIPanel(QWidget):
         self.keys_button.clicked.connect(self.manage_keys)
         layout.addWidget(self.keys_button)
 
-        layout.addWidget(self._build_spelling())
+        self.spelling_widget = self._build_spelling()
+        self.spelling_widget.hide()
         layout.addWidget(self._build_assistant(), 1)
         self.refresh_providers()
 
@@ -239,13 +242,16 @@ class AIPanel(QWidget):
         self.window.motion.fade(self.spell_stack)
 
     def _marks_changed(self, *_):
+        if not isValid(self.spell_list):
+            return
         if not self._marks_pending:
             self._marks_pending = True
-            QTimer.singleShot(0, self._flush_marks)
+            QTimer.singleShot(0, self.spell_list, self._flush_marks)
 
     def _flush_marks(self):
         self._marks_pending = False
-        self.window.sync_proof_marks()
+        if isValid(self.spell_list) and isValid(self.window.editor):
+            self.window.sync_proof_marks()
 
     def spelling_marks(self):
         """Red-pen marks for the listed misspellings, measured on the text the check actually saw."""
@@ -468,6 +474,11 @@ class AIPanel(QWidget):
         self.input.setFixedHeight(72)
         self.input.textChanged.connect(self._sync_send)
         cv.addWidget(self.input)
+        self.use_libraries = QCheckBox(self.tr('Use attached libraries'))
+        self.use_libraries.setToolTip(
+            self.tr('Search attached libraries and choose passages before sending.')
+        )
+        cv.addWidget(self.use_libraries)
         self.send_button = QPushButton(self.tr('Send'))
         self.send_button.setProperty('primary', True)
         self.send_button.setShortcut('Ctrl+Return')
@@ -515,7 +526,9 @@ class AIPanel(QWidget):
     def context(self, frozen):
         selected = [(t, s, e) for t, s, e in self.window.editor.selection_targets() if s != e]
         target = selected[0][0] if selected else None
-        context = engine.context(frozen, target=target, limit=CONTEXT_LIMIT)
+        context = engine.context(
+            frozen, target=target, limit=CONTEXT_LIMIT, profile=getattr(self.window, 'active_profile', None)
+        )
         context['scope'] = 'selection' if selected else 'document'
         if selected:
             context['selection'] = [
@@ -542,6 +555,29 @@ class AIPanel(QWidget):
             registry = ProviderRegistry()
             config = registry.get(alias)
             context = self.context(frozen)
+            library_authorized = False
+            if self.use_libraries.isChecked():
+                from .gui_retrieval import select_passages
+                from .retrieval import augment_context, retrieve_context
+
+                remote = registry.preview(alias, kind='chat')['remote']
+                retrieval = retrieve_context(
+                    frozen,
+                    prompt,
+                    remote=remote,
+                    profile=getattr(window, 'active_profile', None),
+                    target=context.get('target'),
+                )
+                if retrieval['included']:
+                    retrieval = select_passages(window, retrieval, alias, remote)
+                    if retrieval is None:
+                        return
+                    library_authorized = True
+                context = augment_context(context, retrieval)
+                count = len(retrieval['included'])
+                self._append('note', f'Library retrieval: {count} selected passage(s).')
+                for omission in retrieval['omitted']:
+                    self._append('note', 'Library passage omitted: ' + omission['reason'])
             preview = registry.preview(
                 alias,
                 kind='chat',
@@ -569,7 +605,14 @@ class AIPanel(QWidget):
 
         def work():
             try:
-                return registry.chat(alias, messages, mode=mode, context=context, authorized=authorized)
+                return registry.chat(
+                    alias,
+                    messages,
+                    mode=mode,
+                    context=context,
+                    authorized=authorized,
+                    **({'library_authorized': True} if library_authorized else {}),
+                )
             except Exception as exc:
                 return {'error': str(exc)}
 
