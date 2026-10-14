@@ -23,7 +23,9 @@ def test_initialization_discovery_and_call(tmp_path):
     assert {'byax_apply', 'byax_transcribe', 'byax_jobs', 'byax_export'} <= set(names)
     assert names['byax_apply']['inputSchema']['required'] == ['path', 'input']
     path = str(tmp_path / 'mcp.byax')
-    result = call('tools/call', {'name': 'byax_new', 'arguments': {'out': path, 'text': 'MCP content'}})['result']
+    result = call('tools/call', {'name': 'byax_new', 'arguments': {'out': path, 'text': 'MCP content'}})[
+        'result'
+    ]
     assert not result['isError']
     payload = json.loads(result['content'][0]['text'])
     assert payload['outputs'] == [path]
@@ -52,11 +54,20 @@ def test_protocol_errors_notifications_and_framing():
 @pytest.mark.parametrize('nested', [False, True])
 def test_mcp_and_rest_refuse_provider_administration_without_writes(tmp_path, nested):
     command = 'providers'
-    args = {'action': 'configure', 'config_dir': str(tmp_path / 'config'),
-            'input': {'alias': 'w', 'kind': 'whisper.cpp', 'model': '/tmp/model', 'executable': '/usr/bin/touch'}}
+    args = {
+        'action': 'configure',
+        'config_dir': str(tmp_path / 'config'),
+        'input': {'alias': 'w', 'kind': 'whisper.cpp', 'model': '/tmp/model', 'executable': '/usr/bin/touch'},
+    }
     if nested:
-        command, args = 'jobs', {'action': 'submit', 'root': str(tmp_path / 'jobs'),
-                                'input': {'command': command, 'arguments': args}}
+        command, args = (
+            'jobs',
+            {
+                'action': 'submit',
+                'root': str(tmp_path / 'jobs'),
+                'input': {'command': command, 'arguments': args},
+            },
+        )
     result = call('tools/call', {'name': 'byax_' + command, 'arguments': args})['result']
     assert result['isError']
     assert json.loads(result['content'][0]['text'])['error']['code'] == 'unsupported_feature'
@@ -70,16 +81,26 @@ def test_mcp_and_rest_refuse_provider_administration_without_writes(tmp_path, ne
 def test_transport_settings_cannot_remove_protection_in_a_separate_call(tmp_path, transport):
     from byax import engine, model, storage
     from byax.cli import execute
+
     doc = model.new_document(text='Protected')
     target = doc['blocks'][0]['id']
-    doc, _ = engine.apply(doc, {'operations': [{'type': 'protect', 'target': target, 'kind': 'text'},
-                                              {'type': 'set_settings', 'values': {'track_changes': True}}]})
+    doc, _ = engine.apply(
+        doc,
+        {
+            'operations': [
+                {'type': 'protect', 'target': target, 'kind': 'text'},
+                {'type': 'set_settings', 'values': {'track_changes': True}},
+            ]
+        },
+    )
     path = tmp_path / 'protected.byax'
     storage.save_document(doc, path)
-    for op in ({'type': 'set_settings', 'values': {'protections': []}},
-               {'type': 'set_settings', 'values': {'track_changes': False}},
-               {'type': 'unprotect', 'target': target, 'kind': 'text'},
-               {'type': 'set_text', 'target': target, 'text': 'Hacked'}):
+    for op in (
+        {'type': 'set_settings', 'values': {'protections': []}},
+        {'type': 'set_settings', 'values': {'track_changes': False}},
+        {'type': 'unprotect', 'target': target, 'kind': 'text'},
+        {'type': 'set_text', 'target': target, 'text': 'Hacked'},
+    ):
         args = {'path': str(path), 'input': {'origin': 'gui', 'operations': [op]}}
         if transport == 'mcp':
             result = call('tools/call', {'name': 'byax_apply', 'arguments': args})['result']
@@ -108,8 +129,10 @@ def test_service_policy_rejects_escaping_symlink_and_nested_paths(tmp_path):
     with pytest.raises(ByaxError):
         policy.check('batch', {'input': {'items': [{'path': str(outside / 'secret.byax')}]}})
     with pytest.raises(ByaxError):
-        policy.check('jobs', {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'configure'}}})
-
+        policy.check(
+            'jobs',
+            {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'configure'}}},
+        )
 
 
 def test_service_owns_provider_and_job_state_folders(tmp_path):
@@ -121,11 +144,25 @@ def test_service_owns_provider_and_job_state_folders(tmp_path):
     policy.check('providers', args)
     assert args['config_dir'] == str(state / 'config')
     # A client-written providers.json elsewhere in the root cannot be selected.
-    for command, key in (('providers', 'config_dir'), ('transcribe', 'config_dir'), ('transcribe', 'job_root'), ('jobs', 'root')):
+    for command, key in (
+        ('providers', 'config_dir'),
+        ('transcribe', 'config_dir'),
+        ('transcribe', 'job_root'),
+        ('jobs', 'root'),
+    ):
         with pytest.raises(ByaxError):
             policy.check(command, {'action': 'list', key: str(root / 'planted')})
     with pytest.raises(ByaxError):
-        policy.check('jobs', {'action': 'submit', 'input': {'command': 'providers', 'arguments': {'action': 'test', 'alias': 'x', 'config_dir': str(root / 'planted')}}})
+        policy.check(
+            'jobs',
+            {
+                'action': 'submit',
+                'input': {
+                    'command': 'providers',
+                    'arguments': {'action': 'test', 'alias': 'x', 'config_dir': str(root / 'planted')},
+                },
+            },
+        )
     # Clients cannot write into the reserved state folder either.
     for out in (state / 'config' / 'providers.json', state, state / 'jobs' / 'x' / 'job.json'):
         with pytest.raises(ByaxError):
@@ -134,6 +171,7 @@ def test_service_owns_provider_and_job_state_folders(tmp_path):
     policy.check('jobs', nested)
     assert nested['root'] == str(state / 'jobs')
     assert nested['input']['arguments']['config_dir'] == str(state / 'config')
+
 
 def test_opt_in_rest_auth_and_actual_request(tmp_path):
     token = 'test-access-token-with-32-characters'
@@ -146,7 +184,9 @@ def test_opt_in_rest_auth_and_actual_request(tmp_path):
     worker.start()
     url = f'http://127.0.0.1:{server.server_port}/v1/execute'
     try:
-        body = json.dumps({'command': 'new', 'arguments': {'out': str(tmp_path / 'rest.byax'), 'text': 'REST'}}).encode()
+        body = json.dumps(
+            {'command': 'new', 'arguments': {'out': str(tmp_path / 'rest.byax'), 'text': 'REST'}}
+        ).encode()
         with pytest.raises(HTTPError) as exc:
             urlopen(Request(url, data=body, method='POST'), timeout=5)
         assert exc.value.code == 401
@@ -154,8 +194,15 @@ def test_opt_in_rest_auth_and_actual_request(tmp_path):
         with urlopen(req, timeout=5) as response:
             assert json.load(response)['exit_code'] == 0
         assert (tmp_path / 'rest.byax').is_file()
-        render_body = json.dumps({'command': 'render', 'arguments': {'path': str(tmp_path / 'rest.byax'), 'out': str(tmp_path / 'http-render')}}).encode()
-        render_request = Request(url, data=render_body, headers={'Authorization': 'Bearer ' + token}, method='POST')
+        render_body = json.dumps(
+            {
+                'command': 'render',
+                'arguments': {'path': str(tmp_path / 'rest.byax'), 'out': str(tmp_path / 'http-render')},
+            }
+        ).encode()
+        render_request = Request(
+            url, data=render_body, headers={'Authorization': 'Bearer ' + token}, method='POST'
+        )
         with urlopen(render_request, timeout=10) as response:
             rendered = json.load(response)
             assert rendered['exit_code'] == 0
@@ -171,6 +218,7 @@ def test_mcp_skips_blank_lines_and_keeps_framing_for_parse_errors():
     import io
 
     from byax.mcp import run
+
     ping = json.dumps({'jsonrpc': '2.0', 'id': 1, 'method': 'ping'}).encode()
     out = io.BytesIO()
     run(io.BytesIO(b'\n' + ping + b'\n'), out)

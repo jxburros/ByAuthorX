@@ -1,4 +1,5 @@
 """Task lifetime, reduced motion, and presentation must preserve document behavior."""
+
 import copy
 import json
 import threading
@@ -29,7 +30,9 @@ def test_empty_review_switches_to_real_items_and_back(qtbot, monkeypatch, tmp_pa
     assert window.review_stack.currentIndex() == 1
     assert all(not button.isVisible() for button in window.review_buttons)
     assert window.doc == original
-    window.doc['review']['comments'].append({'id': 'comment-one', 'text': 'Keep this thought.', 'status': 'open'})
+    window.doc['review']['comments'].append(
+        {'id': 'comment-one', 'text': 'Keep this thought.', 'status': 'open'}
+    )
     window.update_sidebar()
     assert window.review_stack.currentIndex() == 0
     window.review_list.setCurrentRow(0)
@@ -48,7 +51,8 @@ def test_job_terminal_states_clear_activity(qtbot, monkeypatch, tmp_path, state)
     window.job_manager = SimpleNamespace(
         submit=lambda *_: {'id': 'test-job'},
         status=lambda *_, **__: {'state': state, 'error': {'message': 'Expected job failure'}},
-        result=lambda *_, **__: {'result': 'finished'})
+        result=lambda *_, **__: {'result': 'finished'},
+    )
     window.start_job('transcription', {}, lambda *_: None, results.append)
     qtbot.waitUntil(lambda: not window._active_tasks)
     assert window.activity_graphic.isHidden()
@@ -83,11 +87,13 @@ def test_overlapping_tasks_keep_busy_until_last_result_and_failure(qtbot, monkey
     monkeypatch.setattr(window, 'error', errors.append)
     first, second = threading.Event(), threading.Event()
     original = copy.deepcopy(window.doc)
+
     def work(event, fail=False):
         assert event.wait(3)
         if fail:
             raise RuntimeError('Expected task failure')
         return 'done'
+
     try:
         window.background('First task…', lambda: work(first), results.append)
         window.background('Second task…', lambda: work(second, True), results.append)
@@ -138,7 +144,7 @@ def test_explicit_save_has_finite_feedback_but_autosave_is_quiet(qtbot, monkeypa
     storage.save_document(window.doc, path)
     assert window.open_path(path)
     window.editor.insertPlainText('The first line.')
-    assert window.save()
+    assert window.save(wait=True)
     assert window.activity_graphic.mode == 'saved'
     qtbot.waitUntil(lambda: window.activity_graphic.animation.state() == QAbstractAnimation.Stopped)
     assert window.document_state.text() == 'Saved locally'
@@ -167,9 +173,93 @@ def test_baked_resources_have_exact_endpoints_and_no_document_art(qtbot, monkeyp
         assert manifest['checks']['passed']
         assert manifest['frameTimesMs'][0] == 0
         assert manifest['frameTimesMs'][-1] == manifest['durationMs']
-        with Image.open(BRAND_ROOT / 'ui' / f'{name}-sprite.png') as sprite, Image.open(
-                BRAND_ROOT / 'ui' / f'{name}-poster.png') as poster:
+        with (
+            Image.open(BRAND_ROOT / 'ui' / f'{name}-sprite.png') as sprite,
+            Image.open(BRAND_ROOT / 'ui' / f'{name}-poster.png') as poster,
+        ):
             width, height = poster.size
-            assert sprite.size == (width*len(manifest['frameTimesMs']), height)
+            assert sprite.size == (width * len(manifest['frameTimesMs']), height)
             if not manifest['loop']:
-                assert sprite.crop((sprite.width-width, 0, sprite.width, height)).tobytes() == poster.tobytes()
+                assert (
+                    sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes() == poster.tobytes()
+                )
+
+
+COMPANION_STILLS = ('ai-empty', 'ai-setup', 'spelling-clean', 'layers-empty', 'outline-empty')
+COMPANION_LOOPS = ('ai-thinking', 'spelling-review')
+
+
+def test_companion_resources_load_with_provenance(qtbot):
+    from PySide6.QtGui import QPixmap
+
+    provenance = json.loads((BRAND_ROOT / 'ui' / 'provenance.json').read_text())
+    root = BRAND_ROOT.parents[3]
+    for theme in ('light', 'dark'):
+        for name in COMPANION_STILLS:
+            path = BRAND_ROOT / 'ui' / f'{name}-{theme}.png'
+            assert not QPixmap(str(path)).isNull()
+            record = provenance[path.name]
+            source = root / record['source']
+            assert record['source'].startswith('assets/logo-companion-library/illustrations/')
+            if source.exists():
+                assert source.read_bytes() == path.read_bytes()
+        for name in COMPANION_LOOPS:
+            manifest = json.loads((BRAND_ROOT / 'ui' / f'{name}-{theme}.json').read_text())
+            assert manifest['loop'] and manifest['checks']['passed']
+            assert manifest['frameTimesMs'][0] == 0
+            assert manifest['frameTimesMs'][-1] == manifest['durationMs'] == 2400
+            with (
+                Image.open(BRAND_ROOT / 'ui' / f'{name}-{theme}-sprite.png') as sprite,
+                Image.open(BRAND_ROOT / 'ui' / f'{name}-{theme}-poster.png') as poster,
+            ):
+                width, height = poster.size
+                assert (width, height) == (manifest['frameWidth'], manifest['frameHeight'])
+                assert sprite.size == (width * len(manifest['frameTimesMs']), height)
+                # The loop closes on its opening pose, so the boundary is invisible.
+                assert (
+                    sprite.crop((0, 0, width, height)).tobytes()
+                    == sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes()
+                )
+
+
+def test_themed_art_follows_palette(qtbot):
+    from PySide6.QtGui import QColor, QPalette
+    from PySide6.QtWidgets import QWidget
+
+    from byax.gui_art import art_theme, themed_art
+
+    widget = QWidget()
+    qtbot.addWidget(widget)
+    assert themed_art('ai-empty', widget) == 'ui/ai-empty-light.png'
+    palette = widget.palette()
+    palette.setColor(QPalette.Window, QColor('#252927'))
+    widget.setPalette(palette)
+    assert art_theme(widget) == 'dark'
+
+
+def test_empty_states_use_companion_art(qtbot, monkeypatch, tmp_path):
+    from byax.brand import BrandGraphic
+
+    window = make_window(qtbot, monkeypatch, tmp_path)
+    for stack in (window.outline_stack, window.layer_stack, window.ai_panel.history_stack):
+        assert stack.widget(stack.count() - 1 if stack is not window.ai_panel.history_stack else 0).findChild(
+            BrandGraphic
+        )
+    window.dirty = False
+
+
+def test_task_loop_plays_only_while_running_and_honours_reduced_motion(qtbot, monkeypatch, tmp_path):
+    window = make_window(qtbot, monkeypatch, tmp_path)
+    window.inspector.setCurrentWidget(window.ai_panel)
+    loop = window.ai_panel.spell_loop
+    assert loop.isHidden() and not loop.running
+    loop.start()
+    qtbot.waitUntil(lambda: loop.animation.state() == QAbstractAnimation.Running)
+    window.motion.set_reduced(True)
+    assert loop.animation.state() == QAbstractAnimation.Stopped and loop.isVisible()
+    loop.grab()  # Reduced motion paints the delivered still.
+    window.motion.set_reduced(False)
+    assert loop.animation.state() == QAbstractAnimation.Running
+    loop.stop()
+    assert loop.isHidden() and loop.animation.state() == QAbstractAnimation.Stopped
+    window.dirty = False

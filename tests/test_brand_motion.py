@@ -1,4 +1,5 @@
 """Exercise motion cancellation, document preservation, and installed identity resources."""
+
 import copy
 from types import SimpleNamespace
 
@@ -75,7 +76,8 @@ def test_reduce_motion_cancels_active_fades_and_pen(qtbot, monkeypatch, tmp_path
     window.toggle_pages()
     assert window.stack.currentWidget().graphicsEffect() is None
     assert QSettings(str(tmp_path / 'appearance.ini'), QSettings.IniFormat).value(
-        'appearance/reducedMotion', False, type=bool)
+        'appearance/reducedMotion', False, type=bool
+    )
 
 
 def test_vixl_frames_end_in_exact_resting_pose(qtbot, monkeypatch, tmp_path):
@@ -90,8 +92,10 @@ def test_vixl_frames_end_in_exact_resting_pose(qtbot, monkeypatch, tmp_path):
     assert pen.frame_times[-1] == pen.animation.duration()
     qtbot.waitUntil(lambda: pen.animation.state() == QAbstractAnimation.Stopped, timeout=1500)
     assert pen.progress == 1.0
-    with Image.open(BRAND_ROOT / 'ui/about-write-sprite.png') as sprite, Image.open(
-            BRAND_ROOT / 'ui/about-write-poster.png') as rest:
+    with (
+        Image.open(BRAND_ROOT / 'ui/about-write-sprite.png') as sprite,
+        Image.open(BRAND_ROOT / 'ui/about-write-poster.png') as rest,
+    ):
         width, height = rest.size
         assert sprite.size == (width * len(pen.frame_times), height)
         assert sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes() == rest.tobytes()

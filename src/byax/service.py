@@ -4,6 +4,7 @@ Start with explicit roots and a token sourced from the environment. No service
 starts at import time. Remote binding is deliberately unsupported. Request paths
 are resolved under authorized roots, including symlinks and nested batch paths.
 """
+
 from __future__ import annotations
 
 import hmac
@@ -14,11 +15,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .cli import _error, error_result, execute, result_exit_code
-from .transport_policy import check_provider_admin
+from .transport_policy import PATH_KEYS, check_provider_admin, is_path_argument
 
 MAX_BODY = 16 * 1024 * 1024
 RESERVED = '.byax'
-PATH_KEYS = frozenset(('path', 'out', 'document', 'config_dir', 'root', 'audio_path', 'source_path', 'job_root', 'csv', 'reference_dir'))
+__all__ = ['PATH_KEYS', 'AccessPolicy', 'make_server', 'serve']
 
 
 class AccessPolicy:
@@ -52,7 +53,11 @@ class AccessPolicy:
             owned['job_root'] = state / 'jobs'
         for key, value in owned.items():
             if key in args and (not isinstance(args[key], str) or Path(args[key]).resolve() != value):
-                _error('invalid_input', 'Service configuration and job folders are fixed by the service', field=key)
+                _error(
+                    'invalid_input',
+                    'Service configuration and job folders are fixed by the service',
+                    field=key,
+                )
             args.pop(key, None)
         return {key: str(value) for key, value in owned.items()}
 
@@ -63,18 +68,20 @@ class AccessPolicy:
         # Service-owned configuration and job state stay in a reserved folder
         # inside the first root; clients cannot select or write to it.
         owned = self._owned(command, args)
+
         # Provider configuration may name executable adapters or endpoints and is
         # an administrative local action. Existing aliases remain callable.
         def visit(value):
             if isinstance(value, dict):
                 for key, child in value.items():
-                    if key in PATH_KEYS and isinstance(child, str):
+                    if (key in PATH_KEYS or is_path_argument(key)) and isinstance(child, str):
                         value[key] = self.check_path(child)
                     else:
                         visit(child)
             elif isinstance(value, list):
                 for child in value:
                     visit(child)
+
         visit(args)
         if command == 'jobs' and args.get('action') == 'submit':
             spec = args.get('input', {})
@@ -97,9 +104,12 @@ def make_server(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765)
     # Own Qt's application/font system on the serving main thread before any
     # HTTP worker builds a QTextDocument or rasterizes a page.
     from .layout import ensure_app
+
     ensure_app()
+
     class Handler(BaseHTTPRequestHandler):
         server_version = 'ByAuthorX/1'
+
         def setup(self):
             super().setup()
             self.connection.settimeout(30)
@@ -128,7 +138,9 @@ def make_server(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765)
                 return
             # Browser cross-origin traffic is unnecessary for a native local API.
             if self.headers.get('Origin'):
-                self.reply(403, {'error': {'code': 'forbidden', 'message': 'Browser origins are not supported'}})
+                self.reply(
+                    403, {'error': {'code': 'forbidden', 'message': 'Browser origins are not supported'}}
+                )
                 return
             if self.path != '/v1/execute':
                 self.reply(404, {'error': {'code': 'not_found', 'message': 'Use POST /v1/execute'}})
@@ -149,10 +161,16 @@ def make_server(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765)
                 self.reply(200, dict(result, exit_code=code))
             except Exception as exc:  # noqa: BLE001 - transport boundary
                 result, code = error_result(exc)
-                self.reply(409 if code == 3 else 400 if code == 2 else 422 if code in (4, 5) else 500, dict(result, exit_code=code))
+                self.reply(
+                    409 if code == 3 else 400 if code == 2 else 422 if code in (4, 5) else 500,
+                    dict(result, exit_code=code),
+                )
 
         def do_GET(self):
-            self.reply(405, {'error': {'code': 'invalid_input', 'message': 'Use authenticated POST /v1/execute'}})
+            self.reply(
+                405, {'error': {'code': 'invalid_input', 'message': 'Use authenticated POST /v1/execute'}}
+            )
+
     server = ThreadingHTTPServer((host, port), Handler)
     server.daemon_threads = True
     server.timeout = 30

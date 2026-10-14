@@ -4,6 +4,7 @@ CSV contains values only. Import retains existing table, row and cell identities
 attributes, layout and annotations. Growth is explicitly requested and uses the
 same add_row/add_column operations as desktop editing.
 """
+
 from __future__ import annotations
 
 import codecs
@@ -56,11 +57,15 @@ def read_csv(path, *, encoding='utf-8-sig', dialect='excel', delimiter=None):
                     continue
                 if blank:
                     # Only trailing blank lines are tolerated.
-                    raise ByaxError('invalid_input', 'CSV rows must be rectangular and nonempty', row=len(rows) + 1)
+                    raise ByaxError(
+                        'invalid_input', 'CSV rows must be rectangular and nonempty', row=len(rows) + 1
+                    )
                 if columns is None:
                     columns = len(row)
                 if not row or len(row) != columns:
-                    raise ByaxError('invalid_input', 'CSV rows must be rectangular and nonempty', row=len(rows) + 1)
+                    raise ByaxError(
+                        'invalid_input', 'CSV rows must be rectangular and nonempty', row=len(rows) + 1
+                    )
                 cells += len(row)
                 characters += sum(len(value) for value in row)
                 if characters > MAX_BYTES:
@@ -68,7 +73,9 @@ def read_csv(path, *, encoding='utf-8-sig', dialect='excel', delimiter=None):
                 if len(rows) >= MAX_ROWS or len(row) > MAX_COLUMNS or cells > MAX_CELLS:
                     raise ByaxError('limit_exceeded', 'CSV exceeds 10000 rows, 1000 columns, or 100000 cells')
                 if any('\x00' in value for value in row):
-                    raise ByaxError('invalid_input', 'CSV cells cannot contain NUL characters', row=len(rows) + 1)
+                    raise ByaxError(
+                        'invalid_input', 'CSV cells cannot contain NUL characters', row=len(rows) + 1
+                    )
                 # CSV readers retain quoted CRLF/CR characters. Rich document
                 # text uses LF soft breaks regardless of the source platform.
                 rows.append([value.replace('\r\n', '\n').replace('\r', '\n') for value in row])
@@ -89,10 +96,21 @@ def _table(doc, table_id):
     return table
 
 
-def import_csv(doc, table_id, path, expected_revision=None, *, grow=False,
-               encoding='utf-8-sig', dialect='excel', delimiter=None, dry_run=False,
-               request_id=None):
+def import_csv(
+    doc,
+    table_id,
+    path,
+    expected_revision=None,
+    *,
+    grow=False,
+    encoding='utf-8-sig',
+    dialect='excel',
+    delimiter=None,
+    dry_run=False,
+    request_id=None,
+):
     from .engine import apply, revision_document
+
     previous = doc.get('requests', {}).get(request_id) if request_id else None
     if previous:
         base = previous['result']['base_revision']
@@ -103,45 +121,84 @@ def import_csv(doc, table_id, path, expected_revision=None, *, grow=False,
     values = read_csv(path, encoding=encoding, dialect=dialect, delimiter=delimiter)
     old_rows, old_columns = len(table['rows']), len(table['rows'][0]['cells'])
     new_rows, new_columns = len(values), len(values[0])
-    if (new_rows, new_columns) != (old_rows, old_columns) and (not grow or new_rows < old_rows or new_columns < old_columns):
-        raise ByaxError('invalid_input', 'CSV dimensions must match the table; explicit growth may add rows/columns but never removes existing cells',
-                            expected={'rows': old_rows, 'columns': old_columns},
-                            actual={'rows': new_rows, 'columns': new_columns}, target=table_id)
+    if (new_rows, new_columns) != (old_rows, old_columns) and (
+        not grow or new_rows < old_rows or new_columns < old_columns
+    ):
+        raise ByaxError(
+            'invalid_input',
+            'CSV dimensions must match the table; explicit growth may add rows/columns but never removes existing cells',
+            expected={'rows': old_rows, 'columns': old_columns},
+            actual={'rows': new_rows, 'columns': new_columns},
+            target=table_id,
+        )
     operations = []
     for ri, row in enumerate(table['rows']):
         for ci, cell in enumerate(row['cells']):
             if cell.get('text', '') != values[ri][ci]:
-                operations.append({'type': 'update_cell', 'target': cell['id'],
-                                   'text': values[ri][ci], 'expected_text': cell.get('text', '')})
+                operations.append(
+                    {
+                        'type': 'update_cell',
+                        'target': cell['id'],
+                        'text': values[ri][ci],
+                        'expected_text': cell.get('text', ''),
+                    }
+                )
     for ci in range(old_columns, new_columns):
-        operations.append({'type': 'add_column', 'target': table_id,
-                           'values': [values[ri][ci] for ri in range(old_rows)]})
+        operations.append(
+            {'type': 'add_column', 'target': table_id, 'values': [values[ri][ci] for ri in range(old_rows)]}
+        )
     for ri in range(old_rows, new_rows):
         operations.append({'type': 'add_row', 'target': table_id, 'values': values[ri]})
     # Keep no-op requests in the canonical revision/precondition path.
     if not operations:
         cell = table['rows'][0]['cells'][0]
-        operations = [{'type': 'update_cell', 'target': cell['id'], 'text': cell['text'], 'expected_text': cell['text']}]
-    request = {'operations': operations, 'expected_revision': expected_revision or doc['revision'], 'origin': 'csv'}
+        operations = [
+            {'type': 'update_cell', 'target': cell['id'], 'text': cell['text'], 'expected_text': cell['text']}
+        ]
+    request = {
+        'operations': operations,
+        'expected_revision': expected_revision or doc['revision'],
+        'origin': 'csv',
+    }
     if request_id:
         request['request_id'] = request_id
     candidate, result = apply(doc, request, dry_run=dry_run)
-    result['csv'] = {'input': str(Path(path).resolve()), 'encoding': encoding, 'dialect': dialect,
-                     'delimiter': delimiter or csv.get_dialect(dialect).delimiter,
-                     'rows': new_rows, 'columns': new_columns, 'values_only': True,
-                     'existing_identities_preserved': True, 'growth': {'rows': new_rows - old_rows, 'columns': new_columns - old_columns}}
+    result['csv'] = {
+        'input': str(Path(path).resolve()),
+        'encoding': encoding,
+        'dialect': dialect,
+        'delimiter': delimiter or csv.get_dialect(dialect).delimiter,
+        'rows': new_rows,
+        'columns': new_columns,
+        'values_only': True,
+        'existing_identities_preserved': True,
+        'growth': {'rows': new_rows - old_rows, 'columns': new_columns - old_columns},
+    }
     return candidate, result
 
 
-def export_csv(doc, table_id, path, *, encoding='utf-8', dialect='excel', delimiter=None,
-               newline=None, overwrite=False, owner=None):
+def export_csv(
+    doc,
+    table_id,
+    path,
+    *,
+    encoding='utf-8',
+    dialect='excel',
+    delimiter=None,
+    newline=None,
+    overwrite=False,
+    owner=None,
+):
     from .storage import DocumentLock
+
     table = _table(doc, table_id)
     options = _options(encoding, dialect, delimiter, newline)
     destination = Path(path)
     with DocumentLock(destination, owner=owner):
         if destination.exists() and not overwrite:
-            raise ByaxError('conflict', 'CSV output exists; explicit overwrite is required', target=str(destination))
+            raise ByaxError(
+                'conflict', 'CSV output exists; explicit overwrite is required', target=str(destination)
+            )
         destination.parent.mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='.byax-csv-', dir=destination.parent) as temporary:
             stage = Path(temporary) / 'table.csv'
@@ -155,14 +212,27 @@ def export_csv(doc, table_id, path, *, encoding='utf-8', dialect='excel', delimi
             if stage.stat().st_size > MAX_BYTES:
                 raise ByaxError('limit_exceeded', 'CSV output exceeds 16 MiB')
             os.replace(stage, destination)
-    return {'schema_version': 1, 'execution': 'completed', 'validation': 'not_run',
-            'document_id': doc['id'], 'revision': doc['revision'], 'outputs': [str(destination.resolve())],
-            'coverage': {'values': 'complete', 'formatting': 'not represented by CSV'},
-            'rows': len(table['rows']), 'columns': len(table['rows'][0]['cells']),
-            'encoding': encoding, 'dialect': dialect,
-            'newline': options.get('lineterminator', csv.get_dialect(dialect).lineterminator),
-            'losses': [{'code': 'csv_values_only', 'target': table_id,
-                        'message': 'CSV contains table values; styles, identities and annotations remain in the native document.'}]}
+    return {
+        'schema_version': 1,
+        'execution': 'completed',
+        'validation': 'not_run',
+        'document_id': doc['id'],
+        'revision': doc['revision'],
+        'outputs': [str(destination.resolve())],
+        'coverage': {'values': 'complete', 'formatting': 'not represented by CSV'},
+        'rows': len(table['rows']),
+        'columns': len(table['rows'][0]['cells']),
+        'encoding': encoding,
+        'dialect': dialect,
+        'newline': options.get('lineterminator', csv.get_dialect(dialect).lineterminator),
+        'losses': [
+            {
+                'code': 'csv_values_only',
+                'target': table_id,
+                'message': 'CSV contains table values; styles, identities and annotations remain in the native document.',
+            }
+        ],
+    }
 
 
 def _typed_value(value, definition, field, row):
@@ -184,6 +254,7 @@ def _typed_value(value, definition, field, row):
             return normalized in ('true', '1')
         if kind == 'date':
             from datetime import date
+
             return date.fromisoformat(value.strip()).isoformat()
         if kind in ('enum', 'choice'):
             options = definition.get('options', definition.get('choices', []))
@@ -193,17 +264,21 @@ def _typed_value(value, definition, field, row):
             return matches[0]
         return value
     except (ValueError, TypeError, OverflowError) as exc:
-        raise ByaxError('invalid_input', f'CSV field does not match its declared {kind} type',
-                        field=field, csv_row=row) from exc
+        raise ByaxError(
+            'invalid_input', f'CSV field does not match its declared {kind} type', field=field, csv_row=row
+        ) from exc
 
 
 def template_rows(template, path, *, encoding='utf-8-sig', dialect='excel', delimiter=None):
     """Yield independent filled documents; the first CSV row names template fields."""
     from .engine import apply
+
     values = read_csv(path, encoding=encoding, dialect=dialect, delimiter=delimiter)
     headers = values[0]
     if any(not header or header.strip() != header for header in headers) or len(set(headers)) != len(headers):
-        raise ByaxError('invalid_input', 'CSV field headers must be nonempty, unique, and have no surrounding whitespace')
+        raise ByaxError(
+            'invalid_input', 'CSV field headers must be nonempty, unique, and have no surrounding whitespace'
+        )
     if len(values) == 1:
         raise ByaxError('invalid_input', 'Template CSV needs at least one data row')
     for row_number, row in enumerate(values[1:], start=2):
@@ -213,8 +288,24 @@ def template_rows(template, path, *, encoding='utf-8-sig', dialect='excel', deli
         candidate['requests'] = {}
         data = dict(zip(headers, row, strict=True))
         try:
-            fields = {key: ({**template['fields'][key], 'value': _typed_value(value, template['fields'][key], key, row_number)} if isinstance(template['fields'].get(key), dict) else value) for key, value in data.items()}
-            candidate, result = apply(candidate, {'operations': [{'type': 'fill_fields', 'values': fields}], 'required_suites': ['requirements']})
+            fields = {
+                key: (
+                    {
+                        **template['fields'][key],
+                        'value': _typed_value(value, template['fields'][key], key, row_number),
+                    }
+                    if isinstance(template['fields'].get(key), dict)
+                    else value
+                )
+                for key, value in data.items()
+            }
+            candidate, result = apply(
+                candidate,
+                {
+                    'operations': [{'type': 'fill_fields', 'values': fields}],
+                    'required_suites': ['requirements'],
+                },
+            )
             result['csv_row'] = row_number
             yield candidate, result
         except ByaxError as exc:

@@ -1,58 +1,84 @@
 """Atomic, validated ZIP persistence and advisory cross-process document locks."""
+
 import base64
 import copy
 import hashlib
 import json
 import os
 import stat
+import sys
 import tempfile
 import threading
 import zipfile
 import zlib
 from pathlib import Path, PurePosixPath
+from typing import Any, Self
 
 from platformdirs import user_cache_path
 
 from .errors import ByaxError
-from .model import new_id, validate_document
+from .model import SCHEMA_VERSION, new_id, validate_document
 
 MAX_PACKAGE_BYTES = 256 * 1024 * 1024
 MAX_MEMBER_BYTES = 64 * 1024 * 1024
 MAX_MEMBERS = 10000
-_LOCKS = {}
+PACKAGE_FORMAT_VERSION = 1
+_LOCKS: dict[str, dict[str, Any]] = {}
 _MUTEX = threading.RLock()
-_SECRET_KEYS = {'api_key', 'apikey', 'access_token', 'refresh_token', 'password', 'client_secret', 'provider_credentials', 'executable_provider_config'}
+_SECRET_KEYS = {
+    'api_key',
+    'apikey',
+    'access_token',
+    'refresh_token',
+    'password',
+    'client_secret',
+    'provider_credentials',
+    'executable_provider_config',
+}
 
-def _check_secrets(value, path='$'):
+
+def _check_secrets(value: Any, path: str = '$') -> None:
     pending = [(value, path, 0)]
     while pending:
         current, current_path, depth = pending.pop()
         if depth > 100:
-            raise ByaxError('limit_exceeded', 'Structured data exceeds the 100-level nesting limit.', field=current_path)
+            raise ByaxError(
+                'limit_exceeded', 'Structured data exceeds the 100-level nesting limit.', field=current_path
+            )
         if isinstance(current, dict):
             for key, child in current.items():
                 if not isinstance(key, str):
                     raise ByaxError('invalid_input', 'JSON object keys must be strings.', field=current_path)
                 if key.lower() in _SECRET_KEYS:
-                    raise ByaxError('invalid_input', 'Credentials cannot be embedded in document packages.', field=current_path + '.' + key)
+                    raise ByaxError(
+                        'invalid_input',
+                        'Credentials cannot be embedded in document packages.',
+                        field=current_path + '.' + key,
+                    )
                 pending.append((child, current_path + '.' + key, depth + 1))
         elif isinstance(current, list):
             pending.extend((child, current_path, depth + 1) for child in current)
 
+
 class DocumentLock:
-    def __init__(self, path, owner=None):
+    def __init__(self, path: str | os.PathLike[str], owner: str | None = None) -> None:
         self.path = str(Path(path).resolve())
         self.owner = owner or new_id('owner')
         self.acquired = False
 
-    def acquire(self):
+    def acquire(self) -> Self:
         if self.acquired:
             return self
         with _MUTEX:
             held = _LOCKS.get(self.path)
             if held:
                 if held['owner'] != self.owner:
-                    raise ByaxError('locked', 'Document is open in another editing session.', target=self.path, retry='Close the other editor before retrying.')
+                    raise ByaxError(
+                        'locked',
+                        'Document is open in another editing session.',
+                        target=self.path,
+                        retry='Close the other editor before retrying.',
+                    )
                 held['count'] += 1
             else:
                 # Keep a stable inode across contenders. Unlinking a sidecar on
@@ -62,8 +88,9 @@ class DocumentLock:
                 lock_path.parent.mkdir(parents=True, exist_ok=True)
                 handle = open(lock_path, 'a+b')  # noqa: SIM115 -- held until DocumentLock.release across calls
                 try:
-                    if os.name == 'nt':
+                    if sys.platform == 'win32':
                         import msvcrt
+
                         handle.seek(0)
                         if not handle.read(1):
                             handle.write(b' ')
@@ -72,15 +99,18 @@ class DocumentLock:
                         msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
                     else:
                         import fcntl
+
                         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except OSError as exc:
                     handle.close()
-                    raise ByaxError('locked', 'Document is locked by another process.', target=self.path) from exc
+                    raise ByaxError(
+                        'locked', 'Document is locked by another process.', target=self.path
+                    ) from exc
                 _LOCKS[self.path] = {'owner': self.owner, 'count': 1, 'handle': handle}
             self.acquired = True
         return self
 
-    def release(self):
+    def release(self) -> None:
         with _MUTEX:
             if not self.acquired:
                 return
@@ -88,37 +118,49 @@ class DocumentLock:
             held['count'] -= 1
             if not held['count']:
                 handle = held['handle']
-                if os.name == 'nt':
+                if sys.platform == 'win32':
                     import msvcrt
+
                     handle.seek(0)
                     msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
                 else:
                     import fcntl
+
                     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
                 handle.close()
                 del _LOCKS[self.path]
             self.acquired = False
-    def __enter__(self):
+
+    def __enter__(self) -> Self:
         return self.acquire()
-    def __exit__(self, *_):
+
+    def __exit__(self, *_: object) -> None:
         self.release()
 
-def _json(data, name):
+
+def _json(data: bytes, name: str) -> Any:
     try:
-        def pairs(items):
-            result = {}
+
+        def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
+            result: dict[str, Any] = {}
             for key, value in items:
                 if key in result:
                     raise ValueError('Duplicate JSON key: ' + key)
                 result[key] = value
             return result
-        return json.loads(data.decode('utf-8'), object_pairs_hook=pairs, parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)))
+
+        return json.loads(
+            data.decode('utf-8'),
+            object_pairs_hook=pairs,
+            parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)),
+        )
     except RecursionError as exc:
         raise ByaxError('limit_exceeded', 'JSON nesting exceeds parser limits.', target=name) from exc
     except (ValueError, UnicodeError) as exc:
         raise ByaxError('invalid_input', 'Invalid UTF-8 JSON resource.', target=name) from exc
 
-def _members(doc):
+
+def _members(doc: dict[str, Any]) -> dict[str, bytes]:
     _check_secrets(doc)
     validate_document(doc)
     stored = copy.deepcopy(doc)
@@ -132,58 +174,153 @@ def _members(doc):
             raise ByaxError('invalid_input', 'Asset content hash does not match its identity.', target=digest)
         members[f'assets/{digest}'] = data
         asset['resource'] = f'assets/{digest}'
-    members['document.json'] = (json.dumps(stored, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
-    manifest = {'format': 'ByAuthorX', 'format_version': 1, 'schema_versions': {'document': 1},
-                'document_id': doc['id'], 'revision': doc['revision'],
-                'resources': {k: {'sha256': hashlib.sha256(v).hexdigest(), 'bytes': len(v)} for k, v in sorted(members.items())}}
+    members['document.json'] = (
+        json.dumps(stored, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n'
+    ).encode()
+    manifest = {
+        'format': 'ByAuthorX',
+        'format_version': PACKAGE_FORMAT_VERSION,
+        'schema_versions': {'document': doc['schema_version']},
+        'document_id': doc['id'],
+        'revision': doc['revision'],
+        'resources': {
+            k: {'sha256': hashlib.sha256(v).hexdigest(), 'bytes': len(v)} for k, v in sorted(members.items())
+        },
+    }
     members['manifest.json'] = (json.dumps(manifest, sort_keys=True, indent=2) + '\n').encode()
     _validate_sizes(members)
     return members
 
-def _validate_sizes(members):
-    if len(members) > MAX_MEMBERS or sum(len(v) for v in members.values()) > MAX_PACKAGE_BYTES or any(len(v) > MAX_MEMBER_BYTES for v in members.values()):
+
+def _validate_sizes(members: dict[str, bytes]) -> None:
+    if (
+        len(members) > MAX_MEMBERS
+        or sum(len(v) for v in members.values()) > MAX_PACKAGE_BYTES
+        or any(len(v) > MAX_MEMBER_BYTES for v in members.values())
+    ):
         raise ByaxError('limit_exceeded', 'Package exceeds configured storage limits.')
 
-def _safe_name(name):
-    p = PurePosixPath(name)
-    return bool(name) and not p.is_absolute() and '..' not in p.parts and '\\' not in name and ':' not in name and str(p) == name
 
-def _decode(members):
+def _safe_name(name: str) -> bool:
+    p = PurePosixPath(name)
+    return (
+        bool(name)
+        and not p.is_absolute()
+        and '..' not in p.parts
+        and '\\' not in name
+        and ':' not in name
+        and str(p) == name
+    )
+
+
+def _decode(members: dict[str, bytes], reports: list | None = None) -> dict[str, Any]:
+    from .migration import SUPPORTED_VERSIONS, migrate_document
+
     _validate_sizes(members)
     if 'manifest.json' not in members or 'document.json' not in members:
         raise ByaxError('invalid_input', 'Package is missing required manifest or document resource.')
     manifest = _json(members['manifest.json'], 'manifest.json')
-    if not isinstance(manifest, dict) or manifest.get('format') != 'ByAuthorX' or manifest.get('format_version') != 1:
+    if (
+        not isinstance(manifest, dict)
+        or manifest.get('format') != 'ByAuthorX'
+        or manifest.get('format_version') != PACKAGE_FORMAT_VERSION
+    ):
         raise ByaxError('unsupported_version', 'Unsupported ByAuthorX package format.')
-    unknown = set(manifest) - {'format', 'format_version', 'schema_versions', 'document_id', 'revision', 'resources'}
+    unknown = set(manifest) - {
+        'format',
+        'format_version',
+        'schema_versions',
+        'document_id',
+        'revision',
+        'resources',
+    }
     if unknown:
-        raise ByaxError('unsupported_feature', 'Unknown manifest fields cannot be safely rewritten.', fields=sorted(unknown))
-    if manifest.get('schema_versions') != {'document': 1}:
-        raise ByaxError('unsupported_version', 'Unsupported package resource schema versions.')
+        raise ByaxError(
+            'unsupported_feature',
+            'Unknown manifest fields cannot be safely rewritten.',
+            fields=sorted(unknown),
+        )
+    versions = manifest.get('schema_versions')
+    if (
+        not isinstance(versions, dict)
+        or set(versions) != {'document'}
+        or type(versions['document']) is not int
+        or versions['document'] not in SUPPORTED_VERSIONS
+    ):
+        raise ByaxError(
+            'unsupported_version',
+            'Unsupported package resource schema versions; the package was not modified.',
+            found=versions,
+            supported={'document': sorted(SUPPORTED_VERSIONS)},
+        )
+    version = versions['document']
     resources = manifest.get('resources', {})
     if not isinstance(resources, dict) or set(resources) != set(members) - {'manifest.json'}:
         raise ByaxError('invalid_input', 'Manifest does not account for every resource.')
     for name, entry in resources.items():
-        if not isinstance(entry, dict) or entry.get('sha256') != hashlib.sha256(members[name]).hexdigest() or entry.get('bytes') != len(members[name]):
+        if (
+            not isinstance(entry, dict)
+            or entry.get('sha256') != hashlib.sha256(members[name]).hexdigest()
+            or entry.get('bytes') != len(members[name])
+        ):
             raise ByaxError('invalid_input', 'Resource integrity check failed.', target=name)
     doc = _json(members['document.json'], 'document.json')
     _check_secrets(doc)
-    validate_document(doc)
-    if manifest.get('document_id') != doc['id'] or manifest.get('revision') != doc['revision']:
+    if not isinstance(doc, dict) or doc.get('schema_version') != version:
+        raise ByaxError('invalid_input', 'Manifest schema version disagrees with document.')
+    if version == SCHEMA_VERSION:
+        validate_document(doc)
+    elif not isinstance(doc.get('assets'), dict) or not all(
+        isinstance(a, dict) for a in doc['assets'].values()
+    ):
+        raise ByaxError('schema_error', 'Expected an object.', field='assets')
+    if manifest.get('document_id') != doc.get('id') or manifest.get('revision') != doc.get('revision'):
         raise ByaxError('invalid_input', 'Manifest identities disagree with document.')
     used = {'document.json', 'manifest.json'}
     for digest, asset in doc['assets'].items():
         resource = asset.pop('resource', None)
-        if resource != f'assets/{digest}' or resource not in members or hashlib.sha256(members[resource]).hexdigest() != digest:
+        if (
+            resource != f'assets/{digest}'
+            or resource not in members
+            or hashlib.sha256(members[resource]).hexdigest() != digest
+        ):
             raise ByaxError('invalid_input', 'Missing or invalid asset resource.', target=digest)
         asset['data'] = base64.b64encode(members[resource]).decode('ascii')
         used.add(resource)
     if used != set(members):
-        raise ByaxError('unsupported_feature', 'Unknown package resources cannot be safely rewritten.', resources=sorted(set(members) - used))
+        raise ByaxError(
+            'unsupported_feature',
+            'Unknown package resources cannot be safely rewritten.',
+            resources=sorted(set(members) - used),
+        )
+    if version != SCHEMA_VERSION:
+        doc, report = migrate_document(doc)
+        report['source_document_sha256'] = hashlib.sha256(members['document.json']).hexdigest()
+        doc['metadata'].setdefault('migrations', []).append(
+            {
+                'from_version': report['from_version'],
+                'to_version': report['to_version'],
+                'source_document_sha256': report['source_document_sha256'],
+                'transformations': sum(len(step['transformations']) for step in report['steps']),
+            }
+        )
+        if reports is not None:
+            reports.append(report)
     _check_secrets(doc)
     return doc
 
-def load_document(path):
+
+def load_document(path: str | os.PathLike[str]) -> dict[str, Any]:
+    return open_document(path)[0]
+
+
+def open_document(path: str | os.PathLike[str]) -> tuple[dict[str, Any], dict[str, Any] | None]:
+    """Load a package, upgrading supported older schemas in memory only.
+
+    Returns ``(document, migration_report)``; the report is ``None`` for current
+    packages. The file on disk is never rewritten by opening it.
+    """
+    reports: list = []
     try:
         with zipfile.ZipFile(path) as archive:
             infos = archive.infolist()
@@ -193,21 +330,53 @@ def load_document(path):
             if len(set(names)) != len(names):
                 raise ByaxError('invalid_input', 'Duplicate archive members are forbidden.')
             for i in infos:
-                if not _safe_name(i.filename) or i.is_dir() or stat.S_ISLNK(i.external_attr >> 16) or i.flag_bits & 1:
+                if (
+                    not _safe_name(i.filename)
+                    or i.is_dir()
+                    or stat.S_ISLNK(i.external_attr >> 16)
+                    or i.flag_bits & 1
+                ):
                     raise ByaxError('invalid_input', 'Unsafe or encrypted archive member.', target=i.filename)
                 if i.file_size > MAX_MEMBER_BYTES:
                     raise ByaxError('limit_exceeded', 'Archive member exceeds size limit.', target=i.filename)
-            return _decode({i.filename: archive.read(i) for i in infos})
+            doc = _decode({i.filename: archive.read(i) for i in infos}, reports)
+            return doc, (reports[0] if reports else None)
     except ByaxError:
         raise
     except (OSError, zipfile.BadZipFile, RuntimeError, zlib.error, EOFError) as exc:
         raise ByaxError('invalid_input', f'Cannot read native package: {exc}', target=str(path)) from exc
 
-def save_document(doc, path, *, owner=None):
+
+def _verify_written(path, members):
+    # The members were produced from a validated document; re-reading the archive
+    # proves the bytes reached the disk intact without re-parsing the JSON.
+    with zipfile.ZipFile(path) as archive:
+        if sorted(archive.namelist()) != sorted(members):
+            raise ByaxError('invalid_input', 'Written package does not list the expected resources.')
+        for name, data in members.items():
+            if archive.read(name) != data:
+                raise ByaxError('invalid_input', 'Written package failed verification.', target=name)
+
+
+def save_document(
+    doc: dict[str, Any], path: str | os.PathLike[str], *, owner: str | None = None
+) -> dict[str, Any]:
     members = _members(doc)
     target = Path(path).resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
+    preserved = None
     with DocumentLock(target, owner=owner):
+        existing = _package_version(target)
+        if existing is not None and existing > doc['schema_version']:
+            raise ByaxError(
+                'unsupported_version',
+                'Refusing to replace a package written with a newer schema version.',
+                target=str(target),
+                found=existing,
+                current=doc['schema_version'],
+            )
+        if existing is not None and existing < doc['schema_version']:
+            preserved = _preserve_original(target, existing)
         fd, tmp = tempfile.mkstemp(prefix='.' + target.name + '.', suffix='.tmp', dir=target.parent)
         try:
             with os.fdopen(fd, 'w+b') as stream:
@@ -219,7 +388,7 @@ def save_document(doc, path, *, owner=None):
                         archive.writestr(info, data)
                 stream.flush()
                 os.fsync(stream.fileno())
-            load_document(tmp)
+            _verify_written(tmp, members)
             if target.exists():
                 # mkstemp creates 0600 files; keep the document's existing mode.
                 os.chmod(tmp, stat.S_IMODE(target.stat().st_mode))
@@ -233,9 +402,71 @@ def save_document(doc, path, *, owner=None):
         finally:
             if os.path.exists(tmp):
                 os.unlink(tmp)
+    return {'path': str(target), 'preserved_original': preserved}
 
-def unpack(path, out_dir, include_history=False):
-    doc = load_document(path)
+
+def _package_version(path):
+    """Declared document schema of an existing package, or None when absent or unreadable."""
+    try:
+        with zipfile.ZipFile(path) as archive:
+            info = archive.getinfo('manifest.json')
+            if info.file_size > 1024 * 1024:
+                return None
+            manifest = json.loads(archive.read(info).decode('utf-8'))
+        version = manifest['schema_versions']['document']
+        return version if type(version) is int else None
+    except (OSError, KeyError, TypeError, ValueError, zipfile.BadZipFile, RuntimeError, zlib.error, EOFError):
+        return None
+
+
+def _preserve_original(target, version):
+    """Keep an older-schema package byte-for-byte before it is first replaced."""
+    data = target.read_bytes()
+    backup = target.with_name(
+        f'{target.stem}.schema{version}-{hashlib.sha256(data).hexdigest()[:12]}{target.suffix}'
+    )
+    if not backup.exists():
+        fd, tmp = tempfile.mkstemp(prefix='.' + backup.name + '.', suffix='.tmp', dir=target.parent)
+        try:
+            with os.fdopen(fd, 'wb') as stream:
+                stream.write(data)
+                stream.flush()
+                os.fsync(stream.fileno())
+            os.replace(tmp, backup)
+        finally:
+            if os.path.exists(tmp):
+                os.unlink(tmp)
+    return str(backup)
+
+
+def migrate_package(source, destination):
+    """Write an upgraded copy of ``source``; the original package is never modified."""
+    source, destination = Path(source).resolve(), Path(destination).resolve()
+    if source == destination:
+        raise ByaxError(
+            'conflict', 'Migration output must not replace the original package.', target=str(source)
+        )
+    if destination.exists():
+        raise ByaxError('conflict', 'Migration destination already exists.', target=str(destination))
+    original = hashlib.sha256(source.read_bytes()).hexdigest()
+    doc, report = open_document(source)
+    save_document(doc, destination)
+    if hashlib.sha256(source.read_bytes()).hexdigest() != original:
+        raise ByaxError('execution_failure', 'Original package changed during migration.', target=str(source))
+    return {
+        'source': str(source),
+        'destination': str(destination),
+        'migrated': report is not None,
+        'migration': report,
+        'source_sha256': original,
+        'source_unchanged': True,
+    }
+
+
+def unpack(
+    path: str | os.PathLike[str], out_dir: str | os.PathLike[str], include_history: bool = False
+) -> dict[str, Any]:
+    doc, migration = open_document(path)
     if not include_history:
         doc['history'] = {'revisions': [], 'branches': {}, 'current_branch': 'main'}
         doc['requests'] = {}
@@ -248,11 +479,15 @@ def unpack(path, out_dir, include_history=False):
         dest = target / name
         dest.parent.mkdir(parents=True, exist_ok=True)
         dest.write_bytes(data)
-    return {'path': str(target), 'history_included': include_history}
+    result = {'path': str(target), 'history_included': include_history}
+    if migration:
+        result['migration'] = migration
+    return result
 
-def pack(source_dir, out_path):
+
+def pack(source_dir: str | os.PathLike[str], out_path: str | os.PathLike[str]) -> dict[str, Any]:
     source = Path(source_dir)
-    members = {}
+    members: dict[str, bytes] = {}
     total = 0
     for entry in source.rglob('*'):
         if entry.is_symlink():
@@ -263,12 +498,16 @@ def pack(source_dir, out_path):
                 raise ByaxError('invalid_input', 'Invalid source resource.', target=name)
             size = entry.stat().st_size
             if size > MAX_MEMBER_BYTES or total + size > MAX_PACKAGE_BYTES or len(members) >= MAX_MEMBERS:
-                raise ByaxError('limit_exceeded', 'Source folder exceeds configured storage limits.', target=name)
+                raise ByaxError(
+                    'limit_exceeded', 'Source folder exceeds configured storage limits.', target=name
+                )
             with entry.open('rb') as stream:
                 data = stream.read(min(MAX_MEMBER_BYTES, MAX_PACKAGE_BYTES - total) + 1)
             total += len(data)
             if len(data) > MAX_MEMBER_BYTES or total > MAX_PACKAGE_BYTES:
-                raise ByaxError('limit_exceeded', 'Source resource grew beyond configured storage limits.', target=name)
+                raise ByaxError(
+                    'limit_exceeded', 'Source resource grew beyond configured storage limits.', target=name
+                )
             members[name] = data
     if 'manifest.json' not in members or 'document.json' not in members:
         raise ByaxError('invalid_input', 'Source folder requires manifest.json and document.json.')
@@ -283,23 +522,36 @@ def pack(source_dir, out_path):
     changed = original_document.get('sha256') != document_hash
     # Source folders are editable working copies. Rebuild integrity metadata while
     # _decode still enforces identities, schemas and SHA-named asset contents.
-    manifest['resources'] = {name: {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
-                             for name, data in sorted(members.items()) if name != 'manifest.json'}
+    manifest['resources'] = {
+        name: {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+        for name, data in sorted(members.items())
+        if name != 'manifest.json'
+    }
     changed = changed or set(original_resources) != set(manifest['resources'])
     members['manifest.json'] = (json.dumps(manifest, sort_keys=True, indent=2) + '\n').encode()
-    doc = _decode(members)
+    reports = []
+    doc = _decode(members, reports)
     base_revision = doc['revision']
     if changed:
         # Identical edited source folders produce identical packages; no wall clock
         # or random identity is introduced by a reproducible pack operation.
         revision_hash = hashlib.sha256((doc['id'] + base_revision + document_hash).encode()).hexdigest()
         doc['revision'] = 'rev_' + revision_hash[:32]
-        doc['metadata']['source_pack'] = {'origin': 'edited_source_folder', 'base_revision': base_revision,
-                                        'source_document_sha256': document_hash}
+        doc['metadata']['source_pack'] = {
+            'origin': 'edited_source_folder',
+            'base_revision': base_revision,
+            'source_document_sha256': document_hash,
+        }
         doc['history']['branches'][doc['history']['current_branch']] = doc['revision']
         doc['requests'] = {}
         for finding in doc['review']['findings']:
             finding['status'] = 'stale'
     save_document(doc, out_path)
-    return {'path': str(out_path), 'document_id': doc['id'], 'base_revision': base_revision,
-            'revision': doc['revision'], 'source_modified': changed}
+    return {
+        'path': str(out_path),
+        'document_id': doc['id'],
+        'base_revision': base_revision,
+        'revision': doc['revision'],
+        'source_modified': changed,
+        **({'migration': reports[0]} if reports else {}),
+    }

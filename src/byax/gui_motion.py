@@ -1,4 +1,5 @@
 """Finite, non-blocking native motion with an immediate reduced-motion path."""
+
 from __future__ import annotations
 
 import bisect
@@ -20,8 +21,9 @@ class MotionController(QObject):
         self.settings = settings
         self._fades = {}
         self._style_hints = QApplication.instance().styleHints()
-        self._accessibility = (self._style_hints.accessibility()
-                               if hasattr(self._style_hints, 'accessibility') else None)
+        self._accessibility = (
+            self._style_hints.accessibility() if hasattr(self._style_hints, 'accessibility') else None
+        )
         if self._accessibility is not None:
             self._accessibility.motionPreferenceChanged.connect(self._preference_changed)
 
@@ -29,8 +31,10 @@ class MotionController(QObject):
     def reduced(self):
         forced = os.getenv('BYAX_REDUCED_MOTION', '').lower() in ('1', 'true', 'yes')
         selected = self.settings.value('appearance/reducedMotion', False, type=bool)
-        system = (self._accessibility is not None and
-                  self._accessibility.motionPreference() == Qt.MotionPreference.ReducedMotion)
+        system = (
+            self._accessibility is not None
+            and self._accessibility.motionPreference() == Qt.MotionPreference.ReducedMotion
+        )
         return forced or selected or system
 
     def set_reduced(self, selected):
@@ -68,6 +72,7 @@ class MotionController(QObject):
 
 class PenLineAnimation(BrandGraphic):
     """Play Vixl-authored transparent frames once, then retain the exact resting pose."""
+
     def __init__(self, motion, parent=None, *, profile='about-write', width=360):
         super().__init__(f'ui/{profile}-poster.png', width, parent)
         self.motion = motion

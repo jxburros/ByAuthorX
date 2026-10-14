@@ -63,7 +63,10 @@ def test_paragraph_split_preserves_neighbor_identity(window):
 
 def test_table_cell_edit_preserves_table(window):
     doc = model.new_document(text='Introduction')
-    doc, _ = engine.apply(doc, {'operations': [{'type': 'insert_table', 'after': doc['blocks'][0]['id'], 'rows': 2, 'columns': 2}]})
+    doc, _ = engine.apply(
+        doc,
+        {'operations': [{'type': 'insert_table', 'after': doc['blocks'][0]['id'], 'rows': 2, 'columns': 2}]},
+    )
     table = doc['blocks'][1]
     cell = table['rows'][0]['cells'][0]['id']
     window.doc = doc
@@ -98,7 +101,7 @@ def test_open_session_lock_blocks_other_writer(window, tmp_path):
         storage.save_document(doc, path)
     window.editor.insertPlainText('Edit ')
     assert window.flush_edits()
-    assert window.save()
+    assert window.save(wait=True)
     assert storage.load_document(path)['blocks'][0]['text'] == 'Edit Locked'
 
 
@@ -107,6 +110,7 @@ def test_autosave_and_undo(window):
     window.editor.insertPlainText('Recovered text')
     assert window.flush_edits()
     window.autosave()
+    assert window.wait_for_save()
     recovered = storage.load_document(window.recovery_path())
     assert recovered['blocks'][0]['text'] == 'Recovered text'
     window.undo()
@@ -140,7 +144,7 @@ def test_markdown_no_edit_save_preserves_original_bytes(window, tmp_path):
     assert window.flush_edits()
     assert window.doc['revision'] == revision
     assert not window.dirty
-    assert window.save()
+    assert window.save(wait=True)
     assert path.read_bytes() == original
     assert not window.test_errors
 
@@ -154,12 +158,13 @@ def test_markdown_visual_edit_preserves_unrelated_source(window, tmp_path):
     window.editor.navigate(target)
     window.editor.insertPlainText('Edited ')
     assert window.flush_edits()
-    assert window.save()
+    assert window.save(wait=True)
     assert path.read_bytes() == b'# Title\r\n\r\nEdited A paragraph.\r\n\r\n<!-- keep raw source -->\r\n'
 
 
 def test_markdown_source_edit_preserves_master_identity(window, tmp_path):
     from byax.exchange import import_document
+
     path = tmp_path / 'draft.md'
     path.write_text('# Title\n\nOriginal paragraph.\n')
     assert window.open_path(path)
@@ -171,7 +176,7 @@ def test_markdown_source_edit_preserves_master_identity(window, tmp_path):
     assert window.apply_markdown_source(source_doc)
     assert window.doc['id'] == doc_id
     assert [b['id'] for b in window.doc['blocks']] == original_ids
-    assert window.save()
+    assert window.save(wait=True)
     assert path.read_text() == '# Title\n\nChanged paragraph.\n'
 
 
@@ -179,7 +184,10 @@ def test_markdown_source_edit_preserves_master_identity(window, tmp_path):
 def test_fixture_refresh_and_flush_are_noop(window, fixture_name):
     import importlib.util
     from pathlib import Path
-    spec = importlib.util.spec_from_file_location('fixture_generator', Path(__file__).parents[1] / 'scripts' / 'generate_fixtures.py')
+
+    spec = importlib.util.spec_from_file_location(
+        'fixture_generator', Path(__file__).parents[1] / 'scripts' / 'generate_fixtures.py'
+    )
     module = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(module)
     window.doc = module.make_fixture(fixture_name)
@@ -236,11 +244,14 @@ def test_section_scope_uses_semantic_headings(window):
 
 def test_comment_reply_gui_uses_canonical_history(window, monkeypatch):
     from PySide6.QtWidgets import QInputDialog
+
     target = window.doc['blocks'][0]['id']
     assert window.commit([{'type': 'add_comment', 'target': target, 'text': 'Check this passage.'}])
     revision = window.doc['revision']
     window.review_list.setCurrentRow(0)
-    monkeypatch.setattr(QInputDialog, 'getMultiLineText', lambda *args, **kwargs: ('Checked against the source.', True))
+    monkeypatch.setattr(
+        QInputDialog, 'getMultiLineText', lambda *args, **kwargs: ('Checked against the source.', True)
+    )
     window.reply_comment()
     assert window.doc['review']['comments'][0]['replies'][0]['text'] == 'Checked against the source.'
     assert window.doc['revision'] != revision
@@ -249,7 +260,10 @@ def test_comment_reply_gui_uses_canonical_history(window, monkeypatch):
 
 def test_move_table_row_gui_preserves_cell_identity(window, monkeypatch):
     from PySide6.QtWidgets import QInputDialog
-    window.doc, _ = engine.apply(window.doc, {'operations': [{'type': 'insert_table', 'rows': 2, 'columns': 2}]})
+
+    window.doc, _ = engine.apply(
+        window.doc, {'operations': [{'type': 'insert_table', 'rows': 2, 'columns': 2}]}
+    )
     table = window.doc['blocks'][1]
     cell_id = table['rows'][0]['cells'][0]['id']
     window.refresh()
@@ -262,6 +276,7 @@ def test_move_table_row_gui_preserves_cell_identity(window, monkeypatch):
 
 def test_move_section_gui_moves_heading_and_body(window, monkeypatch):
     from PySide6.QtWidgets import QInputDialog
+
     window.doc = model.new_document(text='One\nBody one\nTwo\nBody two')
     for index in (0, 2):
         window.doc['blocks'][index]['type'] = 'heading'
@@ -292,7 +307,7 @@ def test_1500_typing_bursts_reopen_and_checkpoint_survival(window, tmp_path):
     assert window.open_path(path)
     window.editor.insertPlainText('y')
     assert window.flush_edits()
-    assert window.save()
+    assert window.save(wait=True)
     assert storage.load_document(path)['blocks'][0]['text'] == 'y' + 'x' * 1500 + 'Start'
     window.undo()
     assert window.doc['blocks'][0]['text'] == 'x' * 1500 + 'Start'
@@ -302,8 +317,10 @@ def test_1500_typing_bursts_reopen_and_checkpoint_survival(window, tmp_path):
 
 def test_failed_flush_keeps_pending_text_and_undo_stacks(window, monkeypatch):
     window.editor.insertPlainText('Pending text')
+
     def fail(*args, **kwargs):
         raise ByaxError('limit_exceeded', 'History cap reached')
+
     monkeypatch.setattr(engine, 'apply', fail)
     assert not window.flush_edits()
     assert window.editor.toPlainText() == 'Pending text'
@@ -315,6 +332,7 @@ def test_failed_flush_keeps_pending_text_and_undo_stacks(window, monkeypatch):
 
 def test_policy_changes_require_desktop_confirmation(window, monkeypatch):
     from PySide6.QtWidgets import QMessageBox
+
     target = window.doc['blocks'][0]['id']
     window.protect()
     window.toggle_tracking(True)

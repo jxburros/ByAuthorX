@@ -4,7 +4,7 @@ import pytest
 
 from byax import engine
 from byax.errors import ByaxError
-from byax.model import new_document
+from byax.model import canonical_json, find_object, new_document, object_hash
 
 
 def edit(doc, *ops, **envelope):
@@ -15,7 +15,11 @@ def test_batch_rollback_and_stale_revision():
     doc = new_document(text='Hello')
     original = copy.deepcopy(doc)
     with pytest.raises(ByaxError):
-        edit(doc, {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Changed'}, {'type': 'delete_block', 'target': 'missing'})
+        edit(
+            doc,
+            {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Changed'},
+            {'type': 'delete_block', 'target': 'missing'},
+        )
     assert doc == original
     with pytest.raises(ByaxError, match='revision changed'):
         edit(doc, {'type': 'set_metadata', 'values': {'title': 'Changed'}}, expected_revision='rev_stale')
@@ -23,7 +27,11 @@ def test_batch_rollback_and_stale_revision():
 
 def test_idempotency_before_stale_check_and_conflicting_reuse():
     doc = new_document(text='Hi')
-    env = {'request_id': 'once', 'expected_revision': doc['revision'], 'operations': [{'type': 'insert_text', 'target': doc['blocks'][0]['id'], 'offset': 2, 'text': '!'}]}
+    env = {
+        'request_id': 'once',
+        'expected_revision': doc['revision'],
+        'operations': [{'type': 'insert_text', 'target': doc['blocks'][0]['id'], 'offset': 2, 'text': '!'}],
+    }
     changed, _ = engine.apply(doc, env)
     retried, result = engine.apply(changed, env)
     assert retried == changed
@@ -78,7 +86,9 @@ def test_protection_and_dry_run_and_history():
 def test_text_protection_allows_layout_and_style():
     doc = new_document(text='Original')
     target = doc['blocks'][0]['id']
-    changed, _ = edit(doc, {'type': 'set_layout', 'values': {'width': 700}}, protect=[{'target': target, 'kind': 'text'}])
+    changed, _ = edit(
+        doc, {'type': 'set_layout', 'values': {'width': 700}}, protect=[{'target': target, 'kind': 'text'}]
+    )
     assert changed['layout']['width'] == 700
 
 
@@ -96,7 +106,11 @@ def test_table_protection_and_structural_ops():
     table = doc['blocks'][-1]
     cell = table['rows'][0]['cells'][0]['id']
     with pytest.raises(ByaxError) as error:
-        edit(doc, {'type': 'update_cell', 'target': cell, 'text': 'Changed'}, protect=[{'target': table['id'], 'kind': 'values'}])
+        edit(
+            doc,
+            {'type': 'update_cell', 'target': cell, 'text': 'Changed'},
+            protect=[{'target': table['id'], 'kind': 'values'}],
+        )
     assert error.value.code == 'protected_edit'
     changed, _ = edit(doc, {'type': 'add_column', 'target': table['id'], 'index': 1})
     assert len(changed['blocks'][-1]['rows'][0]['cells']) == 3
@@ -105,26 +119,44 @@ def test_table_protection_and_structural_ops():
 def test_split_join_preserves_marks():
     doc = new_document(text='Hello world')
     target = doc['blocks'][0]['id']
-    doc, _ = edit(doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 11, 'marks': {'bold': True}})
+    doc, _ = edit(
+        doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 11, 'marks': {'bold': True}}
+    )
     split, _ = edit(doc, {'type': 'split_block', 'target': target, 'offset': 5})
     assert [b['text'] for b in split['blocks']] == ['Hello', ' world']
     joined, _ = edit(split, {'type': 'join_blocks', 'target': target, 'next': split['blocks'][1]['id']})
     assert joined['blocks'][0]['text'] == 'Hello world'
-    assert joined['blocks'][0]['marks'][1]['end'] == 11
+    # The mark divided by the split is whole again after the join.
+    assert joined['blocks'][0]['marks'] == doc['blocks'][0]['marks']
 
 
 def test_required_policy_frozen_during_edit():
     doc = new_document(text='must stay')
     doc['settings']['requirements'] = {'required': {'kind': 'required_text', 'value': 'must stay'}}
     with pytest.raises(ByaxError) as error:
-        edit(doc, {'type': 'set_requirement', 'id': 'required', 'values': {'kind': 'required_text', 'value': 'changed'}}, {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'changed'}, required_suites=['requirements'])
+        edit(
+            doc,
+            {
+                'type': 'set_requirement',
+                'id': 'required',
+                'values': {'kind': 'required_text', 'value': 'changed'},
+            },
+            {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'changed'},
+            required_suites=['requirements'],
+        )
     assert error.value.code == 'failed_requirement'
 
 
 def test_proposal_stale_target_and_unrelated_edits():
     doc = new_document(text='Before')
     target = doc['blocks'][0]['id']
-    proposed, result = edit(doc, {'type': 'propose', 'values': {'operations': [{'type': 'set_text', 'target': target, 'text': 'After'}]}})
+    proposed, result = edit(
+        doc,
+        {
+            'type': 'propose',
+            'values': {'operations': [{'type': 'set_text', 'target': target, 'text': 'After'}]},
+        },
+    )
     proposal_id = result['changed_ids'][0]
     accepted, _ = edit(proposed, {'type': 'accept_proposal', 'target': proposal_id})
     assert accepted['blocks'][0]['text'] == 'After'
@@ -168,13 +200,28 @@ def test_delta_history_restores_every_revision_and_compaction_preserves_checkpoi
 def test_proposal_own_policy_is_enforced_and_cell_preconditions():
     doc = new_document(text='keep')
     target = doc['blocks'][0]['id']
-    proposed, result = edit(doc, {'type': 'propose', 'values': {'operations': [{'type': 'set_text', 'target': target, 'text': 'changed'}], 'protect': [{'target': target, 'kind': 'text'}]}})
+    proposed, result = edit(
+        doc,
+        {
+            'type': 'propose',
+            'values': {
+                'operations': [{'type': 'set_text', 'target': target, 'text': 'changed'}],
+                'protect': [{'target': target, 'kind': 'text'}],
+            },
+        },
+    )
     with pytest.raises(ByaxError) as error:
         edit(proposed, {'type': 'accept_proposal', 'target': result['changed_ids'][0]})
     assert error.value.code == 'protected_edit'
     doc, _ = edit(doc, {'type': 'insert_table', 'rows': 1, 'columns': 1})
     cell = doc['blocks'][-1]['rows'][0]['cells'][0]['id']
-    doc, result = edit(doc, {'type': 'propose', 'values': {'operations': [{'type': 'update_cell', 'target': cell, 'text': 'proposed'}]}})
+    doc, result = edit(
+        doc,
+        {
+            'type': 'propose',
+            'values': {'operations': [{'type': 'update_cell', 'target': cell, 'text': 'proposed'}]},
+        },
+    )
     proposal = result['changed_ids'][0]
     doc, _ = edit(doc, {'type': 'update_cell', 'target': cell, 'text': 'human'})
     with pytest.raises(ByaxError) as error:
@@ -195,7 +242,9 @@ def test_tracked_format_rejection_restores_formatting():
     doc = new_document(text='Review this')
     doc['settings']['track_changes'] = True
     target = doc['blocks'][0]['id']
-    doc, _ = edit(doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 6, 'marks': {'bold': True}})
+    doc, _ = edit(
+        doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 6, 'marks': {'bold': True}}
+    )
     change = doc['review']['tracked_changes'][0]
     assert change['kind'] == 'formatting'
     rejected, _ = edit(doc, {'type': 'reject_change', 'target': change['id']})
@@ -205,6 +254,7 @@ def test_tracked_format_rejection_restores_formatting():
 
 def test_bookmark_follows_split_join_and_deletion_reports_unresolved():
     from byax.checks import run_checks
+
     doc = new_document(text='Hello world')
     target = doc['blocks'][0]['id']
     doc, _ = edit(doc, {'type': 'set_bookmark', 'name': 'world', 'target': target, 'offset': 6})
@@ -242,10 +292,15 @@ def test_removed_table_cells_orphan_review_and_bookmarks(operation):
     doc, _ = edit(new_document(), {'type': 'insert_table', 'rows': 2, 'columns': 2})
     table = doc['blocks'][-1]
     cell = table['rows'][1]['cells'][1]['id']
-    doc, _ = edit(doc,
+    doc, _ = edit(
+        doc,
         {'type': 'add_comment', 'target': cell, 'text': 'Comment'},
         {'type': 'set_bookmark', 'name': 'cell', 'target': cell},
-        {'type': 'propose', 'values': {'operations': [{'type': 'update_cell', 'target': cell, 'text': 'Proposed'}]}})
+        {
+            'type': 'propose',
+            'values': {'operations': [{'type': 'update_cell', 'target': cell, 'text': 'Proposed'}]},
+        },
+    )
     doc, _ = edit(doc, {'type': operation, 'target': table['id'], 'index': 1})
     assert doc['review']['comments'][0]['status'] == 'orphaned'
     assert doc['review']['proposals'][0]['status'] == 'orphaned'
@@ -253,17 +308,31 @@ def test_removed_table_cells_orphan_review_and_bookmarks(operation):
 
 
 def test_move_section_preserves_subtree_anchors_and_comment_ids():
-    doc = new_document(text='First\nbody one\nNested\nchild body\nSecond\nbody two\nThird\nbody three\nanchor')
+    doc = new_document(
+        text='First\nbody one\nNested\nchild body\nSecond\nbody two\nThird\nbody three\nanchor'
+    )
     blocks = doc['blocks']
     for index, level in ((0, 1), (2, 2), (4, 1), (6, 1)):
         blocks[index]['type'] = 'heading'
         blocks[index]['attrs']['level'] = level
     original_ids = [b['id'] for b in blocks]
     blocks[-1]['attrs']['anchor'] = {'target': blocks[1]['id']}
-    doc, result = edit(doc, {'type': 'add_comment', 'target': blocks[3]['id'], 'text': 'Nested section comment'})
+    doc, result = edit(
+        doc, {'type': 'add_comment', 'target': blocks[3]['id'], 'text': 'Nested section comment'}
+    )
     comment_id = result['changed_ids'][0]
     moved, _ = edit(doc, {'type': 'move_section', 'target': original_ids[0], 'after': original_ids[4]})
-    assert [b['text'] for b in moved['blocks']] == ['Second', 'body two', 'First', 'body one', 'Nested', 'child body', 'anchor', 'Third', 'body three']
+    assert [b['text'] for b in moved['blocks']] == [
+        'Second',
+        'body two',
+        'First',
+        'body one',
+        'Nested',
+        'child body',
+        'anchor',
+        'Third',
+        'body three',
+    ]
     assert {b['id'] for b in moved['blocks']} == set(original_ids)
     assert moved['review']['comments'][0]['id'] == comment_id
     assert moved['review']['comments'][0]['target'] == original_ids[3]
@@ -325,24 +394,59 @@ def test_locks_cover_fields_replacement_and_table_contents():
         edit(doc, {'type': 'fill_fields', 'values': {'name': 'Bob'}})
     assert error.value.code == 'protected_edit'
     with pytest.raises(ByaxError) as error:
-        edit(doc, {'type': 'replace_content', 'blocks': [{'id': 'p_new', 'type': 'paragraph', 'text': 'Gone', 'style': 'body', 'marks': [], 'attrs': {}}]})
+        edit(
+            doc,
+            {
+                'type': 'replace_content',
+                'blocks': [
+                    {
+                        'id': 'p_new',
+                        'type': 'paragraph',
+                        'text': 'Gone',
+                        'style': 'body',
+                        'marks': [],
+                        'attrs': {},
+                    }
+                ],
+            },
+        )
     assert error.value.code == 'protected_edit'
     # Unchanged locked blocks may be carried through a replacement.
     kept = copy.deepcopy(doc['blocks'])
-    changed, _ = edit(doc, {'type': 'replace_content', 'blocks': [*kept, {'id': 'p_new', 'type': 'paragraph', 'text': 'Added', 'style': 'body', 'marks': [], 'attrs': {}}]})
+    changed, _ = edit(
+        doc,
+        {
+            'type': 'replace_content',
+            'blocks': [
+                *kept,
+                {
+                    'id': 'p_new',
+                    'type': 'paragraph',
+                    'text': 'Added',
+                    'style': 'body',
+                    'marks': [],
+                    'attrs': {},
+                },
+            ],
+        },
+    )
     assert changed['blocks'][0] == doc['blocks'][0]
     doc, table = _table_doc()
     table['attrs']['locked'] = True
     cell = table['rows'][0]['cells'][0]
-    for op in ({'type': 'update_cell', 'target': cell['id'], 'text': 'changed'},
-               {'type': 'remove_row', 'target': table['id'], 'index': 0}):
+    for op in (
+        {'type': 'update_cell', 'target': cell['id'], 'text': 'changed'},
+        {'type': 'remove_row', 'target': table['id'], 'index': 0},
+    ):
         with pytest.raises(ByaxError) as error:
             edit(doc, op)
         assert error.value.code == 'protected_edit'
     doc, table = _table_doc()
     table['rows'][1]['cells'][1]['attrs']['locked'] = True
-    for op in ({'type': 'remove_row', 'target': table['id'], 'index': 1},
-               {'type': 'remove_column', 'target': table['id'], 'index': 1}):
+    for op in (
+        {'type': 'remove_row', 'target': table['id'], 'index': 1},
+        {'type': 'remove_column', 'target': table['id'], 'index': 1},
+    ):
         with pytest.raises(ByaxError) as error:
             edit(doc, op)
         assert error.value.code == 'protected_edit'
@@ -353,7 +457,11 @@ def test_column_widths_follow_added_and_removed_columns():
     doc, table = _table_doc()
     table['attrs']['column_widths'] = [100, 200]
     added, _ = edit(doc, {'type': 'add_column', 'target': table['id'], 'index': 1})
-    assert next(b for b in added['blocks'] if b['id'] == table['id'])['attrs']['column_widths'] == [100, 150, 200]
+    assert next(b for b in added['blocks'] if b['id'] == table['id'])['attrs']['column_widths'] == [
+        100,
+        150,
+        200,
+    ]
     removed, _ = edit(doc, {'type': 'remove_column', 'target': table['id'], 'index': 0})
     assert next(b for b in removed['blocks'] if b['id'] == table['id'])['attrs']['column_widths'] == [200]
 
@@ -365,10 +473,14 @@ def test_replacing_text_does_not_spread_inner_formatting():
     changed, _ = edit(doc, {'type': 'set_text', 'target': target, 'text': 'Goodbye cruel world'})
     assert changed['blocks'][0]['marks'] == []
     # A mark covering the whole replaced range covers the replacement.
-    changed, _ = edit(doc, {'type': 'replace_text', 'target': target, 'match': 'world', 'replacement': 'there'})
+    changed, _ = edit(
+        doc, {'type': 'replace_text', 'target': target, 'match': 'world', 'replacement': 'there'}
+    )
     assert [(m['start'], m['end']) for m in changed['blocks'][0]['marks']] == [(6, 11)]
     doc['blocks'][0]['marks'] = [{'type': 'bold', 'start': 0, 'end': 8, 'value': True}]
-    changed, _ = edit(doc, {'type': 'replace_text', 'target': target, 'match': 'world', 'replacement': 'everyone'})
+    changed, _ = edit(
+        doc, {'type': 'replace_text', 'target': target, 'match': 'world', 'replacement': 'everyone'}
+    )
     assert [(m['start'], m['end']) for m in changed['blocks'][0]['marks']] == [(0, 6)]
 
 
@@ -386,13 +498,17 @@ def test_rejecting_tracked_insert_moves_comments_and_bookmarks_back():
     target = doc['blocks'][0]['id']
     doc, _ = edit(doc, {'type': 'set_settings', 'values': {'track_changes': True}})
     doc, _ = edit(doc, {'type': 'insert_text', 'target': target, 'offset': 2, 'text': ' there, friend'})
-    doc, _ = edit(doc, {'type': 'add_comment', 'target': target, 'text': 'Note', 'start': 9, 'end': 15},
-                  {'type': 'set_bookmark', 'name': 'end', 'target': target, 'offset': 16})
+    doc, _ = edit(
+        doc,
+        {'type': 'add_comment', 'target': target, 'text': 'Note', 'start': 9, 'end': 15},
+        {'type': 'set_bookmark', 'name': 'end', 'target': target, 'offset': 16},
+    )
     change = doc['review']['tracked_changes'][-1]['id']
     rejected, _ = edit(doc, {'type': 'reject_change', 'target': change})
     assert rejected['blocks'][0]['text'] == 'Hi'
     comment = rejected['review']['comments'][-1]
-    assert comment['end'] <= 2 and comment['anchor_status'] == 'needs_review'
+    # The whole commented passage was removed, so the anchor is explicitly unresolved.
+    assert comment['end'] <= 2 and comment['anchor_status'] == 'unresolved'
     assert rejected['settings']['bookmarks']['end']['offset'] <= 2
 
 
@@ -409,13 +525,18 @@ def test_policy_cannot_be_disabled_by_settings_origin_or_restore():
     doc = new_document(text='Protected text')
     target = doc['blocks'][0]['id']
     initial = doc['revision']
-    doc, _ = edit(doc, {'type': 'protect', 'target': target, 'kind': 'text'},
-                  {'type': 'set_settings', 'values': {'track_changes': True}})
-    for op in ({'type': 'set_settings', 'values': {'protections': []}},
-               {'type': 'set_settings', 'values': {'requirements': {}}},
-               {'type': 'set_settings', 'values': {'track_changes': False}},
-               {'type': 'unprotect', 'target': target, 'kind': 'text'},
-               {'type': 'set_tracking', 'enabled': False}):
+    doc, _ = edit(
+        doc,
+        {'type': 'protect', 'target': target, 'kind': 'text'},
+        {'type': 'set_settings', 'values': {'track_changes': True}},
+    )
+    for op in (
+        {'type': 'set_settings', 'values': {'protections': []}},
+        {'type': 'set_settings', 'values': {'requirements': {}}},
+        {'type': 'set_settings', 'values': {'track_changes': False}},
+        {'type': 'unprotect', 'target': target, 'kind': 'text'},
+        {'type': 'set_tracking', 'enabled': False},
+    ):
         with pytest.raises(ByaxError) as error:
             engine.apply(doc, {'operations': [op], 'origin': 'gui'})
         assert error.value.code == 'protected_edit'
@@ -424,9 +545,17 @@ def test_policy_cannot_be_disabled_by_settings_origin_or_restore():
     with pytest.raises(ByaxError) as error:
         edit(doc, {'type': 'set_text', 'target': target, 'text': 'Hacked'})
     assert error.value.code == 'protected_edit'
-    changed, _ = engine.apply(doc, {'origin': 'gui', 'operations': [
-        {'type': 'unprotect', 'target': target, 'kind': 'text'},
-        {'type': 'set_tracking', 'enabled': False}]}, allow_policy_changes=True)
+    changed, _ = engine.apply(
+        doc,
+        {
+            'origin': 'gui',
+            'operations': [
+                {'type': 'unprotect', 'target': target, 'kind': 'text'},
+                {'type': 'set_tracking', 'enabled': False},
+            ],
+        },
+        allow_policy_changes=True,
+    )
     assert changed['settings']['protections'] == []
     assert not changed['settings']['track_changes']
     assert changed['history']['revisions'][-1]['origin'] == 'gui'
@@ -447,7 +576,7 @@ def test_history_delta_omits_unchanged_order_and_reads_legacy_order():
     assert engine._patch(copy.deepcopy(before), legacy) == after
     after['blocks'].reverse()
     structural = engine._delta(before, after)
-    assert 'block_order' in structural
+    assert 'block_order_diff' in structural and 'block_order' not in structural
     assert engine._patch(copy.deepcopy(before), structural) == after
 
 
@@ -459,9 +588,357 @@ def test_api_history_cap_stays_hard_and_desktop_compaction_keeps_branch_heads():
     doc, _ = edit(doc, {'type': 'set_text', 'target': target, 'text': '1'})
     doc, _ = engine.branch(doc, 'active branch')
     for i in range(2, 4):
-        doc, _ = engine.apply(doc, {'operations': [{'type': 'set_text', 'target': target, 'text': str(i)}]}, auto_compact_history=True)
+        doc, _ = engine.apply(
+            doc,
+            {'operations': [{'type': 'set_text', 'target': target, 'text': str(i)}]},
+            auto_compact_history=True,
+        )
     assert engine._revision(doc, 'retained branch')['blocks'][0]['text'] == '1'
     assert engine._revision(doc, 'active branch')['blocks'][0]['text'] == '3'
     with pytest.raises(ByaxError) as error:
         edit(doc, {'type': 'set_text', 'target': target, 'text': '4'})
     assert error.value.code == 'limit_exceeded'
+
+
+# Bounded inspection and context packages (spec 16.3-16.4) ---------------------------------
+def _long_document(count=12):
+    doc = new_document('Long', '\n'.join(f'Paragraph {i} text.' for i in range(count)))
+    doc['blocks'].insert(
+        0,
+        {
+            'id': 'h1',
+            'type': 'heading',
+            'text': 'Start',
+            'style': 'heading1',
+            'marks': [],
+            'attrs': {'level': 1},
+        },
+    )
+    return doc
+
+
+def test_inspection_continuation_tokens_cover_every_item_once():
+    doc = _long_document()
+    seen, result = [], engine.inspect(doc, limit=5)
+    assert result['total'] == 13 and result['truncated'] and result['continuation']['increase_limit_to'] == 13
+    while True:
+        seen += [item['id'] for item in result['items']]
+        assert set(result['hashes']) == {item['id'] for item in result['items']}
+        if not result['continuation']:
+            break
+        result = engine.inspect(doc, limit=5, continuation=result['continuation']['token'])
+    assert seen == [b['id'] for b in doc['blocks']]
+    token = engine.inspect(doc, limit=1)['continuation']['token']
+    changed, _ = edit(doc, {'type': 'set_metadata', 'values': {'title': 'New'}})
+    with pytest.raises(ByaxError) as error:
+        engine.inspect(changed, continuation=token)
+    assert error.value.code == 'stale_revision'
+    with pytest.raises(ByaxError):
+        engine.inspect(doc, continuation=token[:-2] + 'xx')
+
+
+def test_selective_inspection_nearby_table_fields_findings_and_layout():
+    doc = _long_document(4)
+    middle = doc['blocks'][2]['id']
+    nearby = engine.inspect(doc, target=middle, radius=1)
+    assert [i['role'] for i in nearby['items']] == ['nearby', 'selected', 'nearby'] and nearby['scope'] == {
+        'target': middle,
+        'radius': 1,
+    }
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 3, 'columns': 2})
+    table = doc['blocks'][-1]['id']
+    rows = engine.inspect(doc, section='table', target=table, limit=2)
+    assert (
+        rows['total'] == 3
+        and rows['returned'] == 2
+        and rows['object']['type'] == 'table'
+        and rows['columns'] == 2
+    )
+    doc, _ = edit(
+        doc,
+        {'type': 'insert_paragraph', 'text': 'Dear {{client}} and {{other}}'},
+        {'type': 'fill_fields', 'values': {'client': {'type': 'text', 'required': True}}},
+    )
+    fields = engine.inspect(doc, section='fields', fields=['client'])
+    assert (
+        fields['items'][0]['filled'] is False
+        and fields['items'][0]['occurrences'][0]['kind'] == 'placeholder'
+    )
+    assert {i['name'] for i in engine.inspect(doc, section='fields')['items']} == {'client', 'other'}
+    doc, _ = edit(doc, {'type': 'insert_paragraph', 'text': 'The the end'})
+    doc, _ = edit(doc, {'type': 'record_checks', 'values': {'suites': ['editorial']}})
+    unresolved = engine.inspect(doc, section='findings')
+    assert unresolved['total'] == 1 and unresolved['health']['validation'] == 'incomplete'
+    assert engine.inspect(doc, section='findings', status='dismissed')['total'] == 0
+    assert engine.inspect(doc, section='health')['items'][0]['validation'] == 'incomplete'
+    located = engine.inspect(doc, target=middle, layout=True)
+    assert located['layout']['status'] == 'measured' and located['layout']['pages'][middle] == [1]
+    found = engine.find(doc, 'Paragraph', limit=2)
+    assert found['total'] == 4 and found['returned'] == 2 and found['truncated']
+    rest = engine.find(doc, 'ignored', continuation=found['continuation']['token'], limit=10)
+    assert [m['target'] for m in found['matches'] + rest['matches']] == [b['id'] for b in doc['blocks'][1:5]]
+    assert engine.find(doc, 'Paragraph', scope=middle)['total'] == 1
+
+
+def test_context_package_contents_inclusion_report_and_exact_content(monkeypatch):
+    doc = _long_document(3)
+    target = doc['blocks'][2]['id']
+    doc['references'] = {
+        'chosen': {'title': 'Chosen', 'text': 'Exact source', 'version': '3'},
+        'other': {'title': 'Other', 'text': 'No'},
+    }
+    from byax.profiles import presets
+
+    doc['profiles']['house'] = {**presets()['editorial_review'], 'references': ['chosen']}
+    doc['settings']['requirements'] = {'r': {'kind': 'max_words', 'value': 900}}
+    doc['settings']['terminology'] = {'email': ['e-mail']}
+    doc, _ = edit(
+        doc,
+        {'type': 'protect', 'target': target, 'kind': 'text'},
+        {'type': 'protect', 'target': 'h1', 'kind': 'style'},
+    )
+    doc, _ = edit(doc, {'type': 'insert_paragraph', 'text': 'The the', 'after': target, 'id': 'p_find'})
+    doc, _ = edit(doc, {'type': 'record_checks', 'values': {'suites': ['editorial']}})
+    import builtins
+    import pathlib
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('context packaging must not read files')
+
+    monkeypatch.setattr(builtins, 'open', forbidden)
+    monkeypatch.setattr(pathlib.Path, 'read_text', forbidden)
+    package = engine.context(doc, target, profile='house', radius=1)
+    monkeypatch.undo()
+    assert [b['id'] for b in package['blocks']] == [target]
+    assert {b['id'] for b in package['nearby']} == {doc['blocks'][1]['id'], 'p_find'}
+    assert package['blocks'][0]['hash'] == object_hash(find_object(doc, target))
+    assert package['protections'] == [{'target': target, 'kind': 'text'}]
+    assert package['inclusion_report']['not_applicable_protections'] == [{'target': 'h1', 'kind': 'style'}]
+    assert package['requirements'] == doc['settings']['requirements'] and package['preferred_terms'] == {
+        'email': ['e-mail']
+    }
+    assert (
+        set(package['references']) == {'chosen'}
+        and package['provenance']['source_versions']['chosen']['version'] == '3'
+    )
+    assert [f['rule'] for f in package['findings']] == ['word.repeated']
+    assert (
+        package['effective_settings']['voice']['voice_preservation'] == 'strict'
+        and 'body' in package['styles']
+    )
+    kinds = {item['kind'] for item in package['inclusion_report']['included']}
+    assert kinds >= {
+        'profile',
+        'protections',
+        'requirements',
+        'block',
+        'nearby',
+        'style',
+        'terminology',
+        'reference',
+        'finding',
+    }
+    assert package['execution'] == 'completed' and package['continuation'] is None
+
+
+def test_context_bound_reports_omissions_continuation_and_summaries_are_not_exact():
+    doc = _long_document(6)
+    full = engine.context(doc)
+    budget = full['limit']['used'] // 2
+    first = engine.context(doc, limit=budget)
+    assert first['execution'] == 'incomplete' and first['continuation']['pending']
+    omitted = {o['id'] for o in first['inclusion_report']['omitted']}
+    assert all(not s['exact'] and not s['editable'] for s in first['summaries'])
+    second = engine.context(doc, limit=10**6, continuation=first['continuation']['token'])
+    assert {b['id'] for b in second['blocks']} == omitted & {b['id'] for b in doc['blocks']}
+    assert {b['id'] for b in first['blocks']} | {b['id'] for b in second['blocks']} == {
+        b['id'] for b in doc['blocks']
+    }
+    summary = first['summaries'][0]
+    with pytest.raises(ByaxError) as error:
+        edit(
+            doc,
+            {
+                'type': 'delete_text',
+                'target': summary['id'],
+                'start': 0,
+                'end': len(summary['preview']) + 1,
+                'expected_text': summary['preview'],
+            },
+        )
+    assert error.value.code in ('precondition_failed', 'schema_error')
+    target = doc['blocks'][1]
+    optional = engine.context(doc, target['id'], limit=len(canonical_json(target)) + 200)
+    assert optional['execution'] == 'completed' and optional['continuation']
+    assert all(not o['required'] for o in optional['inclusion_report']['omitted'])
+
+
+# Dry-run layout effects and independent protection kinds (spec 16.6-16.7) ---------------------
+def test_dry_run_measures_layout_effects_without_committing():
+    doc = new_document(text='\n'.join(['Line of body text.'] * 3))
+    original = copy.deepcopy(doc)
+    filler = [
+        {'type': 'insert_paragraph', 'text': 'Filler paragraph ' * 30, 'after': doc['blocks'][0]['id']}
+        for _ in range(20)
+    ]
+    candidate, result = engine.apply(doc, {'operations': filler}, dry_run=True)
+    effects = result['layout_effects']
+    assert effects['status'] == 'measured'
+    assert effects['page_count']['before'] == 1 and effects['page_count']['after'] > 1
+    assert any(m['id'] == doc['blocks'][-1]['id'] for m in effects['moved'])
+    assert 1 in effects['affected_pages'] and effects['outputs'] == []
+    assert doc == original and result['revision'] == doc['revision'] and not candidate['history']['revisions']
+
+
+def test_protection_kinds_are_independent():
+    doc = new_document(text='Quoted claim here.\nOther')
+    target = doc['blocks'][0]['id']
+    doc, _ = edit(doc, {'type': 'add_reference', 'id': 'src', 'values': {'text': 'Quoted claim'}})
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 1, 'columns': 2})
+    table = doc['blocks'][-1]
+    cell = table['rows'][0]['cells'][0]['id']
+    cases = [
+        (
+            'text',
+            target,
+            {'type': 'apply_style', 'target': target, 'style': 'quotation'},
+            {'type': 'insert_text', 'target': target, 'offset': 0, 'text': 'A '},
+        ),
+        (
+            'style',
+            target,
+            {'type': 'insert_text', 'target': target, 'offset': 0, 'text': 'A '},
+            {'type': 'format_text', 'target': target, 'start': 0, 'end': 6, 'marks': {'bold': True}},
+        ),
+        (
+            'citations',
+            target,
+            {'type': 'format_text', 'target': target, 'start': 0, 'end': 6, 'marks': {'bold': True}},
+            {'type': 'format_text', 'target': target, 'start': 0, 'end': 12, 'marks': {'citation': 'src'}},
+        ),
+        (
+            'attributes',
+            table['id'],
+            {'type': 'update_cell', 'target': cell, 'text': 'Changed'},
+            {'type': 'set_attributes', 'target': table['id'], 'values': {'column_widths': [100, 100]}},
+        ),
+        (
+            'values',
+            table['id'],
+            {'type': 'set_attributes', 'target': table['id'], 'values': {'border_width': 2}},
+            {'type': 'update_cell', 'target': cell, 'text': 'Changed'},
+        ),
+    ]
+    for kind, protected, allowed, violating in cases:
+        rule = [{'target': protected, 'kind': kind}]
+        edit(doc, allowed, protect=rule)
+        with pytest.raises(ByaxError) as error:
+            edit(doc, violating, protect=rule)
+        assert error.value.code == 'protected_edit', kind
+    cited, _ = edit(
+        doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 12, 'marks': {'citation': 'src'}}
+    )
+    cited, _ = edit(cited, {'type': 'protect', 'target': target, 'kind': 'citations'})
+    with pytest.raises(ByaxError):
+        edit(cited, {'type': 'add_reference', 'id': 'src', 'values': {'text': 'Different source'}})
+    with pytest.raises(ByaxError):
+        edit(
+            doc,
+            {'type': 'set_text', 'target': target, 'text': 'x'},
+            protect=[{'target': target, 'kind': 'loudness'}],
+        )
+
+
+def test_text_protection_allows_repagination_but_visual_region_protection_is_measured():
+    doc = new_document(text='Opening paragraph.\nProtected signature block.')
+    first, protected = doc['blocks'][0]['id'], doc['blocks'][1]['id']
+    push = [{'type': 'insert_paragraph', 'text': 'Filler paragraph ' * 30, 'after': first} for _ in range(25)]
+    _moved, result = edit(doc, *push, protect=[{'target': protected, 'kind': 'text'}])
+    assert result['execution'] == 'completed'
+    original = copy.deepcopy(doc)
+    with pytest.raises(ByaxError) as error:
+        edit(doc, *push, protect=[{'target': protected, 'kind': 'visual_region'}])
+    assert error.value.code == 'protected_edit' and error.value.details['before'][0]['page'] == 1
+    assert doc == original
+    doc, _ = edit(doc, {'type': 'protect', 'target': protected, 'kind': 'visual'})
+    later, _ = edit(doc, {'type': 'insert_paragraph', 'text': 'Appended after the protected region.'})
+    with pytest.raises(ByaxError):
+        edit(later, {'type': 'apply_style', 'target': protected, 'style': 'title'})
+    with pytest.raises(ByaxError) as error:
+        edit(
+            later,
+            {
+                'type': 'set_text',
+                'target': first,
+                'text': 'Opening paragraph that is now long enough to wrap onto a second line ' * 3,
+            },
+        )
+    assert error.value.code == 'protected_edit'
+    hidden = copy.deepcopy(later)
+    hidden['blocks'][1]['attrs']['excluded'] = True
+    with pytest.raises(ByaxError) as error:
+        engine._measure(hidden, {'target': protected, 'kind': 'visual'})
+    assert error.value.code == 'incomplete_coverage'
+
+
+def test_visual_and_table_protection_across_interfaces(tmp_path):
+    from byax.cli import execute
+    from byax.storage import load_document, save_document
+
+    doc = new_document(text='Intro\nSigned')
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 2, 'columns': 2})
+    table = doc['blocks'][-1]
+    path = tmp_path / 'protected.byax'
+    save_document(doc, path)
+    rules = [{'target': table['id'], 'kind': 'values'}, {'target': doc['blocks'][1]['id'], 'kind': 'visual'}]
+    preview = execute(
+        'apply',
+        {
+            'path': str(path),
+            'dry_run': True,
+            'input': {
+                'protect': rules,
+                'operations': [
+                    {'type': 'set_attributes', 'target': table['id'], 'values': {'border_width': 1}}
+                ],
+            },
+        },
+    )
+    assert preview['execution'] == 'dry_run' and preview['layout_effects']['status'] == 'measured'
+    with pytest.raises(ByaxError) as error:
+        execute(
+            'apply',
+            {
+                'path': str(path),
+                'input': {
+                    'protect': rules,
+                    'operations': [
+                        {
+                            'type': 'update_cell',
+                            'target': table['rows'][0]['cells'][0]['id'],
+                            'text': 'Edited',
+                        }
+                    ],
+                },
+            },
+        )
+    assert error.value.code == 'protected_edit'
+    with pytest.raises(ByaxError) as error:
+        execute(
+            'apply',
+            {
+                'path': str(path),
+                'input': {
+                    'protect': rules,
+                    'operations': [
+                        {
+                            'type': 'insert_paragraph',
+                            'text': 'Pushes the signature',
+                            'after': doc['blocks'][0]['id'],
+                        }
+                    ],
+                },
+            },
+        )
+    assert error.value.code == 'protected_edit'
+    assert load_document(path)['revision'] == doc['revision']

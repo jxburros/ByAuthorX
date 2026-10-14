@@ -25,8 +25,11 @@ def test_atomic_edit_dry_run_retry_and_lock(tmp_path):
     execute('new', {'out': path, 'text': 'Original café'})
     doc = load_document(path)
     target = doc['blocks'][0]['id']
-    request = {'expected_revision': doc['revision'], 'request_id': 'cli-test-1',
-               'operations': [{'type': 'insert_text', 'target': target, 'offset': 13, 'text': '!'}]}
+    request = {
+        'expected_revision': doc['revision'],
+        'request_id': 'cli-test-1',
+        'operations': [{'type': 'insert_text', 'target': target, 'offset': 13, 'text': '!'}],
+    }
     original_bytes = Path(path).read_bytes()
     execute('apply', {'path': path, 'input': request, 'dry_run': True})
     assert Path(path).read_bytes() == original_bytes
@@ -43,6 +46,7 @@ def test_atomic_edit_dry_run_retry_and_lock(tmp_path):
 def test_stdin_json_and_no_gui_import(tmp_path, capsys, monkeypatch):
     import io
     import sys
+
     path = str(tmp_path / 'document.byax')
     execute('new', {'out': path, 'text': 'Before'})
     doc = load_document(path)
@@ -67,10 +71,17 @@ def test_overwrite_is_explicit_and_source_preserved(tmp_path):
 def test_batch_partial_failure_retains_per_input_outcomes(tmp_path):
     good = tmp_path / 'good.txt'
     good.write_text('Text', encoding='utf-8')
-    result = execute('batch', {'input': {'items': [
-        {'path': str(good), 'out': str(tmp_path / 'good.byax')},
-        {'path': str(tmp_path / 'missing.txt'), 'out': str(tmp_path / 'missing.byax')},
-    ]}})
+    result = execute(
+        'batch',
+        {
+            'input': {
+                'items': [
+                    {'path': str(good), 'out': str(tmp_path / 'good.byax')},
+                    {'path': str(tmp_path / 'missing.txt'), 'out': str(tmp_path / 'missing.byax')},
+                ]
+            }
+        },
+    )
     assert result['execution'] == 'failed'
     assert result['failed'] == 1
     assert len(result['items']) == 2
@@ -112,45 +123,87 @@ def test_export_respects_editor_lock_and_required_coverage(tmp_path):
 
 def test_transcription_cleanup_job_and_revision_checked_insertion(tmp_path, monkeypatch):
     from byax.providers import ProviderRegistry
+
     path = str(tmp_path / 'dictation.byax')
     execute('new', {'out': path, 'text': 'Hello '})
     doc = load_document(path)
+
     def recognize(self, alias, audio_path, **kwargs):
         assert kwargs['authorized'] is True
         return {'text': 'worlld', 'segments': []}
+
     def review(self, alias, text, **kwargs):
         assert text == 'worlld'
         return {'proposed_text': 'world!'}
+
     monkeypatch.setattr(ProviderRegistry, 'preview', lambda *args, **kwargs: {'remote': True})
     monkeypatch.setattr(ProviderRegistry, 'transcribe', recognize)
     monkeypatch.setattr(ProviderRegistry, 'review', review)
-    result = execute('transcribe', {'path': str(tmp_path / 'voice.wav'), 'alias': 'recognizer',
-        'mode': 'cleaned', 'cleanup_alias': 'editor', 'document': path,
-        'target': doc['blocks'][0]['id'], 'offset': 6, 'expect_revision': doc['revision'],
-        'insert': True, 'allow_remote': True, 'job_root': str(tmp_path / 'jobs')})
+    result = execute(
+        'transcribe',
+        {
+            'path': str(tmp_path / 'voice.wav'),
+            'alias': 'recognizer',
+            'mode': 'cleaned',
+            'cleanup_alias': 'editor',
+            'document': path,
+            'target': doc['blocks'][0]['id'],
+            'offset': 6,
+            'expect_revision': doc['revision'],
+            'insert': True,
+            'allow_remote': True,
+            'job_root': str(tmp_path / 'jobs'),
+        },
+    )
     assert result['execution'] == 'completed'
     assert load_document(path)['blocks'][0]['text'] == 'Hello world!'
     job = result['transcription']
     assert job['state'] == 'completed'
     assert job['input_revision'] == doc['revision']
-    assert execute('jobs', {'action': 'result', 'id': job['id'], 'root': str(tmp_path / 'jobs')})['job']['result']['raw_transcript'] == 'worlld'
+    assert (
+        execute('jobs', {'action': 'result', 'id': job['id'], 'root': str(tmp_path / 'jobs')})['job'][
+            'result'
+        ]['raw_transcript']
+        == 'worlld'
+    )
 
 
 def test_transcription_does_not_overwrite_manual_edits(tmp_path, monkeypatch):
     from byax.providers import ProviderRegistry
+
     path = str(tmp_path / 'dictation.byax')
     execute('new', {'out': path, 'text': 'Original'})
     doc = load_document(path)
+
     def recognize(self, alias, audio_path, **kwargs):
-        execute('apply', {'path': path, 'input': {'operations': [
-            {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Manual edit'}]}})
+        execute(
+            'apply',
+            {
+                'path': path,
+                'input': {
+                    'operations': [
+                        {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Manual edit'}
+                    ]
+                },
+            },
+        )
         return {'text': 'New transcript'}
+
     monkeypatch.setattr(ProviderRegistry, 'preview', lambda *args, **kwargs: {'remote': True})
     monkeypatch.setattr(ProviderRegistry, 'transcribe', recognize)
     with pytest.raises(ByaxError) as exc:
-        execute('transcribe', {'path': str(tmp_path / 'voice.wav'), 'alias': 'recognizer',
-            'document': path, 'target': doc['blocks'][0]['id'], 'expect_revision': doc['revision'],
-            'insert': True, 'job_root': str(tmp_path / 'jobs')})
+        execute(
+            'transcribe',
+            {
+                'path': str(tmp_path / 'voice.wav'),
+                'alias': 'recognizer',
+                'document': path,
+                'target': doc['blocks'][0]['id'],
+                'expect_revision': doc['revision'],
+                'insert': True,
+                'job_root': str(tmp_path / 'jobs'),
+            },
+        )
     assert exc.value.code == 'stale_revision'
     assert load_document(path)['blocks'][0]['text'] == 'Manual edit'
     jobs = execute('jobs', {'root': str(tmp_path / 'jobs')})['jobs']
@@ -164,14 +217,29 @@ def test_missing_input_file_and_job_policy_failures_keep_exit_codes(tmp_path, ca
     assert main(['apply', path, '--input', str(tmp_path / 'missing.json'), '--json']) == 2
     assert json.loads(capsys.readouterr().out)['error']['code'] == 'invalid_input'
     requirement = tmp_path / 'requirement.json'
-    requirement.write_text(json.dumps({'operations': [{'type': 'set_requirement', 'id': 'r', 'values': {'kind': 'required_text', 'value': 'zzz'}}]}))
+    requirement.write_text(
+        json.dumps(
+            {
+                'operations': [
+                    {
+                        'type': 'set_requirement',
+                        'id': 'r',
+                        'values': {'kind': 'required_text', 'value': 'zzz'},
+                    }
+                ]
+            }
+        )
+    )
     assert main(['apply', path, '--input', str(requirement), '--json']) == 0
     capsys.readouterr()
     assert main(['check', path, '--suite', 'requirements', '--json']) == 4
     capsys.readouterr()
     job = tmp_path / 'job.json'
     job.write_text(json.dumps({'command': 'check', 'arguments': {'path': path, 'suite': ['requirements']}}))
-    assert main(['jobs', '--action', 'submit', '--input', str(job), '--root', str(tmp_path / 'jobs'), '--json']) == 4
+    assert (
+        main(['jobs', '--action', 'submit', '--input', str(job), '--root', str(tmp_path / 'jobs'), '--json'])
+        == 4
+    )
     failed = json.loads(capsys.readouterr().out)
     assert failed['error']['code'] == 'failed_requirement'
     assert failed['error']['job']['state'] == 'failed'

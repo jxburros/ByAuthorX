@@ -1,4 +1,5 @@
 """Build three self-contained executables and merge their shared runtime."""
+
 import argparse
 import shutil
 import subprocess
@@ -14,18 +15,45 @@ def main():
     args = parser.parse_args()
     output = ROOT / 'dist' / 'ByAuthorX'
     stage = ROOT / 'build' / 'bundles'
-    for name, entry, windowed in [('ByAuthorX', 'gui_entry.py', True),
-                                  ('byax', 'cli_entry.py', False),
-                                  ('byax-mcp', 'mcp_entry.py', False)]:
-        cmd = [sys.executable, '-m', 'PyInstaller', '--noconfirm', '--clean', '--onedir',
-               '--name', name, '--distpath', str(stage), '--workpath', str(ROOT / 'build' / name),
-               '--specpath', str(ROOT / 'build'), '--paths', str(ROOT / 'src'),
-               '--collect-submodules', 'byax', '--collect-data', 'byax', '--collect-data', 'spellchecker',
-               '--exclude-module', 'PySide6.QtWebEngineCore',
-               '--exclude-module', 'PySide6.QtWebEngineWidgets',
-               '--exclude-module', 'PySide6.QtWebEngineQuick',
-               '--exclude-module', 'PySide6.QtQuick',
-               '--exclude-module', 'pytest']
+    for name, entry, windowed in [
+        ('ByAuthorX', 'gui_entry.py', True),
+        ('byax', 'cli_entry.py', False),
+        ('byax-mcp', 'mcp_entry.py', False),
+    ]:
+        cmd = [
+            sys.executable,
+            '-m',
+            'PyInstaller',
+            '--noconfirm',
+            '--clean',
+            '--onedir',
+            '--name',
+            name,
+            '--distpath',
+            str(stage),
+            '--workpath',
+            str(ROOT / 'build' / name),
+            '--specpath',
+            str(ROOT / 'build'),
+            '--paths',
+            str(ROOT / 'src'),
+            '--collect-submodules',
+            'byax',
+            '--collect-data',
+            'byax',
+            '--collect-data',
+            'spellchecker',
+            '--exclude-module',
+            'PySide6.QtWebEngineCore',
+            '--exclude-module',
+            'PySide6.QtWebEngineWidgets',
+            '--exclude-module',
+            'PySide6.QtWebEngineQuick',
+            '--exclude-module',
+            'PySide6.QtQuick',
+            '--exclude-module',
+            'pytest',
+        ]
         if windowed:
             cmd.append('--windowed')
             cmd.extend(['--icon', str(ROOT / 'src' / 'byax' / 'resources' / 'brand' / 'byauthorx.ico')])
@@ -37,6 +65,7 @@ def main():
     shutil.copytree(ROOT / 'docs', output / 'docs', dirs_exist_ok=True)
     # Preserve dependency license text for redistribution and local inspection.
     from importlib.metadata import distributions
+
     notices = output / 'third-party-licenses'
     notices.mkdir(exist_ok=True)
     for distribution in distributions():

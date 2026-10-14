@@ -13,11 +13,26 @@ from byax.storage import save_document
 
 def mixed_pages():
     doc = new_document('Proof fixture', 'First portrait page with an anchored paragraph.')
-    doc['blocks'].extend([
-        {'id': new_id('section'), 'type': 'section_break', 'text': '', 'style': 'body', 'marks': [],
-         'attrs': {'layout': {'width': 792, 'height': 612}}},
-        {'id': new_id('p'), 'type': 'paragraph', 'text': 'Second landscape page.', 'style': 'body', 'marks': [], 'attrs': {}},
-    ])
+    doc['blocks'].extend(
+        [
+            {
+                'id': new_id('section'),
+                'type': 'section_break',
+                'text': '',
+                'style': 'body',
+                'marks': [],
+                'attrs': {'layout': {'width': 792, 'height': 612}},
+            },
+            {
+                'id': new_id('p'),
+                'type': 'paragraph',
+                'text': 'Second landscape page.',
+                'style': 'body',
+                'marks': [],
+                'attrs': {},
+            },
+        ]
+    )
     return doc
 
 
@@ -25,9 +40,14 @@ def test_proof_uses_physical_pages_crop_points_and_non_destructive_overlay(tmp_p
     doc = mixed_pages()
     original = copy.deepcopy(doc)
     out = tmp_path / 'proof'
-    report = create_proof(doc, out, crops=[{'page': 2, 'rect': [72, 72, 100, 40]}],
-                          overlays=[{'target': doc['blocks'][0]['id'], 'label': 'Check this paragraph'}],
-                          columns=2, thumbnail_width=200)
+    report = create_proof(
+        doc,
+        out,
+        crops=[{'page': 2, 'rect': [72, 72, 100, 40]}],
+        overlays=[{'target': doc['blocks'][0]['id'], 'label': 'Check this paragraph'}],
+        columns=2,
+        thumbnail_width=200,
+    )
     assert doc == original
     assert report['pages'] == [1, 2]
     assert report['dpi'] == 144
@@ -74,10 +94,28 @@ def test_cli_proof_retains_original_native_document(tmp_path):
     native = tmp_path / 'private.byax'
     save_document(doc, native)
     before = native.read_bytes()
-    result = execute('proof', {'path': str(native), 'out': str(tmp_path / 'proof'), 'pages': [1],
-        'input': {'overlays': [{'page': 1, 'rect': [60, 60, 150, 60], 'label': 'Review'}]},
-        'thumbnail_width': 160})
+    result = execute(
+        'proof',
+        {
+            'path': str(native),
+            'out': str(tmp_path / 'proof'),
+            'pages': [1],
+            'input': {'overlays': [{'page': 1, 'rect': [60, 60, 150, 60], 'label': 'Review'}]},
+            'thumbnail_width': 160,
+        },
+    )
     assert result['execution'] == 'completed'
     assert result['document_id'] == doc['id']
     assert native.read_bytes() == before
     assert any(path.endswith('contact-sheet.png') for path in result['outputs'])
+
+
+def test_proof_bounds_follow_resolved_column_fragments(tmp_path):
+    doc = new_document('Columns', 'x')
+    doc['layout']['columns'] = {'count': 2, 'widths': [300, 150], 'gap': 18}
+    doc['blocks'][0].update(id='story', text='word ' * 1100)
+    report = create_proof(doc, tmp_path / 'proof', overlays=[{'target': 'story'}], contact=False)
+    regions = {(region['page'], region['rect'][0], region['rect'][2]) for region in report['overlays']}
+    assert {(1, 72, 300), (1, 390, 150)} <= regions
+    assert all(region['rect'][1] >= 72 for region in report['overlays'])
+    assert all(f['code'] != 'proof.bounds_unresolved' for f in report['findings'])

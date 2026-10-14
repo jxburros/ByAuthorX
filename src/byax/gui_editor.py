@@ -1,4 +1,5 @@
 """Native editor helpers. QText blocks retain canonical identities, never flattened text."""
+
 from __future__ import annotations
 
 import uuid
@@ -15,7 +16,7 @@ BLOCK_ID = BLOCK_ID_PROPERTY
 
 def scalar_offset(text: str, qt_offset: int) -> int:
     """Qt positions are UTF-16; canonical offsets count Unicode scalars."""
-    return len(text.encode('utf-16-le')[:qt_offset * 2].decode('utf-16-le', errors='ignore'))
+    return len(text.encode('utf-16-le')[: qt_offset * 2].decode('utf-16-le', errors='ignore'))
 
 
 def qt_offset(text: str, scalar: int) -> int:
@@ -34,18 +35,26 @@ def text_operations(target, before, after):
         tail += 1
     # Never split a user-perceived grapheme, including emoji and combining accents.
     import regex
-    before_bounds = {0, *[m.end() for m in regex.finditer(r"\X", before)]}
-    after_bounds = {0, *[m.end() for m in regex.finditer(r"\X", after)]}
+
+    before_bounds = {0, *[m.end() for m in regex.finditer(r'\X', before)]}
+    after_bounds = {0, *[m.end() for m in regex.finditer(r'\X', after)]}
     while start not in before_bounds or start not in after_bounds:
         start -= 1
     while tail and (len(before) - tail not in before_bounds or len(after) - tail not in after_bounds):
         tail -= 1
     end = len(before) - tail
-    replacement = after[start:len(after) - tail if tail else None]
+    replacement = after[start : len(after) - tail if tail else None]
     ops = []
     if end > start:
-        ops.append({'type': 'delete_text', 'target': target, 'start': start, 'end': end,
-                    'expected_text': before[start:end]})
+        ops.append(
+            {
+                'type': 'delete_text',
+                'target': target,
+                'start': start,
+                'end': end,
+                'expected_text': before[start:end],
+            }
+        )
     if replacement:
         ops.append({'type': 'insert_text', 'target': target, 'offset': start, 'text': replacement})
     return ops
@@ -58,14 +67,14 @@ class SemanticEditor(QTextEdit):
         super().__init__(parent)
         self.setAcceptRichText(False)  # Imported HTML must go through the bounded exchange adapter.
         self.setAcceptDrops(True)
-        self.setAccessibleName('Document editor')
-        self.setPlaceholderText('Write your first line…')
+        self.setAccessibleName(self.tr('Document editor'))
+        self.setPlaceholderText(self.tr('Write your first line…'))
         self.setUndoRedoEnabled(False)
         self.setTabChangesFocus(False)
-        self.setStyleSheet(f'''QTextEdit {{ background: white; color: {COLORS['ink']};
-            border: 2px solid {COLORS['rule']}; border-radius: 8px; padding: 24px;
+        self.setStyleSheet(f"""QTextEdit {{ background: white; color: {COLORS['ink']};
+            border: 2px solid {COLORS['control']}; border-radius: 8px; padding: 24px;
             selection-background-color: {COLORS['greenText']}; selection-color: white; }}
-            QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}''')
+            QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}""")
 
     def insertFromMimeData(self, source):
         if source.hasUrls() and source.urls()[0].isLocalFile():
@@ -124,7 +133,9 @@ class SemanticEditor(QTextEdit):
         observed = []
         block = self.document().begin()
         while block.isValid():
-            observed.append((block, block.blockFormat().property(BLOCK_ID), block.text().replace('\u2028', '\n')))
+            observed.append(
+                (block, block.blockFormat().property(BLOCK_ID), block.text().replace('\u2028', '\n'))
+            )
             block = block.next()
         observed_ids = {ident for _, ident, _ in observed if ident}
         rendered_ids = set(getattr(self, 'object_text', records))
@@ -132,8 +143,17 @@ class SemanticEditor(QTextEdit):
         for _, ident, text in observed:
             observed_text.setdefault(ident, []).append(text)
         for ident, record in records.items():
-            if ident in rendered_ids and record['type'] not in ('paragraph', 'heading', 'footnote') and (ident not in observed_ids or observed_text.get(ident) != getattr(self, 'object_text', {}).get(ident)):
-                raise ValueError('Use the object or table commands to change this object. The original object has been restored.')
+            if (
+                ident in rendered_ids
+                and record['type'] not in ('paragraph', 'heading', 'footnote')
+                and (
+                    ident not in observed_ids
+                    or observed_text.get(ident) != getattr(self, 'object_text', {}).get(ident)
+                )
+            ):
+                raise ValueError(
+                    'Use the object or table commands to change this object. The original object has been restored.'
+                )
         seen, operations, tags = set(), [], []
         previous = None
         index = 0
@@ -145,8 +165,14 @@ class SemanticEditor(QTextEdit):
                     raise ValueError('Use Shift+Enter for a line break within a table cell.')
                 seen.add(ident)
                 if text != cells[ident]['text']:
-                    operations.append({'type': 'update_cell', 'target': ident, 'text': text,
-                                       'expected_text': cells[ident]['text']})
+                    operations.append(
+                        {
+                            'type': 'update_cell',
+                            'target': ident,
+                            'text': text,
+                            'expected_text': cells[ident]['text'],
+                        }
+                    )
             elif ident in records and records[ident]['type'] not in ('paragraph', 'heading', 'footnote'):
                 previous = ident
                 seen.add(ident)
@@ -155,9 +181,13 @@ class SemanticEditor(QTextEdit):
                 original = records[ident].get('text', '')
                 # Backspace/Delete can join adjacent paragraphs. Canonical join
                 # carries the removed paragraph's marks, comments, and anchors.
-                for following in ordered_ids[ordered_ids.index(ident) + 1:]:
+                for following in ordered_ids[ordered_ids.index(ident) + 1 :]:
                     record = records[following]
-                    if following not in rendered_ids or following in observed_ids or record['type'] not in ('paragraph', 'heading', 'footnote'):
+                    if (
+                        following not in rendered_ids
+                        or following in observed_ids
+                        or record['type'] not in ('paragraph', 'heading', 'footnote')
+                    ):
                         break
                     operations.append({'type': 'join_blocks', 'target': ident, 'next': following})
                     original += record.get('text', '')
@@ -173,15 +203,23 @@ class SemanticEditor(QTextEdit):
                 previous = ident
                 for part_index in range(len(parts) - 1):
                     fresh = 'p_' + uuid.uuid4().hex
-                    operations.append({'type': 'split_block', 'target': previous,
-                                       'offset': len(parts[part_index][1]), 'id': fresh})
+                    operations.append(
+                        {
+                            'type': 'split_block',
+                            'target': previous,
+                            'offset': len(parts[part_index][1]),
+                            'id': fresh,
+                        }
+                    )
                     tags.append((parts[part_index + 1][0], fresh))
                     seen.add(fresh)
                     previous = fresh
             elif text or (ident in seen and ident in records) or not canonical['blocks']:
                 fresh = 'p_' + uuid.uuid4().hex
                 style = records.get(ident, {}).get('style', 'body')
-                operations.append({'type': 'insert_paragraph', 'after': previous, 'text': text, 'style': style, 'id': fresh})
+                operations.append(
+                    {'type': 'insert_paragraph', 'after': previous, 'text': text, 'style': style, 'id': fresh}
+                )
                 tags.append((qtblock, fresh))
                 seen.add(fresh)
                 previous = fresh
@@ -189,7 +227,11 @@ class SemanticEditor(QTextEdit):
         if (set(cells) & rendered_ids) - seen:
             raise ValueError('Table structure cannot be removed by typing. Use the Table menu.')
         for ident, record in records.items():
-            if ident in rendered_ids and ident not in seen and record['type'] in ('paragraph', 'heading', 'footnote'):
+            if (
+                ident in rendered_ids
+                and ident not in seen
+                and record['type'] in ('paragraph', 'heading', 'footnote')
+            ):
                 operations.append({'type': 'delete_block', 'target': ident})
         return operations, tags
 
@@ -203,11 +245,12 @@ class SemanticEditor(QTextEdit):
 
 class PageCanvas(QWidget):
     """Scrollable paper preview rendered from the same QTextDocument as PDF."""
+
     def __init__(self, parent=None):
         super().__init__(parent)
         self.document = None
         self.zoom = 1.0
-        self.setAccessibleName('Paginated print preview')
+        self.setAccessibleName(self.tr('Paginated print preview'))
 
     def set_document(self, document, canonical=None):
         self.document = document
@@ -219,8 +262,10 @@ class PageCanvas(QWidget):
             return
         count = resolved_page_count(self.document, self.canonical)
         self.page_sizes = [resolved_page_size(self.document, page) for page in range(count)]
-        self.resize(round(max(w for w, h in self.page_sizes) * self.zoom + 64),
-                    round(sum(h * self.zoom + 28 for w, h in self.page_sizes) + 28))
+        self.resize(
+            round(max(w for w, h in self.page_sizes) * self.zoom + 64),
+            round(sum(h * self.zoom + 28 for w, h in self.page_sizes) + 28),
+        )
         self.update()
 
     def sizeHint(self):
