@@ -149,7 +149,7 @@ QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py --out artifacts/ben
 uv run python scripts/build.py --bundle-only
 ```
 
-For Windows PowerShell set `$env:QT_QPA_PLATFORM = "offscreen"` before headless tests. The build script freezes the native GUI, CLI and MCP executables into `dist/ByAuthorX`. Run `python scripts/build_deb.py` **on Ubuntu 24.04** to build the Ubuntu package, or Inno Setup `iscc packaging/windows.iss` on Windows for the Windows 11 installer. CI contains both build jobs. A Linux binary built on a newer glibc host is not a validated Ubuntu 24.04 binary.
+For Windows PowerShell set `$env:QT_QPA_PLATFORM = "offscreen"` before headless tests. The build script freezes the native GUI, CLI and MCP executables into `dist/ByAuthorX`. Run `python scripts/build_deb.py` **on Ubuntu 24.04** to build the Ubuntu package, or Inno Setup `iscc packaging/windows.iss` on Windows for the Windows 11 installer. CI contains both build jobs, and pushing a `vX.Y.Z` tag publishes the installers as a GitHub Release (see [packaging](docs/packaging.md#cutting-a-release)). A Linux binary built on a newer glibc host is not a validated Ubuntu 24.04 binary.
 
 Build and installation details: [packaging](docs/packaging.md). Architecture: [architecture](docs/architecture.md). Complete requirements: [product specification](ByAuthorX-Product-Specification%20%281%29.md).
 

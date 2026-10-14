@@ -4,13 +4,14 @@ All notable changes to ByAuthorX are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html). The single source of the version
 number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any other copy
-disagrees or if the version has no entry below.
+disagrees or if the version has no entry below. The release workflow publishes a version's
+entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
 ## [0.1.0] - 2026-10-14
 
 First tagged version of ByAuthorX. It is an **unsigned** build for Windows 11 x64 and
-Ubuntu 24.04 x64, delivered as a Windows installer, an Ubuntu `.deb` and a portable frozen
-directory. Read [Known limitations](#known-limitations-in-010) before relying on it.
+Ubuntu 24.04 x64, delivered as a Windows installer and an Ubuntu `.deb`. Read the known
+limitations below before relying on it.
 
 ### Added
 
@@ -56,7 +57,8 @@ directory. Read [Known limitations](#known-limitations-in-010) before relying on
 - Live provider behaviour (real accounts, models, languages) has not been verified; provider
   contracts are tested against mocked transports.
 - Not every scenario in the product specification is complete. The
-  [acceptance matrix](docs/acceptance-matrix.md) and the
-  [open-issue audit](docs/issue-audit-2026-10-14.md) list verified behaviour and the remaining gaps.
+  [acceptance matrix](https://github.com/jxburros/ByAuthorX/blob/main/docs/acceptance-matrix.md) and the
+  [open-issue audit](https://github.com/jxburros/ByAuthorX/blob/main/docs/issue-audit-2026-10-14.md)
+  list verified behaviour and the remaining gaps.
 
 [0.1.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.0
