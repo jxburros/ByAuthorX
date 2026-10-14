@@ -1,0 +1,97 @@
+{
+  "generator": "Vixl 0.26.0 (delivered APNG frames, unpacked without resampling)",
+  "source": "assets/logo-companion-library/animations/margin-review-dark.apng",
+  "source_sha256": "21f82cd4a3cedb867c36eeb31ce30c492f1696ae228aa26a47a55faaf3d99c34",
+  "poster_source": "assets/logo-companion-library/animations/margin-review-dark.png",
+  "poster_source_sha256": "910a401ca3e919a143792ae54f67d04d84fd1163162d3abcbde327fba17f2a07",
+  "durationMs": 2400,
+  "frameWidth": 194,
+  "frameHeight": 178,
+  "frameTimesMs": [
+    0,
+    125,
+    167,
+    208,
+    250,
+    292,
+    333,
+    375,
+    417,
+    458,
+    500,
+    542,
+    583,
+    625,
+    667,
+    708,
+    750,
+    792,
+    833,
+    875,
+    917,
+    958,
+    1000,
+    1042,
+    1083,
+    1458,
+    1500,
+    1542,
+    1583,
+    1625,
+    1667,
+    1708,
+    1750,
+    1792,
+    1833,
+    1875,
+    1917,
+    1958,
+    2000,
+    2042,
+    2083,
+    2125,
+    2167,
+    2400
+  ],
+  "loop": true,
+  "posterTimeMs": 1200,
+  "crop": [
+    64,
+    24,
+    258,
+    202
+  ],
+  "theme": "dark",
+  "checks": {
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "info": 0,
+    "by_action": {
+      "fix": [],
+      "review": [],
+      "informational": []
+    },
+    "outcome": {
+      "state": "validated",
+      "execution": "completed",
+      "validation": "passed",
+      "review": "not_required",
+      "review_reasons": [],
+      "validated_by": [
+        "design checks"
+      ]
+    },
+    "issues": [],
+    "checked": {
+      "checks": [
+        "bounds",
+        "motion",
+        "composition"
+      ],
+      "layers_checked": 9,
+      "layers_total": 9,
+      "text_layers": 0
+    }
+  }
+}
