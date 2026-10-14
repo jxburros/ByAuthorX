@@ -478,7 +478,7 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                     expected=a['expect_revision'],
                     actual=doc['revision'],
                 )
-            if action in ('checkpoint', 'branch'):
+            if action in ('checkpoint', 'branch', 'switch_branch'):
                 if not a.get('name'):
                     _error('invalid_input', 'History action requires --name')
                 updated, result = getattr(engine, action)(doc, a['name'])

@@ -404,7 +404,7 @@ def plan_merge(base, ours, theirs):
             present.add(identity)
         elif o is None:
             if block != b:
-                conflict('block_deleted_in_ours', identity, base=b, ours=None, theirs=block)
+                conflict('block_deleted_in_ours', identity, base=b, ours=None, theirs=block, after=previous)
         elif b is None:
             if o != block:
                 conflict('block_added_in_both', identity, base=None, ours=o, theirs=block)

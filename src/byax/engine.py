@@ -561,7 +561,24 @@ def _op_join_blocks(doc, op, base_revision, kind, changed, allow_policy_changes)
         _error('Join requires consecutive text blocks.', 'next')
     offset = len(obj['text'])
     obj['text'] += other['text']
-    obj['marks'].extend(dict(m, start=m['start'] + offset, end=m['end'] + offset) for m in other['marks'])
+    joined = [dict(m, start=m['start'] + offset, end=m['end'] + offset) for m in other['marks']]
+    for mark in list(joined):
+        # A mark divided by an earlier split becomes one mark again.
+        match = next(
+            (
+                m
+                for m in obj['marks']
+                if m['end'] == offset == mark['start']
+                and m.get('type') != 'field'
+                and {k: v for k, v in m.items() if k not in ('start', 'end')}
+                == {k: v for k, v in mark.items() if k not in ('start', 'end')}
+            ),
+            None,
+        )
+        if match is not None:
+            match['end'] = mark['end']
+            joined.remove(mark)
+    obj['marks'].extend(joined)
     doc['blocks'].remove(other)
     anchors.remap_join(doc, obj, other, offset)
     changed.extend((obj['id'], other['id']))
@@ -2247,14 +2264,25 @@ def _apply_operations(
             auto_compact_history=auto_compact_history,
         )
         merged = [r for r in (anchors.journal() or {}).get('merge_parents', []) if r]
-        _record_parents(candidate, [doc['revision'], *merged])
+        attribution = (anchors.journal() or {}).get('attribution', {})
+        _record_parents(
+            candidate,
+            [doc['revision'], *merged],
+            {
+                **attribution,
+                'request_id': envelope.get('request_id'),
+                'operations': [_op_kind(o) for o in operations],
+            },
+        )
         result = _result(candidate, doc['revision'], changed, report=report)
     return candidate, result
 
 
-def _record_parents(candidate, parents):
+def _record_parents(candidate, parents, provenance):
+    """Revision ancestry for merge bases plus compact provenance of the producing commit."""
     history = candidate['history']
     history['parents'] = {**history.get('parents', {}), candidate['revision']: list(dict.fromkeys(parents))}
+    history['provenance'] = {**history.get('provenance', {}), candidate['revision']: provenance}
 
 
 REQUEST_RETENTION = 1000
@@ -2407,7 +2435,11 @@ def restore(doc, revision, *, auto_compact_history=False):
     _commit(
         doc, candidate, [{'type': 'restore', 'revision': revision}], auto_compact_history=auto_compact_history
     )
-    _record_parents(candidate, [doc['revision']])
+    _record_parents(
+        candidate,
+        [doc['revision']],
+        {'origin': 'restore', 'timestamp': datetime.now(UTC).isoformat(), 'restored_from': revision},
+    )
     return candidate, _result(candidate, doc['revision'], [b['id'] for b in candidate['blocks']])
 
 
@@ -2444,6 +2476,8 @@ def branch(doc, name):
     if name in doc['history']['branches']:
         raise ByaxError('conflict', 'Branch already exists.', target=name)
     candidate = copy.deepcopy(doc)
+    # The branch being left keeps an explicit head so it can be switched back to.
+    candidate['history']['branches'].setdefault(candidate['history']['current_branch'], doc['revision'])
     candidate['history']['branches'][name] = doc['revision']
     candidate['history'].setdefault('forks', {})[name] = doc['revision']
     candidate['history']['current_branch'] = name

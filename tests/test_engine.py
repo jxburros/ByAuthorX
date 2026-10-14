@@ -126,7 +126,8 @@ def test_split_join_preserves_marks():
     assert [b['text'] for b in split['blocks']] == ['Hello', ' world']
     joined, _ = edit(split, {'type': 'join_blocks', 'target': target, 'next': split['blocks'][1]['id']})
     assert joined['blocks'][0]['text'] == 'Hello world'
-    assert joined['blocks'][0]['marks'][1]['end'] == 11
+    # The mark divided by the split is whole again after the join.
+    assert joined['blocks'][0]['marks'] == doc['blocks'][0]['marks']
 
 
 def test_required_policy_frozen_during_edit():
