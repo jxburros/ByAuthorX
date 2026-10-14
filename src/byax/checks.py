@@ -1631,22 +1631,26 @@ def layout_snapshot(doc, targets=None, *, pixels=False):
     regions = {}
     for page_index, page in enumerate(resolved['pages']):
         for fragment in page['fragments']:
-            part, rect = fragment['document'], fragment['rect']
-            height = part.pageSize().height()
-            top_limit = fragment['page'] * height
+            if 'document' not in fragment or fragment.get('kind') == 'table_header':
+                continue
+            # Fragments map a source rectangle of a shared flow document onto the page.
+            part, rect, source = fragment['document'], fragment['rect'], fragment['source']
             for ident, position in getattr(part, 'byax_positions', {}).items():
                 owners = [ident, *parents.get(ident, ())]
                 if wanted is not None and not set(owners) & wanted:
                     continue
                 box = part.documentLayout().blockBoundingRect(part.findBlock(position))
-                top, bottom = max(box.top(), top_limit), min(box.bottom(), top_limit + height)
-                if bottom <= top and not top_limit <= box.top() < top_limit + height:
+                top, bottom = max(box.top(), source.top()), min(box.bottom(), source.bottom())
+                left, right = max(box.left(), source.left()), min(box.right(), source.right())
+                if bottom <= top and not source.top() <= box.top() < source.bottom():
+                    continue
+                if right <= left:
                     continue
                 region = {
                     'page': page_index + 1,
-                    'x': round(rect.x() + box.left(), 2),
-                    'y': round(rect.y() + top - top_limit, 2),
-                    'width': round(box.width(), 2),
+                    'x': round(rect.x() + left - source.left(), 2),
+                    'y': round(rect.y() + top - source.top(), 2),
+                    'width': round(right - left, 2),
                     'height': round(max(0.0, bottom - top), 2),
                 }
                 if ident in tables:
