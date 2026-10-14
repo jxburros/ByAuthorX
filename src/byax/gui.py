@@ -492,6 +492,8 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         self.review_list = QListWidget()
         self.review_list.setSelectionMode(QListWidget.ExtendedSelection)
         self.review_list.setWordWrap(True)
+        # Items wrap to the panel, so they never need sideways scrolling, whatever the face's widths.
+        self.review_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.review_list.setAccessibleName(self.tr('Comments, proposals, and findings'))
         self.review_list.itemActivated.connect(self.review_item)
         review = QWidget()
@@ -576,6 +578,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         self.statusBar().addWidget(self.activity_slot)
         self.statusBar().addWidget(self.status_label, 1)
         self.word_label = QLabel()
+        self.word_label.setObjectName('statusCounter')
         self.statusBar().addPermanentWidget(self.word_label)
         for label, slot in (
             ('Linked assets…', self.linked_assets),

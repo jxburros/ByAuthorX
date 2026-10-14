@@ -59,15 +59,17 @@ and [the open-issue audit](docs/issue-audit-2026-10-14.md) for remaining limits.
 
 ## Identity and motion
 
-Warm paper, quiet ink, and familiar controls frame a clean writing page. Manrope is bundled for the interface; IM Fell English gives introductions their print character. Source Serif 4 is available as an optional document font. Your document keeps its chosen styles.
+Warm paper, quiet ink, and familiar controls frame a clean writing page. Irongall, the typeface drawn from the wordmark, is the application font: menus, controls, headings and the About screen are all set in it. Scholium, drawn from the illustrations, sets helper text and Onionskin the status counters. Manrope stays bundled as the plain fallback for scripts Irongall lacks and for high-contrast mode. Source Serif 4 and the other brand fonts are available as optional document fonts. Your document keeps its chosen styles.
 
-View and inspector changes use brief 180 ms transitions. Review, Outline, Layers, and the AI tab have small empty-state illustrations from the logo companion library; a writing/erasing pen loop appears only while work is running. In the AI tab, the red ink blot breathes only while the assistant is thinking, and a green margin gesture writes only while spelling is being checked. Explicit save draws a brief checkmark, and About writes the signature once. Controls use clean Manrope typography and restrained native styling. Choose **View → Reduce motion** for static artwork and immediate transitions; supported system preferences and `BYAX_REDUCED_MOTION=1` also disable motion. Typing and autosave remain quiet.
+View and inspector changes use brief 180 ms transitions. Review, Outline, Layers, and the AI tab have small empty-state illustrations from the logo companion library; a writing/erasing pen loop appears only while work is running. In the AI tab, the red ink blot breathes only while the assistant is thinking, and a green margin gesture writes only while spelling is being checked. Explicit save draws a brief checkmark, and About writes the signature once. Controls use Irongall with restrained native styling. Choose **View → Reduce motion** for static artwork and immediate transitions; supported system preferences and `BYAX_REDUCED_MOTION=1` also disable motion. Typing and autosave remain quiet.
 
 The toolbar and menus use a hand-inked icon set drawn from the logo's pen line and ink blot, always beside a label or an accessible name. Dialogs and results carry matching illustrations, and document checks and dictation have loops that run only while they work. In the writing view, spelling and grammar marks (red pen for spelling, green for grammar), underline and strikethrough are drawn as pen strokes. They are interface only: Pages, print and every export keep exact lines, and **View → Hand-drawn marks** switches them off.
 
 ![Hand-inked marks, icons and chrome in the writing view](docs/images/editor-marks.png)
 
 See the [design system and motion contract](docs/brand.md), [editable brand sources](design/brand/README.md), and [supplied brand guide](design/brand/kit/ByAuthorX-brand-guide.pdf).
+
+Six custom display fonts made with Vixl, two of them drawn from the logo and the illustrations, are in [assets/brand-fonts](assets/brand-fonts/README.md).
 
 ## CLI
 

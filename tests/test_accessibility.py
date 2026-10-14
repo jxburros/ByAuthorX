@@ -335,6 +335,9 @@ def test_high_contrast_preference_keeps_platform_theme(app, monkeypatch):
     try:
         brand.configure_application(app)
         assert app.styleSheet() == ''
+        # the brand face gives way to the plain one for readers who asked for high contrast
+        assert app.font().families() == ['Manrope']
     finally:
         app.setPalette(previous_palette)
         app.setStyleSheet(previous_sheet)
+        app.setFont(brand.interface_font())
