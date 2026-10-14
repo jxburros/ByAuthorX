@@ -62,6 +62,108 @@ _FORMAT_ATTRS = frozenset(
 )
 
 
+PUBLICATION_CATEGORIES = {
+    'include_comments': 'Review comments and replies',
+    'include_tracked_changes': 'Tracked insertions, deletions and formatting changes',
+    'include_proposals': 'Pending and decided proposals',
+    'include_findings': 'Check findings and accepted exceptions',
+    'include_history': 'Revision history, branches and retried request records',
+    'include_metadata': 'Title, author, description, tags and import provenance',
+    'include_references': 'Reference identifiers and excerpts',
+    'include_source_snapshots': 'Permitted source snapshots attached to references',
+    'include_transcripts': 'Dictation transcripts and session records',
+    'include_audio': 'Retained audio assets',
+    'include_hidden': 'Excluded blocks and hidden layers',
+    'include_originals': 'Original imported files and unreferenced attachments',
+}
+
+
+def _strip_image_metadata(raw, mime):
+    """Re-encode PNG/JPEG pixels only, dropping text chunks, EXIF and XMP."""
+    if mime not in ('image/png', 'image/jpeg') or not raw:
+        return raw
+    import io
+
+    from PIL import Image
+
+    try:
+        with Image.open(io.BytesIO(raw)) as image:
+            if image.width * image.height > 40_000_000:
+                return raw
+            pixels = image.copy()
+        pixels.info = {}
+        output = io.BytesIO()
+        pixels.save(
+            output,
+            format='PNG' if mime == 'image/png' else 'JPEG',
+            **({'quality': 95} if mime == 'image/jpeg' else {}),
+        )
+        return output.getvalue()
+    except (OSError, ValueError):
+        return raw
+
+
+def _xml_text(raw):
+    import html
+
+    text = raw.decode('utf-8', 'replace')
+    return html.unescape(re.sub(r'<[^>]+>', '', text))
+
+
+def inspect_residue(path, terms):
+    """Search an actual serialized output for terms, decoding the containers each format uses.
+
+    Returns found/clean/unverifiable; formats whose text cannot be decoded reliably
+    (PDF glyph streams) are reported as unverifiable instead of clean.
+    """
+    import html
+    import zipfile
+    import zlib
+
+    path = Path(path)
+    terms = [term for term in terms if term]
+    encoded = list(_term_encodings(terms))
+    raw = path.read_bytes()
+    hits, method = [], 'bytes'
+
+    def check(label, data, text=None):
+        if any(needle in data for needle in encoded) or (
+            text is not None and any(term in text for term in terms)
+        ):
+            hits.append(label)
+
+    if zipfile.is_zipfile(path):
+        method = 'zip_members'
+        with zipfile.ZipFile(path) as archive:
+            for member in archive.infolist():
+                data = archive.read(member)
+                text = _xml_text(data) if member.filename.endswith(('.xml', '.rels')) else None
+                if member.filename.endswith('.json'):
+                    text = json.dumps(json.loads(data), ensure_ascii=False)
+                check(member.filename, data, text)
+    elif raw.startswith(b'%PDF'):
+        method = 'pdf_streams'
+        check('pdf', raw)
+        for match in re.finditer(rb'stream\r?\n(.*?)\r?\nendstream', raw, re.DOTALL):
+            try:
+                check('pdf_stream', zlib.decompress(match.group(1)))
+            except zlib.error:
+                continue
+    else:
+        method = 'text'
+        text = raw.decode('utf-8', 'replace')
+        text = html.unescape(text)
+        text = re.sub(r'\\u(-?\d+)\??', lambda m: chr(int(m.group(1)) % 65536), text)
+        check(path.name, raw, text)
+    status = 'found' if hits else 'unverifiable' if method == 'pdf_streams' else 'clean'
+    return {
+        'status': status,
+        'method': method,
+        'locations': sorted(set(hits)),
+        'term_hashes': [hashlib.sha256(term.encode()).hexdigest() for term in terms],
+    }
+
+
 def _term_encodings(terms):
     for term in terms:
         for encoding in ('utf-8', 'utf-16-le', 'utf-16-be'):
@@ -141,7 +243,7 @@ def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None, preser
 
     clean = new_document('Sanitized document')
     clean['blocks'] = []
-    removed_objects, dropped_styles, dropped_assets, preserved_assets = 0, [], [], []
+    removed_objects, dropped_styles, dropped_assets, preserved_assets, reencoded_assets = 0, [], [], [], []
     if 'styles' in preserve:
         for name, values in source.get('styles', {}).items():
             if _contains_term({name: values}, terms):
@@ -177,7 +279,13 @@ def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None, preser
             attrs = block.get('attrs', {})
             asset = source.get('assets', {}).get(attrs.get('asset'))
             raw = base64.b64decode(asset.get('data', '')) if isinstance(asset, dict) else b''
-            # Byte scans cannot read pixels; images whose bytes carry a term are removed.
+            if raw and any(needle in raw for needle in encoded):
+                # A term in metadata or trailing bytes: keep only re-encoded pixels, then re-verify.
+                stripped = _strip_image_metadata(raw, asset.get('mime', ''))
+                if stripped != raw:
+                    reencoded_assets.append(attrs.get('asset'))
+                raw = stripped
+            # Byte scans cannot read pixels; images whose bytes still carry a term are removed.
             if not raw or any(needle in raw for needle in encoded):
                 if raw:
                     dropped_assets.append(attrs.get('asset'))
@@ -286,6 +394,7 @@ def sanitize(doc: dict, targets: list, *, terms: list[str] | None = None, preser
         'preserved_assets': preserved_assets,
         'dropped_style_hashes': dropped_styles,
         'dropped_assets': dropped_assets,
+        'reencoded_assets': reencoded_assets,
         'losses': [
             'Sanitization rebuilds the document; marks, review, history and unselected categories are removed.'
         ]
@@ -407,9 +516,11 @@ def save_sanitized(doc, out_path, targets, *, terms=None, preserve=None):
     return report
 
 
-def export_clean(doc, path, format=None, profile=None, *, owner=None):
+def export_clean(doc, path, format=None, profile=None, *, owner=None, overwrite=True):
+    import tempfile
+
     from .checks import run_checks
-    from .exchange import export_document
+    from .exchange import export_document, publish_file
 
     settings = {
         'include_comments': False,
@@ -427,9 +538,24 @@ def export_clean(doc, path, format=None, profile=None, *, owner=None):
         'required_suites': [],
         **(profile or {}),
     }
+    settings.pop('clean', None)
     for key, value in settings.items():
         if key.startswith('include_') and type(value) is not bool:
             raise ByaxError('invalid_input', 'Publication inclusion settings must be booleans.', field=key)
+        if key.startswith('include_') and key not in PUBLICATION_CATEGORIES:
+            raise ByaxError(
+                'invalid_input',
+                'Unknown publication inclusion category.',
+                field=key,
+                supported=sorted(PUBLICATION_CATEGORIES),
+            )
+    residue_terms = settings.pop('verify_absent', None) or []
+    if not isinstance(residue_terms, list) or any(
+        not isinstance(term, str) or not term for term in residue_terms
+    ):
+        raise ByaxError(
+            'invalid_input', 'verify_absent must be a list of nonempty strings.', field='verify_absent'
+        )
     clean = copy.deepcopy(doc)
     for category in ('comments', 'tracked_changes', 'proposals', 'findings'):
         if not settings['include_' + category]:
@@ -504,8 +630,36 @@ def export_clean(doc, path, format=None, profile=None, *, owner=None):
             'Selected publication content did not satisfy required checks.',
             report=check,
         )
-    report = export_document(clean, path, format=format, profile=settings, owner=owner)
+    destination = Path(path)
+    original = doc.get('metadata', {}).get('import', {}).get('original_path')
+    if original and destination.resolve() == Path(original).resolve():
+        raise ByaxError(
+            'conflict', 'Publication must preserve the imported original; choose a separate output path'
+        )
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if not overwrite and destination.exists():
+        raise ByaxError(
+            'conflict', 'Output already exists; explicitly select overwrite', target=str(destination)
+        )
+    with tempfile.TemporaryDirectory(prefix='.byax-publish-', dir=destination.parent) as temporary:
+        stage = Path(temporary) / ('staged' + (destination.suffix or '.' + (format or '')))
+        report = export_document(clean, stage, format=format, profile=settings, owner=owner)
+        if residue_terms:
+            residue = inspect_residue(stage, residue_terms)
+            report['residue_inspection'] = residue
+            if residue['status'] == 'found':
+                raise ByaxError(
+                    'failed_requirement',
+                    'Serialized publication output still contains a selected term.',
+                    locations=residue['locations'],
+                )
+        publish_file(stage, destination, overwrite=overwrite, owner=owner)
+    report['outputs'] = [str(destination.resolve())]
     report['publication_policy'] = settings
+    report['inclusion'] = {
+        'included': sorted(key for key in PUBLICATION_CATEGORIES if settings[key]),
+        'excluded': sorted(key for key in PUBLICATION_CATEGORIES if not settings[key]),
+    }
     # Preserve adapter/layout validation: semantic checks cannot certify serialization.
     if check and check['validation'] != 'passed':
         report['validation'] = check['validation']
@@ -518,11 +672,9 @@ def export_clean(doc, path, format=None, profile=None, *, owner=None):
 
 def font_dependencies(doc):
     """Hash resolved primary font binaries when the platform exposes their files."""
-    import os
-    import shutil
-    import subprocess
-
     from PySide6.QtGui import QFont, QFontInfo
+
+    from .fonts import resolve_font_file
 
     selected = {'DejaVu Sans', 'DejaVu Serif'} | {
         value.get('font_family', 'Noto Sans') for value in doc.get('styles', {}).values()
@@ -540,51 +692,7 @@ def font_dependencies(doc):
             font.setBold(bold)
             font.setItalic(italic)
             resolved = QFontInfo(font).family()
-            from .fonts import bundled_font_path
-
-            path = bundled_font_path(resolved, bold, italic)
-            if path is None and os.name == 'posix' and shutil.which('fc-match'):
-                pattern = (
-                    resolved
-                    + ':weight='
-                    + ('bold' if bold else 'regular')
-                    + ':slant='
-                    + ('italic' if italic else 'roman')
-                )
-                result = subprocess.run(
-                    ['fc-match', '--format=%{file}', pattern],
-                    capture_output=True,
-                    timeout=5,
-                    check=False,
-                    text=True,
-                )
-                found = Path(result.stdout.strip())
-                if result.returncode == 0 and found.is_file():
-                    path = found
-            elif path is None and os.name == 'nt':
-                import winreg
-
-                style_name = resolved + (' Bold' if bold else '') + (' Italic' if italic else '')
-                for root in (winreg.HKEY_CURRENT_USER, winreg.HKEY_LOCAL_MACHINE):
-                    try:
-                        with winreg.OpenKey(
-                            root, r'SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts'
-                        ) as key:
-                            for index in range(winreg.QueryInfoKey(key)[1]):
-                                name, file, _ = winreg.EnumValue(key, index)
-                                if name.removesuffix(' (TrueType)').casefold() == style_name.casefold():
-                                    candidate = Path(file)
-                                    if not candidate.is_absolute():
-                                        candidate = (
-                                            Path(os.environ.get('WINDIR', r'C:\Windows'))
-                                            / 'Fonts'
-                                            / candidate
-                                        )
-                                    if candidate.is_file():
-                                        path = candidate
-                                        break
-                    except OSError:
-                        continue
+            path = resolve_font_file(resolved, bold, italic)
             dependencies.append(
                 {
                     'requested': family,
@@ -606,11 +714,16 @@ def reproduction_record(doc, settings=None):
     from .layout import ensure_app, render
 
     ensure_app()
+    from .fonts import glyph_fallbacks
+    from .storage import _check_secrets
+
     settings = dict(settings or {})
+    _check_secrets(settings)
     tolerance = settings.get('tolerance', {'channel_delta': 0, 'max_changed_fraction': 0})
     _validate_tolerance(tolerance)
     families = sorted(QFontDatabase.families())
     fonts = font_dependencies(doc)
+    glyphs = glyph_fallbacks(doc)
     record = {
         'schema_version': 1,
         'engine': __version__,
@@ -622,6 +735,7 @@ def reproduction_record(doc, settings=None):
         'font_families': families,
         'font_inventory_hash': _hash(families),
         'font_dependencies': fonts,
+        'glyph_fallbacks': glyphs,
         'assets': sorted(doc.get('assets', {})),
         'sources': {key: _hash(value) for key, value in doc.get('references', {}).items()},
         'settings': settings,
@@ -629,7 +743,11 @@ def reproduction_record(doc, settings=None):
         'references': [],
         'verification': 'dependency_inventory_only',
         'limitations': [
-            'Primary font files are hashed where resolvable; glyph-specific fallback fonts may differ.'
+            (
+                'Every font that shapes document text, including glyph-level fallbacks, is hashed from its '
+                'raw tables and from its file where resolvable; hinting/rasterizer differences are covered '
+                'only by the declared pixel tolerance.'
+            )
         ],
     }
     if settings.get('reference_dir'):
@@ -645,6 +763,38 @@ def reproduction_record(doc, settings=None):
         record['reference_render_findings'] = rendered.get('findings', [])
         record['verification'] = 'reference_recorded'
     return record
+
+
+def _fallback_drift(before, after):
+    """Name the fonts whose glyph coverage or binary identity changed between two records."""
+    if before is None:
+        return [{'change': 'not_recorded'}]
+
+    def index(value):
+        return {(font['family'], font['style']): font for font in (value or {}).get('fonts', [])}
+
+    old, new = index(before), index(after)
+    changes = []
+    for key in sorted(set(old) | set(new)):
+        if key not in new:
+            changes.append({'family': key[0], 'style': key[1], 'change': 'no_longer_used'})
+        elif key not in old:
+            changes.append({'family': key[0], 'style': key[1], 'change': 'newly_used'})
+        else:
+            for field in ('tables_sha256', 'file_sha256', 'characters_sha256'):
+                if old[key].get(field) != new[key].get(field):
+                    changes.append({'family': key[0], 'style': key[1], 'change': field})
+    before_missing = {item.get('codepoints') for item in before.get('missing_glyphs', [])}
+    after_missing = {item.get('codepoints') for item in (after or {}).get('missing_glyphs', [])}
+    if before_missing != after_missing:
+        changes.append(
+            {
+                'change': 'missing_glyphs',
+                'added': sorted(after_missing - before_missing),
+                'resolved': sorted(before_missing - after_missing),
+            }
+        )
+    return changes
 
 
 def _validate_tolerance(tolerance):
@@ -688,11 +838,13 @@ def reproduce(doc, record, out_dir):
         'qt',
         'font_inventory_hash',
         'font_dependencies',
+        'glyph_fallbacks',
         'assets',
         'sources',
         'platform',
     ]
     drift = [key for key in keys if current.get(key) != record.get(key)]
+    fallback_drift = _fallback_drift(record.get('glyph_fallbacks'), current.get('glyph_fallbacks'))
     result = render(doc, out_dir)
     outputs = [path for path in result['outputs'] if str(path).lower().endswith('.png')]
     comparisons = []
@@ -724,6 +876,14 @@ def reproduce(doc, record, out_dir):
     return {
         **result,
         'reproduction': {
+            'states': {
+                'renderable': bool(outputs),
+                'dependencies_matched': not drift,
+                'reference_verified': verified,
+                'drift': bool(drift),
+                'mismatch': bool(references) and not verified,
+            },
+            'fallback_drift': fallback_drift,
             'dependency_drift': drift,
             'dependencies_matched': not drift,
             'reference_verified': verified,

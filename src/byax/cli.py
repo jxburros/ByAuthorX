@@ -55,6 +55,7 @@ COMMANDS = {
     'proof': 'Create contact sheets, focused crops, and semantic diagnostic overlays',
     'table': 'Import or export CSV table values while preserving native identities and formatting',
     'template-batch': 'Fill independent copies of a template from CSV field rows',
+    'fonts': 'Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts',
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
@@ -126,6 +127,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'format': 'string',
         'profile': 'string',
         'overwrite': 'boolean',
+        'dry_run': 'boolean',
         'require_suite': 'array',
         'strict': 'boolean',
     },
@@ -135,6 +137,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'format': 'string',
         'profile': 'string',
         'overwrite': 'boolean',
+        'dry_run': 'boolean',
         'require_suite': 'array',
         'strict': 'boolean',
     },
@@ -165,7 +168,20 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'job_root': 'string',
     },
     'jobs': {'action': 'string', 'id': 'string', 'root': 'string', 'input': 'object'},
-    'batch': {'input': 'object', 'workers': 'integer', 'overwrite': 'boolean'},
+    'batch': {
+        'input': 'object',
+        'workers': 'integer',
+        'overwrite': 'boolean',
+        'max_memory_mb': 'integer',
+        'staging': 'string',
+    },
+    'fonts': {
+        'path': 'string',
+        'action': 'string',
+        'family': 'string',
+        'bold': 'boolean',
+        'italic': 'boolean',
+    },
     'redact': {'path': 'string', 'out': 'string', 'input': 'object', 'overwrite': 'boolean'},
     'proof': {
         'path': 'string',
@@ -589,7 +605,8 @@ def _exchange(command: str) -> Handler:
         from . import storage
         from .exchange import export_document, import_document
 
-        _destination(a['out'], a.get('overwrite', False), a['path'])
+        if not a.get('dry_run'):
+            _destination(a['out'], a.get('overwrite', False), a['path'])
         if command in ('import', 'convert'):
             doc, imported = import_document(a['path'])
         else:
@@ -599,16 +616,27 @@ def _exchange(command: str) -> Handler:
             if a.get('require_suite') or a.get('strict')
             else None
         )
+        overwrite = a.get('overwrite', False)
         if command in ('import', 'save-as'):
             storage.save_document(doc, a['out'], owner=owner)
             result: Result = {'outputs': [a['out']]}
+        elif a.get('dry_run'):
+            fmt = a.get('format') or Path(a['out']).suffix.lstrip('.')
+            result = export_document(doc, None, format=fmt, profile=a.get('profile'), preview=True)
         elif a.get('profile') == 'clean':
             from .publication import export_clean
 
-            result = export_clean(doc, a['out'], format=a.get('format'), profile=None, owner=owner)
+            result = export_clean(
+                doc, a['out'], format=a.get('format'), profile=None, owner=owner, overwrite=overwrite
+            )
         else:
             result = export_document(
-                doc, a['out'], format=a.get('format'), profile=a.get('profile'), owner=owner
+                doc,
+                a['out'],
+                format=a.get('format'),
+                profile=a.get('profile'),
+                owner=owner,
+                overwrite=overwrite,
             )
         if imported:
             result['import_report'] = imported
@@ -1037,51 +1065,59 @@ def _transcribe(a: Args, owner: str | None = None) -> Result:
 
 
 def _batch(a: Args, owner: str | None = None) -> Result:
-    from concurrent.futures import ThreadPoolExecutor
+    from .jobs import run_batch
 
     spec = a['input']
     if set(spec) - {'items'} or not isinstance(spec.get('items'), list):
         _error('invalid_input', 'Batch input must contain an items array')
-    items = spec['items']
-    if len(items) > 1000 or a.get('workers', 1) > 16:
-        _error('limit_exceeded', 'Batch limit is 1000 inputs and 16 workers')
-    destinations = [
-        str(Path(item['out']).resolve()) for item in items if isinstance(item, dict) and 'out' in item
-    ]
-    if len(set(destinations)) != len(destinations):
-        _error('invalid_input', 'Batch outputs must be distinct')
-
-    def run(item: Any) -> Result:
-        try:
-            if not isinstance(item, dict):
-                _error('invalid_input', 'Every batch item must be an object')
-            result = execute(
-                'convert', dict(item, overwrite=item.get('overwrite', a.get('overwrite', False)))
-            )
-            return {'input': item.get('path'), 'result': result, 'exit_code': result_exit_code(result)}
-        except Exception as exc:  # noqa: BLE001 - transport boundary must return structured failures
-            result, code = error_result(exc)
-            return {
-                'input': item.get('path') if isinstance(item, dict) else None,
-                'result': result,
-                'exit_code': code,
-            }
-
     if any(
         isinstance(item, dict)
         and (item.get('format') == 'pdf' or str(item.get('out', '')).lower().endswith('.pdf'))
-        for item in items
+        for item in spec['items']
     ):
         from .layout import ensure_app
 
         ensure_app()
-    with ThreadPoolExecutor(max_workers=a.get('workers', 1)) as executor:
-        results = list(executor.map(run, items))
-    failed = sum(bool(item['exit_code']) for item in results)
-    return envelope(
-        {'items': results, 'total': len(items), 'failed': failed},
-        execution='failed' if failed else 'completed',
+    report = run_batch(
+        spec['items'],
+        lambda item: execute('convert', item),
+        workers=a.get('workers', 1),
+        overwrite=a.get('overwrite', False),
+        max_memory_mb=a.get('max_memory_mb', 1024),
+        staging=a.get('staging', 'each'),
+        describe_error=error_result,
     )
+    return envelope(report, execution=report.pop('execution'))
+
+
+def _cmd_fonts(a: Args, owner: str | None) -> Result:
+    from . import fonts
+
+    action = a.get('action', 'inspect')
+    if action == 'inspect':
+        if not a.get('family'):
+            _error('invalid_input', 'Font inspection requires --family', field='family')
+        info = fonts.inspect_font(a['family'], a.get('bold', False), a.get('italic', False))
+        info.pop('path', None)
+        return envelope({'font': info})
+    if not a.get('path'):
+        _error('invalid_input', f'Font action {action} requires a document path', field='path')
+    if action == 'glyphs':
+        doc = _load(a['path'])
+        return envelope({'glyph_fallbacks': fonts.glyph_fallbacks(doc)}, doc)
+    if action == 'embed':
+        if not a.get('family'):
+            _error('invalid_input', 'Font embedding requires --family', field='family')
+
+        def embed(doc: Document) -> tuple[Document, Result, bool]:
+            from .engine import _commit
+
+            updated, info = fonts.embed_font(doc, a['family'], a.get('bold', False), a.get('italic', False))
+            committed = _commit(doc, updated, [{'type': 'embed_font', 'family': a['family']}])
+            return committed, {'font': info, 'changed_ids': [info['sha256']]}, True
+
+        return _mutate(a['path'], embed)
+    _error('invalid_input', 'Use fonts --action inspect, glyphs or embed')
 
 
 _HANDLERS: dict[str, Handler] = {
@@ -1114,6 +1150,7 @@ _HANDLERS: dict[str, Handler] = {
     'batch': _batch,
     'redact': _cmd_redact,
     'reproduction': _cmd_reproduction,
+    'fonts': _cmd_fonts,
 }
 
 

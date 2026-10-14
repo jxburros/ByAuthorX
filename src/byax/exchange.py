@@ -32,6 +32,42 @@ MAX_EXPANDED = 128 * 1024 * 1024
 MAX_REPEATED_SPACES = 1_000_000
 MAX_TABLE_CELLS = 100_000
 MAX_DEPTH = 256
+DOC_TIMEOUT = 90
+MARKDOWN_DIALECT = {
+    'name': 'commonmark+tables',
+    'parser': 'markdown-it-py CommonMark preset with the GFM pipe-table extension',
+    'constructs': {
+        'headings': 'ATX (# to ######) and setext (=== / ---); setext syntax is kept on localized edits',
+        'emphasis': '*italic* / _italic_, **bold** / __bold__ and `code` spans',
+        'lists': 'bullet (-, *, +) and ordered (1. or 1)) lists, nested by indentation',
+        'links': 'inline [text](url); only http(s), mailto, fragment and relative targets become links',
+        'images': '![alt](src) kept as an explicit external dependency; never fetched',
+        'quotations': '> block quotes, nested',
+        'code': 'fenced (``` or ~~~, info string retained) and indented code blocks',
+        'thematic_breaks': '---, *** and ___',
+        'tables': 'pipe tables with one header row and delimiter row',
+    },
+    'raw_html': 'kept as literal text; never parsed as active content',
+    'not_represented': [
+        'underline',
+        'strikethrough',
+        'superscript',
+        'subscript',
+        'color',
+        'highlight',
+        'font family/size',
+        'paragraph alignment and spacing',
+        'named styles',
+        'page layout',
+        'comments and tracked changes',
+        'footnotes',
+        'embedded image bytes',
+        'table spans and widths',
+    ],
+    'line_endings': 'LF or CRLF detected on import and preserved by localized edits',
+    'conversion': 'Formatting outside this dialect requires explicit conversion to .byax (or allow_markdown_losses) '
+    'when saving a Markdown source back to .md; layout syntax is never inserted into ordinary Markdown.',
+}
 
 
 def _id(prefix='block'):
@@ -97,6 +133,23 @@ def _raised_by_package_reader(exc):
     return origin.startswith((os.path.normcase(os.path.dirname(docx.__file__)) + os.sep, zip_source))
 
 
+def _parse_xml(raw, member):
+    """Distinguish hostile XML declarations from ordinary corruption."""
+    from xml.etree.ElementTree import ParseError
+
+    from defusedxml import DefusedXmlException
+    from defusedxml.ElementTree import fromstring
+
+    try:
+        return fromstring(raw)
+    except DefusedXmlException as exc:
+        raise ByaxError(
+            'unsafe_xml', 'Prohibited XML entity, DTD or external reference declaration', member=member
+        ) from exc
+    except (ParseError, ValueError, UnicodeError) as exc:
+        raise ByaxError('invalid_input', 'Malformed XML in document member', member=member) from exc
+
+
 def _safe_zip(raw):
     try:
         archive = zipfile.ZipFile(io.BytesIO(raw))
@@ -120,19 +173,12 @@ def _safe_zip(raw):
                     'resource_limit', 'Archive member exceeds size or expansion limit', member=item.filename
                 )
             if item.filename.endswith(('.xml', '.rels')):
-                from defusedxml.ElementTree import fromstring
-
-                try:
-                    fromstring(archive.read(item))
-                except Exception as exc:
-                    raise ByaxError(
-                        'unsafe_xml', 'Invalid XML or prohibited XML entity declaration', member=item.filename
-                    ) from exc
+                _parse_xml(archive.read(item), item.filename)
         corrupt = archive.testzip()
         if corrupt:
             raise ByaxError('invalid_input', 'Corrupt ZIP member', member=corrupt)
         return archive
-    except (zipfile.BadZipFile, NotImplementedError, EOFError, zlib.error) as exc:
+    except (zipfile.BadZipFile, NotImplementedError, EOFError, zlib.error, ValueError) as exc:
         raise ByaxError('invalid_input', 'Invalid ZIP-based document') from exc
 
 
@@ -168,6 +214,7 @@ def import_document(path):
     if path.stat().st_size > MAX_INPUT:
         raise ByaxError('resource_limit', 'Import file exceeds 32 MiB limit', path=str(path))
     raw, losses = path.read_bytes(), []
+    adapter = None
     doc = new_document(path.stem)
     doc['blocks'] = []
     source = None
@@ -189,7 +236,7 @@ def import_document(path):
         _safe_zip(raw).close()
         try:
             _import_docx(doc, raw, losses)
-        except (KeyError, AttributeError) as exc:
+        except (KeyError, AttributeError, ValueError) as exc:
             # python-docx reports missing or mistyped package parts this way; keep our own bugs visible.
             if not _raised_by_package_reader(exc):
                 raise
@@ -201,6 +248,7 @@ def import_document(path):
     elif fmt == 'doc':
         doc, adapter_report = _import_doc(path)
         losses.extend(adapter_report['losses'])
+        adapter = adapter_report.get('adapter')
     else:
         raise ByaxError('unsupported_format', f'Unsupported import format: {fmt or "(none)"}')
     for block in doc['blocks']:
@@ -244,12 +292,135 @@ def import_document(path):
                 'block_order': [b['id'] for b in doc['blocks']],
             }
         )
+        if fmt in ('md', 'markdown'):
+            provenance.update(
+                {
+                    'dialect': MARKDOWN_DIALECT['name'],
+                    'spans': {b['id']: b['attrs'].get('source_lines') for b in doc['blocks']},
+                    'structure': {b['id']: _md_structure(b) for b in doc['blocks']},
+                }
+            )
     doc['metadata']['import'] = provenance
     _snap_marks(doc)
     from .model import validate_document
 
     validate_document(doc)
-    return doc, _report(fmt, losses, direction='import')
+    audit = _content_audit(doc, fmt, raw, source, losses)
+    report = _report(fmt, losses, direction='import')
+    report['content_audit'] = audit
+    if adapter:
+        report['adapter'] = adapter
+    if fmt in ('md', 'markdown'):
+        report['dialect'] = MARKDOWN_DIALECT
+    return doc, report
+
+
+def _squash(value):
+    return re.sub(r'\s+', '', value or '')
+
+
+def _corpus(doc):
+    parts = []
+    for block in doc['blocks']:
+        parts.append(block.get('text', ''))
+        parts.extend(cell.get('text', '') for row in block.get('rows', []) for cell in row.get('cells', []))
+        parts.append(block.get('attrs', {}).get('alt', '') or '')
+    review = doc.get('review', {})
+    parts.extend(item.get('text', '') for item in review.get('comments', []))
+    parts.extend(
+        item.get('before', '')
+        for item in review.get('tracked_changes', [])
+        if isinstance(item.get('before'), str)
+    )
+    for region in ('header', 'footer'):
+        value = doc.get('layout', {}).get(region, '')
+        parts.append(value if isinstance(value, str) else value.get('text', ''))
+    return _squash('\n'.join(parts))
+
+
+def _content_audit(doc, fmt, raw, source, losses):
+    """Compare source text segments with imported content so omissions are always located."""
+    segments = []
+    if fmt == 'docx':
+        w = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+        mc = '{http://schemas.openxmlformats.org/markup-compatibility/2006}'
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            for member in (
+                'word/document.xml',
+                'word/footnotes.xml',
+                'word/endnotes.xml',
+                'word/comments.xml',
+                *[name for name in archive.namelist() if re.fullmatch(r'word/(header|footer)\d*\.xml', name)],
+            ):
+                if member not in archive.namelist():
+                    continue
+                root = _parse_xml(archive.read(member), member)
+                fallback = {id(node) for parent in root.iter(mc + 'Fallback') for node in parent.iter()}
+
+                def own(node):
+                    text = node.text or '' if node.tag == w + 't' else ''
+                    for child in node:
+                        if child.tag not in (w + 'p', mc + 'Fallback'):
+                            text += own(child)
+                    return text
+
+                separators = {
+                    id(node)
+                    for kind in ('footnote', 'endnote')
+                    for note in root.iter(w + kind)
+                    if note.get(w + 'type') not in (None, 'normal')
+                    for node in note.iter()
+                }
+                for index, paragraph in enumerate(root.iter(w + 'p')):
+                    if id(paragraph) not in fallback and id(paragraph) not in separators:
+                        segments.append((f'{member}#p{index + 1}', own(paragraph)))
+    elif fmt == 'odt':
+        with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            root = _parse_xml(archive.read('content.xml'), 'content.xml')
+            text_ns = '{urn:oasis:names:tc:opendocument:xmlns:text:1.0}'
+            nested = {text_ns + name for name in ('p', 'h', 'note', 'tracked-changes')} | {
+                '{urn:oasis:names:tc:opendocument:xmlns:office:1.0}annotation'
+            }
+
+            def own(node):
+                text = node.text or ''
+                for child in node:
+                    if child.tag not in nested:
+                        text += own(child)
+                    text += child.tail or ''
+                return text
+
+            body = [node for node in root.iter() if node.tag in (text_ns + 'p', text_ns + 'h')]
+            changes = {
+                id(node) for region in root.iter(text_ns + 'tracked-changes') for node in region.iter()
+            }
+            for index, paragraph in enumerate(body):
+                if id(paragraph) not in changes:
+                    segments.append((f'content.xml#p{index + 1}', own(paragraph)))
+    elif fmt == 'txt':
+        segments = [(f'line:{index + 1}', line) for index, line in enumerate(source.splitlines())]
+    else:
+        return {
+            'method': 'original_source_retained',
+            'status': 'not_audited',
+            'note': 'Original bytes are attached; this adapter is not text-segment audited.',
+        }
+    corpus, missing = _corpus(doc), []
+    for location, text in segments:
+        if _squash(text) and _squash(text) not in corpus:
+            missing.append(location)
+            _loss(
+                losses,
+                'content_omitted',
+                'Source text was not represented as editable content; it remains in the original attachment.',
+                location,
+            )
+    return {
+        'method': 'source_text_segments',
+        'segments': len(segments),
+        'missing': missing,
+        'status': 'omissions_reported' if missing else 'complete',
+    }
 
 
 def _snap_marks(doc):
@@ -578,49 +749,54 @@ def _import_docx(doc, raw, losses):
     from docx.oxml.ns import qn
     from docx.table import Table
     from docx.text.paragraph import Paragraph
+    from docx.text.run import Run
 
     word = Document(io.BytesIO(raw))
     for style in word.styles:
-        if str(style.type) not in ('PARAGRAPH (1)', 'CHARACTER (2)'):
-            continue
-        values = {'family': 'text' if str(style.type) == 'CHARACTER (2)' else 'paragraph'}
-        if style.base_style is not None:
-            values['based_on'] = style.base_style.style_id
-        for key, value in (
-            ('bold', style.font.bold),
-            ('italic', style.font.italic),
-            ('underline', style.font.underline),
-            ('strikethrough', style.font.strike),
-            ('font_family', style.font.name),
-            ('font_size', style.font.size.pt if style.font.size else None),
-        ):
-            if value is not None:
-                values[key] = value
-        if style.font.color.rgb:
-            values['color'] = '#' + str(style.font.color.rgb)
-        if str(style.type) == 'PARAGRAPH (1)':
-            pf = style.paragraph_format
-            for key, prop in (
-                ('space_before', 'space_before'),
-                ('space_after', 'space_after'),
-                ('indent', 'left_indent'),
-                ('first_line_indent', 'first_line_indent'),
+        try:
+            if str(style.type) not in ('PARAGRAPH (1)', 'CHARACTER (2)'):
+                continue
+            values = {'family': 'text' if str(style.type) == 'CHARACTER (2)' else 'paragraph'}
+            if style.base_style is not None:
+                values['based_on'] = style.base_style.style_id
+            for key, value in (
+                ('bold', style.font.bold),
+                ('italic', style.font.italic),
+                ('underline', style.font.underline),
+                ('strikethrough', style.font.strike),
+                ('font_family', style.font.name),
+                ('font_size', style.font.size.pt if style.font.size else None),
             ):
-                value = getattr(pf, prop)
                 if value is not None:
-                    values[key] = value.pt
-        doc['styles'][style.style_id] = values
+                    values[key] = value
+            if style.font.color.rgb:
+                values['color'] = '#' + str(style.font.color.rgb)
+            if str(style.type) == 'PARAGRAPH (1)':
+                pf = style.paragraph_format
+                for key, prop in (
+                    ('space_before', 'space_before'),
+                    ('space_after', 'space_after'),
+                    ('indent', 'left_indent'),
+                    ('first_line_indent', 'first_line_indent'),
+                ):
+                    value = getattr(pf, prop)
+                    if value is not None:
+                        values[key] = value.pt
+            doc['styles'][style.style_id] = values
+        except (ValueError, AttributeError):
+            _loss(
+                losses,
+                'docx_style_partial',
+                'A style uses values outside the supported Word subset and was not imported; the original remains attached.',
+                'styles/' + str(style.style_id),
+            )
     if word.sections:
         section = word.sections[0]
-        doc['layout'].update(
-            {
-                'width': section.page_width.pt,
-                'height': section.page_height.pt,
-                'margins': {
-                    key: getattr(section, f'{key}_margin').pt for key in ('top', 'right', 'bottom', 'left')
-                },
-            }
-        )
+        if section.page_width and section.page_height:
+            doc['layout'].update({'width': section.page_width.pt, 'height': section.page_height.pt})
+        for key in ('top', 'right', 'bottom', 'left'):
+            if getattr(section, f'{key}_margin') is not None:
+                doc['layout']['margins'][key] = getattr(section, f'{key}_margin').pt
         doc['layout']['header'] = '\n'.join(p.text for p in section.header.paragraphs)
         doc['layout']['footer'] = '\n'.join(p.text for p in section.footer.paragraphs)
         if len(word.sections) > 1:
@@ -636,68 +812,210 @@ def _import_docx(doc, raw, losses):
             'author': word.core_properties.author or '',
         }
     )
-    for child in word.element.body:
-        if child.tag == qn('w:p'):
-            paragraph = Paragraph(child, word)
-            name = paragraph.style.name if paragraph.style else 'Normal'
-            match = re.match(r'Heading (\d)', name)
-            block = _block(paragraph.text, 'heading' if match else 'paragraph')
-            if paragraph.style:
-                block['style'] = paragraph.style.style_id
-            if match:
-                block['attrs']['level'] = _heading_level(int(match[1]), losses, block['id'])
+    w = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+    mc = '{http://schemas.openxmlformats.org/markup-compatibility/2006}'
+    numbering = _docx_numbering(word, w)
+    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
+        notes = {kind: _docx_notes(archive, kind, w) for kind in ('footnote', 'endnote')}
+        comments = _docx_comments(archive, w)
+        if any(name.startswith('word/vbaProject') for name in archive.namelist()):
+            _loss(
+                losses,
+                'docx_macros',
+                'Macro project retained only in the original attachment; it is never executed.',
+                'word/vbaProject.bin',
+            )
+    anchors, ends, bookmarks = {}, {}, doc['settings'].setdefault('bookmarks', {})
+
+    def paragraph_block(element, paragraph):
+        name = paragraph.style.name if paragraph.style else 'Normal'
+        match = re.match(r'Heading (\d)', name)
+        block = _block('', 'heading' if match else 'paragraph')
+        if paragraph.style:
+            block['style'] = paragraph.style.style_id
+        if match:
+            block['attrs']['level'] = _heading_level(int(match[1]), losses, block['id'])
+        try:
             alignment = {0: 'left', 1: 'center', 2: 'right', 3: 'justify'}.get(paragraph.alignment)
-            if alignment:
-                block['attrs']['alignment'] = alignment
-            for prop, target in (
-                ('space_before', 'space_before'),
-                ('space_after', 'space_after'),
-                ('left_indent', 'indent'),
-                ('first_line_indent', 'first_line_indent'),
-            ):
-                value = getattr(paragraph.paragraph_format, prop)
-                if value is not None:
-                    block['attrs'][target] = value.pt
-            offset = 0
-            content_runs = []
-            if hasattr(paragraph, 'iter_inner_content'):
-                for item in paragraph.iter_inner_content():
-                    if hasattr(item, 'runs'):
-                        content_runs.extend((run, item.url) for run in item.runs)
-                    else:
-                        content_runs.append((item, None))
-            else:
-                content_runs = [(run, None) for run in paragraph.runs]
-            for run, hyperlink in content_runs:
-                if hyperlink and _safe_url(hyperlink):
-                    block['marks'].append(
-                        {'start': offset, 'end': offset + len(run.text), 'type': 'link', 'value': hyperlink}
-                    )
-                for key, value in (
-                    ('bold', run.bold),
-                    ('italic', run.italic),
-                    ('underline', run.underline),
-                    ('strikethrough', run.font.strike),
-                    ('superscript', run.font.superscript),
-                    ('subscript', run.font.subscript),
-                    ('font_family', run.font.name),
-                    ('font_size', run.font.size.pt if run.font.size else None),
-                    ('color', '#' + str(run.font.color.rgb) if run.font.color.rgb else None),
-                ):
-                    if value is not None:
-                        block['marks'].append(
-                            {'start': offset, 'end': offset + len(run.text), 'type': key, 'value': value}
+        except ValueError:
+            # Producers such as LibreOffice write bidi-aware values python-docx cannot map.
+            value = element.find(w + 'pPr/' + w + 'jc') if element.find(w + 'pPr') is not None else None
+            alignment = {'start': 'left', 'end': 'right', 'both': 'justify', 'center': 'center'}.get(
+                value.get(w + 'val') if value is not None else None
+            )
+        if alignment:
+            block['attrs']['alignment'] = alignment
+        for prop, target in (
+            ('space_before', 'space_before'),
+            ('space_after', 'space_after'),
+            ('left_indent', 'indent'),
+            ('first_line_indent', 'first_line_indent'),
+        ):
+            value = getattr(paragraph.paragraph_format, prop)
+            if value is not None:
+                block['attrs'][target] = value.pt
+        state = {'inserted': [], 'deleted': [], 'fields': [], 'stack': [], 'notes': [], 'authors': set()}
+
+        def add_run(node, hyperlink, change):
+            run = Run(node, paragraph)
+            for item in node:
+                if item.tag == w + 'fldChar':
+                    kind = item.get(w + 'fldCharType')
+                    if kind == 'begin':
+                        state['stack'].append({'instruction': '', 'start': None})
+                    elif kind == 'separate' and state['stack']:
+                        state['stack'][-1]['start'] = len(block['text'])
+                    elif kind == 'end' and state['stack']:
+                        field = state['stack'].pop()
+                        start = len(block['text']) if field['start'] is None else field['start']
+                        state['fields'].append(
+                            {
+                                'instruction': field['instruction'].strip(),
+                                'start': start,
+                                'end': len(block['text']),
+                            }
                         )
-                offset += len(run.text)
-            if child.xpath('.//w:numPr'):
-                block['attrs']['list'] = 'bullet'
+                elif item.tag == w + 'instrText' and state['stack']:
+                    state['stack'][-1]['instruction'] += item.text or ''
+                elif item.tag in (w + 'footnoteReference', w + 'endnoteReference'):
+                    state['notes'].append(
+                        ('footnote' if item.tag == w + 'footnoteReference' else 'endnote', item.get(w + 'id'))
+                    )
+                elif item.tag == w + 'commentReference':
+                    anchors.setdefault(item.get(w + 'id'), (block, len(block['text'])))
+                    ends.setdefault(item.get(w + 'id'), (block, len(block['text'])))
+            text = run.text
+            start, end = len(block['text']), len(block['text']) + len(text)
+            if not text:
+                return
+            if hyperlink and _safe_url(hyperlink):
+                block['marks'].append({'start': start, 'end': end, 'type': 'link', 'value': hyperlink})
+            for key, value in (
+                ('bold', run.bold),
+                ('italic', run.italic),
+                ('underline', run.underline),
+                ('strikethrough', run.font.strike),
+                ('superscript', run.font.superscript),
+                ('subscript', run.font.subscript),
+                ('font_family', run.font.name),
+                ('font_size', run.font.size.pt if run.font.size else None),
+                ('color', '#' + str(run.font.color.rgb) if run.font.color.rgb else None),
+            ):
+                if value is not None:
+                    block['marks'].append({'start': start, 'end': end, 'type': key, 'value': value})
+            block['text'] += text
+            if change:
+                state['inserted'].append((start, end))
+
+        def walk(element, hyperlink=None, change=None):
+            for node in element:
+                tag = node.tag
+                if tag == w + 'r':
+                    add_run(node, hyperlink, change)
+                elif tag == w + 'hyperlink':
+                    rid = node.get(qn('r:id'))
+                    url = word.part.rels[rid].target_ref if rid in word.part.rels else None
+                    if node.get(w + 'anchor'):
+                        url = '#' + node.get(w + 'anchor')
+                    walk(node, url, change)
+                elif tag in (w + 'ins', w + 'moveTo'):
+                    state['authors'].add(node.get(w + 'author', ''))
+                    walk(node, hyperlink, 'insert')
+                elif tag in (w + 'del', w + 'moveFrom'):
+                    state['authors'].add(node.get(w + 'author', ''))
+                    removed = ''.join(item.text or '' for item in node.iter(w + 'delText'))
+                    removed += ''.join(item.text or '' for item in node.iter(w + 't'))
+                    if removed:
+                        state['deleted'].append((len(block['text']), removed))
+                elif tag == w + 'fldSimple':
+                    start = len(block['text'])
+                    walk(node, hyperlink, change)
+                    state['fields'].append(
+                        {
+                            'instruction': (node.get(w + 'instr') or '').strip(),
+                            'start': start,
+                            'end': len(block['text']),
+                        }
+                    )
+                elif tag in (w + 'smartTag', w + 'sdt', w + 'sdtContent', w + 'customXml'):
+                    walk(node, hyperlink, change)
+                elif tag == w + 'bookmarkStart':
+                    name = node.get(w + 'name')
+                    if name and not name.startswith('_'):
+                        bookmarks[name] = {'target': block['id'], 'offset': len(block['text'])}
+                elif tag == w + 'commentRangeStart':
+                    anchors[node.get(w + 'id')] = (block, len(block['text']))
+                elif tag == w + 'commentRangeEnd':
+                    ends[node.get(w + 'id')] = (block, len(block['text']))
+
+        walk(element)
+        for field in state['fields']:
+            link = re.match(r'HYPERLINK\s+(\\l\s+)?"([^"]+)"', field['instruction'])
+            if link and field['end'] > field['start']:
+                url = ('#' if link[1] else '') + link[2]
+                if _safe_url(url):
+                    block['marks'].append(
+                        {'start': field['start'], 'end': field['end'], 'type': 'link', 'value': url}
+                    )
+                continue
+            block['attrs'].setdefault('fields', []).append(field)
+            _loss(
+                losses,
+                'docx_field',
+                f'Field result imported as static text; instruction {field["instruction"].split(" ")[0] or "(empty)"} is recorded but will not update.',
+                block['id'],
+            )
+        if state['inserted'] or state['deleted']:
+            before = _before_text(block['text'], state['inserted'], state['deleted'])
+            doc['review']['tracked_changes'].append(
+                {
+                    'id': _id('change'),
+                    'target': block['id'],
+                    'before': before,
+                    'after': block['text'],
+                    'before_marks': [],
+                    'after_marks': copy.deepcopy(block['marks']),
+                    'status': 'pending',
+                    'base_revision': doc['revision'],
+                    'source': 'docx',
+                    'authors': sorted(a for a in state['authors'] if a),
+                }
+            )
+        properties = element.find(w + 'pPr')
+        numbering_properties = properties.find(w + 'numPr') if properties is not None else None
+        if numbering_properties is not None:
+            num = numbering_properties.find(w + 'numId')
+            level = numbering_properties.find(w + 'ilvl')
+            ilvl = int(level.get(w + 'val', '0')) if level is not None else 0
+            formats, overridden = numbering.get(num.get(w + 'val') if num is not None else None, ({}, False))
+            block['attrs']['list'] = (
+                'bullet' if formats.get(ilvl, 'bullet') in ('bullet', 'none') else 'ordered'
+            )
+            block['attrs']['level'] = ilvl + 1
+            if overridden:
                 _loss(
                     losses,
                     'docx_list_numbering',
-                    'List membership retained; original numbering definitions/restarts are not resolved.',
+                    'List kind and level imported; numbering restarts/start overrides are not resolved.',
                     block['id'],
                 )
+        return block, state['notes']
+
+    for child in word.element.body:
+        if child.tag == qn('w:p'):
+            block, note_refs = paragraph_block(child, Paragraph(child, word))
             doc['blocks'].append(block)
+            for kind, note_id in note_refs:
+                note = _block(notes[kind].get(note_id, ''), 'footnote', reference=block['id'])
+                if kind == 'endnote':
+                    note['attrs']['note_class'] = 'endnote'
+                    _loss(
+                        losses,
+                        'docx_endnote',
+                        'Endnote imported as an associated note; end-of-document placement is not preserved.',
+                        note['id'],
+                    )
+                doc['blocks'].append(note)
             for drawing in child.xpath('.//a:blip'):
                 relationship = drawing.get(qn('r:embed'))
                 if relationship in word.part.related_parts:
@@ -711,21 +1029,32 @@ def _import_docx(doc, raw, losses):
                         'Image bytes imported; original inline/anchor position, wrapping and alternative text require review.',
                         image['id'],
                     )
-            for unsupported in (
-                'ins',
-                'del',
-                'commentRangeStart',
-                'footnoteReference',
-                'fldChar',
-                'bookmarkStart',
-                'pict',
-                'oMath',
-            ):
+                elif drawing.get(qn('r:link')):
+                    _loss(
+                        losses,
+                        'docx_linked_image',
+                        'Linked external image was not retrieved; explicit embedding is required.',
+                        block['id'],
+                    )
+            for box in child.iter(w + 'txbxContent'):
+                if any(ancestor.tag == mc + 'Fallback' for ancestor in box.iterancestors()):
+                    continue
+                for inner in box.iter(w + 'p'):
+                    text_box, _refs = paragraph_block(inner, Paragraph(inner, word))
+                    text_box['attrs']['text_box'] = True
+                    doc['blocks'].append(text_box)
+                    _loss(
+                        losses,
+                        'docx_textbox',
+                        'Text box content imported as a following paragraph; frame position and wrapping are not preserved.',
+                        text_box['id'],
+                    )
+            for unsupported in ('pict', 'object', 'oMath'):
                 if child.xpath(f'.//w:{unsupported}' if unsupported != 'oMath' else './/m:oMath'):
                     _loss(
                         losses,
                         'docx_' + unsupported,
-                        f'Word {unsupported} structure is retained only in original attachment; displayed paragraph text may omit this content.',
+                        f'Word {unsupported} structure is retained only in original attachment; it is not executed or editable.',
                         block['id'],
                     )
         elif child.tag == qn('w:tbl'):
@@ -748,6 +1077,16 @@ def _import_docx(doc, raw, losses):
                 'Table text and grid retained; cell marks, merged spans, widths and border details require review.',
                 block['id'],
             )
+        elif child.tag == qn('w:sdt'):
+            for inner in child.iter(w + 'p'):
+                block, _refs = paragraph_block(inner, Paragraph(inner, word))
+                doc['blocks'].append(block)
+            _loss(
+                losses,
+                'docx_content_control',
+                'Content control text imported; control binding and protection are not preserved.',
+                'body',
+            )
         elif child.tag != qn('w:sectPr'):
             _loss(
                 losses,
@@ -755,15 +1094,103 @@ def _import_docx(doc, raw, losses):
                 f'Unsupported Word body element {child.tag}; original remains attached.',
                 'body',
             )
-    with zipfile.ZipFile(io.BytesIO(raw)) as archive:
-        for name in archive.namelist():
-            if name.startswith(('word/comments', 'word/footnotes', 'word/endnotes', 'word/vbaProject')):
-                _loss(
-                    losses,
-                    'docx_attachment',
-                    f'{name} is preserved in original attachment, not imported as editable content.',
-                    name,
-                )
+    for comment_id, comment in comments.items():
+        anchor = anchors.get(comment_id)
+        if anchor is None:
+            if not doc['blocks']:
+                continue
+            anchor = (doc['blocks'][0], 0)
+            _loss(
+                losses,
+                'docx_comment_unanchored',
+                'Comment had no resolvable anchor; attached to the first block.',
+                doc['blocks'][0]['id'],
+            )
+        block, start = anchor
+        end_block, end = ends.get(comment_id, (block, len(block['text'])))
+        if end_block is not block or end < start:
+            end = len(block['text'])
+            _loss(
+                losses,
+                'docx_comment_range',
+                'Comment range spans paragraphs; anchored to the end of its first paragraph.',
+                block['id'],
+            )
+        doc['review']['comments'].append(
+            {
+                'id': _id('comment'),
+                'target': block['id'],
+                'start': start,
+                'end': end,
+                'text': comment['text'],
+                'author': comment['author'],
+                'status': 'open',
+                'revision': doc['revision'],
+                'source': 'docx',
+            }
+        )
+
+
+def _before_text(text, inserted, deleted):
+    """Reconstruct pre-review text from inserted ranges and point deletions."""
+    covered = {i for start, end in inserted for i in range(start, end)}
+    removed = {}
+    for offset, value in deleted:
+        removed[offset] = removed.get(offset, '') + value
+    return ''.join(
+        removed.get(i, '') + ('' if i in covered else char) for i, char in enumerate(text)
+    ) + removed.get(len(text), '')
+
+
+def _docx_numbering(word, w):
+    try:
+        root = word.part.numbering_part.element
+    except (KeyError, NotImplementedError, AttributeError):
+        return {}
+    abstract = {}
+    for item in root.findall(w + 'abstractNum'):
+        levels = {}
+        for level in item.findall(w + 'lvl'):
+            fmt = level.find(w + 'numFmt')
+            levels[int(level.get(w + 'ilvl', '0'))] = fmt.get(w + 'val') if fmt is not None else 'bullet'
+        abstract[item.get(w + 'abstractNumId')] = levels
+    result = {}
+    for num in root.findall(w + 'num'):
+        reference = num.find(w + 'abstractNumId')
+        result[num.get(w + 'numId')] = (
+            abstract.get(reference.get(w + 'val') if reference is not None else None, {}),
+            bool(num.findall(w + 'lvlOverride')),
+        )
+    return result
+
+
+def _docx_notes(archive, kind, w):
+    member = f'word/{kind}s.xml'
+    if member not in archive.namelist():
+        return {}
+    root = _parse_xml(archive.read(member), member)
+    return {
+        note.get(w + 'id'): '\n'.join(
+            ''.join(t.text or '' for t in p.iter(w + 't')) for p in note.iter(w + 'p')
+        ).strip()
+        for note in root.findall(w + kind)
+        if note.get(w + 'type') in (None, 'normal')
+    }
+
+
+def _docx_comments(archive, w):
+    if 'word/comments.xml' not in archive.namelist():
+        return {}
+    root = _parse_xml(archive.read('word/comments.xml'), 'word/comments.xml')
+    return {
+        item.get(w + 'id'): {
+            'author': item.get(w + 'author', ''),
+            'text': '\n'.join(
+                ''.join(t.text or '' for t in p.iter(w + 't')) for p in item.iter(w + 'p')
+            ).strip(),
+        }
+        for item in root.findall(w + 'comment')
+    }
 
 
 def _import_odt(doc, raw, losses):
@@ -778,6 +1205,7 @@ def _import_odt(doc, raw, losses):
         'style': 'urn:oasis:names:tc:opendocument:xmlns:style:1.0',
         'fo': 'urn:oasis:names:tc:opendocument:xmlns:xsl-fo-compatible:1.0',
         'svg': 'urn:oasis:names:tc:opendocument:xmlns:svg-compatible:1.0',
+        'xml': 'http://www.w3.org/XML/1998/namespace',
     }
 
     def attr(element, family, key, default=None):
@@ -926,6 +1354,48 @@ def _import_odt(doc, raw, losses):
                         block['text'] += '\t'
                     elif name == 'line-break':
                         block['text'] += '\n'
+                    elif name == 'annotation' and child.tag.startswith('{' + ns['office']):
+                        paragraphs = child.findall('text:p', ns)
+                        creator = (
+                            next((node.text for node in child if node.tag.endswith('}creator')), '') or ''
+                        )
+                        pending_comments.append(
+                            {
+                                'block': block,
+                                'start': len(block['text']),
+                                'name': attr(child, 'office', 'name'),
+                                'text': '\n'.join(''.join(p.itertext()) for p in paragraphs),
+                                'author': creator,
+                            }
+                        )
+                    elif name == 'annotation-end':
+                        for comment in pending_comments:
+                            if (
+                                comment.get('name')
+                                and comment['name'] == attr(child, 'office', 'name')
+                                and comment['block'] is block
+                            ):
+                                comment['end'] = len(block['text'])
+                    elif name in ('bookmark', 'bookmark-start'):
+                        bookmark = attr(child, 'text', 'name')
+                        if bookmark:
+                            doc['settings'].setdefault('bookmarks', {})[bookmark] = {
+                                'target': block['id'],
+                                'offset': len(block['text']),
+                            }
+                    elif name in ('change-start', 'change-end', 'change', 'bookmark-end', 'soft-page-break'):
+                        change_id = attr(child, 'text', 'change-id')
+                        events = tracked_marks.setdefault(
+                            block['id'], {'open': {}, 'inserted': [], 'deleted': []}
+                        )
+                        if name == 'change-start':
+                            events['open'][change_id] = len(block['text'])
+                        elif name == 'change-end' and change_id in events['open']:
+                            start = events['open'].pop(change_id)
+                            if regions.get(change_id, ('',))[0] == 'insertion':
+                                events['inserted'].append((start, len(block['text'])))
+                        elif name == 'change' and regions.get(change_id, ('',))[0] == 'deletion':
+                            events['deleted'].append((len(block['text']), regions[change_id][1]))
                     elif name == 'note':
                         body = child.find('text:note-body', ns)
                         note = _block(
@@ -975,6 +1445,32 @@ def _import_odt(doc, raw, losses):
                                         'value': href,
                                     }
                                 )
+                        elif name in (
+                            'date',
+                            'time',
+                            'page-number',
+                            'page-count',
+                            'author-name',
+                            'title',
+                            'subject',
+                            'chapter',
+                            'user-field-get',
+                            'variable-get',
+                            'sequence',
+                            'bookmark-ref',
+                            'reference-ref',
+                            'note-ref',
+                            'file-name',
+                        ):
+                            block['attrs'].setdefault('fields', []).append(
+                                {'instruction': name, 'start': child_start, 'end': len(block['text'])}
+                            )
+                            _loss(
+                                losses,
+                                'odt_field',
+                                f'ODT {name} field result imported as static text; it will not update.',
+                                block['id'],
+                            )
                     if child.tail:
                         block['text'] += child.tail
                 for key, value in style_values(attr(node, 'text', 'style-name')).items():
@@ -985,7 +1481,7 @@ def _import_odt(doc, raw, losses):
 
             walk(element)
 
-        pending_notes, pending_images = [], []
+        pending_notes, pending_images, pending_comments, tracked_marks = [], [], [], {}
 
         def paragraph(element, list_level=0, list_kind='bullet'):
             name = element.tag.rsplit('}', 1)[-1]
@@ -1073,6 +1569,14 @@ def _import_odt(doc, raw, losses):
                         )
                     total += len(cells) * row_repeat
                 doc['blocks'].append(block)
+            elif name == 'tracked-changes':
+                if any(kind == 'format-change' for kind, _ in regions.values()):
+                    _loss(
+                        losses,
+                        'odt_format_change',
+                        'Tracked formatting changes are not imported as native review.',
+                        'body/tracked-changes',
+                    )
             elif name in ('sequence-decls', 'user-field-decls', 'variable-decls'):
                 _loss(
                     losses,
@@ -1094,17 +1598,101 @@ def _import_odt(doc, raw, losses):
         body = roots[0].find('.//office:text', ns)
         if body is None:
             raise ByaxError('invalid_input', 'ODT lacks text body')
+        regions = {}
+        for region in body.findall('text:tracked-changes/text:changed-region', ns):
+            for kind in ('insertion', 'deletion', 'format-change'):
+                change = region.find('text:' + kind, ns)
+                if change is not None:
+                    removed = '\n'.join(''.join(p.itertext()) for p in change.findall('text:p', ns))
+                    regions[attr(region, 'text', 'id') or attr(region, 'xml', 'id')] = (kind, removed)
         for element in body:
             visit(element)
+        known = {block['id'] for block in doc['blocks']}
+        for comment in pending_comments:
+            block = comment['block']
+            if block['id'] not in known:
+                block = doc['blocks'][0] if doc['blocks'] else None
+                if block is None:
+                    continue
+                comment.update(start=0, end=0)
+                _loss(
+                    losses,
+                    'odt_comment_unanchored',
+                    'Comment anchored inside an unsupported container; attached to the first block.',
+                    block['id'],
+                )
+            end = max(comment['start'], min(comment.get('end', len(block['text'])), len(block['text'])))
+            doc['review']['comments'].append(
+                {
+                    'id': _id('comment'),
+                    'target': block['id'],
+                    'start': min(comment['start'], end),
+                    'end': end,
+                    'text': comment['text'],
+                    'author': comment['author'],
+                    'status': 'open',
+                    'revision': doc['revision'],
+                    'source': 'odt',
+                }
+            )
+        for block in doc['blocks']:
+            events = tracked_marks.get(block['id'])
+            if events and (events['inserted'] or events['deleted']):
+                doc['review']['tracked_changes'].append(
+                    {
+                        'id': _id('change'),
+                        'target': block['id'],
+                        'before': _before_text(block['text'], events['inserted'], events['deleted']),
+                        'after': block['text'],
+                        'before_marks': [],
+                        'after_marks': copy.deepcopy(block['marks']),
+                        'status': 'pending',
+                        'base_revision': doc['revision'],
+                        'source': 'odt',
+                    }
+                )
+
+
+def _run_bounded(command, timeout):
+    """Run an explicitly configured local converter; kill its whole process group on timeout."""
+    options = (
+        {'start_new_session': True}
+        if os.name == 'posix'
+        else {'creationflags': getattr(subprocess, 'CREATE_NEW_PROCESS_GROUP', 0)}
+    )
+    process = subprocess.Popen(
+        command,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        stdin=subprocess.DEVNULL,
+        shell=False,
+        **options,
+    )
+    try:
+        stdout, _stderr = process.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        if os.name == 'posix':
+            import signal
+
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except OSError:
+                process.kill()
+        else:
+            process.kill()
+        process.communicate()
+        raise
+    return process.returncode, stdout[:4096]
 
 
 def _import_doc(path):
     configured = os.environ.get('BYAX_LIBREOFFICE')
-    if not configured or not Path(configured).is_file():
+    if not configured or not Path(configured).is_absolute() or not Path(configured).is_file():
         raise ByaxError(
             'adapter_unavailable',
             'DOC import requires the absolute path to a local LibreOffice executable in BYAX_LIBREOFFICE',
         )
+    executable = str(Path(configured).resolve())
     with tempfile.TemporaryDirectory(prefix='byax-doc-') as temporary:
         root = Path(temporary)
         profile = root / 'profile'
@@ -1113,32 +1701,46 @@ def _import_doc(path):
             '<?xml version="1.0" encoding="UTF-8"?><oor:items xmlns:oor="http://openoffice.org/2001/registry"><item oor:path="/org.openoffice.Office.Common/Security/Scripting"><prop oor:name="MacroSecurityLevel" oor:op="fuse"><value>3</value></prop></item></oor:items>',
             encoding='utf-8',
         )
+        environment = [
+            '-env:UserInstallation=' + profile.as_uri(),
+            '--headless',
+            '--nologo',
+            '--nodefault',
+            '--norestore',
+        ]
         try:
-            result = subprocess.run(
+            code, version = _run_bounded([executable, *environment, '--version'], min(DOC_TIMEOUT, 30))
+        except (subprocess.TimeoutExpired, OSError):
+            code, version = 1, b''
+        outdir = root / 'out'
+        outdir.mkdir()
+        try:
+            returncode, _ = _run_bounded(
                 [
-                    str(Path(configured).resolve()),
-                    '-env:UserInstallation=' + profile.as_uri(),
-                    '--headless',
-                    '--nologo',
-                    '--nodefault',
-                    '--norestore',
+                    executable,
+                    *environment,
                     '--convert-to',
                     'docx',
                     '--outdir',
-                    str(root),
+                    str(outdir),
                     str(path.resolve()),
                 ],
-                capture_output=True,
-                timeout=90,
-                check=False,
-                shell=False,
+                DOC_TIMEOUT,
             )
         except subprocess.TimeoutExpired as exc:
-            raise ByaxError('adapter_timeout', 'Local DOC conversion exceeded 90 seconds') from exc
-        output = root / (path.stem + '.docx')
-        if result.returncode or not output.is_file():
-            raise ByaxError('adapter_failed', 'Local DOC conversion failed', returncode=result.returncode)
-        doc, report = import_document(output)
+            raise ByaxError(
+                'adapter_timeout', f'Local DOC conversion exceeded {DOC_TIMEOUT} seconds and was stopped'
+            ) from exc
+        except OSError as exc:
+            raise ByaxError('adapter_failed', 'Configured DOC converter could not be started') from exc
+        outputs = [
+            item
+            for item in outdir.iterdir()
+            if item.suffix.lower() == '.docx' and item.is_file() and not item.is_symlink()
+        ]
+        if returncode or len(outputs) != 1:
+            raise ByaxError('adapter_failed', 'Local DOC conversion failed', returncode=returncode)
+        doc, report = import_document(outputs[0])
         # The outer import attaches the original .doc; drop the intermediate .docx copy.
         doc['assets'].pop(doc['metadata']['import']['original_asset'], None)
         _loss(
@@ -1147,6 +1749,11 @@ def _import_doc(path):
             'DOC converted by explicitly configured local LibreOffice; cross-application fidelity is not verified.',
             'source',
         )
+        report['adapter'] = {
+            'name': 'libreoffice',
+            'executable': executable,
+            'version': version.decode('utf-8', 'replace').strip() if code == 0 else None,
+        }
         return doc, report
 
 
@@ -1286,6 +1893,8 @@ def _md_block(block):
         fence = '`' * max(3, max((len(v) for v in re.findall(r'`+', block.get('text', ''))), default=0) + 1)
         return fence + attrs.get('code_language', '') + '\n' + block.get('text', '') + '\n' + fence
     text = _md_inline(block)
+    if kind == 'paragraph':
+        text = _md_escape_lines(text)
     if kind == 'heading':
         text = '#' * max(1, min(6, attrs.get('level', 1))) + ' ' + text
     if block.get('style') == 'quotation':
@@ -1299,39 +1908,303 @@ def _md_block(block):
     return text
 
 
-def _markdown(doc, losses):
-    provenance = doc.get('metadata', {}).get('import', {})
-    blocks = doc['blocks']
-    if provenance.get('format') in ('md', 'markdown') and [b['id'] for b in blocks] == provenance.get(
-        'block_order'
+def _md_structure(block):
+    attrs = block.get('attrs', {})
+    return [
+        block.get('type'),
+        block.get('style'),
+        attrs.get('level') if block.get('type') == 'heading' else None,
+        _list_kind(attrs) if attrs.get('list') else None,
+        _list_level(attrs) if attrs.get('list') else None,
+        attrs.get('quote_depth'),
+        bool(attrs.get('thematic_break')),
+    ]
+
+
+_MD_MARKS = {'bold', 'italic', 'code', 'link'}
+_MD_STYLES = {'body', 'code', 'quotation', 'Normal'} | {f'heading{n}' for n in range(1, 7)}
+
+
+def markdown_unrepresentable(doc):
+    """Located constructs that the declared Markdown dialect cannot carry."""
+    found = []
+    for block in doc['blocks']:
+        kind, attrs = block.get('type'), block.get('attrs', {})
+        marks = {m.get('type') for m in block.get('marks', [])} - _MD_MARKS
+        marks |= {
+            m.get('type')
+            for row in block.get('rows', [])
+            for cell in row.get('cells', [])
+            for m in cell.get('marks', [])
+        } - _MD_MARKS
+        if marks:
+            _loss(
+                found,
+                'inline_formatting',
+                'Not representable in Markdown: ' + ', '.join(sorted(marks)),
+                block['id'],
+            )
+        if kind in ('footnote', 'toc', 'section_break', 'page_break'):
+            _loss(
+                found,
+                'structural_object',
+                f'{kind} cannot be represented in the declared Markdown dialect.',
+                block['id'],
+            )
+        if kind == 'image' and attrs.get('asset'):
+            _loss(
+                found, 'image_not_embedded', 'Embedded image bytes cannot be stored in Markdown.', block['id']
+            )
+        if any(
+            key in attrs
+            for key in ('alignment', 'space_before', 'space_after', 'indent', 'first_line_indent')
+        ):
+            _loss(
+                found,
+                'paragraph_format',
+                'Paragraph alignment/spacing cannot be represented in Markdown.',
+                block['id'],
+            )
+        if block.get('style') not in _MD_STYLES and kind != 'table':
+            _loss(
+                found,
+                'named_styles',
+                f'Named style {block.get("style")} cannot be represented in Markdown.',
+                block['id'],
+            )
+        if any(
+            cell.get('attrs', {}).get(key, 1) != 1
+            for row in block.get('rows', [])
+            for cell in row.get('cells', [])
+            for key in ('rowspan', 'colspan')
+        ):
+            _loss(
+                found,
+                'table_subset',
+                'Merged table cells cannot be represented in Markdown tables.',
+                block['id'],
+            )
+    review = doc.get('review', {})
+    if any(review.get(key) for key in ('comments', 'tracked_changes', 'proposals')):
+        _loss(found, 'review_not_exported', 'Review state cannot be stored in Markdown.', 'review')
+    return found
+
+
+def _md_escape_lines(value):
+    lines = value.split('\n')
+    for index, line in enumerate(lines):
+        if re.match(r'(#{1,6}|[-+*]|=+|-+)(\s|$)', line):
+            lines[index] = '\\' + line
+        elif re.match(r'\d{1,9}[.)](\s|$)', line):
+            lines[index] = re.sub(r'^(\d+)([.)])', r'\1\\\2', line)
+    return '\n'.join(lines)
+
+
+def _md_localized_block(block, original, old_structure, ending):
+    """Render one changed block inside its original source span, keeping container syntax."""
+    new_structure = _md_structure(block)
+    if new_structure != old_structure and (
+        old_structure[3] or old_structure[5] or new_structure[3] or new_structure[5]
     ):
-        source = provenance['source']
-        fingerprints = provenance.get('fingerprints', {})
-        changed = [b for b in blocks if _fingerprint(b) != fingerprints.get(b['id'])]
-        if not changed:
-            return source
-        edits = []
-        source_lines = source.splitlines(keepends=True)
-        for block in changed:
-            span = block.get('attrs', {}).get('source_lines')
-            if not span or block.get('attrs', {}).get('quote_depth') or block.get('attrs', {}).get('list'):
-                break
-            ending = provenance.get('line_ending', '\n')
-            replacement = _md_block(block).replace('\n', ending)
-            if span[1] <= len(source_lines) and source_lines[span[1] - 1].endswith(('\n', '\r')):
-                replacement += ending
-            edits.append((span[0], span[1], replacement))
+        return None
+    first = original[0].rstrip('\r\n') if original else ''
+    container = re.match(r'[ \t]*(?:>[ \t]?)*[ \t]*', first)[0]
+    if old_structure[3]:
+        marker = re.match(r'[ \t]*(?:>[ \t]?)*[ \t]*(?:(?:[-*+]|\d{1,9}[.)])[ \t]+)?', first)[0]
+    else:
+        marker = container
+    continuation = marker[: len(container)] + ' ' * (len(marker) - len(container))
+    plain = copy.deepcopy(block)
+    plain['attrs'] = {
+        k: v for k, v in plain.get('attrs', {}).items() if k not in ('list', 'level', 'quote_depth')
+    }
+    if block.get('type') == 'heading':
+        plain['attrs']['level'] = block.get('attrs', {}).get('level', 1)
+    if plain.get('style') == 'quotation':
+        plain['style'] = 'body'
+    body = [
+        line[len(container) :] if line.startswith(container) else line.lstrip()
+        for line in (x.rstrip('\r\n') for x in original)
+    ]
+    if (
+        block.get('style') == 'code'
+        and old_structure[1] == 'code'
+        and body
+        and re.match(r'(`{3,}|~{3,})', body[0].lstrip())
+    ):
+        fence = re.match(r'(`{3,}|~{3,})', body[0].lstrip())[1]
+        closing = body[-1] if len(body) > 1 and body[-1].strip().startswith(fence) else fence
+        if fence in block.get('text', ''):
+            return None
+        rendered = [body[0]] + block.get('text', '').split('\n') + [closing]
+    elif (
+        block.get('type') == 'heading'
+        and new_structure == old_structure
+        and len(body) == 2
+        and re.fullmatch(r'\s*(=+|-+)\s*', body[1])
+        and '\n' not in block.get('text', '')
+    ):
+        rendered = [_md_escape_lines(_md_inline(block)), body[1]]
+    elif block.get('type') == 'table' and len(body) == len(block.get('rows', [])) + 1 and len(body) > 1:
+
+        def cells(line):
+            return [
+                part.strip().replace('\\|', '|')
+                for part in re.split(r'(?<!\\)\|', line.strip().removeprefix('|').removesuffix('|'))
+            ]
+
+        rendered = []
+        for index, row in enumerate(block['rows']):
+            original_line = body[0 if index == 0 else index + 1]
+            values = [cell.get('text', '') for cell in row.get('cells', [])]
+            inline = [
+                _md_inline(cell).replace('|', '\\|').replace('\n', ' ') for cell in row.get('cells', [])
+            ]
+            unchanged = cells(original_line) in (values, [value.replace('\\|', '|') for value in inline])
+            rendered.append(original_line if unchanged else '| ' + ' | '.join(inline) + ' |')
+        delimiter = (
+            body[1]
+            if len(cells(body[1])) == len(block['rows'][0].get('cells', []))
+            else '| ' + ' | '.join(['---'] * len(block['rows'][0].get('cells', []))) + ' |'
+        )
+        rendered.insert(1, delimiter)
+    elif (
+        block.get('type') == 'paragraph'
+        and block.get('style') != 'code'
+        and not block.get('attrs', {}).get('thematic_break')
+    ):
+        rendered = _md_escape_lines(_md_inline(block)).split('\n')
+    else:
+        rendered = _md_block(plain).split('\n')
+    lines = [(marker if index == 0 else continuation) + line for index, line in enumerate(rendered)]
+    text = ending.join(lines)
+    if original and original[-1].endswith(('\n', '\r')):
+        text += ending
+    return text
+
+
+def _markdown_localized(doc, provenance):
+    source, ending = provenance['source'], provenance.get('line_ending', '\n')
+    order, spans = provenance.get('block_order', []), provenance.get('spans', {})
+    fingerprints, structure = provenance.get('fingerprints', {}), provenance.get('structure', {})
+    blocks = doc['blocks']
+    position = {identity: index for index, identity in enumerate(order)}
+    surviving = [b['id'] for b in blocks if b['id'] in position]
+    if [position[i] for i in surviving] != sorted(position[i] for i in surviving):
+        return None
+    lines = source.splitlines(keepends=True)
+    edits, present = [], {b['id'] for b in blocks}
+    for identity in order:
+        if identity not in present:
+            span = spans.get(identity)
+            if not span:
+                return None
+            start, end = span
+            if (start == 0 or not lines[start - 1].strip()) and end < len(lines) and not lines[end].strip():
+                end += 1
+            elif end >= len(lines) and start and not lines[start - 1].strip():
+                start -= 1
+            edits.append((start, end, '', identity, 'deleted'))
+    previous, pending = None, []
+
+    def flush(anchor_after, following):
+        if not pending:
+            return True
+        rendered = []
+        prior = previous
+        for block in pending:
+            tight = (
+                prior is not None
+                and prior.get('attrs', {}).get('list')
+                and block.get('attrs', {}).get('list')
+            )
+            rendered.append(
+                ('' if prior is None and anchor_after is None else ('' if tight else ending))
+                + _md_block(block).replace('\n', ending)
+                + ending
+            )
+            prior = block
+        if anchor_after is not None:
+            span = spans.get(anchor_after)
+            if not span:
+                return False
+            at = span[1]
+            if at and not lines[at - 1].endswith(('\n', '\r')):
+                rendered[0] = ending + rendered[0]
         else:
-            for start, end, replacement in sorted(edits, reverse=True):
-                source_lines[start:end] = [replacement]
-            return ''.join(source_lines)
+            at = spans.get(following, [0])[0] if following else len(lines)
+            rendered[-1] += '' if following is None else ending
+        edits.append((at, at, ''.join(rendered), [b['id'] for b in pending], 'inserted'))
+        pending.clear()
+        return True
+
+    for block in blocks:
+        identity = block['id']
+        if identity not in position:
+            pending.append(block)
+            continue
+        if not flush(previous['id'] if previous else None, identity):
+            return None
+        if _fingerprint(block) != fingerprints.get(identity):
+            span = spans.get(identity)
+            if not span or identity not in structure:
+                return None
+            replacement = _md_localized_block(block, lines[span[0] : span[1]], structure[identity], ending)
+            if replacement is None:
+                return None
+            edits.append((span[0], span[1], replacement, identity, 'modified'))
+        previous = block
+    if not flush(previous['id'] if previous else None, None):
+        return None
+    edits.sort(key=lambda edit: (edit[0], edit[0] != edit[1]))
+    output, cursor = [], 0
+    for start, end, replacement, _target, _kind in edits:
+        if start < cursor:
+            return None
+        output.extend(lines[cursor:start])
+        output.append(replacement)
+        cursor = end
+    output.extend(lines[cursor:])
+    report = [
+        {'target': target, 'change': kind, 'source_lines': [start, end]}
+        for start, end, _r, target, kind in edits
+    ]
+    return ''.join(output), report
+
+
+def _markdown(doc, losses, info=None):
+    info = {} if info is None else info
+    provenance = doc.get('metadata', {}).get('import', {})
+    if (
+        provenance.get('format') in ('md', 'markdown')
+        and isinstance(provenance.get('source'), str)
+        and provenance.get('spans')
+    ):
+        localized = _markdown_localized(doc, provenance)
+        if localized is not None:
+            text, edits = localized
+            info.update(
+                mode='localized' if edits else 'verbatim',
+                edits=edits,
+                line_ending=provenance.get('line_ending', '\n'),
+            )
+            return text
+    elif (
+        provenance.get('format') in ('md', 'markdown')
+        and [b['id'] for b in doc['blocks']] == provenance.get('block_order')
+        and all(_fingerprint(b) == provenance.get('fingerprints', {}).get(b['id']) for b in doc['blocks'])
+    ):
+        info.update(mode='verbatim', edits=[])
+        return provenance['source']
     _loss(
         losses,
         'markdown_normalized',
         'Markdown regenerated using CommonMark plus tables; source whitespace/syntax may change.',
         'document',
     )
-    return '\n\n'.join(_md_block(b) for b in blocks) + '\n'
+    info.update(mode='regenerated', edits=[])
+    ending = provenance.get('line_ending', '\n') if provenance.get('format') in ('md', 'markdown') else '\n'
+    return ('\n\n'.join(_md_block(b) for b in doc['blocks']) + '\n').replace('\n', ending)
 
 
 _XML_INVALID = re.compile('[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff\ud800-\udfff]')
@@ -1372,6 +2245,7 @@ def _export_docx(doc, path):
     from docx.shared import Pt, RGBColor
 
     word = Document()
+    paragraphs = {}
     from docx.enum.style import WD_STYLE_TYPE
 
     named = {}
@@ -1452,6 +2326,7 @@ def _export_docx(doc, path):
             if kind == 'heading'
             else word.add_paragraph()
         )
+        paragraphs[block['id']] = paragraph
         if block.get('style') in named and (kind != 'heading' or block['style'] != 'body'):
             paragraph.style = named[block['style']]
         if attrs.get('list'):
@@ -1519,6 +2394,29 @@ def _export_docx(doc, path):
                     )
                 anchor.append(run._r)
                 paragraph._p.append(anchor)
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+
+    for index, (name, bookmark) in enumerate(sorted(doc.get('settings', {}).get('bookmarks', {}).items())):
+        target = paragraphs.get(bookmark.get('target'))
+        if target is None:
+            continue
+        start, end = OxmlElement('w:bookmarkStart'), OxmlElement('w:bookmarkEnd')
+        start.set(qn('w:id'), str(index))
+        start.set(qn('w:name'), str(name))
+        end.set(qn('w:id'), str(index))
+        properties = target._p.find(qn('w:pPr'))
+        position = 1 if properties is not None else 0
+        target._p.insert(position, start)
+        target._p.insert(position + 1, end)
+    for comment in doc.get('review', {}).get('comments', []):
+        target = paragraphs.get(comment.get('target'))
+        if target is None or comment.get('status') == 'resolved':
+            continue
+        runs = target.runs or [target.add_run('')]
+        word.add_comment(
+            runs, text=str(comment.get('text', '')), author=str(comment.get('author', '') or 'ByAuthorX')
+        )
     word.save(path)
 
 
@@ -1784,39 +2682,118 @@ def _rtf_escape(text):
     return ''.join(result)
 
 
+def _rtf_runs(block):
+    text, marks = block.get('text', ''), block.get('marks', [])
+    boundaries = sorted(
+        {0, len(text), *[max(0, min(len(text), int(m.get(k, 0)))) for m in marks for k in ('start', 'end')]}
+    )
+    output = []
+    for start, end in itertools.pairwise(boundaries):
+        controls = []
+        for mark in marks:
+            if mark.get('start', 0) <= start and mark.get('end', 0) >= end and mark.get('value', True):
+                control = {
+                    'bold': 'b',
+                    'italic': 'i',
+                    'underline': 'ul',
+                    'strikethrough': 'strike',
+                    'superscript': 'super',
+                    'subscript': 'sub',
+                }.get(mark.get('type'))
+                if control:
+                    controls.append('\\' + control + ' ')
+                elif mark.get('type') == 'font_size' and isinstance(mark.get('value'), (int, float)):
+                    controls.append(f'\\fs{round(mark["value"] * 2)} ')
+        output.append('{' + ''.join(controls) + _rtf_escape(text[start:end]) + '}')
+    return ''.join(output)
+
+
 def _rtf(doc):
-    output = ['{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}\\uc1 ']
-    for block in doc['blocks']:
-        if block.get('type') == 'table':
-            for row in block.get('rows', []):
-                output.append(
-                    _rtf_escape('\t'.join(c.get('text', '') for c in row.get('cells', []))) + '\\par\n'
-                )
-            continue
-        text = block.get('text', '')
-        marks = block.get('marks', [])
-        boundaries = sorted(
-            {
-                0,
-                len(text),
-                *[max(0, min(len(text), int(m.get(k, 0)))) for m in marks for k in ('start', 'end')],
-            }
+    styles = {
+        name: values
+        for name, values in doc.get('styles', {}).items()
+        if isinstance(values, dict) and values.get('family') != 'text'
+    }
+    numbers = {
+        name: index
+        for index, name in enumerate(sorted(styles, key=lambda n: (n not in ('body', 'Normal'), n)))
+    }
+    sheet = []
+    for name, number in numbers.items():
+        values = styles[name]
+        controls = ''.join(
+            f'\\{word}'
+            for key, word in (('bold', 'b'), ('italic', 'i'), ('underline', 'ul'))
+            if values.get(key)
         )
-        for start, end in itertools.pairwise(boundaries):
-            controls = []
-            for mark in marks:
-                if mark.get('start', 0) <= start and mark.get('end', 0) >= end and mark.get('value', True):
-                    control = {
-                        'bold': 'b',
-                        'italic': 'i',
-                        'underline': 'ul',
-                        'strikethrough': 'strike',
-                        'superscript': 'super',
-                        'subscript': 'sub',
-                    }.get(mark.get('type'))
-                    if control:
-                        controls.append('\\' + control + ' ')
-            output.append('{' + ''.join(controls) + _rtf_escape(text[start:end]) + '}')
+        if isinstance(values.get('font_size'), (int, float)):
+            controls += f'\\fs{round(values["font_size"] * 2)}'
+        if values.get('based_on') in numbers:
+            controls += f'\\sbasedon{numbers[values["based_on"]]}'
+        sheet.append('{\\s' + str(number) + controls + ' ' + _rtf_escape(name) + ';}')
+    layout = doc.get('layout', {})
+    margins = layout.get('margins', {})
+    geometry = (
+        f'\\paperw{round(layout.get("width", 612) * 20)}\\paperh{round(layout.get("height", 792) * 20)}'
+    )
+    geometry += ''.join(
+        f'\\marg{side[0]}{round(margins.get(side, 72) * 20)}' for side in ('left', 'right', 'top', 'bottom')
+    )
+    output = [
+        '{\\rtf1\\ansi\\deff0{\\fonttbl{\\f0 Times New Roman;}}{\\stylesheet'
+        + ''.join(sheet)
+        + '}\\uc1'
+        + geometry
+        + ' '
+    ]
+    for region in ('header', 'footer'):
+        value = layout.get(region)
+        value = value if isinstance(value, str) else (value or {}).get('text', '')
+        if value:
+            output.append('{\\' + region + '\\pard\\plain ' + _rtf_escape(value) + '\\par}\n')
+    notes = {}
+    for note in doc['blocks']:
+        if note.get('type') == 'footnote' and note.get('attrs', {}).get('reference'):
+            notes.setdefault(note['attrs']['reference'], []).append(note)
+    for block in doc['blocks']:
+        kind, attrs = block.get('type'), block.get('attrs', {})
+        if kind == 'footnote' and attrs.get('reference'):
+            continue
+        if kind == 'table':
+            for row in block.get('rows', []):
+                cells = row.get('cells', [])
+                output.append(
+                    '\\trowd' + ''.join(f'\\cellx{(index + 1) * 2000}' for index in range(len(cells))) + '\n'
+                )
+                output.append(
+                    ''.join('\\pard\\intbl ' + _rtf_runs(cell) + '\\cell ' for cell in cells) + '\\row\n'
+                )
+            output.append('\\pard\n')
+            continue
+        if kind == 'image':
+            asset = doc.get('assets', {}).get(attrs.get('asset'), {})
+            blip = {'image/png': 'pngblip', 'image/jpeg': 'jpegblip'}.get(asset.get('mime'))
+            if blip and asset.get('data'):
+                output.append('{\\pict\\' + blip + ' ' + base64.b64decode(asset['data']).hex() + '}\\par\n')
+            else:
+                output.append(_rtf_escape('[Image: ' + attrs.get('alt', '') + ']') + '\\par\n')
+            continue
+        if kind == 'page_break':
+            output.append('\\page\n')
+            continue
+        style = block.get('style')
+        if kind == 'heading' and style not in numbers:
+            style = f'heading{attrs.get("level", 1)}'
+        prefix = '\\pard\\plain'
+        if style in numbers:
+            prefix += f'\\s{numbers[style]}'
+        if attrs.get('alignment') in ('left', 'right', 'center', 'justify'):
+            prefix += {'left': '\\ql', 'right': '\\qr', 'center': '\\qc', 'justify': '\\qj'}[
+                attrs['alignment']
+            ]
+        output.append(prefix + ' ' + _rtf_runs(block))
+        for note in notes.get(block.get('id'), []):
+            output.append('{\\super\\chftn}{\\footnote\\pard\\plain{\\super\\chftn} ' + _rtf_runs(note) + '}')
         output.append('\\par\n')
     return ''.join(output) + '}'
 
@@ -1827,7 +2804,9 @@ def _exchange_losses(doc, fmt, losses):
     for category in ('review', 'references', 'fields', 'layers'):
         value = doc.get(category)
         if category == 'review':
-            value = any(value.values()) if value else False
+            review = value or {}
+            exported = {'comments'} if fmt == 'docx' else set()
+            value = any(items for key, items in review.items() if key not in exported)
         if value and not (fmt == 'pdf' and category == 'layers'):
             _loss(
                 losses,
@@ -1836,14 +2815,21 @@ def _exchange_losses(doc, fmt, losses):
                 category,
             )
     if fmt != 'pdf':
-        if doc.get('styles') and fmt not in ('docx', 'odt'):
+        if doc.get('styles') and fmt not in ('docx', 'odt', 'rtf'):
             _loss(
                 losses,
                 'named_styles',
                 'Named style definitions and inheritance are not preserved; supported direct formatting is exported.',
                 'styles',
             )
-        if fmt not in ('docx', 'odt'):
+        if fmt == 'rtf':
+            _loss(
+                losses,
+                'page_layout',
+                'Page size, margins and one header/footer are exported; masters, sections and exact pagination are not.',
+                'layout',
+            )
+        elif fmt not in ('docx', 'odt'):
             _loss(
                 losses,
                 'page_layout',
@@ -1898,7 +2884,7 @@ def _exchange_losses(doc, fmt, losses):
         if (
             kind in ('footnote', 'toc', 'section_break')
             and fmt != 'pdf'
-            and not (kind == 'footnote' and fmt == 'odt')
+            and not (kind == 'footnote' and fmt in ('odt', 'rtf') and attrs.get('reference'))
         ):
             _loss(
                 losses,
@@ -1906,10 +2892,10 @@ def _exchange_losses(doc, fmt, losses):
                 f'{kind} has no active equivalent in this export adapter; only available text is retained.',
                 block['id'],
             )
-        if kind == 'page_break' and fmt not in ('pdf', 'docx'):
+        if kind == 'page_break' and fmt not in ('pdf', 'docx', 'rtf'):
             _loss(losses, 'page_break', 'Explicit page break is not represented.', block['id'])
         if kind == 'table':
-            if fmt in ('txt', 'rtf'):
+            if fmt == 'txt':
                 _loss(
                     losses,
                     'table_flattened',
@@ -1923,7 +2909,12 @@ def _exchange_losses(doc, fmt, losses):
                     'Table text/grid exported; widths, spans, cell formatting and pagination policies may be lost.',
                     block['id'],
                 )
-        if kind == 'image' and fmt not in ('pdf', 'docx', 'odt', 'html', 'htm'):
+        mime = doc.get('assets', {}).get(attrs.get('asset'), {}).get('mime')
+        if (
+            kind == 'image'
+            and fmt not in ('pdf', 'docx', 'odt', 'html', 'htm')
+            and not (fmt == 'rtf' and mime in ('image/png', 'image/jpeg'))
+        ):
             _loss(
                 losses,
                 'image_not_embedded',
@@ -1937,42 +2928,114 @@ def _exchange_losses(doc, fmt, losses):
                 'List nesting, continuation and restart settings are not preserved by this adapter.',
                 block['id'],
             )
-        if fmt in ('txt', 'rtf') and kind == 'heading':
+        if fmt == 'txt' and kind == 'heading':
             _loss(
                 losses, 'heading_flattened', 'Heading text retained without heading semantics.', block['id']
             )
-        if attrs.get('alignment') and fmt not in ('pdf', 'docx'):
+        if attrs.get('alignment') and fmt not in ('pdf', 'docx', 'rtf'):
             _loss(losses, 'paragraph_format', 'Paragraph alignment is not represented.', block['id'])
 
 
-def export_document(doc, path, format=None, profile=None, *, owner=None):
-    destination = Path(path)
-    fmt = (format or destination.suffix.lstrip('.')).lower()
+EXPORT_FORMATS = ('byax', 'txt', 'md', 'markdown', 'html', 'htm', 'rtf', 'docx', 'odt', 'pdf')
+
+
+def publish_file(stage, destination, *, overwrite=True, owner=None):
+    """Atomically publish a fully written staged file; never expose a partial output."""
+    from .storage import DocumentLock
+
+    destination = Path(destination)
+    with DocumentLock(destination, owner=owner):
+        if overwrite:
+            os.replace(stage, destination)
+            return
+        try:
+            os.link(stage, destination)
+        except FileExistsError as exc:
+            raise ByaxError(
+                'conflict', 'Output already exists; explicitly select overwrite', target=str(destination)
+            ) from exc
+        except OSError:
+            # Filesystems without hard links: check under the lock, then replace.
+            if destination.exists():
+                raise ByaxError(
+                    'conflict', 'Output already exists; explicitly select overwrite', target=str(destination)
+                ) from None
+            os.replace(stage, destination)
+        else:
+            os.unlink(stage)
+
+
+def conversion_preview(doc, format, profile=None):
+    """Located losses for a conversion without writing anything."""
+    return export_document(doc, None, format=format, profile=profile, preview=True)
+
+
+def export_document(doc, path, format=None, profile=None, *, owner=None, overwrite=True, preview=False):
+    destination = Path(path) if path is not None else None
+    fmt = (format or (destination.suffix.lstrip('.') if destination else '')).lower()
     settings = doc.get('profiles', {}).get(profile) if isinstance(profile, str) else profile or {}
     if settings is None:
         raise ByaxError('missing_target', 'Unknown export profile', profile=profile)
     if not fmt:
         fmt = settings.get('format', '')
-    if fmt not in ('byax', 'txt', 'md', 'markdown', 'html', 'htm', 'rtf', 'docx', 'odt', 'pdf'):
+    if fmt not in EXPORT_FORMATS:
         raise ByaxError('unsupported_format', f'Unsupported export format: {fmt}')
+    if settings.get('clean') and not preview:
+        from .publication import export_clean
+
+        return export_clean(
+            doc,
+            destination,
+            format=fmt,
+            profile={k: v for k, v in settings.items() if k != 'clean'},
+            owner=owner,
+            overwrite=overwrite,
+        )
     if settings.get('pages') and fmt != 'pdf':
         raise ByaxError(
             'unsupported_feature',
             'Page selection is supported for controlled PDF output; editable exports retain whole semantic content',
         )
-    original = doc.get('metadata', {}).get('import', {}).get('original_path')
-    if original and destination.resolve() == Path(original).resolve():
+    provenance = doc.get('metadata', {}).get('import', {})
+    original = provenance.get('original_path')
+    if destination is not None and original and destination.resolve() == Path(original).resolve():
         raise ByaxError(
             'conflict', 'Conversion must preserve the imported original; choose a separate output path'
         )
     candidate = copy.deepcopy(doc)
-    candidate['blocks'] = [b for b in candidate['blocks'] if not b.get('attrs', {}).get('excluded')]
+    if not settings.get('include_hidden'):
+        candidate['blocks'] = [b for b in candidate['blocks'] if not b.get('attrs', {}).get('excluded')]
     if settings.get('layout'):
         candidate['layout'].update(settings['layout'])
     if settings.get('metadata') == 'omit' or settings.get('include_metadata') is False:
         candidate['metadata'] = {'title': '', 'author': '', 'language': 'en'}
     losses = []
     _exchange_losses(candidate, fmt, losses)
+    markdown = None
+    if fmt in ('md', 'markdown'):
+        markdown = {
+            'dialect': MARKDOWN_DIALECT['name'],
+            'unrepresentable': markdown_unrepresentable(candidate),
+        }
+        if (
+            provenance.get('format') in ('md', 'markdown')
+            and markdown['unrepresentable']
+            and not settings.get('allow_markdown_losses')
+            and not preview
+        ):
+            raise ByaxError(
+                'review_required',
+                'Formatting cannot be represented in the declared Markdown dialect; convert to .byax '
+                'or explicitly allow Markdown losses',
+                losses=markdown['unrepresentable'],
+                dialect=MARKDOWN_DIALECT['name'],
+            )
+    if preview:
+        report = _report(fmt, losses)
+        report.update(preview=True, review='required' if losses else 'not_required')
+        if markdown:
+            report['markdown'] = markdown
+        return report
     checks = None
     required = settings.get('required_suites', [])
     if required:
@@ -1997,6 +3060,12 @@ def export_document(doc, path, format=None, profile=None, *, owner=None):
                 'Required print coverage is incomplete for the selected renderer',
                 findings=findings,
             )
+    if destination is None:
+        raise ByaxError('invalid_input', 'An output path is required unless previewing')
+    if not overwrite and destination.exists():
+        raise ByaxError(
+            'conflict', 'Output already exists; explicitly select overwrite', target=str(destination)
+        )
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix='.byax-export-', dir=destination.parent) as temporary:
         stage = Path(temporary) / ('export.' + fmt)
@@ -2017,7 +3086,6 @@ def export_document(doc, path, format=None, profile=None, *, owner=None):
         else:
             if fmt == 'txt':
                 content = _plain(candidate)
-                provenance = candidate.get('metadata', {}).get('import', {})
                 if (
                     provenance.get('format') == 'txt'
                     and [b['id'] for b in candidate['blocks']] == provenance.get('block_order')
@@ -2027,8 +3095,10 @@ def export_document(doc, path, format=None, profile=None, *, owner=None):
                     )
                 ):
                     content = provenance['source']
+                elif provenance.get('format') == 'txt' and not settings.get('line_ending'):
+                    content = content.replace('\n', provenance.get('line_ending', '\n'))
             elif fmt in ('md', 'markdown'):
-                content = _markdown(candidate, losses)
+                content = _markdown(candidate, losses, markdown)
             elif fmt in ('html', 'htm'):
                 content = _html(candidate)
             else:
@@ -2038,11 +3108,16 @@ def export_document(doc, path, format=None, profile=None, *, owner=None):
                 content = content.replace('\r\n', '\n').replace('\r', '\n').replace('\n', ending)
             encoding = settings.get('encoding', 'utf-8') if fmt == 'txt' else 'utf-8'
             stage.write_bytes(content.encode(encoding))
-        from .storage import DocumentLock
-
-        with DocumentLock(destination, owner=owner):
-            os.replace(stage, destination)
+        publish_file(stage, destination, overwrite=overwrite, owner=owner)
     report = _report(fmt, losses, [str(destination.resolve())])
+    report['review'] = 'required' if losses else 'not_required'
+    if fmt == 'pdf':
+        from .fonts import glyph_fallbacks
+
+        # Controlled output records the fonts that actually shaped each glyph.
+        report['font_dependencies'] = glyph_fallbacks(candidate)
+    if markdown:
+        report['markdown'] = markdown
     if result:
         report.update(
             {
@@ -2078,8 +3153,65 @@ def _rtf_group(source, opening):
     return source[start:]
 
 
+def _rtf_group_end(source, start):
+    """Return the end offset of the brace group starting at ``start``."""
+    depth, position = 0, start
+    while position < len(source):
+        char = source[position]
+        if char == '\\':
+            position += 2
+            continue
+        if char == '{':
+            depth += 1
+        elif char == '}':
+            depth -= 1
+            if depth == 0:
+                return position + 1
+        position += 1
+    return len(source)
+
+
+def _rtf_stylesheet(source):
+    match = re.search(r'\{\\stylesheet', source)
+    styles = {}
+    if not match:
+        return styles
+    body = source[match.start() + 1 : _rtf_group_end(source, match.start()) - 1]
+    position = body.find('{')
+    while position != -1:
+        end = _rtf_group_end(body, position)
+        entry = body[position + 1 : end - 1]
+        controls = {
+            word: int(value) if value else 1 for word, value in re.findall(r'\\([a-zA-Z]+)(-?\d+)? ?', entry)
+        }
+        name = re.sub(r'\{[^{}]*\}|\\[a-zA-Z]+-?\d* ?|\\\*', '', entry).strip().rstrip(';').strip()
+        kind = 'cs' if 'cs' in controls else 's' if 's' in controls else None
+        if kind and name:
+            values = {'family': 'text' if kind == 'cs' else 'paragraph', 'rtf_name': name}
+            for word, key in (
+                ('b', 'bold'),
+                ('i', 'italic'),
+                ('ul', 'underline'),
+                ('strike', 'strikethrough'),
+            ):
+                if word in controls:
+                    values[key] = controls[word] != 0
+            if 'fs' in controls:
+                values['font_size'] = controls['fs'] / 2
+            if 'sbasedon' in controls:
+                values['_based_on'] = controls['sbasedon']
+            styles[(kind, controls.get(kind, 0))] = (name, values)
+        position = body.find('{', end)
+    names = {number: name for (kind, number), (name, _values) in styles.items() if kind == 's'}
+    for name, values in styles.values():
+        based = values.pop('_based_on', None)
+        if based in names and names[based] != name:
+            values['based_on'] = names[based]
+    return styles
+
+
 def _import_rtf(doc, source, losses):
-    """Parse the editable RTF text/style/table subset without object execution."""
+    """Parse the editable RTF text/style/table/note/picture subset without object execution."""
     if not source.lstrip().startswith('{\\rtf'):
         raise ByaxError('invalid_input', 'File is not an RTF document')
     fonts = {
@@ -2095,28 +3227,24 @@ def _import_rtf(doc, source, losses):
             numbers = [re.search(r'\\' + name + r'(\d+)', value) for name in ('red', 'green', 'blue')]
             if all(numbers):
                 colors.append('#' + ''.join(f'{min(255, int(n.group(1))):02x}' for n in numbers))
-    state = {'marks': {}, 'attrs': {}, 'uc': 1, 'skip': False, 'star': False}
+    sheet = _rtf_stylesheet(source)
+    for name, values in sheet.values():
+        doc['styles'][name] = {key: value for key, value in values.items() if key != 'rtf_name'}
+    paragraph_styles = {number: name for (kind, number), (name, _v) in sheet.items() if kind == 's'}
+    state = {'marks': {}, 'attrs': {}, 'uc': 1, 'skip': False, 'star': False, 'capture': None, 'style': None}
     tails = {}
     stack, block, cells, table = [], _block(), [], None
     fallback, row_active, position = 0, False, 0
     skipped = set()
+    captures = []
+    pending_notes = []
     destinations = {
         'fonttbl',
         'colortbl',
         'stylesheet',
         'info',
-        'pict',
         'object',
         'objdata',
-        'fldinst',
-        'header',
-        'footer',
-        'headerl',
-        'headerr',
-        'footerl',
-        'footerr',
-        'footnote',
-        'annotation',
         'datastore',
         'xmlopen',
         'xmlattrname',
@@ -2127,7 +3255,31 @@ def _import_rtf(doc, source, losses):
         'filetbl',
         'listtable',
         'listoverridetable',
+        'nonshppict',
+        'atnid',
+        'atnauthor',
+        'atndate',
+        'atnref',
+        'rsidtbl',
+        'latentstyles',
+        'pgdsctbl',
+        'revtbl',
     }
+    captured = {
+        'header': 'header',
+        'headerl': 'header',
+        'headerr': 'header',
+        'headerf': 'header',
+        'footer': 'footer',
+        'footerl': 'footer',
+        'footerr': 'footer',
+        'footerf': 'footer',
+        'footnote': 'footnote',
+        'annotation': 'annotation',
+        'fldinst': 'fldinst',
+        'pict': 'pict',
+    }
+    field_instruction = None
 
     def append(value):
         nonlocal fallback
@@ -2137,6 +3289,9 @@ def _import_rtf(doc, source, losses):
             cut = min(fallback, len(value))
             value, fallback = value[cut:], fallback - cut
         if not value:
+            return
+        if state['capture'] is not None:
+            captures[-1]['text'] += value
             return
         start = len(block['text'])
         block['text'] += value
@@ -2153,12 +3308,11 @@ def _import_rtf(doc, source, losses):
                     latest[key] = {'start': start, 'end': start + len(value), 'type': name, 'value': setting}
                     block['marks'].append(latest[key])
 
+    def scalar(value):
+        return value.encode('utf-16-le', errors='surrogatepass').decode('utf-16-le', errors='replace')
+
     def normalized():
         raw = block['text']
-
-        def scalar(value):
-            return value.encode('utf-16-le', errors='surrogatepass').decode('utf-16-le', errors='replace')
-
         output = copy.deepcopy(block)
         output['text'] = scalar(raw)
         if len(output['text']) != len(raw):
@@ -2179,13 +3333,24 @@ def _import_rtf(doc, source, losses):
             offsets[len(raw)] = count
             for mark in output['marks']:
                 mark['start'], mark['end'] = offsets[mark['start']], offsets[mark['end']]
+            for field in output['attrs'].get('fields', []):
+                field['start'], field['end'] = offsets[field['start']], offsets[field['end']]
         output['attrs'].update(state['attrs'])
+        name = paragraph_styles.get(state['style'])
+        if name:
+            output['style'] = name
+            heading = re.fullmatch(r'(?i)heading\s*(\d)', name)
+            if heading and 1 <= int(heading[1]) <= 6:
+                output['type'] = 'heading'
+                output['attrs']['level'] = int(heading[1])
         return output
 
     def paragraph(force=False):
         nonlocal block, table
         if block['text'] or force:
             doc['blocks'].append(normalized())
+            doc['blocks'].extend(pending_notes)
+            pending_notes.clear()
             block = _block()
             table = None
 
@@ -2195,6 +3360,63 @@ def _import_rtf(doc, source, losses):
         cells.append({'id': _id('cell'), 'text': value['text'], 'marks': value['marks'], 'attrs': {}})
         block = _block()
 
+    def finish(capture, offset):
+        nonlocal field_instruction
+        kind, text = capture['kind'], scalar(capture['text'])
+        if kind in ('header', 'footer'):
+            existing = doc['layout'].get(kind, '')
+            doc['layout'][kind] = '\n'.join(
+                part for part in (existing if isinstance(existing, str) else '', text.strip()) if part
+            )
+            _loss(
+                losses,
+                'rtf_page_region',
+                f'RTF {kind} text imported as the document {kind}; odd/even/first-page variants are merged.',
+                f'offset:{offset}',
+            )
+        elif kind == 'footnote':
+            pending_notes.append(_block(text.strip(), 'footnote', reference=block['id']))
+        elif kind == 'annotation':
+            doc['review']['comments'].append(
+                {
+                    'id': _id('comment'),
+                    'target': block['id'],
+                    'start': len(scalar(block['text'])),
+                    'end': len(scalar(block['text'])),
+                    'text': text.strip(),
+                    'status': 'open',
+                    'revision': doc['revision'],
+                    'source': 'rtf',
+                }
+            )
+        elif kind == 'fldinst':
+            field_instruction = text.strip()
+        elif kind == 'pict':
+            data = re.sub(r'[^0-9a-fA-F]', '', capture['text'])
+            mime = capture.get('mime')
+            try:
+                raw = bytes.fromhex(data[: len(data) // 2 * 2])
+            except ValueError:
+                raw = b''
+            signatures = {'image/png': b'\x89PNG\r\n\x1a\n', 'image/jpeg': b'\xff\xd8\xff'}
+            if mime in signatures and raw.startswith(signatures[mime]):
+                paragraph()
+                image = _block(kind='image', alt='', asset=_asset(doc, raw, mime, 'rtf-picture'))
+                doc['blocks'].append(image)
+                _loss(
+                    losses,
+                    'rtf_picture',
+                    'Embedded RTF picture imported; original scaling, cropping and wrapping require review.',
+                    image['id'],
+                )
+            else:
+                _loss(
+                    losses,
+                    'rtf_pict',
+                    'RTF picture format is retained in the original but not imported as an editable image.',
+                    f'offset:{offset}',
+                )
+
     token_count = 0
     control_pattern = re.compile(r'([a-zA-Z]+)(-?\d+)? ?')
     while position < len(source):
@@ -2203,12 +3425,38 @@ def _import_rtf(doc, source, losses):
             raise ByaxError('resource_limit', 'RTF exceeds 500,000 parser tokens')
         char = source[position]
         if char == '{':
+            if len(stack) > 1000:
+                raise ByaxError('resource_limit', 'RTF group nesting exceeds 1,000 levels')
             stack.append(copy.deepcopy(state))
             position += 1
             continue
         if char == '}':
             if stack:
-                state = stack.pop()
+                previous, state = state, stack.pop()
+                if previous['capture'] is not None and previous['capture'] != state['capture'] and captures:
+                    finish(captures.pop(), position)
+                if previous.get('field_start') is not None and state.get('field_start') is None:
+                    start, end = previous['field_start'], len(block['text'])
+                    link = re.match(
+                        r'HYPERLINK\s+(\\l\s+)?"([^"]+)"', previous.get('field_instruction') or ''
+                    )
+                    url = (('#' if link[1] else '') + link[2]) if link else None
+                    if url and _safe_url(url) and end > start:
+                        block['marks'].append({'start': start, 'end': end, 'type': 'link', 'value': url})
+                    elif end >= start:
+                        block['attrs'].setdefault('fields', []).append(
+                            {
+                                'instruction': previous.get('field_instruction') or '',
+                                'start': start,
+                                'end': end,
+                            }
+                        )
+                        _loss(
+                            losses,
+                            'rtf_field',
+                            'RTF field result imported as static text; the instruction is recorded but will not update.',
+                            block['id'],
+                        )
             position += 1
             continue
         if char != '\\':
@@ -2244,6 +3492,11 @@ def _import_rtf(doc, source, losses):
                 append('\u2011')
             elif char == '-':
                 append('\u00ad')
+            elif char in '\r\n' and not state['skip']:
+                if row_active or state['capture'] is not None:
+                    append('\n')
+                else:
+                    paragraph(force=True)
             position += 1
             continue
         match = control_pattern.match(source, position)
@@ -2257,9 +3510,47 @@ def _import_rtf(doc, source, losses):
                 raise ByaxError('resource_limit', 'RTF binary payload exceeds limit')
             position += argument
             continue
+        if state['skip']:
+            continue
+        if word == 'shppict':
+            state['star'] = False
+            continue
+        if word in captured and not (state['capture'] == 'pict' and word == 'pict'):
+            state['star'] = False
+            state['capture'] = captured[word]
+            captures.append({'kind': captured[word], 'text': ''})
+            continue
+        if word == 'fldrslt':
+            state['star'] = False
+            state['field_start'], state['field_instruction'] = len(block['text']), field_instruction
+            field_instruction = None
+            continue
         if word in destinations or state['star']:
             state['skip'], state['star'] = True, False
-            if word not in {'fonttbl', 'colortbl', 'info', 'generator'} and word not in skipped:
+            if (
+                word
+                not in {
+                    'fonttbl',
+                    'colortbl',
+                    'info',
+                    'generator',
+                    'stylesheet',
+                    'atnid',
+                    'atnauthor',
+                    'atndate',
+                    'atnref',
+                    'rsidtbl',
+                    'latentstyles',
+                    'themedata',
+                    'colorschememapping',
+                    'datastore',
+                    'xmlopen',
+                    'listtable',
+                    'listoverridetable',
+                    'nonshppict',
+                }
+                and word not in skipped
+            ):
                 skipped.add(word)
                 _loss(
                     losses,
@@ -2268,7 +3559,9 @@ def _import_rtf(doc, source, losses):
                     f'offset:{position}',
                 )
             continue
-        if state['skip']:
+        if state['capture'] == 'pict':
+            if word in ('pngblip', 'jpegblip'):
+                captures[-1]['mime'] = 'image/png' if word == 'pngblip' else 'image/jpeg'
             continue
         if word == 'uc':
             state['uc'] = max(0, min(16, argument))
@@ -2304,10 +3597,18 @@ def _import_rtf(doc, source, losses):
             state['attrs'][
                 {'li': 'indent', 'fi': 'first_line_indent', 'sb': 'space_before', 'sa': 'space_after'}[word]
             ] = argument / 20
+        elif word == 's':
+            state['style'] = argument
+        elif word in ('paperw', 'paperh') and 72 <= argument <= 288000:
+            doc['layout']['width' if word == 'paperw' else 'height'] = argument / 20
+        elif word in ('margl', 'margr', 'margt', 'margb') and 0 <= argument <= 144000:
+            doc['layout']['margins'][{'l': 'left', 'r': 'right', 't': 'top', 'b': 'bottom'}[word[-1]]] = (
+                argument / 20
+            )
         elif word == 'pard':
-            state['attrs'] = {}
-        elif word == 'par':
-            if row_active:
+            state['attrs'], state['style'] = {}, None
+        elif word in ('par', 'sect'):
+            if row_active or state['capture'] is not None:
                 append('\n')
             else:
                 paragraph(force=True)
@@ -2345,4 +3646,8 @@ def _import_rtf(doc, source, losses):
                     'rdblquote': '”',
                 }[word]
             )
+        elif word == 'chftn':
+            continue
     paragraph()
+    if pending_notes:
+        doc['blocks'].extend(pending_notes)

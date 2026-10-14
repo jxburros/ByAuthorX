@@ -15,24 +15,11 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .cli import _error, error_result, execute, result_exit_code
-from .transport_policy import check_provider_admin
+from .transport_policy import PATH_KEYS, check_provider_admin, is_path_argument
 
 MAX_BODY = 16 * 1024 * 1024
 RESERVED = '.byax'
-PATH_KEYS = frozenset(
-    (
-        'path',
-        'out',
-        'document',
-        'config_dir',
-        'root',
-        'audio_path',
-        'source_path',
-        'job_root',
-        'csv',
-        'reference_dir',
-    )
-)
+__all__ = ['PATH_KEYS', 'AccessPolicy', 'make_server', 'serve']
 
 
 class AccessPolicy:
@@ -87,7 +74,7 @@ class AccessPolicy:
         def visit(value):
             if isinstance(value, dict):
                 for key, child in value.items():
-                    if key in PATH_KEYS and isinstance(child, str):
+                    if (key in PATH_KEYS or is_path_argument(key)) and isinstance(child, str):
                         value[key] = self.check_path(child)
                     else:
                         visit(child)
