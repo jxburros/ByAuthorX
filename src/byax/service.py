@@ -14,6 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 from .cli import _error, error_result, execute, result_exit_code
+from .transport_policy import check_provider_admin
 
 MAX_BODY = 16 * 1024 * 1024
 RESERVED = '.byax'
@@ -58,13 +59,12 @@ class AccessPolicy:
     def check(self, command, args):
         if not isinstance(args, dict):
             _error('invalid_input', 'Arguments must be an object')
+        check_provider_admin(command, args)
         # Service-owned configuration and job state stay in a reserved folder
         # inside the first root; clients cannot select or write to it.
         owned = self._owned(command, args)
         # Provider configuration may name executable adapters or endpoints and is
         # an administrative local action. Existing aliases remain callable.
-        if command == 'providers' and args.get('action') == 'configure':
-            _error('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
         def visit(value):
             if isinstance(value, dict):
                 for key, child in value.items():

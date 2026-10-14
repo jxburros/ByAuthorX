@@ -7,6 +7,29 @@ from byax.exchange import export_document, import_document
 from byax.model import new_document, validate_document
 
 
+def test_rtf_non_ascii_escape_and_seeded_mutations(tmp_path):
+    import random
+
+    from byax.cli import main
+    path = tmp_path / 'mutated.rtf'
+    original = '{\\rtf1\\ansi Hello \\é world}'
+    path.write_text(original, encoding='utf-8')
+    assert main(['import', str(path), '--out', str(tmp_path / 'valid.byax')]) in (0, 2)
+    rng = random.Random(54)
+    base = '{\\rtf1\\ansi Hello \\b bold\\b0 \\u233? café\\par Next}'
+    symbols = ['é', '文', 'Я', 'α', '\\', '{', '}', '0', '*', "'", '\n']
+    for _ in range(200):
+        chars = list(base)
+        for _ in range(rng.randint(1, 4)):
+            chars.insert(rng.randrange(len(chars) + 1), rng.choice(symbols))
+        path.write_text(''.join(chars), encoding='utf-8')
+        try:
+            doc, _ = import_document(path)
+            validate_document(doc)
+        except ByaxError:
+            pass
+
+
 def test_markdown_roundtrip_preserves_source_and_local_edits(tmp_path):
     source = b'# Title\r\n\r\nA **bold** paragraph.\r\n\r\nSecond line.\r\n'
     original = tmp_path / 'source.md'

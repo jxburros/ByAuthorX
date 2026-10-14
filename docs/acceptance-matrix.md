@@ -81,6 +81,25 @@ Statuses: **verified subset** means a named automated test exercises the stated 
 
 ## Running and interpreting evidence
 
+### Open-issue regressions — 13 October 2026
+
+The latest `main` source (`657b121`) was fetched before this issue pass. Verification uses Python 3.12.14, Qt 6.12.0 and the offscreen platform on Linux 6.18.44 / glibc 2.41. These tests do not establish installed Windows 11 or Ubuntu 24.04 acceptance.
+
+Before publication, the fixes were rebased onto current `main` (`42d1f87`). Final validation: **278 tests passed in 24.95 seconds**, including the loopback REST integration and subprocess locking tests. `ruff check src tests` and `git diff --check` passed. The newly merged creative authoring scripts have existing lint findings outside this gate. No live or billable model calls were made.
+
+| Issue | Implementation and regression evidence | Status |
+| --- | --- | --- |
+| #47, editing stops after 1,000 revisions | Desktop compaction retains named checkpoints and branch heads, prunes unavailable undo states, and preserves pending editor text on failed flush. `test_1500_typing_bursts_reopen_and_checkpoint_survival` covers 1,500 bursts, save/reopen and undo/redo. Engine cap/branch and failed-flush tests cover policy boundaries. | Fixed in source; offscreen GUI verified |
+| #49, settings disable protection/tracking | Generic settings cannot replace protections/requirements or disable tracking. Explicit `unprotect` / `set_tracking` require trusted desktop confirmation; a claimed GUI origin grants no authority. Restore cannot weaken retained policy. Engine, CLI, MCP and REST dispatch regressions preserve the document after rejected calls; a GUI test covers confirmation and cancellation. | Fixed in source; automated regressions verified |
+| #50, MCP configures executable providers | Shared transport guard rejects provider administration and nested job submissions before writing state. Existing aliases remain callable; local CLI/desktop administration remains available. `test_mcp_and_rest_refuse_provider_administration_without_writes` verifies both transport policies. | Fixed in source; automated regressions verified |
+| #51, default table rendering | Solid 1 pt borders; cells inherit the table/body named style before cell overrides. Default heading/title/list styles inherit body. A raster regression detects at least four distinct horizontal rules, verifies cell font/size and local overrides, and exports the same table to PDF. | Fixed in source; shared editor/preview/export layout verified |
+| #54, non-ASCII RTF control scanner failure | Only ASCII letters enter the control-word parser; unmatched words produce structured `invalid_input`. The reported example and 200 seeded RTF mutations produce valid documents or `ByaxError` results. | Fixed in source; importer/CLI regressions verified |
+| #55, lock-file sidecars | Stable hashed locks live in the per-user cache, with no sidecars beside new/apply/export/render outputs. Existing subprocess lock-conflict tests still pass on Linux. Restart older versions using sidecar locks before upgrading. | Fixed in source; Windows lock-conflict execution remains for Windows CI |
+| #48, history/save overhead | Nonstructural deltas omit unchanged block order, and GUI edits do not create unused replay identities. Legacy full-order deltas still restore correctly. | Partial: periodic full snapshots, synchronous save/autosave and desktop performance targets remain |
+| #56, CI quality gates | The existing Ubuntu/Windows CI matrix now runs `ruff check src tests` before tests and packaging. | Partial: authoring-script lint cleanup, format/type/coverage gates and large-function refactoring remain |
+
+The remaining platform, physical printer/microphone, screen-reader, live provider and complete specification scenario issues remain open. This pass makes no claims about their acceptance.
+
 On 13 October 2026, `tests/test_acceptance.py` completed with **22 passed** on the Linux development container in 0.69 seconds. This is cross-module automated evidence, not a claim that the full Section 23 GUI/platform scenarios passed.
 
 ```bash

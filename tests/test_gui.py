@@ -272,3 +272,60 @@ def test_move_section_gui_moves_heading_and_body(window, monkeypatch):
     window.move_section()
     assert [block['text'] for block in window.doc['blocks']] == ['Two', 'Body two', 'One', 'Body one']
     assert not window.test_errors
+
+
+def test_1500_typing_bursts_reopen_and_checkpoint_survival(window, tmp_path):
+    window.doc = model.new_document(text='Start')
+    window.doc, _ = engine.checkpoint(window.doc, 'Before typing')
+    window.refresh(0)
+    for _ in range(1500):
+        window.editor.insertPlainText('x')
+        assert window.flush_edits()
+    assert not window.test_errors
+    assert window.doc['blocks'][0]['text'] == 'x' * 1500 + 'Start'
+    assert window.doc['requests'] == {}
+    assert len(window.doc['history']['revisions']) <= 1000
+    assert engine._revision(window.doc, 'Before typing')['blocks'][0]['text'] == 'Start'
+    path = tmp_path / 'soak.byax'
+    storage.save_document(window.doc, path)
+    window.dirty = False
+    assert window.open_path(path)
+    window.editor.insertPlainText('y')
+    assert window.flush_edits()
+    assert window.save()
+    assert storage.load_document(path)['blocks'][0]['text'] == 'y' + 'x' * 1500 + 'Start'
+    window.undo()
+    assert window.doc['blocks'][0]['text'] == 'x' * 1500 + 'Start'
+    window.redo()
+    assert window.doc['blocks'][0]['text'].startswith('y')
+
+
+def test_failed_flush_keeps_pending_text_and_undo_stacks(window, monkeypatch):
+    window.editor.insertPlainText('Pending text')
+    def fail(*args, **kwargs):
+        raise ByaxError('limit_exceeded', 'History cap reached')
+    monkeypatch.setattr(engine, 'apply', fail)
+    assert not window.flush_edits()
+    assert window.editor.toPlainText() == 'Pending text'
+    assert window.doc['blocks'][0]['text'] == ''
+    window.undo()
+    assert window.editor.toPlainText() == 'Pending text'
+    assert window.dirty
+
+
+def test_policy_changes_require_desktop_confirmation(window, monkeypatch):
+    from PySide6.QtWidgets import QMessageBox
+    target = window.doc['blocks'][0]['id']
+    window.protect()
+    window.toggle_tracking(True)
+    monkeypatch.setattr(QMessageBox, 'question', lambda *args: QMessageBox.No)
+    window.unprotect()
+    window.toggle_tracking(False)
+    assert window.doc['settings']['protections'] == [{'target': target, 'kind': 'text'}]
+    assert window.doc['settings']['track_changes']
+    monkeypatch.setattr(QMessageBox, 'question', lambda *args: QMessageBox.Yes)
+    window.unprotect()
+    window.toggle_tracking(False)
+    assert window.doc['settings']['protections'] == []
+    assert not window.doc['settings']['track_changes']
+    assert not window.test_errors

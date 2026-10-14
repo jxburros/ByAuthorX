@@ -10,6 +10,7 @@ import json
 import sys
 
 from .cli import COMMANDS, command_schema, error_result, execute, result_exit_code
+from .transport_policy import check_provider_admin
 
 MAX_MESSAGE = 16 * 1024 * 1024
 PROTOCOL_VERSION = '2024-11-05'
@@ -47,6 +48,7 @@ def handle(request: dict) -> dict | None:
             return dict(response, error={'code': -32602, 'message': f'Unknown tool: {tool}'})
         args = params.get('arguments', {})
         try:
+            check_provider_admin(names[tool], args)
             payload = execute(names[tool], args)
             failed = bool(result_exit_code(payload))
         except Exception as exc:  # noqa: BLE001 - transport boundary
