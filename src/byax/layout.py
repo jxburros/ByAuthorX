@@ -1581,7 +1581,14 @@ class _Resolver:
             if stop <= start + EPSILON:
                 remaining.append((ident, start))
                 continue
-            page['notes'].append((ident, start, stop))
+            if (
+                page['notes']
+                and page['notes'][-1][0] == ident
+                and abs(page['notes'][-1][2] - start) < EPSILON
+            ):
+                page['notes'][-1] = (ident, page['notes'][-1][1], stop)
+            else:
+                page['notes'].append((ident, start, stop))
             force = False
             if any(top >= stop - EPSILON for top, _ in lines):
                 remaining.append((ident, stop))
@@ -2120,6 +2127,35 @@ def resolved_page_size(qdoc, page_index):
         page = qdoc.byax_resolved['pages'][page_index]
         return page['width'], page['height']
     return qdoc.pageSize().width(), qdoc.pageSize().height()
+
+
+def block_lines(resolved, ident):
+    """Physical placement of every rendered line of one semantic block: page, x, y, text."""
+    result = []
+    for number, page in enumerate(resolved['pages'], start=1):
+        for fragment in page['fragments']:
+            part = fragment.get('document')
+            if part is None or fragment['kind'] == 'table_header' or ident not in part.byax_positions:
+                continue
+            source, rect = fragment['source'], fragment['rect']
+            block = part.findBlock(part.byax_positions[ident])
+            top = part.documentLayout().blockBoundingRect(block).top()
+            layout = block.layout()
+            for index in range(layout.lineCount()):
+                line = layout.lineAt(index)
+                y = top + line.y()
+                if y >= source.top() - EPSILON and y + line.height() <= source.bottom() + EPSILON:
+                    text = block.text()[line.textStart() : line.textStart() + line.textLength()]
+                    result.append(
+                        {
+                            'page': number,
+                            'x': rect.x(),
+                            'y': rect.y() + y - source.top(),
+                            'width': rect.width(),
+                            'text': text,
+                        }
+                    )
+    return result
 
 
 def layout_signature(resolved):
