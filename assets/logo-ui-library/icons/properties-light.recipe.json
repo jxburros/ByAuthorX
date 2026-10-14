@@ -1,0 +1,147 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Document properties"
+    },
+    {
+      "type": "shape",
+      "name": "page",
+      "shape": "path",
+      "x": 6,
+      "y": 7,
+      "width": 47,
+      "height": 80,
+      "fill": "none",
+      "path": "M3.82 0.69 Q16.57 0.27 29.3 1.09 Q31.9 1.13 33.81 2.89 Q39.78 7.38 44.74 12.96 Q46.65 14.72 46.64 17.32 Q46.92 47.06 46.41 76.79 Q46.4 79.39 43.8 79.33 Q24.04 78.5 4.26 78.46 Q1.67 78.4 1.65 75.8 Q0.75 39.53 1.23 3.25 Q1.22 0.65 3.82 0.69 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "page-fold",
+      "shape": "path",
+      "x": 38,
+      "y": 7,
+      "width": 14,
+      "height": 16,
+      "fill": "none",
+      "path": "M0.72 0.92 Q0.74 6.72 0.76 12.53 Q0.77 14.13 2.36 14.29 Q7.92 14.88 13.48 15.47",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 17,
+      "y": 29,
+      "width": 24,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 0.96 Q12 1.57 24 0.78",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 17,
+      "y": 43,
+      "width": 16,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.01 Q8 1.94 16 0.67",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "badge",
+      "shape": "path",
+      "x": 52,
+      "y": 48,
+      "width": 36,
+      "height": 36,
+      "fill": "none",
+      "path": "M18 0.65 C22.52 0.52 20.54 0.7 24.86 2.59 C29.18 4.48 27.75 2.97 30.97 6.32 C34.2 9.66 33.34 8.15 34.54 12.63 C35.74 17.1 35.03 15.02 34.58 19.74 C34.14 24.46 35.43 22.8 33.22 26.78 C31 30.77 31.86 29.18 27.95 31.69 C24.03 34.19 25.95 33.36 21.46 34.3 C16.98 35.24 18.98 35.36 14.49 34.52 C10 33.68 11.78 34.41 8 31.77 C4.21 29.12 5.39 30.59 3.13 26.59 C0.87 22.58 1.59 24.36 1.22 19.76 C0.84 15.17 0.74 17.29 2 12.8 C3.26 8.31 1.89 9.57 4.99 6.29 C8.1 3.01 6.97 4.85 11.31 2.97 C15.64 1.09 13.48 0.77 18 0.65 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "badge-stem",
+      "shape": "path",
+      "x": 69,
+      "y": 65,
+      "width": 2,
+      "height": 13,
+      "fill": "none",
+      "path": "M1.34 0.28 Q0.43 6.46 1.44 12.62",
+      "stroke": "#252927",
+      "stroke_width": 5.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "badge-dot",
+      "shape": "path",
+      "x": 66,
+      "y": 50,
+      "width": 8,
+      "height": 8,
+      "fill": "#252927",
+      "path": "M4 0.54 C5.76 0.55 5.5 0.51 6.61 1.92 C7.71 3.33 7.68 3.03 7.31 4.76 C6.94 6.48 7.1 6.29 5.49 7.09 C3.88 7.9 4.09 7.94 2.48 7.16 C0.86 6.39 1.03 6.53 0.64 4.77 C0.26 3 0.2 3.27 1.32 1.86 C2.44 0.45 2.24 0.52 4 0.54 Z"
+    }
+  ]
+}

@@ -3,13 +3,22 @@
 from __future__ import annotations
 
 import uuid
+from dataclasses import dataclass
 
-from PySide6.QtCore import QRectF, QSize, Signal
-from PySide6.QtGui import QColor, QPainter, QTextCursor
-from PySide6.QtWidgets import QTextEdit, QWidget
+from PySide6.QtCore import QEasingCurve, QEvent, QPoint, QRectF, QSize, Qt, QVariantAnimation, Signal
+from PySide6.QtGui import QColor, QFontMetricsF, QPainter, QTextCursor
+from PySide6.QtWidgets import QApplication, QTextEdit, QToolTip, QWidget
 
-from .brand import COLORS
-from .layout import BLOCK_ID_PROPERTY, draw_page, resolved_page_count, resolved_page_size
+from . import gui_ink
+from .brand import COLORS, TOKENS, prefers_high_contrast
+from .layout import (
+    BLOCK_ID_PROPERTY,
+    INK_STRIKE_PROPERTY,
+    INK_UNDERLINE_PROPERTY,
+    draw_page,
+    resolved_page_count,
+    resolved_page_size,
+)
 
 BLOCK_ID = BLOCK_ID_PROPERTY
 
@@ -60,11 +69,46 @@ def text_operations(target, before, after):
     return ops
 
 
+@dataclass(frozen=True)
+class ProofMark:
+    """A proofreader's mark over [start, end) of one canonical block.
+
+    ``text`` is the block text the finding was measured on: the mark is drawn only while the block still
+    reads exactly that, so it can never sit under the wrong word. Marks live in the editing view only;
+    they are never saved into the document or its exports.
+    """
+
+    target: str
+    start: int
+    end: int
+    kind: str  # 'spelling' (red pen) or 'grammar' (green pen)
+    label: str
+    text: str
+
+    @property
+    def key(self):
+        return (self.target, self.start, self.end, self.kind)
+
+
 class SemanticEditor(QTextEdit):
     fileDropped = Signal(str)
 
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.hand_marks = True
+        self.motion = None  # set by the window so new marks honour reduced motion
+        self._proof = ()
+        self._block_cache = (None, {})
+        self._hits = []
+        self._writing = frozenset()
+        self._reveal = QVariantAnimation(self)
+        self._reveal.setStartValue(0.0)
+        self._reveal.setEndValue(1.0)
+        self._reveal.setDuration(TOKENS['motion']['durationMs'])
+        self._reveal.setEasingCurve(QEasingCurve.OutCubic)
+        self._reveal.valueChanged.connect(lambda _: self.viewport().update())
+        self._reveal.finished.connect(self._finish_reveal)
+        self.viewport().installEventFilter(self)
         self.setAcceptRichText(False)  # Imported HTML must go through the bounded exchange adapter.
         self.setAcceptDrops(True)
         self.setAccessibleName(self.tr('Document editor'))
@@ -75,6 +119,170 @@ class SemanticEditor(QTextEdit):
             border: 2px solid {COLORS['control']}; border-radius: 8px; padding: 24px;
             selection-background-color: {COLORS['greenText']}; selection-color: white; }}
             QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}""")
+
+    # -- hand-drawn marks ---------------------------------------------------------------------------
+    def set_hand_marks(self, enabled):
+        self.hand_marks = bool(enabled)
+        self.viewport().update()
+
+    def proof_marks(self):
+        return self._proof
+
+    def set_proof_marks(self, marks):
+        marks = tuple(marks)
+        fresh = frozenset(m.key for m in marks) - frozenset(m.key for m in self._proof)
+        self._proof = marks
+        reduced = self.motion is not None and self.motion.reduced
+        if fresh and not reduced:
+            self._writing = fresh
+            self._reveal.stop()
+            self._reveal.start()
+        else:
+            self._finish_reveal()
+        self.viewport().update()
+
+    def _finish_reveal(self):
+        self._writing = frozenset()
+        self.viewport().update()
+
+    def _block_for(self, ident):
+        document = self.document()
+        key = (id(document), document.revision())
+        if self._block_cache[0] != key:
+            index = {}
+            block = document.begin()
+            while block.isValid():
+                found = block.blockFormat().property(BLOCK_ID)
+                if found:
+                    index.setdefault(found, block.blockNumber())
+                block = block.next()
+            self._block_cache = (key, index)
+        number = self._block_cache[1].get(ident)
+        return document.findBlockByNumber(number) if number is not None else None
+
+    def _spans(self, block, start, end):
+        """Viewport rectangles (x1, x2, line_top, ascent, descent) covering [start, end) of a block."""
+        layout = block.layout()
+        if layout is None:
+            return []
+        origin = self.document().documentLayout().blockBoundingRect(block).topLeft()
+        dx, dy = -self.horizontalScrollBar().value(), -self.verticalScrollBar().value()
+        spans = []
+        for index in range(layout.lineCount()):
+            line = layout.lineAt(index)
+            line_start = line.textStart()
+            lo, hi = max(start, line_start), min(end, line_start + line.textLength())
+            if lo >= hi:
+                continue
+            xs = (line.cursorToX(lo)[0], line.cursorToX(hi)[0])
+            spans.append(
+                (
+                    origin.x() + min(xs) + dx,
+                    origin.x() + max(xs) + dx,
+                    origin.y() + line.y() + dy,
+                    line.ascent(),
+                    line.descent(),
+                )
+            )
+        return spans
+
+    def _visible_blocks(self):
+        height = self.viewport().height()
+        block = self.cursorForPosition(QPoint(0, 0)).block()
+        top = self.document().documentLayout()
+        dy = -self.verticalScrollBar().value()
+        while block.isValid():
+            if top.blockBoundingRect(block).top() + dy > height:
+                break
+            yield block
+            block = block.next()
+
+    def paintEvent(self, event):
+        super().paintEvent(event)
+        self._hits = []
+        if not self.hand_marks and not self._proof:
+            return
+        painter = QPainter(self.viewport())
+        painter.setRenderHint(QPainter.Antialiasing)
+        painter.setClipRect(event.rect())
+        contrast = prefers_high_contrast(QApplication.instance())
+        if self.hand_marks:
+            self._paint_authored(painter, contrast)
+        if self._proof:
+            self._paint_proof(painter, contrast)
+        painter.end()
+
+    def _paint_authored(self, painter, contrast):
+        """Authored underline and strikethrough, drawn as pen strokes in the text's own colour."""
+        default = self.palette().text().color()
+        for block in self._visible_blocks():
+            fragments = block.begin()
+            while not fragments.atEnd():
+                fragment = fragments.fragment()
+                fragments += 1
+                fmt = fragment.charFormat()
+                underline, strike = (
+                    fmt.boolProperty(INK_UNDERLINE_PROPERTY),
+                    fmt.boolProperty(INK_STRIKE_PROPERTY),
+                )
+                if not (underline or strike):
+                    continue
+                font = fmt.font().resolve(self.document().defaultFont())
+                metrics = QFontMetricsF(font)
+                brush = fmt.foreground()
+                color = brush.color() if brush.style() != Qt.NoBrush else default
+                weight = gui_ink.line_weight(metrics.height()) * (1.6 if contrast else 1.0)
+                start = fragment.position() - block.position()
+                for x1, x2, top, ascent, _descent in self._spans(block, start, start + fragment.length()):
+                    for drawn, offset in (
+                        (underline, max(1.0, metrics.underlinePos())),
+                        (strike, -metrics.strikeOutPos()),
+                    ):
+                        if not drawn:
+                            continue
+                        seed = f'{block.blockNumber()}:{start}:{offset:.1f}'
+                        painter.setPen(gui_ink.pen(color, weight))
+                        painter.drawPath(gui_ink.rule(x1, x2, top + ascent + offset, seed, hand=True))
+
+    def _paint_proof(self, painter, contrast):
+        fraction = self._reveal.currentValue() if self._writing else 1.0
+        document_text = self.palette().text().color()
+        for mark in self._proof:
+            block = self._block_for(mark.target)
+            if block is None or QTextCursor(block).currentTable() is not None:
+                continue
+            if block.text().replace('\u2028', '\n') != mark.text:
+                continue
+            first, last = qt_offset(mark.text, mark.start), qt_offset(mark.text, mark.end)
+            color = (
+                document_text
+                if contrast
+                else QColor(COLORS['red'] if mark.kind == 'spelling' else COLORS['green'])
+            )
+            painter.setPen(gui_ink.pen(color, 2.2 if contrast else 1.6))
+            writing = mark.key in self._writing
+            for index, (x1, x2, top, ascent, descent) in enumerate(self._spans(block, first, last)):
+                y = top + ascent + min(descent, 3.2) * 0.75 + 1.1
+                path = gui_ink.squiggle(
+                    x1, x2, y, f'{mark.target}:{mark.start}:{index}', hand=self.hand_marks
+                )
+                if writing and fraction < 1.0:
+                    painter.save()
+                    painter.setClipRect(QRectF(x1 - 3, y - 6, (x2 - x1) * fraction + 3, 12))
+                    painter.drawPath(path)
+                    painter.restore()
+                else:
+                    painter.drawPath(path)
+                self._hits.append((QRectF(x1, y - 6, max(x2 - x1, 4), 12), mark.label))
+
+    def eventFilter(self, watched, event):
+        # Qt sends hover tooltips to the viewport (in viewport coordinates), not to the QTextEdit itself.
+        if watched is self.viewport() and event.type() == QEvent.ToolTip:
+            for rect, label in self._hits:
+                if rect.contains(event.pos()):
+                    QToolTip.showText(event.globalPos(), label, self.viewport())
+                    return True
+        return super().eventFilter(watched, event)
 
     def insertFromMimeData(self, source):
         if source.hasUrls() and source.urls()[0].isLocalFile():

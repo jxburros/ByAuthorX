@@ -1,0 +1,136 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Decrease list level"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 14,
+      "y": 16,
+      "width": 68,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.52 Q34 0.98 68 1.63",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 46,
+      "y": 38,
+      "width": 36,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.47 Q18 0.48 36 0.19",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-2",
+      "shape": "path",
+      "x": 46,
+      "y": 55,
+      "width": 36,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.82 Q18 0.45 36 0.84",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-3",
+      "shape": "path",
+      "x": 14,
+      "y": 75,
+      "width": 68,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.5 Q34 0.04 68 0.81",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "arrow",
+      "shape": "path",
+      "x": 13,
+      "y": 46,
+      "width": 22,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.42 2.05 C3.81 1.64 3.48 0.69 10.59 0.83 C17.7 0.97 18.03 1.92 21.74 2.47",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "arrow-head",
+      "shape": "path",
+      "x": 13,
+      "y": 39,
+      "width": 9,
+      "height": 18,
+      "fill": "none",
+      "path": "M8.7 0.61 Q5.3 3.88 1.89 7.16 Q0.81 8.2 1.68 9.42 Q4.62 13.57 7.56 17.71",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

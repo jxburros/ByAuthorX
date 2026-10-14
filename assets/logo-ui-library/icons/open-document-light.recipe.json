@@ -1,0 +1,76 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Open"
+    },
+    {
+      "type": "shape",
+      "name": "folder",
+      "shape": "path",
+      "x": 11,
+      "y": 25,
+      "width": 74,
+      "height": 56,
+      "fill": "none",
+      "path": "M3.33 1.33 Q12.54 1.25 21.71 0.31 Q24.7 0.15 26.62 2.45 Q28.68 4.92 30.74 7.38 Q32.66 9.69 35.66 9.67 Q52.93 10.02 70.2 9.41 Q73.2 9.39 73.2 12.39 Q72.61 31.97 73.17 51.55 Q73.17 54.55 70.17 54.57 Q37.48 54.58 4.8 55.17 Q1.8 55.19 1.72 52.19 Q1.01 28.35 0.42 4.5 Q0.34 1.5 3.33 1.33 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "flap",
+      "shape": "path",
+      "x": 14,
+      "y": 54,
+      "width": 79,
+      "height": 26,
+      "fill": "none",
+      "path": "M0.1 25.46 Q4.58 14.92 8.61 4.21 Q9.72 1.42 12.72 1.39 Q43.96 1.32 75.19 0.64 Q78.18 0.6 77.11 3.4 Q72.77 14.46 68.6 25.57",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -1,0 +1,141 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Numbered list"
+    },
+    {
+      "type": "waiver",
+      "check": "composition",
+      "reason": "Evenly spaced list rows are the subject of this icon."
+    },
+    {
+      "type": "shape",
+      "name": "one",
+      "shape": "path",
+      "x": 14,
+      "y": 17,
+      "width": 8,
+      "height": 19,
+      "fill": "none",
+      "path": "M0.86 4.37 Q3.1 2.71 5.35 1.04 Q6.56 0.15 6.63 1.65 Q7.43 10.28 7.43 18.95",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "two",
+      "shape": "path",
+      "x": 14,
+      "y": 40,
+      "width": 17,
+      "height": 25,
+      "fill": "none",
+      "path": "M1.23 7.62 C2.64 5.79 1.76 3.35 5.46 2.15 C9.15 0.95 10.1 1.58 12.31 4.02 C14.52 6.46 16.1 4.04 12.09 9.48 C8.07 14.92 0.26 16.56 0.26 20.35 C0.27 24.13 8.16 20.67 12.11 20.84",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "three",
+      "shape": "path",
+      "x": 14,
+      "y": 67,
+      "width": 15,
+      "height": 20,
+      "fill": "none",
+      "path": "M1.73 2.42 C4.58 2.4 8.4 0.4 10.3 2.36 C12.2 4.32 6.82 5.24 7.43 8.3 C8.04 11.37 11.01 8.54 12.12 11.56 C13.22 14.59 14.51 15.5 10.75 17.38 C6.98 19.26 4.14 17.26 0.83 17.21",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 37,
+      "y": 24,
+      "width": 43,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.27 2.28 C6.9 1.59 5.91 0.24 20.15 0.22 C34.4 0.19 35.38 1.54 43 2.21",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 38,
+      "y": 52,
+      "width": 44,
+      "height": 3,
+      "fill": "none",
+      "path": "M0 1.48 Q22 2.06 44 0.63",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-2",
+      "shape": "path",
+      "x": 38,
+      "y": 77,
+      "width": 36,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.63 Q18 0.51 36 0.55",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

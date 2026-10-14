@@ -1,0 +1,121 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Document statistics"
+    },
+    {
+      "type": "shape",
+      "name": "axes",
+      "shape": "path",
+      "x": 12,
+      "y": 12,
+      "width": 75,
+      "height": 73,
+      "fill": "none",
+      "path": "M0.64 0.36 Q1.05 35.16 0.45 69.96 Q0.44 71.96 2.44 71.98 Q38.24 72.64 74.04 72.62",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bar-0",
+      "shape": "path",
+      "x": 23,
+      "y": 59,
+      "width": 14,
+      "height": 26,
+      "fill": "none",
+      "path": "M0.44 24.67 Q1.26 13.48 0.51 2.28 Q0.52 0.78 2.02 0.71 Q6.93 0.51 11.85 0.3 Q13.35 0.24 13.32 1.74 Q13.87 13.75 12.91 25.74",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bar-1",
+      "shape": "path",
+      "x": 43,
+      "y": 45,
+      "width": 13,
+      "height": 40,
+      "fill": "none",
+      "path": "M1.56 39.67 Q1.63 21.43 0.63 3.21 Q0.6 1.71 2.09 1.61 Q6.37 1.31 10.66 1.02 Q12.15 0.91 12.15 2.41 Q12.4 20.52 12.13 38.63",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bar-2",
+      "shape": "path",
+      "x": 63,
+      "y": 33,
+      "width": 14,
+      "height": 52,
+      "fill": "none",
+      "path": "M1.35 51.51 Q0.91 26.6 0.3 1.7 Q0.27 0.2 1.77 0.27 Q6.52 0.51 11.26 0.74 Q12.76 0.82 12.76 2.32 Q13.3 27.03 12.76 51.75",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "trend",
+      "shape": "path",
+      "x": 19,
+      "y": 14,
+      "width": 64,
+      "height": 32,
+      "fill": "none",
+      "path": "M0.16 31.38 C6.91 26.75 7.74 20.81 20.41 17.49 C33.09 14.17 23.7 27.19 38.18 21.41 C52.66 15.63 55.29 7.24 63.84 0.15",
+      "stroke": "#367B6C",
+      "stroke_width": 5.5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

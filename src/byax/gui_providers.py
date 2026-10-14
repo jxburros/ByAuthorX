@@ -33,7 +33,9 @@ from PySide6.QtWidgets import (
 )
 
 from . import engine, model
+from .brand import BrandGraphic
 from .errors import ByaxError
+from .gui_art import BusyArt, themed_art
 from .providers import ProviderConfig, ProviderRegistry
 from .transcription import (
     DictationJournal,
@@ -56,6 +58,7 @@ class ProviderDialog(QDialog):
         self.setWindowTitle(self.tr('Providers and credentials'))
         self.resize(650, 590)
         form = QFormLayout(self)
+        form.addRow(BrandGraphic(themed_art('provider-keys', self), 132), None)
         intro = QLabel(
             self.tr(
                 'Choose your own hosted or local providers. Credentials stay in your operating system keyring or environment; documents never contain API keys.'
@@ -514,6 +517,11 @@ class DictationDialog(QDialog):
         self.bridge = _EventBridge(self)
         self.bridge.event.connect(self.on_event)
         layout = QVBoxLayout(self)
+        # The pen line becomes the voice: the loop plays only while audio is actually being recorded.
+        self.voice = BusyArt(
+            themed_art('dictation-ready', window), 144, window.motion, 'listening-wave', 130, self
+        )
+        layout.addWidget(self.voice, alignment=Qt.AlignHCenter)
         self.state = QLabel(
             self.tr(
                 'Choose a microphone, then start recording. Audio is recorded locally until you explicitly authorize transcription.'
@@ -732,27 +740,32 @@ class DictationDialog(QDialog):
             self.journal.audio(self.audio_path, bytes_recorded=0, force=True)
             self.recorder.start(self.audio_path, self.devices.currentData())
             self.state.setText(self.tr('Recording ● · Alt+P to pause · Alt+T to stop'))
+            self.voice.set_busy(True)
         except Exception as exc:
             if self.journal is not None:
                 self.journal.finish('failed')
                 self.journal = None
             self.audio_path = None
+            self.voice.set_busy(False)
             self.window.error(exc)
 
     def pause(self):
         if self.audio_path:
             self.recorder.pause()
             self.state.setText(self.tr('Recording paused · Alt+R to resume'))
+            self.voice.set_busy(False)
 
     def resume(self):
         if self.audio_path:
             self.recorder.resume()
             self.state.setText(self.tr('Recording ●'))
+            self.voice.set_busy(True)
 
     def stop(self):
         if not self.audio_path:
             return
         result = self.recorder.stop()
+        self.voice.set_busy(False)
         path = self.audio_path
         self.audio_path = None
         note = (' · ' + result['error']) if result.get('error') else ''
@@ -1067,6 +1080,7 @@ class DictationDialog(QDialog):
         return sessions
 
     def reject(self):
+        self.voice.set_busy(False)
         if self.audio_path:
             self.recorder.stop()
             self.window.status_label.setText(self.tr('Unsubmitted recording retained at ') + self.audio_path)

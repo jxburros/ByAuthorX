@@ -1,0 +1,121 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Page break"
+    },
+    {
+      "type": "shape",
+      "name": "page-above",
+      "shape": "path",
+      "x": 21,
+      "y": 9,
+      "width": 54,
+      "height": 30,
+      "fill": "none",
+      "path": "M1.13 29.29 Q0.75 16.33 1.59 3.38 Q1.65 0.38 4.65 0.47 Q27.31 0.88 49.97 1.78 Q52.96 1.87 53.01 4.87 Q53.27 16.94 53.39 29.01",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "page-below",
+      "shape": "path",
+      "x": 22,
+      "y": 57,
+      "width": 53,
+      "height": 29,
+      "fill": "none",
+      "path": "M0.67 0.61 Q0.03 13.14 0.29 25.69 Q0.25 28.69 3.25 28.66 Q26.07 28.41 48.89 28.16 Q51.89 28.12 51.87 25.12 Q52.06 13.15 51.69 1.18",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "break-0",
+      "shape": "path",
+      "x": 10,
+      "y": 47,
+      "width": 17,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.37 0.67 Q8.35 1.77 16.39 1.35",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "break-1",
+      "shape": "path",
+      "x": 36,
+      "y": 47,
+      "width": 22,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.09 0.57 Q10.84 1.26 21.6 1.09",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "break-2",
+      "shape": "path",
+      "x": 67,
+      "y": 47,
+      "width": 19,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.65 1.23 Q9.83 0.39 19 1.31",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

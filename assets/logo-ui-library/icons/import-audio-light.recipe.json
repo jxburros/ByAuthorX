@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Import audio"
+    },
+    {
+      "type": "shape",
+      "name": "page",
+      "shape": "path",
+      "x": 13,
+      "y": 7,
+      "width": 58,
+      "height": 82,
+      "fill": "none",
+      "path": "M3.99 1.34 Q22.23 1.29 40.47 0.97 Q43.07 0.94 44.95 2.74 Q50.41 7.74 55.65 12.98 Q57.53 14.77 57.54 17.37 Q57.59 47.57 57.85 77.77 Q57.86 80.37 55.26 80.38 Q29.42 81.22 3.57 80.62 Q0.97 80.63 0.98 78.03 Q1.41 41 1.38 3.97 Q1.39 1.37 3.99 1.34 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "page-fold",
+      "shape": "path",
+      "x": 55,
+      "y": 7,
+      "width": 16,
+      "height": 16,
+      "fill": "none",
+      "path": "M0.93 0.77 Q0.76 6.77 0.59 12.77 Q0.54 14.37 2.14 14.5 Q8.82 15.05 15.51 15.61",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "wave",
+      "shape": "path",
+      "x": 21,
+      "y": 36,
+      "width": 42,
+      "height": 43,
+      "fill": "none",
+      "path": "M0.28 22.8 C3.05 22.37 4.24 26.53 8.6 21.52 C12.96 16.5 9.75 2.87 13.35 7.74 C16.95 12.61 15.76 38.45 19.4 36.13 C23.04 33.8 20.43 0.22 24.27 0.77 C28.1 1.32 26.86 33.1 30.91 37.76 C34.95 42.43 33.01 19.93 36.4 14.76 C39.79 9.59 39.51 19.75 41.07 22.25",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 24,
+      "y": 25,
+      "width": 24,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 0.77 Q12 1.94 24 0.9",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -1,0 +1,136 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Dictation"
+    },
+    {
+      "type": "shape",
+      "name": "capsule",
+      "shape": "path",
+      "x": 33,
+      "y": 8,
+      "width": 25,
+      "height": 39,
+      "fill": "none",
+      "path": "M12.26 0.48 Q13.41 0.5 14.57 0.52 Q24.95 0.7 24.93 11.7 Q24.64 19.52 24.91 27.34 Q24.89 38.34 13.89 38.25 Q12.61 38.24 11.33 38.23 Q0.33 38.13 0.78 27.14 Q1.15 19.22 1.43 11.29 Q1.88 0.3 12.26 0.48 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "cradle",
+      "shape": "path",
+      "x": 25,
+      "y": 43,
+      "width": 42,
+      "height": 21,
+      "fill": "none",
+      "path": "M40.65 0.72 C38.63 5.1 41.16 7.63 34.61 13.85 C28.06 20.07 30.08 19.37 21 19.38 C11.92 19.4 14.06 20.1 7.36 13.89 C0.65 7.68 3.05 5.14 0.89 0.76",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "stand",
+      "shape": "path",
+      "x": 45,
+      "y": 64,
+      "width": 2,
+      "height": 18,
+      "fill": "none",
+      "path": "M0.91 0.15 Q1.27 9 0.59 17.83",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "base",
+      "shape": "path",
+      "x": 31,
+      "y": 85,
+      "width": 30,
+      "height": 1,
+      "fill": "none",
+      "path": "M0.61 0.85 Q14.89 0.01 29.18 0.6",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "wave-near",
+      "shape": "path",
+      "x": 67,
+      "y": 13,
+      "width": 6,
+      "height": 34,
+      "fill": "none",
+      "path": "M0.25 0.85 C2.13 6.23 5.81 6.16 5.89 17 C5.98 27.84 2.3 27.91 0.5 33.36",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "wave-far",
+      "shape": "path",
+      "x": 77,
+      "y": 8,
+      "width": 7,
+      "height": 44,
+      "fill": "none",
+      "path": "M0.65 0.46 C2.65 7.64 6.86 7.79 6.65 22 C6.43 36.21 2.22 36.05 0.01 43.08",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

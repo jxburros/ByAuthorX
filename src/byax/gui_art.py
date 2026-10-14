@@ -24,19 +24,53 @@ def themed_art(name, widget=None):
     return f'ui/{name}-{art_theme(widget)}.png'
 
 
+class BusyArt(QWidget):
+    """A still that gives way to a task-owned loop in the same fixed slot, so nothing moves.
+
+    The loop plays only between ``set_busy(True)`` and ``set_busy(False)``; under reduced motion the
+    delivered still pose is drawn instead (see TaskLoop).
+    """
+
+    def __init__(self, graphic, width, motion, loop_name, loop_width, parent=None):
+        super().__init__(parent)
+        self.still = BrandGraphic(graphic, width, self)
+        self.loop = TaskLoop(motion, loop_name, loop_width, self)
+        self.setFixedSize(self.still.size())
+        self.still.move(0, 0)
+        self.loop.move((self.width() - self.loop.width()) // 2, (self.height() - self.loop.height()) // 2)
+
+    def set_busy(self, busy):
+        if busy:
+            self.still.hide()
+            self.loop.start()
+        else:
+            self.loop.stop()
+            self.still.show()
+
+    @property
+    def busy(self):
+        return self.loop.running
+
+
 class EmptyPanel(QWidget):
     """Explain an empty inspector without placing artwork in authored content."""
 
-    def __init__(self, title, description, *, graphic=None, action=None, parent=None):
+    def __init__(self, title, description, *, graphic=None, action=None, busy=None, parent=None):
+        """``busy`` is ``(loop_name, loop_width, motion)``: a loop that replaces the still while a task runs."""
         super().__init__(parent)
         self.setObjectName('emptyPanel')
+        self.art = None
         layout = QVBoxLayout(self)
         layout.setContentsMargins(20, 24, 20, 24)
         layout.setSpacing(12)
         layout.addStretch()
-        if graphic:
-            art = BrandGraphic(graphic, 144, self)
-            layout.addWidget(art, alignment=Qt.AlignHCenter)
+        if graphic and busy:
+            loop_name, loop_width, motion = busy
+            self.art = BusyArt(graphic, 144, motion, loop_name, loop_width, self)
+            layout.addWidget(self.art, alignment=Qt.AlignHCenter)
+        elif graphic:
+            self.art = BrandGraphic(graphic, 144, self)
+            layout.addWidget(self.art, alignment=Qt.AlignHCenter)
         heading = QLabel(title)
         heading.setObjectName('emptyHeading')
         heading.setWordWrap(True)
@@ -54,6 +88,10 @@ class EmptyPanel(QWidget):
             button.clicked.connect(callback)
             layout.addWidget(button)
         layout.addStretch()
+
+    def set_busy(self, busy):
+        if isinstance(self.art, BusyArt):
+            self.art.set_busy(busy)
 
 
 class ActivityGraphic(PenLineAnimation):

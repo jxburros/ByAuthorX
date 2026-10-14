@@ -43,5 +43,137 @@
   "outline-empty-dark.png": {
     "source": "assets/logo-companion-library/illustrations/loop-bound-book-dark.png",
     "source_sha256": "6d140ef4f5ab80f89dcc57a591ef3b3b753e72e8076d9046d7312ea2e0926781"
+  },
+  "checks-clear-light.png": {
+    "source": "assets/logo-ui-library/illustrations/checks-clear-light.png",
+    "source_sha256": "5627b84b0412afbb106531a36d8e14dbe4aef0beae53d9cf99d54e3bb6a3ba59"
+  },
+  "proofread-marks-light.png": {
+    "source": "assets/logo-ui-library/illustrations/proofread-marks-light.png",
+    "source_sha256": "971fcbabee1828184747c0f1a88aefa5fb089951a1a5670182035f44134ebd38"
+  },
+  "jobs-empty-light.png": {
+    "source": "assets/logo-ui-library/illustrations/jobs-empty-light.png",
+    "source_sha256": "a160dc370bb5d749371ccfa544077161fd3d222147691c7bfb326a501340c35b"
+  },
+  "dictation-ready-light.png": {
+    "source": "assets/logo-ui-library/illustrations/dictation-ready-light.png",
+    "source_sha256": "3979483ee4a916db8b33777b448631d93517bff994d224e55f223257ab2f4769"
+  },
+  "export-ready-light.png": {
+    "source": "assets/logo-ui-library/illustrations/export-ready-light.png",
+    "source_sha256": "6fb3c615ab7e06b5b066295bf219dcdd92d22f174e1c947e1d9cfcfaa7d1fa6a"
+  },
+  "provider-keys-light.png": {
+    "source": "assets/logo-ui-library/illustrations/provider-keys-light.png",
+    "source_sha256": "b7504b3f214845517b684efb5282fcf4294a4f992db3d622c9f5851fac493d85"
+  },
+  "rule-h-light.png": {
+    "source": "assets/logo-ui-library/rules/rule-h-light.png",
+    "source_sha256": "3ff4ad2fb6a3be4488f0c6fc1bd085dec915a1aa839420a7772c63debf72e60f"
+  },
+  "rule-h-light@2x.png": {
+    "source": "assets/logo-ui-library/rules/rule-h-light@2x.png",
+    "source_sha256": "b15c033c1dc4d7a745d30e19ac749b021a51e7158ef39566fb438901786287cf"
+  },
+  "rule-v-light.png": {
+    "source": "assets/logo-ui-library/rules/rule-v-light.png",
+    "source_sha256": "b01173c23683bddc1d6ff8ed9985d8cc52834e0e5174ea195ed91abff8aa5e61"
+  },
+  "rule-v-light@2x.png": {
+    "source": "assets/logo-ui-library/rules/rule-v-light@2x.png",
+    "source_sha256": "022e46a8f166f501b633c9781fc8b214596a2fb61bf458868becd9e77e474ccd"
+  },
+  "tab-underline-light.png": {
+    "source": "assets/logo-ui-library/rules/tab-underline-light.png",
+    "source_sha256": "266baafa16adbb64634b342bccecf7b9577b260c781a9cfd1edc8845fc234790"
+  },
+  "tab-underline-light@2x.png": {
+    "source": "assets/logo-ui-library/rules/tab-underline-light@2x.png",
+    "source_sha256": "37827151860309f3105f00ccf9c98dba32608638d2d9d9d3e2c90484c3519444"
+  },
+  "checks-clear-dark.png": {
+    "source": "assets/logo-ui-library/illustrations/checks-clear-dark.png",
+    "source_sha256": "5405a037227836d74c7f3fae6c8c02a003855393578d03336ecd05f42f339a31"
+  },
+  "proofread-marks-dark.png": {
+    "source": "assets/logo-ui-library/illustrations/proofread-marks-dark.png",
+    "source_sha256": "fa3ea57881330be3649faf8104bd4bddd43af83c618a766a66e604ea05df3c04"
+  },
+  "jobs-empty-dark.png": {
+    "source": "assets/logo-ui-library/illustrations/jobs-empty-dark.png",
+    "source_sha256": "f1f9a10f6753f922bc1c2b25a0d7429ed43f1ed712713a63c6257b25248a1961"
+  },
+  "dictation-ready-dark.png": {
+    "source": "assets/logo-ui-library/illustrations/dictation-ready-dark.png",
+    "source_sha256": "8e930f89f805e41f4859b140c737df7a02ea5d4237deb6814d8959b090eeb932"
+  },
+  "export-ready-dark.png": {
+    "source": "assets/logo-ui-library/illustrations/export-ready-dark.png",
+    "source_sha256": "ecd2bc07abd855379f5d591e72494a02d19d8dc9d04ccd197292d916faad0484"
+  },
+  "provider-keys-dark.png": {
+    "source": "assets/logo-ui-library/illustrations/provider-keys-dark.png",
+    "source_sha256": "eeab55f8f55c85ee22c4b14b7120f6257c98468b50fff326e791ae419c58ca28"
+  },
+  "rule-h-dark.png": {
+    "source": "assets/logo-ui-library/rules/rule-h-dark.png",
+    "source_sha256": "057b01dc6ad20570aece23e3b901f1812a210fd039a00b4df88452a0fd705292"
+  },
+  "rule-h-dark@2x.png": {
+    "source": "assets/logo-ui-library/rules/rule-h-dark@2x.png",
+    "source_sha256": "1766d6961323388f854d2caca803043caabfd487d0f98043dc073e49028b98c3"
+  },
+  "rule-v-dark.png": {
+    "source": "assets/logo-ui-library/rules/rule-v-dark.png",
+    "source_sha256": "664b3eb72f447886e41a684d3e6b7d199a1babf499f7377c857a3a32712558df"
+  },
+  "rule-v-dark@2x.png": {
+    "source": "assets/logo-ui-library/rules/rule-v-dark@2x.png",
+    "source_sha256": "ae3c7948fddd52b9ff3447cbf1fc354dca88447dc209e76cbae51e60667702b4"
+  },
+  "tab-underline-dark.png": {
+    "source": "assets/logo-ui-library/rules/tab-underline-dark.png",
+    "source_sha256": "266baafa16adbb64634b342bccecf7b9577b260c781a9cfd1edc8845fc234790"
+  },
+  "tab-underline-dark@2x.png": {
+    "source": "assets/logo-ui-library/rules/tab-underline-dark@2x.png",
+    "source_sha256": "37827151860309f3105f00ccf9c98dba32608638d2d9d9d3e2c90484c3519444"
+  },
+  "icons-light-16.png": {
+    "source": "assets/logo-ui-library/icons/atlas-light-16.png",
+    "source_sha256": "945ec4548e832d3354ee206351ea4373bdc8ef79ebaf5ea31ec71df8d96e2f6c"
+  },
+  "icons-light-24.png": {
+    "source": "assets/logo-ui-library/icons/atlas-light-24.png",
+    "source_sha256": "b773b1cc039cdc80c45f7c8d5988f0fb65c4c4a352e62678c648c63baa4dd687"
+  },
+  "icons-light-32.png": {
+    "source": "assets/logo-ui-library/icons/atlas-light-32.png",
+    "source_sha256": "02132db2b7b4960964fcc8592308acdf15153c7b2a4093c47eaab1eff09d0bf9"
+  },
+  "icons-light-48.png": {
+    "source": "assets/logo-ui-library/icons/atlas-light-48.png",
+    "source_sha256": "14c7ed0a4a24eeada53f54c45262493281a6b2226770ed312083e7d8c00980b9"
+  },
+  "icons-dark-16.png": {
+    "source": "assets/logo-ui-library/icons/atlas-dark-16.png",
+    "source_sha256": "a75f61b83025c07154c8ce74d9da86a6d3aa992fa061af59945c1d9944c036ca"
+  },
+  "icons-dark-24.png": {
+    "source": "assets/logo-ui-library/icons/atlas-dark-24.png",
+    "source_sha256": "4f5d3c3095d566e300b405e1459962b30e0c32896b70a498ab6bef5b0fc3f676"
+  },
+  "icons-dark-32.png": {
+    "source": "assets/logo-ui-library/icons/atlas-dark-32.png",
+    "source_sha256": "3464b6c73843f060055bbae695a45aeb5010917a99abf52763cc5dad3d9b2485"
+  },
+  "icons-dark-48.png": {
+    "source": "assets/logo-ui-library/icons/atlas-dark-48.png",
+    "source_sha256": "a9dee6e97e44b1952e029a033cb9a7ec3194c70d6a039d2fa7676d30c4fe3123"
+  },
+  "icons.json": {
+    "source": "assets/logo-ui-library/icons/atlas.json",
+    "source_sha256": "34bf7d16382cba3e3f977755a33ad2c86554f6a4ebbc5333d9a5acd3faad0ba6"
   }
 }

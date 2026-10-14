@@ -1,0 +1,76 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Underline"
+    },
+    {
+      "type": "shape",
+      "name": "letter",
+      "shape": "path",
+      "x": 25,
+      "y": 12,
+      "width": 46,
+      "height": 59,
+      "fill": "none",
+      "path": "M2.51 0.34 C2.74 10.86 0.59 15.08 3.21 31.89 C5.84 48.69 3.54 42.81 10.38 50.75 C17.22 58.69 15.25 55.93 23.73 55.71 C32.21 55.49 29.3 58.22 35.81 50.08 C42.32 41.95 41.08 47.71 43.25 31.3 C45.42 14.89 42.64 11 42.33 0.85",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "underline",
+      "shape": "path",
+      "x": 18,
+      "y": 80,
+      "width": 61,
+      "height": 4,
+      "fill": "none",
+      "path": "M0.8 3.86 C7.76 2.73 6.97 0.85 21.67 0.46 C36.36 0.07 32.06 2.68 44.89 2.69 C57.72 2.7 55.06 1.23 60.15 0.5",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -5,3 +5,6 @@ assets/logo-companion-library/fonts/*-LICENSE.txt whitespace=-blank-at-eol
 
 # Test fixtures are byte-exact (hashes, round trips); never convert line endings on checkout.
 tests/fixtures/** -text
+
+# The logo UI library is verified by checksums (checksums.json, provenance hashes), so it is byte-exact too.
+assets/logo-ui-library/** -text

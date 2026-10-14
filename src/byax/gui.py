@@ -15,7 +15,18 @@ import uuid
 from pathlib import Path
 
 from platformdirs import user_data_path
-from PySide6.QtCore import QEvent, QObject, QRunnable, QSettings, QSizeF, Qt, QThreadPool, QTimer, Signal
+from PySide6.QtCore import (
+    QEvent,
+    QObject,
+    QRunnable,
+    QSettings,
+    QSize,
+    QSizeF,
+    Qt,
+    QThreadPool,
+    QTimer,
+    Signal,
+)
 from PySide6.QtGui import QAction, QColor, QKeySequence, QPageSize, QPainter
 from PySide6.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PySide6.QtWidgets import (
@@ -54,7 +65,8 @@ from . import engine, gui_a11y, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
-from .gui_editor import PageCanvas, SemanticEditor
+from .gui_editor import PageCanvas, ProofMark, SemanticEditor
+from .gui_icons import themed_icon
 from .gui_motion import MotionController, PenLineAnimation
 
 TEMPLATE_CHOICES = ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…']
@@ -88,6 +100,7 @@ class MainWindow(QMainWindow):
         configure_application(QApplication.instance())
         self.setWindowIcon(app_icon())
         self.motion = MotionController(self.settings, self)
+        self.hand_marks = self.settings.value('appearance/handDrawnMarks', True, type=bool)
         self.setDockOptions(self.dockOptions() & ~QMainWindow.AnimatedDocks)
         self.doc = model.new_document()
         self.path = None
@@ -131,8 +144,10 @@ class MainWindow(QMainWindow):
         if path:
             self.open_path(path)
 
-    def action(self, title, slot, shortcut=None, checkable=False, description=None):
+    def action(self, title, slot, shortcut=None, checkable=False, description=None, icon=None):
         action = QAction(title, self)
+        if icon:
+            action.setIcon(themed_icon(icon, self))
         action.setCheckable(checkable)
         if shortcut:
             action.setShortcut(shortcut)
@@ -163,25 +178,28 @@ class MainWindow(QMainWindow):
             )
         }
         file_actions = [
-            (self.tr('New'), self.new_file, QKeySequence.New),
-            (self.tr('New from template…'), self.templates, None),
-            (self.tr('Open…'), self.open_file, QKeySequence.Open),
-            (self.tr('Save'), self.save, QKeySequence.Save),
-            (self.tr('Save as…'), self.save_as, QKeySequence.SaveAs),
-            (self.tr('Export…'), self.export, 'Ctrl+Shift+E'),
-            (self.tr('Redact a sanitized copy…'), self.redact_copy, None),
-            (self.tr('Page setup…'), self.page_setup, None),
-            (self.tr('Print preview…'), self.print_preview, None),
-            (self.tr('Print…'), self.print_document, QKeySequence.Print),
-            (self.tr('Recover autosave…'), self.recover, None),
+            (self.tr('New'), self.new_file, QKeySequence.New, 'new-document'),
+            (self.tr('New from template…'), self.templates, None, None),
+            (self.tr('Open…'), self.open_file, QKeySequence.Open, 'open-document'),
+            (self.tr('Save'), self.save, QKeySequence.Save, 'save'),
+            (self.tr('Save as…'), self.save_as, QKeySequence.SaveAs, 'save-as'),
+            (self.tr('Export…'), self.export, 'Ctrl+Shift+E', 'export'),
+            (self.tr('Redact a sanitized copy…'), self.redact_copy, None, None),
+            (self.tr('Page setup…'), self.page_setup, None, None),
+            (self.tr('Print preview…'), self.print_preview, None, None),
+            (self.tr('Print…'), self.print_document, QKeySequence.Print, 'print'),
+            (self.tr('Recover autosave…'), self.recover, None, None),
         ]
-        for title, slot, shortcut in file_actions:
-            menus['&File'].addAction(self.action(title, slot, shortcut))
+        for title, slot, shortcut, icon in file_actions:
+            menus['&File'].addAction(self.action(title, slot, shortcut, icon=icon))
         self.recent_menu = menus['&File'].addMenu(self.tr('Recent documents'))
         self.update_recents()
         menus['&File'].addSeparator()
         menus['&File'].addAction(self.action(self.tr('Quit'), self.close, QKeySequence.Quit))
         self.editor = SemanticEditor()
+        self.editor.motion = self.motion
+        self.editor.set_hand_marks(self.hand_marks)
+        self._check_marks = ()
         self.editor.fileDropped.connect(self.open_path)
         self.editor.cursorPositionChanged.connect(self.selection_changed)
         self.stack = QStackedWidget()
@@ -212,18 +230,20 @@ class MainWindow(QMainWindow):
         workspace_layout.addLayout(document_bar)
         workspace_layout.addWidget(self.stack, 1)
         self.setCentralWidget(workspace)
-        for title, slot, key in [
-            (self.tr('Undo'), self.undo, QKeySequence.Undo),
-            (self.tr('Redo'), self.redo, QKeySequence.Redo),
-            (self.tr('Cut'), self.editor.cut, QKeySequence.Cut),
-            (self.tr('Copy'), self.editor.copy, QKeySequence.Copy),
-            (self.tr('Paste'), self.editor.paste, QKeySequence.Paste),
-            (self.tr('Select all'), self.editor.selectAll, QKeySequence.SelectAll),
-            (self.tr('Find and replace…'), self.find_replace, QKeySequence.Find),
+        for title, slot, key, icon in [
+            (self.tr('Undo'), self.undo, QKeySequence.Undo, 'undo'),
+            (self.tr('Redo'), self.redo, QKeySequence.Redo, 'redo'),
+            (self.tr('Cut'), self.editor.cut, QKeySequence.Cut, 'cut'),
+            (self.tr('Copy'), self.editor.copy, QKeySequence.Copy, 'copy'),
+            (self.tr('Paste'), self.editor.paste, QKeySequence.Paste, 'paste'),
+            (self.tr('Select all'), self.editor.selectAll, QKeySequence.SelectAll, None),
+            (self.tr('Find and replace…'), self.find_replace, QKeySequence.Find, 'find'),
         ]:
-            menus['&Edit'].addAction(self.action(title, slot, key))
+            menus['&Edit'].addAction(self.action(title, slot, key, icon=icon))
         toolbar = QToolBar(self.tr('Writing tools'))
         toolbar.setMovable(False)
+        toolbar.setIconSize(QSize(24, 24))
+        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
         self.addToolBar(toolbar)
         self.brand_mark = BrandGraphic('wordmark-light.png', 240, clear_space=20)
         self.brand_mark.setAccessibleName(self.tr('ByAuthorX'))
@@ -255,24 +275,32 @@ class MainWindow(QMainWindow):
             (self.tr('Underline'), 'underline', 'Ctrl+U'),
         ]:
             action = self.action(
-                label, lambda checked=False, m=mark: self.format_selection(m, True), shortcut
+                label, lambda checked=False, m=mark: self.format_selection(m, True), shortcut, icon=mark
             )
             toolbar.addAction(action)
+            # The glyph is the letter itself; the name and shortcut stay in the tooltip.
+            toolbar.widgetForAction(action).setToolButtonStyle(Qt.ToolButtonIconOnly)
             menus['F&ormat'].addAction(action)
-        for title, mark in [
-            (self.tr('Strikethrough'), 'strike'),
-            (self.tr('Superscript'), 'superscript'),
-            (self.tr('Subscript'), 'subscript'),
+        for title, mark, icon in [
+            (self.tr('Strikethrough'), 'strike', 'strikethrough'),
+            (self.tr('Superscript'), 'superscript', None),
+            (self.tr('Subscript'), 'subscript', None),
         ]:
             menus['F&ormat'].addAction(
-                self.action(title, lambda checked=False, m=mark: self.format_selection(m, True))
+                self.action(title, lambda checked=False, m=mark: self.format_selection(m, True), icon=icon)
             )
         menus['F&ormat'].addAction(self.action(self.tr('Font and paragraph…'), self.paragraph_format))
         menus['F&ormat'].addAction(self.action(self.tr('Define named style…'), self.define_style))
-        menus['F&ormat'].addAction(self.action(self.tr('Text color…'), lambda: self.choose_color('color')))
-        menus['F&ormat'].addAction(self.action(self.tr('Highlight…'), lambda: self.choose_color('highlight')))
-        menus['F&ormat'].addAction(self.action(self.tr('Hyperlink…'), self.hyperlink))
-        menus['F&ormat'].addAction(self.action(self.tr('Clear text formatting'), self.clear_formatting))
+        menus['F&ormat'].addAction(
+            self.action(self.tr('Text color…'), lambda: self.choose_color('color'), icon='text-color')
+        )
+        menus['F&ormat'].addAction(
+            self.action(self.tr('Highlight…'), lambda: self.choose_color('highlight'), icon='highlight')
+        )
+        menus['F&ormat'].addAction(self.action(self.tr('Hyperlink…'), self.hyperlink, icon='hyperlink'))
+        menus['F&ormat'].addAction(
+            self.action(self.tr('Clear text formatting'), self.clear_formatting, icon='clear-format')
+        )
         for alignment, title in [
             ('left', self.tr('Align left')),
             ('center', self.tr('Align center')),
@@ -280,23 +308,35 @@ class MainWindow(QMainWindow):
             ('justify', self.tr('Justify')),
         ]:
             menus['F&ormat'].addAction(
-                self.action(title, lambda checked=False, a=alignment: self.attributes({'alignment': a}))
+                self.action(
+                    title,
+                    lambda checked=False, a=alignment: self.attributes({'alignment': a}),
+                    icon=f'align-{alignment}' if alignment != 'justify' else 'justify',
+                )
             )
         menus['F&ormat'].addAction(
             self.action(
-                self.tr('Bulleted list'), lambda: self.attributes({'list': {'kind': 'bullet', 'level': 1}})
+                self.tr('Bulleted list'),
+                lambda: self.attributes({'list': {'kind': 'bullet', 'level': 1}}),
+                icon='bullet-list',
             )
         )
         menus['F&ormat'].addAction(
             self.action(
-                self.tr('Numbered list'), lambda: self.attributes({'list': {'kind': 'ordered', 'level': 1}})
+                self.tr('Numbered list'),
+                lambda: self.attributes({'list': {'kind': 'ordered', 'level': 1}}),
+                icon='numbered-list',
             )
         )
         menus['F&ormat'].addAction(
-            self.action(self.tr('Increase list level'), lambda: self.list_indent(1), 'Alt+Shift+Right')
+            self.action(
+                self.tr('Increase list level'), lambda: self.list_indent(1), 'Alt+Shift+Right', icon='indent'
+            )
         )
         menus['F&ormat'].addAction(
-            self.action(self.tr('Decrease list level'), lambda: self.list_indent(-1), 'Alt+Shift+Left')
+            self.action(
+                self.tr('Decrease list level'), lambda: self.list_indent(-1), 'Alt+Shift+Left', icon='outdent'
+            )
         )
         menus['F&ormat'].addAction(
             self.action(
@@ -316,10 +356,17 @@ class MainWindow(QMainWindow):
                 self.add_comment,
                 'Ctrl+Alt+M',
                 description=self.tr('Add a comment to the selected text'),
+                icon='comment',
             )
         )
         toolbar.addAction(
-            self.action(self.tr('Check'), self.run_checks, 'F7', description=self.tr('Run document checks'))
+            self.action(
+                self.tr('Check'),
+                self.run_checks,
+                'F7',
+                description=self.tr('Run document checks'),
+                icon='checks',
+            )
         )
         toolbar.addAction(
             self.action(
@@ -327,32 +374,33 @@ class MainWindow(QMainWindow):
                 self.toggle_pages,
                 'Ctrl+Alt+P',
                 description=self.tr('Switch between the writing view and the page preview'),
+                icon='pages',
             )
         )
-        for title, slot in [
-            (self.tr('Table…'), self.insert_table),
-            (self.tr('Image…'), self.insert_image),
-            (self.tr('Page break'), self.insert_page_break),
-            (self.tr('Section / columns…'), self.insert_section),
-            (self.tr('Table of contents'), lambda: self.insert_structure('toc')),
-            (self.tr('Footnote…'), self.insert_footnote),
-            (self.tr('Bookmark…'), self.add_bookmark),
-            (self.tr('Cross reference…'), self.cross_reference),
-            (self.tr('Watermark / layer…'), self.add_layer),
-            (self.tr('Source reference…'), self.add_reference),
-            (self.tr('Define template field…'), self.define_field),
-            (self.tr('Template fields…'), self.fill_fields),
-            (self.tr('Delete selected object'), self.delete_object),
+        for title, slot, icon in [
+            (self.tr('Table…'), self.insert_table, 'table'),
+            (self.tr('Image…'), self.insert_image, 'image'),
+            (self.tr('Page break'), self.insert_page_break, 'page-break'),
+            (self.tr('Section / columns…'), self.insert_section, 'columns'),
+            (self.tr('Table of contents'), lambda: self.insert_structure('toc'), 'contents'),
+            (self.tr('Footnote…'), self.insert_footnote, 'footnote'),
+            (self.tr('Bookmark…'), self.add_bookmark, 'bookmark'),
+            (self.tr('Cross reference…'), self.cross_reference, 'hyperlink'),
+            (self.tr('Watermark / layer…'), self.add_layer, 'layers'),
+            (self.tr('Source reference…'), self.add_reference, None),
+            (self.tr('Define template field…'), self.define_field, None),
+            (self.tr('Template fields…'), self.fill_fields, None),
+            (self.tr('Delete selected object'), self.delete_object, None),
         ]:
-            menus['&Insert'].addAction(self.action(title, slot))
-        for title, kind in [
-            (self.tr('Add row'), 'add_row'),
-            (self.tr('Remove row…'), 'remove_row'),
-            (self.tr('Add column'), 'add_column'),
-            (self.tr('Remove column…'), 'remove_column'),
+            menus['&Insert'].addAction(self.action(title, slot, icon=icon))
+        for title, kind, icon in [
+            (self.tr('Add row'), 'add_row', 'row-add'),
+            (self.tr('Remove row…'), 'remove_row', None),
+            (self.tr('Add column'), 'add_column', 'column-add'),
+            (self.tr('Remove column…'), 'remove_column', None),
         ]:
             menus['&Table'].addAction(
-                self.action(title, lambda checked=False, k=kind: self.table_operation(k))
+                self.action(title, lambda checked=False, k=kind: self.table_operation(k), icon=icon)
             )
         menus['&Table'].addAction(self.action(self.tr('Move row…'), lambda: self.reorder_table('row')))
         menus['&Table'].addAction(self.action(self.tr('Move column…'), lambda: self.reorder_table('column')))
@@ -365,40 +413,57 @@ class MainWindow(QMainWindow):
         )
         menus['&Table'].addAction(self.action(self.tr('Export selected table as CSV…'), self.export_csv))
         menus['&Table'].addAction(self.action(self.tr('Delete selected table'), self.delete_table))
-        for title, slot in [
-            (self.tr('Run document checks'), self.run_checks),
-            (self.tr('Checking and voice profiles…'), self.edit_profiles),
-            (self.tr('Review with a model…'), self.model_review),
-            (self.tr('Add comment…'), self.add_comment),
-            (self.tr('Protect selected paragraph'), self.protect),
-            (self.tr('Remove selected protection…'), self.unprotect),
-            (self.tr('Move section…'), self.move_section),
-            (self.tr('Reply to selected comment…'), self.reply_comment),
-            (self.tr('Checkpoint…'), self.checkpoint),
-            (self.tr('Create branch…'), self.branch),
-            (self.tr('Revision history…'), self.history),
+        for title, slot, icon in [
+            (self.tr('Run document checks'), self.run_checks, 'checks'),
+            (self.tr('Checking and voice profiles…'), self.edit_profiles, None),
+            (self.tr('Review with a model…'), self.model_review, 'model-review'),
+            (self.tr('Add comment…'), self.add_comment, 'comment'),
+            (self.tr('Protect selected paragraph'), self.protect, 'protect'),
+            (self.tr('Remove selected protection…'), self.unprotect, None),
+            (self.tr('Move section…'), self.move_section, None),
+            (self.tr('Reply to selected comment…'), self.reply_comment, 'reply'),
+            (self.tr('Checkpoint…'), self.checkpoint, 'checkpoint'),
+            (self.tr('Create branch…'), self.branch, 'branch'),
+            (self.tr('Revision history…'), self.history, 'history'),
         ]:
-            menus['&Review'].addAction(self.action(title, slot))
-        self.track_action = self.action(self.tr('Track changes'), self.toggle_tracking, checkable=True)
+            menus['&Review'].addAction(self.action(title, slot, icon=icon))
+        self.track_action = self.action(
+            self.tr('Track changes'), self.toggle_tracking, checkable=True, icon='track-changes'
+        )
         menus['&Review'].addAction(self.track_action)
-        menus['&View'].addAction(self.action(self.tr('Writing / pages'), self.toggle_pages, 'Ctrl+Alt+L'))
-        menus['&View'].addAction(self.action(self.tr('Markdown source…'), self.source_view))
+        menus['&View'].addAction(
+            self.action(self.tr('Writing / pages'), self.toggle_pages, 'Ctrl+Alt+L', icon='pages')
+        )
+        menus['&View'].addAction(self.action(self.tr('Markdown source…'), self.source_view, icon='source'))
+        self.hand_marks_action = self.action(
+            self.tr('Hand-drawn marks'),
+            self.set_hand_marks,
+            checkable=True,
+            description=self.tr(
+                'Draw spelling and grammar marks, underline and strikethrough as pen strokes in the editor. '
+                'Pages, print and exports always use exact lines.'
+            ),
+        )
+        self.hand_marks_action.setChecked(self.hand_marks)
+        menus['&View'].addAction(self.hand_marks_action)
         self.reduce_motion_action = self.action(
             self.tr('Reduce motion'), self.motion.set_reduced, checkable=True
         )
         self.reduce_motion_action.setChecked(self.motion.reduced)
         self.motion.reducedChanged.connect(self.reduce_motion_action.setChecked)
         menus['&View'].addAction(self.reduce_motion_action)
-        for title, slot in [
-            (self.tr('Provider settings…'), self.provider_settings),
-            (self.tr('Import audio…'), self.import_audio),
-            (self.tr('Dictation…'), self.dictation),
-            (self.tr('Background jobs…'), self.jobs_dialog),
-            (self.tr('Document properties…'), self.document_properties),
-            (self.tr('Document statistics'), self.statistics),
+        for title, slot, icon in [
+            (self.tr('Provider settings…'), self.provider_settings, 'provider-settings'),
+            (self.tr('Import audio…'), self.import_audio, 'import-audio'),
+            (self.tr('Dictation…'), self.dictation, 'dictation'),
+            (self.tr('Background jobs…'), self.jobs_dialog, 'jobs'),
+            (self.tr('Document properties…'), self.document_properties, 'properties'),
+            (self.tr('Document statistics'), self.statistics, 'statistics'),
         ]:
-            menus['&Tools'].addAction(self.action(title, slot))
-        menus['&Help'].addAction(self.action(self.tr('About ByAuthorX'), self.about))
+            menus['&Tools'].addAction(self.action(title, slot, icon=icon))
+        about = self.action(self.tr('About ByAuthorX'), self.about)
+        about.setIcon(app_icon())  # the logo's own micro mark, never a redraw of it
+        menus['&Help'].addAction(about)
         self.outline = QTreeWidget()
         self.outline.setHeaderHidden(True)
         self.outline.setAccessibleName(self.tr('Document outline'))
@@ -430,14 +495,14 @@ class MainWindow(QMainWindow):
         rv.setSpacing(8)
         self.review_stack = QStackedWidget()
         self.review_stack.addWidget(self.review_list)
-        self.review_stack.addWidget(
-            EmptyPanel(
-                self.tr('No open review items'),
-                self.tr('Comments, suggested edits, and check results appear here.'),
-                graphic='ui/review-empty.png',
-                action=(self.tr('Run document checks'), self.run_checks),
-            )
+        self.review_empty = EmptyPanel(
+            self.tr('No open review items'),
+            self.tr('Comments, suggested edits, and check results appear here.'),
+            graphic='ui/review-empty.png',
+            action=(self.tr('Run document checks'), self.run_checks),
+            busy=('checking-page', 94, self.motion),
         )
+        self.review_stack.addWidget(self.review_empty)
         rv.addWidget(self.review_stack)
         self.review_buttons = []
         for label, slot in [
@@ -546,11 +611,14 @@ class MainWindow(QMainWindow):
     def error(self, text):
         QMessageBox.warning(self, self.tr('ByAuthorX'), str(text))
 
-    def report(self, title, result):
+    def report(self, title, result, art=None):
+        """Show a result. ``art`` is ``(still, headline, detail)``: an illustrated summary above the text."""
         dialog = QDialog(self)
         dialog.setWindowTitle(title)
         dialog.resize(760, 560)
         layout = QVBoxLayout(dialog)
+        if art:
+            layout.addLayout(self.art_header(*art))
         view = QPlainTextEdit()
         view.setReadOnly(True)
         view.setAccessibleName(title + self.tr(' summary'))
@@ -570,6 +638,24 @@ class MainWindow(QMainWindow):
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
         dialog.exec()
+
+    def art_header(self, still, headline, detail):
+        header = QHBoxLayout()
+        header.setSpacing(16)
+        header.addWidget(BrandGraphic(themed_art(still, self), 120), alignment=Qt.AlignTop)
+        words = QVBoxLayout()
+        words.setSpacing(4)
+        title = QLabel(headline)
+        title.setObjectName('emptyHeading')
+        title.setWordWrap(True)
+        words.addWidget(title)
+        body = QLabel(detail)
+        body.setObjectName('emptyDescription')
+        body.setWordWrap(True)
+        words.addWidget(body)
+        words.addStretch()
+        header.addLayout(words, 1)
+        return header
 
     def readable_report(self, result):
         if isinstance(result, str):
@@ -703,7 +789,7 @@ class MainWindow(QMainWindow):
                     lines.append(key.title() + ': ' + str(result[key]))
         return '\n'.join(lines).strip()
 
-    def background(self, label, fn, done):
+    def background(self, label, fn, done, failed=None):
         worker = Worker(fn)
         self._workers.add(worker)
         self._begin_activity(worker, label)
@@ -716,6 +802,8 @@ class MainWindow(QMainWindow):
         def fail(error):
             self._workers.discard(worker)
             self._end_activity(worker, self.tr('Task failed'))
+            if failed is not None:
+                failed()
             self.error(error)
 
         worker.signals.done.connect(finish)
@@ -788,19 +876,21 @@ class MainWindow(QMainWindow):
         return job
 
     def refresh(self, position=None, previous=None):
-        from .layout import build_document, update_document
+        from .layout import build_document, hand_drawn_marks, update_document
 
         self._refreshing = True
         try:
             position = self.editor.textCursor().position() if position is None else position
             document = self.editor.document()
             # Structural edits confined to plain text blocks rewrite only the
-            # affected blocks; anything else rebuilds the shared document.
-            if previous is None or not update_document(document, previous, self.doc):
-                document = build_document(self.doc)
-                document.setParent(self.editor)
-                self.editor.setDocument(document)
-                self.editor.setUndoRedoEnabled(False)
+            # affected blocks; anything else rebuilds the shared document. The editor draws its own
+            # underline and strikethrough as pen strokes; pages, print and export are built apart.
+            with hand_drawn_marks(self.hand_marks):
+                if previous is None or not update_document(document, previous, self.doc):
+                    document = build_document(self.doc)
+                    document.setParent(self.editor)
+                    self.editor.setDocument(document)
+                    self.editor.setUndoRedoEnabled(False)
             self.editor.capture_baseline()
             cursor = self.editor.textCursor()
             cursor.setPosition(min(position, max(0, document.characterCount() - 1)))
@@ -2355,21 +2445,98 @@ class MainWindow(QMainWindow):
         frozen = copy.deepcopy(self.doc)
 
         def finished(result):
+            self.review_empty.set_busy(False)
             if frozen['revision'] != self.doc['revision']:
                 self.report(self.tr('Checks completed against an earlier revision'), result)
                 return
             self._last_report = result
+            self._check_marks = tuple(self.marks_from_findings(result.get('findings') or [], self.doc))
+            self.sync_proof_marks()
             self.update_sidebar()
             self.status_label.setText(
                 self.tr('Checks: ')
                 + str(result.get('validation', 'complete'))
                 + self.tr(' · See Review for findings')
             )
-            self.report(self.tr('Document health and actual coverage'), result)
+            self.report(self.tr('Document health and actual coverage'), result, art=self.checks_art(result))
 
         profile = getattr(self, 'active_profile', None)
         profile = profile if profile in frozen.get('profiles', {}) else None
-        self.background(self.tr('Checking document…'), lambda: run_checks(frozen, profile=profile), finished)
+        self.review_empty.set_busy(True)
+        self.background(
+            self.tr('Checking document…'),
+            lambda: run_checks(frozen, profile=profile),
+            finished,
+            failed=lambda: self.review_empty.set_busy(False),
+        )
+
+    def set_hand_marks(self, enabled):
+        self.hand_marks = bool(enabled)
+        self.settings.setValue('appearance/handDrawnMarks', self.hand_marks)
+        self.editor.set_hand_marks(self.hand_marks)
+        self.hand_marks_action.setChecked(self.hand_marks)
+        self.refresh(previous=None)  # rebuild the editing document with native or pen-stroke decorations
+
+    def finding_label(self, finding):
+        text = finding.get('message') or finding.get('explanation')
+        if text:
+            return str(text)
+        rule = str(finding.get('rule', ''))
+        word = (finding.get('measured') or {}).get('word')
+        if rule == 'spelling.unknown' and word:
+            return self.tr('Possible misspelling: {0}').format(word)
+        return rule.replace('.', ': ').replace('_', ' ').capitalize()
+
+    def marks_from_findings(self, findings, doc):
+        """Proofreader's marks for spelling and grammar findings that locate a span in a block."""
+        marks = []
+        for finding in findings:
+            family = finding.get('family')
+            target = (finding.get('affected_ids') or [None])[0]
+            span = finding.get('range') or {}
+            if family not in ('spelling', 'grammar') or not target or 'start' not in span:
+                continue
+            block = model.find_object(doc, target)
+            if not block or not block.get('text'):
+                continue
+            marks.append(
+                ProofMark(
+                    target,
+                    span['start'],
+                    span['end'],
+                    family,
+                    self.finding_label(finding),
+                    block['text'],
+                )
+            )
+        return marks
+
+    def sync_proof_marks(self):
+        """Show the latest check and spelling results as hand-inked marks in the text."""
+        merged = {}
+        for mark in (*self._check_marks, *self.ai_panel.spelling_marks()):
+            merged.setdefault(mark.key, mark)
+        self.editor.set_proof_marks(merged.values())
+
+    def checks_art(self, result):
+        """Illustration and plain-language summary for a finished check; none when it proves nothing."""
+        findings = result.get('findings') or []
+        if findings:
+            count = len(findings)
+            return (
+                'proofread-marks',
+                self.tr('{0} item{1} need a look').format(count, '' if count == 1 else 's'),
+                self.tr('Each one is listed in Review. The coverage notes below say what was measured.'),
+            )
+        if result.get('validation') == 'passed':
+            return (
+                'checks-clear',
+                self.tr('Nothing to flag'),
+                self.tr(
+                    'Every check that ran came back clean. The coverage notes below say what was measured.'
+                ),
+            )
+        return None
 
     def add_layer(self):
         name, ok = QInputDialog.getText(
@@ -2823,14 +2990,25 @@ class MainWindow(QMainWindow):
         dialog.resize(720, 440)
         layout = QVBoxLayout(dialog)
         listing = QListWidget()
+        listing.setAccessibleName(self.tr('Background jobs'))
+        jobs_view = QStackedWidget()
+        jobs_view.addWidget(listing)
+        jobs_view.addWidget(
+            EmptyPanel(
+                self.tr('Nothing running in the background'),
+                self.tr('Long tasks, such as transcription, are listed here so a result can be recovered.'),
+                graphic=themed_art('jobs-empty', self),
+            )
+        )
 
         def update():
             listing.clear()
             for job in manager.list():
                 listing.addItem(job['kind'] + ' · ' + job['state'] + ' · ' + job['id'])
                 listing.item(listing.count() - 1).setData(Qt.UserRole, job['id'])
+            jobs_view.setCurrentIndex(0 if listing.count() else 1)
 
-        layout.addWidget(listing)
+        layout.addWidget(jobs_view)
 
         def result():
             if listing.currentItem():
@@ -2876,7 +3054,15 @@ class MainWindow(QMainWindow):
         self.background(
             self.tr('Exporting…'),
             lambda: export_clean(doc, path),
-            lambda report: self.report(self.tr('Export result and compatibility'), report),
+            lambda report: self.report(
+                self.tr('Export result and compatibility'),
+                report,
+                art=(
+                    'export-ready',
+                    self.tr('Export finished'),
+                    self.tr('Your document is unchanged. Compatibility notes are listed below.'),
+                ),
+            ),
         )
 
     def source_view(self):

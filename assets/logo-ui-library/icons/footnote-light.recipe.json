@@ -1,0 +1,121 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Footnote"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 14,
+      "y": 17,
+      "width": 68,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.92 Q34 0.18 68 0.79",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 14,
+      "y": 32,
+      "width": 52,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.59 Q26 0.83 52 1.7",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "rule",
+      "shape": "path",
+      "x": 13,
+      "y": 57,
+      "width": 29,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.78 1.74 C5.64 1.18 6.27 0.01 15.38 0.05 C24.49 0.1 23.86 1.27 28.11 1.88",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "numeral",
+      "shape": "path",
+      "x": 13,
+      "y": 69,
+      "width": 7,
+      "height": 18,
+      "fill": "none",
+      "path": "M0.13 4.41 Q2.6 2.89 5.06 1.36 Q6.34 0.58 6.29 2.07 Q5.89 9.8 5.79 17.54",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "note",
+      "shape": "path",
+      "x": 30,
+      "y": 77,
+      "width": 50,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.03 Q25 0.43 50 0.88",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

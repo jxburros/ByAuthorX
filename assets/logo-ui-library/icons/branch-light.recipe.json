@@ -1,0 +1,121 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Alternate draft"
+    },
+    {
+      "type": "shape",
+      "name": "node-top",
+      "shape": "path",
+      "x": 22,
+      "y": 10,
+      "width": 16,
+      "height": 16,
+      "fill": "none",
+      "path": "M8 1.11 C11.02 1.03 10.36 0.59 12.63 2.49 C14.9 4.38 14.38 3.82 14.81 6.8 C15.24 9.78 15.39 8.83 13.91 11.41 C12.44 14 13.16 13.51 10.39 14.56 C7.62 15.61 8.43 15.58 5.61 14.56 C2.79 13.54 3.43 14.1 1.93 11.5 C0.43 8.91 0.57 9.71 1.12 6.79 C1.67 3.86 1.28 4.62 3.58 2.73 C5.87 0.84 4.98 1.19 8 1.11 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "node-bottom",
+      "shape": "path",
+      "x": 22,
+      "y": 70,
+      "width": 16,
+      "height": 16,
+      "fill": "none",
+      "path": "M8 0.88 C10.93 0.86 10.2 0.75 12.42 2.73 C14.64 4.71 14.14 3.91 14.67 6.82 C15.2 9.74 15.45 8.94 14.01 11.47 C12.56 14 13.15 13.34 10.34 14.42 C7.52 15.5 8.38 15.67 5.56 14.71 C2.73 13.76 3.33 14.19 1.86 11.55 C0.39 8.91 0.56 9.71 1.15 6.79 C1.74 3.87 1.34 4.76 3.62 2.79 C5.91 0.81 5.07 0.9 8 0.88 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "trunk",
+      "shape": "path",
+      "x": 29,
+      "y": 26,
+      "width": 2,
+      "height": 45,
+      "fill": "none",
+      "path": "M0.56 0.03 Q0.77 22.07 1.05 44.12",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "branch",
+      "shape": "path",
+      "x": 26,
+      "y": 33,
+      "width": 40,
+      "height": 30,
+      "fill": "none",
+      "path": "M4.01 29.21 C4.85 23.77 0.38 20.26 6.55 12.88 C12.71 5.49 11.62 11.05 22.5 7.05 C33.38 3.06 33.63 2.94 39.19 0.89",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "node-branch",
+      "shape": "path",
+      "x": 60,
+      "y": 18,
+      "width": 16,
+      "height": 16,
+      "fill": "none",
+      "path": "M8 1.23 C10.99 1.13 10.28 0.65 12.62 2.5 C14.95 4.35 14.56 3.79 15 6.77 C15.45 9.74 15.47 8.8 13.94 11.43 C12.42 14.06 13.21 13.59 10.42 14.66 C7.64 15.73 8.44 15.69 5.58 14.65 C2.72 13.62 3.31 14.18 1.83 11.56 C0.36 8.94 0.56 9.71 1.16 6.79 C1.76 3.87 1.35 4.65 3.63 2.8 C5.92 0.94 5.01 1.33 8 1.23 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}
