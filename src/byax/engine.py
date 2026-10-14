@@ -7,7 +7,7 @@ import hashlib
 import re
 import threading
 from datetime import UTC, datetime
-from typing import Any
+from typing import Any, NoReturn
 
 import regex as unicode_regex
 
@@ -156,7 +156,7 @@ def operation_schema() -> dict[str, Any]:
     }
 
 
-def _error(message, field=None, **details):
+def _error(message: str, field: str | None = None, **details: Any) -> NoReturn:
     raise ByaxError('schema_error', message, field=field, **details)
 
 
@@ -230,16 +230,16 @@ def _validate_op(op, index):
     return kind
 
 
-def grapheme_boundaries(text):
+def grapheme_boundaries(text: str) -> list[int]:
     return [0] + [m.end() for m in unicode_regex.finditer(r'\X', text)]
 
 
-def scalar_to_utf16(text, offset):
+def scalar_to_utf16(text: str, offset: int) -> int:
     _boundaries(text, offset, offset)
     return len(text[:offset].encode('utf-16-le')) // 2
 
 
-def utf16_to_scalar(text, offset):
+def utf16_to_scalar(text: str, offset: int) -> int:
     if type(offset) is not int or offset < 0:
         _error('UTF-16 offset must be a nonnegative integer.', 'offset')
     consumed = 0
@@ -1445,7 +1445,7 @@ def _merge_base(doc, ours, theirs, source):
     )
 
 
-def merge_base(doc, source):
+def merge_base(doc: dict[str, Any], source: str) -> str:
     return _merge_base(doc, doc['revision'], doc['history']['branches'].get(source), source)
 
 
@@ -1814,7 +1814,7 @@ def _op_embed_dependency(doc, op, base_revision, kind, changed, allow_policy_cha
     changed.append(op['target'])
 
 
-def dependency_report(doc):
+def dependency_report(doc: dict[str, Any]) -> dict[str, Any]:
     """External dependencies with semantic locations and located findings."""
     items, findings = [], []
     for identity, dependency in sorted(doc.get('dependencies', {}).items()):
@@ -2431,7 +2431,7 @@ def _patch(state, delta):
 # Recently committed states keyed by revision. Committed documents are replaced,
 # never mutated, so these read-only references let a commit diff against the
 # previous record without replaying the delta chain.
-_STATES = {}
+_STATES: dict[str, dict[str, Any]] = {}
 _STATES_LOCK = threading.Lock()
 _STATE_CACHE = 8
 # A snapshot is taken once the deltas since the previous one add up to that
@@ -2805,7 +2805,7 @@ def _record_request(candidate, request_id, fingerprint, result, origin):
     history['request_log'] = log
 
 
-def request_status(doc, request_id):
+def request_status(doc: dict[str, Any], request_id: str) -> dict[str, Any]:
     """Whether a request identity is replayable, with the disclosed retention limits."""
     record = doc['requests'].get(request_id)
     state = 'unknown' if record is None else 'pruned' if record.get('pruned') else 'recorded'
@@ -2951,7 +2951,9 @@ def branch(doc: dict[str, Any], name: str) -> tuple[dict[str, Any], dict[str, An
     return candidate, _result(candidate, doc['revision'])
 
 
-def switch_branch(doc, name, *, allow_policy_changes=False):
+def switch_branch(
+    doc: dict[str, Any], name: str, *, allow_policy_changes: bool = False
+) -> tuple[dict[str, Any], dict[str, Any]]:
     """Make another branch head the working document without creating a revision."""
     history = doc['history']
     if name not in history.get('branches', {}):
@@ -2978,7 +2980,7 @@ def switch_branch(doc, name, *, allow_policy_changes=False):
     return switched, _result(switched, doc['revision'], [b['id'] for b in switched['blocks']])
 
 
-def compare_documents(before, after):
+def compare_documents(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
     """Readable semantic comparison of two documents or revisions."""
     return {
         'schema_version': 1,
@@ -2988,7 +2990,7 @@ def compare_documents(before, after):
     }
 
 
-def preview_proposal(doc, proposal, edits=None):
+def preview_proposal(doc: dict[str, Any], proposal: str, edits: list[str] | None = None) -> dict[str, Any]:
     """Dry-run acceptance of selected proposal edits with dependency disclosure."""
     record = _find_review(doc, 'proposals', proposal)
     operation = {'type': 'accept_proposal', 'target': proposal, **({'edits': edits} if edits else {})}
@@ -3288,17 +3290,17 @@ def _inspect_identities(doc, selected, result, layout):
 
 
 def inspect(
-    doc,
-    section=None,
-    target=None,
-    limit=100,
+    doc: dict[str, Any],
+    section: str | None = None,
+    target: str | None = None,
+    limit: int | None = 100,
     *,
-    continuation=None,
-    radius=None,
-    fields=None,
-    status=None,
-    layout=False,
-):
+    continuation: str | None = None,
+    radius: int | None = None,
+    fields: list[str] | None = None,
+    status: str | None = None,
+    layout: bool = False,
+) -> dict[str, Any]:
     """Selective, bounded inspection with revision, scope, totals and usable continuation."""
     offset = 0
     if continuation is not None:
@@ -3336,16 +3338,16 @@ def inspect(
 
 
 def find(
-    doc,
-    query,
-    case_sensitive=False,
-    whole_word=False,
-    regex=False,
+    doc: dict[str, Any],
+    query: str,
+    case_sensitive: bool = False,
+    whole_word: bool = False,
+    regex: bool = False,
     *,
-    scope=None,
-    limit=None,
-    continuation=None,
-):
+    scope: str | list[str] | None = None,
+    limit: int | None = None,
+    continuation: str | None = None,
+) -> dict[str, Any]:
     offset = 0
     if continuation is not None:
         payload = _read_token(doc, continuation, 'find')
@@ -3590,7 +3592,15 @@ def _context_continuation(doc, target, profile, radius, budget_omitted):
     }
 
 
-def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuation=None):
+def context(
+    doc: dict[str, Any],
+    target: str | None = None,
+    limit: int | None = 10000,
+    profile: str | dict[str, Any] | None = None,
+    *,
+    radius: int | None = 1,
+    continuation: str | None = None,
+) -> dict[str, Any]:
     """Bounded, exact context package with a complete inclusion and omission report.
 
     Only document data and explicitly selected (profile-authorized) references are

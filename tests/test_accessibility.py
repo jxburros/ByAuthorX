@@ -151,6 +151,12 @@ def test_focus_chain_reaches_core_workspace_controls(window):
 
 
 DIALOG_METHODS = [
+    'linked_assets',
+    'formatting_inspector',
+    'layer_inspector',
+    'export_profiles',
+    'show_view_losses',
+    'markdown_preferences',
     'paragraph_format',
     'define_style',
     'find_replace',
@@ -169,6 +175,9 @@ DIALOG_METHODS = [
 
 @pytest.fixture
 def dialogs(monkeypatch, app):
+    from byax.transcription import QtMicrophoneRecorder
+
+    monkeypatch.setattr(QtMicrophoneRecorder, 'devices', staticmethod(list))
     visited = []
 
     def fake_exec(dialog):

@@ -136,6 +136,7 @@ def test_split_and_join_preserve_marks(window):
 
 
 def test_markdown_no_edit_save_preserves_original_bytes(window, tmp_path):
+    window.choose_markdown_mode = lambda: 'inplace'
     path = tmp_path / 'draft.md'
     original = b'# Title\r\n\r\nA paragraph with **bold** words.\r\n'
     path.write_bytes(original)
@@ -150,6 +151,7 @@ def test_markdown_no_edit_save_preserves_original_bytes(window, tmp_path):
 
 
 def test_markdown_visual_edit_preserves_unrelated_source(window, tmp_path):
+    window.choose_markdown_mode = lambda: 'inplace'
     path = tmp_path / 'draft.md'
     path.write_bytes(b'# Title\r\n\r\nA paragraph.\r\n\r\n<!-- keep raw source -->\r\n')
     window.report = lambda *args: None
@@ -165,6 +167,7 @@ def test_markdown_visual_edit_preserves_unrelated_source(window, tmp_path):
 def test_markdown_source_edit_preserves_master_identity(window, tmp_path):
     from byax.exchange import import_document
 
+    window.choose_markdown_mode = lambda: 'inplace'
     path = tmp_path / 'draft.md'
     path.write_text('# Title\n\nOriginal paragraph.\n')
     assert window.open_path(path)

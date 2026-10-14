@@ -62,3 +62,8 @@ The palette sets the same colours for the active, inactive and disabled groups, 
 - Some labels come from the document's data and stay untranslated by design: comment and proposal text, review record kinds such as "Tracked changes", provider aliases, style names and file paths.
 - The native file, colour and print dialogs come from the platform and are outside this audit.
 - No translation catalogue (`.qm`) ships yet. Only the hooks and the pseudo-locale smoke test exist.
+
+
+### Additional controls — 14 October 2026
+
+The automated dialog walk now also opens Linked assets, Styles and direct overrides, Layers and output visibility, Export profile, Hidden and simplified features and Opening Markdown files. Native static input/file dialogs are mocked in this audit. Microphone enumeration is also stubbed here: inspecting control labels must not initialize a host audio backend or imply real microphone coverage. The file-view tests cover the selector, read-only source, suppression preferences and dark contrast. NVDA/Orca and physical keyboard/scaling claims remain pending.

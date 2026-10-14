@@ -63,11 +63,14 @@ from PySide6.QtWidgets import (
 
 from . import engine, gui_a11y, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
+from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_motion import MotionController, PenLineAnimation
+from .gui_views import FileViews
+from .gui_workflows import WorkflowPanels
 
 TEMPLATE_CHOICES = ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…']
 FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm);;ByAuthorX (*.byax *.BYAX);;All files (*)'
@@ -91,7 +94,7 @@ class Worker(QRunnable):
             self.signals.failed.emit(str(exc))
 
 
-class MainWindow(QMainWindow):
+class MainWindow(FileViews, WorkflowPanels, QMainWindow):
     def __init__(self, path=None):
         super().__init__()
         self.setWindowTitle(self.tr('ByAuthorX'))
@@ -100,6 +103,7 @@ class MainWindow(QMainWindow):
         configure_application(QApplication.instance())
         self.setWindowIcon(app_icon())
         self.motion = MotionController(self.settings, self)
+        QApplication.instance().styleHints().colorSchemeChanged.connect(self.apply_theme)
         self.hand_marks = self.settings.value('appearance/handDrawnMarks', True, type=bool)
         self.setDockOptions(self.dockOptions() & ~QMainWindow.AnimatedDocks)
         self.doc = model.new_document()
@@ -147,6 +151,7 @@ class MainWindow(QMainWindow):
     def action(self, title, slot, shortcut=None, checkable=False, description=None, icon=None):
         action = QAction(title, self)
         if icon:
+            action.setProperty('byaxIcon', icon)
             action.setIcon(themed_icon(icon, self))
         action.setCheckable(checkable)
         if shortcut:
@@ -201,6 +206,7 @@ class MainWindow(QMainWindow):
         self.editor.set_hand_marks(self.hand_marks)
         self._check_marks = ()
         self.editor.fileDropped.connect(self.open_path)
+        self.editor.viewEditRequested.connect(self.commit)
         self.editor.cursorPositionChanged.connect(self.selection_changed)
         self.stack = QStackedWidget()
         self.stack.addWidget(self.editor)
@@ -282,7 +288,7 @@ class MainWindow(QMainWindow):
             toolbar.widgetForAction(action).setToolButtonStyle(Qt.ToolButtonIconOnly)
             menus['F&ormat'].addAction(action)
         for title, mark, icon in [
-            (self.tr('Strikethrough'), 'strike', 'strikethrough'),
+            (self.tr('Strikethrough'), 'strikethrough', 'strikethrough'),
             (self.tr('Superscript'), 'superscript', None),
             (self.tr('Subscript'), 'subscript', None),
         ]:
@@ -317,14 +323,14 @@ class MainWindow(QMainWindow):
         menus['F&ormat'].addAction(
             self.action(
                 self.tr('Bulleted list'),
-                lambda: self.attributes({'list': {'kind': 'bullet', 'level': 1}}),
+                lambda: self.set_list({'kind': 'bullet', 'level': 1}),
                 icon='bullet-list',
             )
         )
         menus['F&ormat'].addAction(
             self.action(
                 self.tr('Numbered list'),
-                lambda: self.attributes({'list': {'kind': 'ordered', 'level': 1}}),
+                lambda: self.set_list({'kind': 'ordered', 'level': 1}),
                 icon='numbered-list',
             )
         )
@@ -340,15 +346,13 @@ class MainWindow(QMainWindow):
         )
         menus['F&ormat'].addAction(
             self.action(
-                self.tr('Restart list numbering'), lambda: self.attributes({'restart': True, 'start': 1})
+                self.tr('Restart list numbering'), lambda: self.set_list({'restart': True, 'start': 1})
             )
         )
         menus['F&ormat'].addAction(
-            self.action(self.tr('Continue list numbering'), lambda: self.attributes({'restart': False}))
+            self.action(self.tr('Continue list numbering'), lambda: self.set_list({'restart': False}))
         )
-        menus['F&ormat'].addAction(
-            self.action(self.tr('Remove list'), lambda: self.attributes({'list': None}))
-        )
+        menus['F&ormat'].addAction(self.action(self.tr('Remove list'), lambda: self.set_list({'kind': None})))
         toolbar.addSeparator()
         toolbar.addAction(
             self.action(
@@ -468,9 +472,9 @@ class MainWindow(QMainWindow):
         self.outline.setHeaderHidden(True)
         self.outline.setAccessibleName(self.tr('Document outline'))
         self.outline.itemActivated.connect(
-            lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole))
+            lambda item, column: self.navigate_target(item.data(0, Qt.UserRole))
         )
-        self.outline.itemClicked.connect(lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole)))
+        self.outline.itemClicked.connect(lambda item, column: self.navigate_target(item.data(0, Qt.UserRole)))
         self.outline_stack = QStackedWidget()
         self.outline_stack.addWidget(self.outline)
         self.outline_stack.addWidget(
@@ -486,6 +490,7 @@ class MainWindow(QMainWindow):
         self.addDockWidget(Qt.LeftDockWidgetArea, outline_dock)
         self.inspector = QTabWidget()
         self.review_list = QListWidget()
+        self.review_list.setSelectionMode(QListWidget.ExtendedSelection)
         self.review_list.setWordWrap(True)
         self.review_list.setAccessibleName(self.tr('Comments, proposals, and findings'))
         self.review_list.itemActivated.connect(self.review_item)
@@ -572,6 +577,53 @@ class MainWindow(QMainWindow):
         self.statusBar().addWidget(self.status_label, 1)
         self.word_label = QLabel()
         self.statusBar().addPermanentWidget(self.word_label)
+        for label, slot in (
+            ('Linked assets…', self.linked_assets),
+            ('Reusable settings…', self.reusable_settings),
+        ):
+            menus['&Tools'].addAction(self.action(self.tr(label), slot))
+        for label, slot in (
+            ('Apply character style…', self.character_style),
+            ('Styles and overrides…', self.formatting_inspector),
+        ):
+            menus['F&ormat'].addAction(self.action(self.tr(label), slot))
+        menus['&View'].addAction(self.action(self.tr('Layer inspector…'), self.layer_inspector))
+        menus['&Review'].addAction(self.action(self.tr('Switch draft branch…'), self.switch_draft))
+        menus['&Review'].addAction(self.action(self.tr('Compare and merge draft…'), self.merge_draft))
+        menus['&File'].addAction(self.action(self.tr('Export with saved profile…'), self.export_profiles))
+        menus['&Review'].addAction(
+            self.action(self.tr('Resolve selected merge conflicts…'), self.resolve_merge_conflicts)
+        )
+        menus['&Help'].addAction(self.action(self.tr('Download updates…'), self.open_releases))
+        self.build_file_views(toolbar, menus, workspace_layout)
+        theme_menu = menus['&View'].addMenu(self.tr('Theme'))
+        for key, label in (('system', 'System'), ('light', 'Light'), ('dark', 'Dark')):
+            theme_menu.addAction(self.action(self.tr(label), lambda checked=False, t=key: self.set_theme(t)))
+
+    def open_releases(self):
+        from PySide6.QtCore import QUrl
+        from PySide6.QtGui import QDesktopServices
+
+        QDesktopServices.openUrl(QUrl('https://github.com/jxburros/ByAuthorX/releases'))
+
+    def set_theme(self, theme):
+        self.settings.setValue('appearance/theme', theme)
+        self.apply_theme()
+
+    def apply_theme(self, *_):
+        configure_application(QApplication.instance())
+        from PySide6.QtGui import QPixmap
+
+        from .brand import BRAND_ROOT
+        from .gui_art import art_theme
+
+        if hasattr(self, 'brand_mark'):
+            self.brand_mark.pixmap = QPixmap(str(BRAND_ROOT / ('wordmark-' + art_theme(self) + '.png')))
+            self.brand_mark.update()
+        for action in self.findChildren(QAction):
+            name = action.property('byaxIcon')
+            if name:
+                action.setIcon(themed_icon(name, self))
 
     def create_about_dialog(self):
         dialog = QDialog(self)
@@ -885,13 +937,22 @@ class MainWindow(QMainWindow):
             # Structural edits confined to plain text blocks rewrite only the
             # affected blocks; anything else rebuilds the shared document. The editor draws its own
             # underline and strikethrough as pen strokes; pages, print and export are built apart.
-            with hand_drawn_marks(self.hand_marks):
-                if previous is None or not update_document(document, previous, self.doc):
-                    document = build_document(self.doc)
+            projected = self.projection()
+            previous_view = (
+                previous
+                if self.file_view == 'byax'
+                else project({**previous, 'history': {}, 'requests': {}}, self.file_view)[0]
+                if previous is not None
+                else None
+            )
+            with hand_drawn_marks(self.hand_marks and self.file_view == 'byax'):
+                if previous is None or not update_document(document, previous_view, projected):
+                    document = build_document(projected)
                     document.setParent(self.editor)
                     self.editor.setDocument(document)
                     self.editor.setUndoRedoEnabled(False)
             self.editor.capture_baseline()
+            self.sync_file_view()
             cursor = self.editor.textCursor()
             cursor.setPosition(min(position, max(0, document.characterCount() - 1)))
             self.editor.setTextCursor(cursor)
@@ -902,6 +963,9 @@ class MainWindow(QMainWindow):
             self.track_action.setChecked(bool(self.doc['settings'].get('track_changes')))
         finally:
             self._refreshing = False
+        if getattr(self, '_restore_source', False):
+            self._restore_source = False
+            self.set_source_mode(1)
 
     def update_sidebar(self):
         self.outline.clear()
@@ -929,6 +993,9 @@ class MainWindow(QMainWindow):
                     or record.get('title')
                     or kind.replace('_', ' ').title()
                 )
+                if self.file_view != 'byax' and kind not in FORMATS[self.file_view]['review']:
+                    item = self.review_list.item(self.review_list.count() - 1)
+                    item.setText(item.text() + self.tr(' (not in this format)'))
                 self.review_list.item(self.review_list.count() - 1).setData(Qt.UserRole, (kind, record))
                 if kind == 'comments':
 
@@ -983,6 +1050,9 @@ class MainWindow(QMainWindow):
             button.setEnabled(available)
 
     def update_status(self):
+        if hasattr(self, 'file_view_box'):
+            self.projection()
+            self.sync_file_view()
         text = model.text_of(self.doc)
         words = len(text.split())
         self.word_label.setText(
@@ -1036,6 +1106,8 @@ class MainWindow(QMainWindow):
         if self._refreshing:
             return True
         try:
+            if self.stack.currentIndex() == 2:
+                return True
             operations, tags = self.editor.collect_changes(self.doc)
             if operations:
                 self._commit(operations, refresh=False)
@@ -1047,6 +1119,8 @@ class MainWindow(QMainWindow):
         except Exception as exc:
             self._refreshing = False
             self.error(exc)
+            if self.file_view != 'byax':
+                self.refresh()
             # Keep pending text and the baseline so the user can correct or
             # retry an edit after a conflict or a resource-limit failure.
             return False
@@ -1178,9 +1252,15 @@ class MainWindow(QMainWindow):
         selected = Path(path).resolve()
         if self.path == selected:
             return True
+        markdown_mode = (
+            self.choose_markdown_mode() if selected.suffix.lower() in ('.md', '.markdown') else 'import'
+        )
+        if markdown_mode is None:
+            return False
+        backed = selected.suffix.lower() == '.byax' or markdown_mode == 'inplace'
         candidate_lock = None
         try:
-            if selected.suffix.lower() in ('.byax', '.md', '.markdown'):
+            if backed:
                 candidate_lock = storage.DocumentLock(selected, owner=self.owner)
                 candidate_lock.acquire()
             if selected.suffix.lower() == '.byax':
@@ -1191,8 +1271,9 @@ class MainWindow(QMainWindow):
             self.release_lock()
             self.lock = candidate_lock
             self.doc = document
-            self.path = selected if selected.suffix.lower() in ('.byax', '.md', '.markdown') else None
-            self.dirty = self.path is None
+            self.path = selected if backed else None
+            self.dirty = False
+            self.restore_file_view()
             self._disk_stamp = self.file_stamp(self.path)
             self._undo.clear()
             self._redo.clear()
@@ -1284,6 +1365,7 @@ class MainWindow(QMainWindow):
             self.recovery_path().unlink(missing_ok=True)
         self.update_status()
         self._saved_feedback()
+        self.offer_export_after_save()
 
     def _start_save(self, path, finished, *, label='Saving…', quiet=False):
         # Committed documents are replaced rather than mutated, so a shallow copy
@@ -1336,7 +1418,14 @@ class MainWindow(QMainWindow):
         path, _ = QFileDialog.getSaveFileName(
             self,
             self.tr('Save editable master'),
-            str(self.path or self.doc['metadata'].get('title', 'Untitled') + '.byax'),
+            str(
+                self.path
+                or Path(
+                    self.doc['metadata']
+                    .get('import', {})
+                    .get('original_path', self.doc['metadata'].get('title', 'Untitled'))
+                ).with_suffix('.byax')
+            ),
             self.tr('ByAuthorX (*.byax)'),
         )
         if not path:
@@ -1362,6 +1451,7 @@ class MainWindow(QMainWindow):
                 return
             self.release_lock()
             self.lock, self.path = candidate_lock, target
+            self.sync_file_view()
             self._disk_stamp = self.file_stamp(target)
             self.add_recent(target)
             self._mark_saved(task['revision'])
@@ -1606,6 +1696,11 @@ class MainWindow(QMainWindow):
                 }
             )
 
+    def set_list(self, values):
+        self.commit(
+            [{'type': 'set_list', 'target': target, 'values': values} for target in self.target_ids()]
+        )
+
     def list_indent(self, delta):
         operations = []
         for target in self.target_ids():
@@ -1620,7 +1715,7 @@ class MainWindow(QMainWindow):
                 else {'kind': listing, 'level': max(1, attrs.get('level', 1))}
             )
             listing['level'] = max(1, min(9, listing.get('level', 1) + delta))
-            operations.append({'type': 'set_attributes', 'target': target, 'values': {'list': listing}})
+            operations.append({'type': 'set_list', 'target': target, 'values': listing})
         self.commit(operations)
 
     def section_targets(self, target):
@@ -1688,7 +1783,7 @@ class MainWindow(QMainWindow):
                 from .gui_editor import qt_offset
 
                 match = matches[match_index]
-                if self.editor.navigate(match['target']):
+                if self.navigate_target(match['target']):
                     cursor = self.editor.textCursor()
                     text = cursor.block().text()
                     base = cursor.block().position()
@@ -2244,8 +2339,20 @@ class MainWindow(QMainWindow):
         dialog.setWindowTitle(self.tr('Define named style'))
         form = QFormLayout(dialog)
         name = QLineEdit()
+        kind = QComboBox()
+        kind.addItem(self.tr('Paragraph'), 'paragraph')
+        kind.addItem(self.tr('Character'), 'character')
         based_on = QComboBox()
-        based_on.addItems(list(self.doc['styles']))
+
+        def parents():
+            based_on.clear()
+            based_on.addItem(self.tr('None'), None)
+            for key, values in self.doc['styles'].items():
+                if values.get('kind', 'paragraph') == kind.currentData():
+                    based_on.addItem(key, key)
+
+        kind.currentIndexChanged.connect(parents)
+        parents()
         font = QFontComboBox()
         size = QDoubleSpinBox()
         size.setRange(6, 144)
@@ -2253,6 +2360,7 @@ class MainWindow(QMainWindow):
         bold, italic = QCheckBox(self.tr('Bold')), QCheckBox(self.tr('Italic'))
         for label, control in [
             (self.tr('Style name'), name),
+            (self.tr('Style kind'), kind),
             (self.tr('Inherit from'), based_on),
             (self.tr('Font'), font),
             (self.tr('Size (pt)'), size),
@@ -2271,7 +2379,8 @@ class MainWindow(QMainWindow):
                         'type': 'define_style',
                         'name': name.text().strip(),
                         'values': {
-                            'based_on': based_on.currentText(),
+                            'based_on': based_on.currentData(),
+                            'kind': kind.currentData(),
                             'font_family': font.currentFont().family(),
                             'font_size': size.value(),
                             'bold': bold.isChecked(),
@@ -2281,7 +2390,8 @@ class MainWindow(QMainWindow):
                 ]
             )
             if (
-                name.text().strip() in self.doc['styles']
+                kind.currentData() == 'paragraph'
+                and name.text().strip() in self.doc['styles']
                 and self.style_box.findData(name.text().strip()) == -1
             ):
                 self.style_box.addItem(name.text().strip(), name.text().strip())
@@ -2394,14 +2504,19 @@ class MainWindow(QMainWindow):
             kind, record = item.data(Qt.UserRole)
             target = record.get('target')
             if target:
-                self.editor.navigate(target)
+                self.navigate_target(target)
             self.report(kind.replace('_', ' ').title(), record)
 
     def accept_item(self):
+        if self.resolve_selected_changes(True):
+            return
         item = self.review_list.currentItem()
         if not item:
             return
         kind, record = item.data(Qt.UserRole)
+        if kind == 'proposals' and record.get('edits'):
+            self.review_proposal_edits(record, True)
+            return
         if kind == 'comments':
             self.commit([{'type': 'resolve_comment', 'target': record['id']}])
         elif kind in ('proposals', 'tracked_changes'):
@@ -2420,9 +2535,14 @@ class MainWindow(QMainWindow):
             self.report(self.tr('Finding details'), record)
 
     def reject_item(self):
+        if self.resolve_selected_changes(False):
+            return
         item = self.review_list.currentItem()
         if item:
             kind, record = item.data(Qt.UserRole)
+            if kind == 'proposals' and record.get('edits'):
+                self.review_proposal_edits(record, False)
+                return
             if kind in ('proposals', 'tracked_changes'):
                 self.commit(
                     [
@@ -2864,7 +2984,11 @@ class MainWindow(QMainWindow):
             )
 
     def toggle_pages(self):
-        self.flush_edits()
+        if not FORMATS[self.file_view]['paged']:
+            self.status_label.setText(self.tr('This format has no pages'))
+            return
+        if not self.flush_edits():
+            return
         if self.stack.currentIndex() == 0:
             self.stack.setCurrentIndex(1)
             self.update_pages()
@@ -2883,7 +3007,7 @@ class MainWindow(QMainWindow):
         """Resolve physical pages on a worker and show them when they match the model."""
         from .layout import adopt_resolved, resolve_pages, resolved_documents
 
-        document, doc = self.editor.document(), self.doc
+        document, doc = self.editor.document(), self.projection()
         if None in getattr(document, 'byax_resolved_outputs', {}):
             self.pages.set_document(document, doc)
             return
@@ -2902,7 +3026,7 @@ class MainWindow(QMainWindow):
         def done(resolved):
             if generation != self._pages_generation:
                 return
-            if self.doc is not doc or self.editor.document() is not document:
+            if self.projection() is not doc or self.editor.document() is not document:
                 if self.stack.currentIndex() == 1:
                     self.update_pages()
                 return
@@ -3037,13 +3161,15 @@ class MainWindow(QMainWindow):
         dialog.exec()
 
     def export(self):
+        from .exchange import export_document
         from .publication import export_clean
 
-        self.flush_edits()
+        if not self.flush_edits():
+            return
         path, _ = QFileDialog.getSaveFileName(
             self,
             self.tr('Export publication copy'),
-            '',
+            self.export_suggestion(),
             self.tr(
                 'PDF (*.pdf);;Word (*.docx);;OpenDocument (*.odt);;Markdown (*.md);;HTML (*.html);;Rich text (*.rtf);;Plain text (*.txt)'
             ),
@@ -3051,9 +3177,15 @@ class MainWindow(QMainWindow):
         if not path:
             return
         doc = copy.copy(self.doc)
+        profile = copy.deepcopy(doc.get('profiles', {}).get(getattr(self, '_selected_export_profile', None)))
+        writer = (
+            export_clean if self.file_view == 'byax' and self.export_offer.isHidden() else export_document
+        )
+        if writer is export_document:
+            profile = {**(profile or {}), 'allow_markdown_losses': True}
         self.background(
             self.tr('Exporting…'),
-            lambda: export_clean(doc, path),
+            lambda: writer(doc, path, profile=profile),
             lambda report: self.report(
                 self.tr('Export result and compatibility'),
                 report,
@@ -3190,16 +3322,13 @@ class MainWindow(QMainWindow):
             self.commit([{'type': 'set_metadata', 'values': {k: v.text() for k, v in controls.items()}}])
 
     def statistics(self):
-        self.flush_edits()
-        text = model.text_of(self.doc)
-        self.message(
-            self.tr('Document statistics'),
-            self.tr(
-                'Authored content\n{0:,} words\n{1:,} Unicode characters\n{2:,} blocks\n{3:,} laid-out pages\n\nPublication profiles may exclude selected content.'
-            ).format(
-                len(text.split()), len(text), len(self.doc['blocks']), self.editor.document().pageCount()
-            ),
-        )
+        from .statistics import counts, document_statistics
+
+        if not self.flush_edits():
+            return
+        report = document_statistics(self.doc, output=self.file_view)
+        report['selection'] = counts(self.editor.textCursor().selectedText())
+        self.report(self.tr('Document statistics'), report)
 
     def templates(self):
         kind, ok = QInputDialog.getItem(

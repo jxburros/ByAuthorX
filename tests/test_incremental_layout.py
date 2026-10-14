@@ -221,9 +221,9 @@ def test_export_runs_on_worker(window, monkeypatch, tmp_path):
     threads, reports = [], []
     real = publication.export_clean
 
-    def export(doc, target):
+    def export(doc, target, **kwargs):
         threads.append(threading.get_ident())
-        return real(doc, target)
+        return real(doc, target, **kwargs)
 
     monkeypatch.setattr(publication, 'export_clean', export)
     monkeypatch.setattr(window, 'report', lambda title, result, art=None: reports.append(result))

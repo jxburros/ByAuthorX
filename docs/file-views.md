@@ -1,6 +1,6 @@
 # File views
 
-**Status: proposed. Nothing in this document is implemented.** It is the requirements and design source for the feature; when a part ships, its row in [the acceptance matrix](acceptance-matrix.md) must record what a named test actually verifies, not what this document intends.
+**Status: implemented subset of Phases 1–2; acceptance remains bounded.** The registry, pure projections, desktop selector, source previews, output-policy filtering, hidden-content guards, save offers and Markdown opening choices are implemented. See [the acceptance matrix](acceptance-matrix.md#file-view-evidence--14-october-2026) for named tests and limits. Phase 3 and the explicitly pending original-replacement proposal remain deferred. The requirements below remain the design source, not a claim that every format feature has passed exhaustive round-trip acceptance.
 
 A **file view** lets a writer look at, and keep editing, the current document as it would exist in another file format. The `.byax` document stays the single master and holds everything. Choosing TXT, Markdown, DOCX and so on hides what that format could not carry, shows the rest the way it would be saved, and offers only the editing commands that format can express. Edits made in any view are written to the master.
 

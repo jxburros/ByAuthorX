@@ -439,7 +439,7 @@ def _preserve_original(target, version):
     return str(backup)
 
 
-def migrate_package(source, destination):
+def migrate_package(source: str | Path, destination: str | Path) -> dict[str, Any]:
     """Write an upgraded copy of ``source``; the original package is never modified."""
     source, destination = Path(source).resolve(), Path(destination).resolve()
     if source == destination:
@@ -529,7 +529,7 @@ def pack(source_dir: str | os.PathLike[str], out_path: str | os.PathLike[str]) -
     }
     changed = changed or set(original_resources) != set(manifest['resources'])
     members['manifest.json'] = (json.dumps(manifest, sort_keys=True, indent=2) + '\n').encode()
-    reports = []
+    reports: list[dict[str, Any]] = []
     doc = _decode(members, reports)
     base_revision = doc['revision']
     if changed:

@@ -133,3 +133,11 @@ JSON (`--input -`) and exit codes.
 Automated tests run on Linux with POSIX shells. PowerShell pipelines, installed-package
 launchers and Windows console encoding have not been exercised and remain physical
 verification items.
+
+| Inspection | file view | `view --as FORMAT [--source]` | `byax_view` | `POST /v1/execute` | `byax.formats.project` | View > File view |
+
+| Inspection | document statistics | `statistics` | `byax_statistics` | execute | `byax.statistics.document_statistics` | Tools > Document statistics |
+| Inspection | linked dependencies | `dependencies` | `byax_dependencies` | execute | `byax.engine.dependency_report` | Tools > Linked assets… |
+| Files | settings collections | `collection` | `byax_collection` | execute | `byax.profiles.export_settings` | Tools > Reusable settings… |
+
+Linked asset retrieval requires explicit authorization in the local CLI or desktop. MCP/REST can inspect or embed already retrieved content; they cannot retrieve embedded file/HTTP URIs, which are outside transport path authorization.

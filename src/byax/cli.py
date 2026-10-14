@@ -25,6 +25,10 @@ Handler = Callable[[Args, str | None], Result]
 
 SCHEMA_VERSION = 1
 COMMANDS = {
+    'statistics': 'Count authored, publication and selected text',
+    'collection': 'Inspect, export or apply reusable document settings',
+    'dependencies': 'Inspect, explicitly refresh or embed linked assets',
+    'view': 'Read a format projection and its located losses without changing the master',
     'version': 'Engine and schema versions',
     'capabilities': 'Discover supported features and provider adapters',
     'schema': 'Discover command or canonical operation schemas',
@@ -59,6 +63,29 @@ COMMANDS = {
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
+    'statistics': {
+        'path': 'string',
+        'format': 'string',
+        'target': 'string',
+        'start': 'integer',
+        'end': 'integer',
+    },
+    'collection': {
+        'path': 'string',
+        'action': 'string',
+        'input': 'object',
+        'out': 'string',
+        'on_conflict': 'string',
+        'overwrite': 'boolean',
+    },
+    'dependencies': {
+        'path': 'string',
+        'action': 'string',
+        'target': 'string',
+        'authorize': 'boolean',
+        'allow_network': 'boolean',
+    },
+    'view': {'path': 'string', 'as': 'string', 'source': 'boolean'},
     'version': {},
     'capabilities': {'topic': 'string'},
     'schema': {'topic': 'string'},
@@ -229,6 +256,10 @@ ARGUMENTS: dict[str, dict[str, str]] = {
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
 REQUIRED = {
+    'statistics': ['path'],
+    'collection': ['path'],
+    'dependencies': ['path'],
+    'view': ['path', 'as'],
     'proof': ['path', 'out'],
     'table': ['path', 'table'],
     'template-batch': ['path', 'csv', 'out'],
@@ -398,6 +429,93 @@ def _execute(command: str, arguments: Args | None = None, *, output_owner: str |
     return handler(dict(a), output_owner)
 
 
+def _cmd_statistics(a: Args, owner: str | None) -> Result:
+    from .statistics import document_statistics
+
+    doc = _load(a['path'])
+    return envelope(
+        document_statistics(
+            doc, output=a.get('format'), target=a.get('target'), start=a.get('start'), end=a.get('end')
+        ),
+        doc,
+    )
+
+
+def _cmd_collection(a: Args, owner: str | None) -> Result:
+    from . import engine, profiles
+
+    action = a.get('action', 'inspect')
+    if action in ('inspect', 'export'):
+        doc = _load(a['path'])
+        collection = profiles.export_settings(doc)
+        if action == 'export':
+            if not a.get('out'):
+                _error('invalid_input', 'Collection export requires --out')
+            _destination(a['out'], a.get('overwrite', False), a['path'])
+            profiles.write_collection(collection, a['out'])
+        return envelope({'collection': collection}, doc, outputs=[a['out']] if action == 'export' else [])
+    if action != 'apply':
+        _error('invalid_input', 'Use collection --action inspect, export or apply')
+
+    def apply(doc: Document) -> tuple[Document, Result, bool]:
+        compiled = profiles.compile_collection(
+            doc, a.get('input', {}), on_conflict=a.get('on_conflict', 'error')
+        )
+        operations, report = compiled['operations'], compiled['report']
+        if not operations:
+            return doc, envelope({'outcome': 'unchanged', 'report': report}, doc), False
+        candidate, result = engine.apply(
+            doc, {'expected_revision': doc['revision'], 'operations': operations}
+        )
+        result['collection'] = report
+        return candidate, result, bool(operations)
+
+    return _mutate(a['path'], apply)
+
+
+def _cmd_dependencies(a: Args, owner: str | None) -> Result:
+    from . import dependencies, engine
+
+    action = a.get('action', 'inspect')
+    if action == 'inspect':
+        doc = _load(a['path'])
+        return envelope(engine.dependency_report(doc), doc)
+    if action not in ('refresh', 'embed'):
+        _error('invalid_input', 'Use dependencies --action inspect, refresh or embed')
+
+    def apply(doc: Document) -> tuple[Document, Result, bool]:
+        if action == 'refresh':
+            operations, report = dependencies.refresh_operations(
+                doc,
+                [a['target']] if a.get('target') else None,
+                base_dir=Path(a['path']).resolve().parent,
+                authorize=a.get('authorize', False),
+                allow_network=a.get('allow_network', False),
+            )
+        else:
+            if not a.get('target'):
+                _error('invalid_input', 'Embedding requires --target')
+            operations, report = [{'type': 'embed_dependency', 'target': a['target']}], {}
+        if not operations:
+            return doc, envelope({'outcome': 'unchanged', 'report': report}, doc), False
+        candidate, result = engine.apply(
+            doc, {'expected_revision': doc['revision'], 'operations': operations}
+        )
+        result['dependencies'] = report
+        return candidate, result, bool(operations)
+
+    return _mutate(a['path'], apply)
+
+
+def _cmd_view(a: Args, owner: str | None) -> Result:
+    from .formats import project
+    from .model import text_of
+
+    doc = _load(a['path'])
+    projected, report = project(doc, a['as'], 'source' if a.get('source') else 'rendered')
+    return envelope({**report, 'text': text_of(projected), 'blocks': projected['blocks']}, doc)
+
+
 def _cmd_version(a: Args, owner: str | None) -> Result:
     from . import __version__
 
@@ -412,13 +530,15 @@ def _cmd_version(a: Args, owner: str | None) -> Result:
 
 
 def _cmd_capabilities(a: Args, owner: str | None) -> Result:
+    from .formats import FORMATS
     from .providers import list_capabilities
 
     return envelope(
         {
             'commands': COMMANDS,
             'providers': list_capabilities(),
-            'formats': ['byax', 'txt', 'md', 'html', 'docx', 'odt', 'rtf', 'doc', 'pdf'],
+            'formats': list(FORMATS) + ['doc'],
+            'format_capabilities': FORMATS,
             'topic': a.get('topic'),
             'transactions': 'atomic envelope under exclusive file lock',
             'network': 'only explicitly selected provider calls',
@@ -1121,6 +1241,10 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 _HANDLERS: dict[str, Handler] = {
+    'statistics': _cmd_statistics,
+    'collection': _cmd_collection,
+    'dependencies': _cmd_dependencies,
+    'view': _cmd_view,
     'version': _cmd_version,
     'capabilities': _cmd_capabilities,
     'schema': _cmd_schema,

@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from PySide6.QtCore import QRectF, QSize, Qt
+from PySide6.QtCore import QRectF, QSettings, QSize, Qt
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPalette, QPixmap
 from PySide6.QtWidgets import QApplication, QWidget
 
@@ -48,6 +48,19 @@ def app_icon():
     return icon
 
 
+DARK_COLORS = {
+    **COLORS,
+    'paper': '#1D2220',
+    'surface': '#262D29',
+    'ink': '#F2EFE5',
+    'muted': '#BABDB4',
+    'rule': '#535E56',
+    'control': '#929E94',
+    'green': '#35784C',
+    'greenText': '#77BF8A',
+}
+
+
 def configure_application(app: QApplication):
     register_bundled_fonts()
     app.setFont(QFont(TOKENS['font']['body'], 11))
@@ -56,26 +69,30 @@ def configure_application(app: QApplication):
         # The platform high-contrast theme outranks brand colours.
         app.setStyleSheet('')
         return
+    mode = QSettings('ByAuthorX', 'ByAuthorX').value('appearance/theme', 'system')
+    dark = mode == 'dark' or (mode == 'system' and app.styleHints().colorScheme() == Qt.ColorScheme.Dark)
+    colors = DARK_COLORS if dark else COLORS
+    app.setProperty('byaxTheme', 'dark' if dark else 'light')
     palette = QPalette()
     for role, color in (
-        (QPalette.Window, COLORS['paper']),
-        (QPalette.WindowText, COLORS['ink']),
-        (QPalette.Base, COLORS['surface']),
-        (QPalette.AlternateBase, COLORS['paper']),
-        (QPalette.Text, COLORS['ink']),
-        (QPalette.Button, COLORS['surface']),
-        (QPalette.ButtonText, COLORS['ink']),
-        (QPalette.Highlight, COLORS['greenText']),
-        (QPalette.HighlightedText, '#FFFFFF'),
-        (QPalette.Link, COLORS['greenText']),
-        (QPalette.ToolTipBase, COLORS['surface']),
-        (QPalette.ToolTipText, COLORS['ink']),
+        (QPalette.Window, colors['paper']),
+        (QPalette.WindowText, colors['ink']),
+        (QPalette.Base, colors['surface']),
+        (QPalette.AlternateBase, colors['paper']),
+        (QPalette.Text, colors['ink']),
+        (QPalette.Button, colors['surface']),
+        (QPalette.ButtonText, colors['ink']),
+        (QPalette.Highlight, colors['greenText']),
+        (QPalette.HighlightedText, '#18231B' if dark else '#FFFFFF'),
+        (QPalette.Link, colors['greenText']),
+        (QPalette.ToolTipBase, colors['surface']),
+        (QPalette.ToolTipText, colors['ink']),
     ):
         palette.setColor(role, QColor(color))
     for role in (QPalette.WindowText, QPalette.Text, QPalette.ButtonText):
-        palette.setColor(QPalette.Disabled, role, QColor(COLORS['muted']))
+        palette.setColor(QPalette.Disabled, role, QColor(colors['muted']))
     app.setPalette(palette)
-    app.setStyleSheet(stylesheet())
+    app.setStyleSheet(stylesheet(colors, 'dark' if dark else 'light'))
 
 
 def rule_url(name, theme='light'):
@@ -83,23 +100,24 @@ def rule_url(name, theme='light'):
     return f'url("{(BRAND_ROOT / "ui" / f"{name}-{theme}.png").as_posix()}")'
 
 
-def stylesheet():
-    c = COLORS
+def stylesheet(colors=None, theme='light'):
+    c = colors or COLORS
+    selected_text = '#18231B' if theme == 'dark' else '#FFFFFF'
     control, panel = TOKENS['radius']['control'], TOKENS['radius']['panel']
     return f"""
         QMainWindow, QDialog {{ background: {c['paper']}; color: {c['ink']}; }}
         QMenuBar, QToolBar, QStatusBar {{ background: {c['surface']}; color: {c['ink']};
             border: 0; padding: 4px; }}
-        QToolBar {{ spacing: 6px; background-image: {rule_url('rule-h')}; background-repeat: repeat-x;
+        QToolBar {{ spacing: 6px; background-image: {rule_url('rule-h', theme)}; background-repeat: repeat-x;
             background-position: bottom left; background-origin: border; }}
-        QToolBar::separator {{ width: 7px; margin: 6px 6px; background-image: {rule_url('rule-v')};
+        QToolBar::separator {{ width: 7px; margin: 6px 6px; background-image: {rule_url('rule-v', theme)};
             background-repeat: no-repeat; background-position: center; }}
-        QStatusBar {{ background-image: {rule_url('rule-h')}; background-repeat: repeat-x;
+        QStatusBar {{ background-image: {rule_url('rule-h', theme)}; background-repeat: repeat-x;
             background-position: top left; background-origin: border; }}
         QMenu {{ background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['rule']};
             icon-size: 20px; }}
         QMenu::item {{ padding: 8px 24px 8px 12px; }}
-        QMenu::separator {{ height: 6px; margin: 4px 10px; background-image: {rule_url('rule-h')};
+        QMenu::separator {{ height: 6px; margin: 4px 10px; background-image: {rule_url('rule-h', theme)};
             background-repeat: repeat-x; background-position: center left; }}
         QMenu::icon {{ padding-left: 8px; }}
         QMenu::item:selected, QMenuBar::item:selected {{ background: {c['paper']}; color: {c['greenText']}; }}
@@ -111,25 +129,29 @@ def stylesheet():
         QToolBar QToolButton:pressed, QToolBar QToolButton:checked {{
             background: {c['paper']}; color: {c['greenText']}; border-color: {c['greenText']}; }}
         QToolButton:pressed, QPushButton:pressed, QToolButton:checked {{
-            background: {c['greenText']}; color: white; }}
+            background: {c['greenText']}; color: {selected_text}; }}
         QPushButton[primary="true"] {{ background: {c['green']}; color: white; border-color: {c['green']}; }}
         QPushButton[primary="true"]:hover {{ background: {c['greenText']}; }}
         QPushButton:disabled, QToolButton:disabled {{ color: {c['muted']}; background: {c['paper']}; }}
         QDockWidget {{ color: {c['ink']}; font-weight: 600; }}
-        QDockWidget::title {{ background: {c['surface']}; padding: 12px; background-image: {rule_url('rule-h')};
+        QDockWidget::title {{ background: {c['surface']}; padding: 12px; background-image: {rule_url('rule-h', theme)};
             background-repeat: repeat-x; background-position: bottom left; background-origin: border; }}
         QTreeWidget, QListWidget {{ border: 0; background: {c['surface']}; color: {c['ink']}; padding: 8px; }}
         QTreeWidget::item, QListWidget::item {{ padding: 8px; }}
-        QTreeWidget::item:selected, QListWidget::item:selected {{ background: {c['greenText']}; color: white; }}
+        QTreeWidget::item:selected, QListWidget::item:selected {{ background: {c['greenText']}; color: {selected_text}; }}
         QTabWidget::pane {{ border: 1px solid {c['rule']}; border-radius: {panel}px; background: {c['surface']}; }}
         QTabBar::tab {{ padding: 8px 16px 2px 16px; color: {c['muted']}; background: {c['paper']};
             border-bottom: 8px solid transparent; }}
         QTabBar::tab:selected {{ color: {c['greenText']}; background: {c['surface']};
-            border-image: {rule_url('tab-underline')} 0 0 8 0 stretch stretch; border-bottom: 8px solid; }}
+            border-image: {rule_url('tab-underline', theme)} 0 0 8 0 stretch stretch; border-bottom: 8px solid; }}
+        QTextEdit {{ background: {c['surface']}; color: {c['ink']};
+            border: 2px solid {c['control']}; border-radius: 8px; padding: 24px;
+            selection-background-color: {c['greenText']}; selection-color: {selected_text}; }}
+        QTextEdit:focus {{ border: 2px solid {c['greenText']}; }}
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
             background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['control']};
             border-radius: {control}px; padding: 4px 8px; selection-background-color: {c['greenText']};
-            selection-color: white; }}
+            selection-color: {selected_text}; }}
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {{ min-height: 28px; }}
         QAbstractScrollArea:focus, QLineEdit:focus, QComboBox:focus, QSpinBox:focus,
         QDoubleSpinBox:focus, QToolButton:focus, QPushButton:focus {{ border: 2px solid {c['greenText']}; }}
