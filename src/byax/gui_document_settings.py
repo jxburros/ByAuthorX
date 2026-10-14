@@ -11,6 +11,7 @@ from PySide6.QtWidgets import (
     QFormLayout,
     QLabel,
     QLineEdit,
+    QScrollArea,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -26,7 +27,15 @@ class DocumentSettingsDialog(QDialog):
         super().__init__(window)
         self.window = window
         self.setWindowTitle(self.tr(title))
-        self.layout_box = QVBoxLayout(self)
+        self.resize(680, 650)
+        self.root_layout = QVBoxLayout(self)
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setAccessibleName(self.tr(title))
+        content = QWidget()
+        scroll.setWidget(content)
+        self.root_layout.addWidget(scroll)
+        self.layout_box = QVBoxLayout(content)
         self.form = QFormLayout()
         self.layout_box.addLayout(self.form)
 
@@ -34,7 +43,7 @@ class DocumentSettingsDialog(QDialog):
         buttons = QDialogButtonBox(QDialogButtonBox.Save | QDialogButtonBox.Cancel)
         buttons.accepted.connect(self.save)
         buttons.rejected.connect(self.reject)
-        self.layout_box.addWidget(buttons)
+        self.root_layout.addWidget(buttons)
 
     def combo(self, label, choices):
         control = QComboBox()

@@ -18,6 +18,47 @@ BASIC_MARKS = {'bold', 'italic', 'underline', 'strikethrough', 'superscript', 's
 PARAGRAPH_ATTRS = {'alignment', 'space_before', 'space_after', 'indent', 'first_line_indent'}
 
 
+COMMAND_CAPABILITIES = {
+    'Bold': 'marks.bold',
+    'Italic': 'marks.italic',
+    'Underline': 'marks.underline',
+    'Strikethrough': 'marks.strikethrough',
+    'Superscript': 'marks.superscript',
+    'Subscript': 'marks.subscript',
+    'Text color…': 'marks.color',
+    'Highlight…': 'marks.highlight',
+    'Hyperlink…': 'marks.link',
+    'Font and paragraph…': 'marks.font_family',
+    'Define named style…': 'styles',
+    'Table…': 'blocks.table',
+    'Image…': 'images.embedded',
+    'Page break': 'blocks.page_break',
+    'Section / columns…': 'blocks.section_break',
+    'Table of contents': 'blocks.toc',
+    'Footnote…': 'blocks.footnote',
+    'Merge cells…': 'tables.spans',
+    'Unmerge selected cell': 'tables.spans',
+    'Watermark / layer…': 'full',
+    'Cross reference…': 'full',
+    'Define template field…': 'full',
+    'Template fields…': 'full',
+    'Restart list numbering': 'full',
+    'Continue list numbering': 'full',
+    'Apply character style…': 'marks.character_style',
+    'Page masters…': 'layout.full',
+    'Edit selected layer…': 'layout.full',
+    'Group selected layers…': 'layout.full',
+    'Ungroup selected layers': 'layout.full',
+    'Move layer up': 'layout.full',
+    'Move layer down': 'layout.full',
+    'Bulleted list': 'block_attrs.list',
+    'Numbered list': 'block_attrs.list',
+    'Remove list': 'block_attrs.list',
+    'Increase list level': 'lists.nested',
+    'Decrease list level': 'lists.nested',
+}
+
+
 def _entry(ident, label, marks, *, styles=False, attrs=(), images='embedded', extra=()):
     full = ident in ('byax', 'pdf')
     blocks = {kind: 'hidden' for kind in BLOCK_TYPES}
@@ -36,7 +77,7 @@ def _entry(ident, label, marks, *, styles=False, attrs=(), images='embedded', ex
         'blocks': blocks,
         'marks': '*' if full else sorted(marks),
         'styles': styles or full,
-        'block_attrs': '*' if full else sorted(set(attrs) | {'level', 'list'}),
+        'block_attrs': '*' if full else sorted(set(attrs) | ({'level', 'list'} if ident != 'txt' else set())),
         'images': images,
         'image_mimes': ['image/png', 'image/jpeg'] if ident == 'rtf' else '*',
         'tables': {
@@ -52,6 +93,7 @@ def _entry(ident, label, marks, *, styles=False, attrs=(), images='embedded', ex
         if ident == 'docx'
         else [],
         'source': ident in ('md', 'txt', 'html', 'rtf'),
+        'commands': dict(COMMAND_CAPABILITIES),
     }
 
 
@@ -106,6 +148,8 @@ def supports(view: str, capability: str) -> bool:
     value = entry.get(group)
     if group == 'images':
         return value == key
+    if group == 'lists' and key == 'nested':
+        return value == 'full' or view == 'odt'
     if group == 'blocks':
         return value.get(key) == 'full'
     if isinstance(value, dict):

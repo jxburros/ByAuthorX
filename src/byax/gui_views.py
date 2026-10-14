@@ -81,33 +81,7 @@ class FileViews:
             self.action(self.tr('Markdown opening preference…'), self.markdown_preferences)
         )
         # Commands carry explicit capability requirements; unsupported commands remain discoverable.
-        requirements = {
-            'Bold': 'marks.bold',
-            'Italic': 'marks.italic',
-            'Underline': 'marks.underline',
-            'Strikethrough': 'marks.strikethrough',
-            'Superscript': 'marks.superscript',
-            'Subscript': 'marks.subscript',
-            'Text color…': 'marks.color',
-            'Highlight…': 'marks.highlight',
-            'Hyperlink…': 'marks.link',
-            'Font and paragraph…': 'marks.font_family',
-            'Define named style…': 'styles',
-            'Table…': 'blocks.table',
-            'Image…': 'images.embedded',
-            'Page break': 'blocks.page_break',
-            'Section / columns…': 'blocks.section_break',
-            'Table of contents': 'blocks.toc',
-            'Footnote…': 'blocks.footnote',
-            'Merge cells…': 'tables.spans',
-            'Unmerge selected cell': 'tables.spans',
-            'Watermark / layer…': 'full',
-            'Cross reference…': 'full',
-            'Define template field…': 'full',
-            'Template fields…': 'full',
-            'Restart list numbering': 'full',
-            'Continue list numbering': 'full',
-        }
+        requirements = FORMATS['byax']['commands']
         self._capability_actions = []
         for menu in menus.values():
             for action in menu.actions():

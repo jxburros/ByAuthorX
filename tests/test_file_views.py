@@ -5,7 +5,7 @@ import random
 
 import pytest
 from PySide6.QtCore import QSettings, Qt
-from PySide6.QtGui import QTextCursor
+from PySide6.QtGui import QAction, QTextCursor
 from PySide6.QtTest import QTest
 from PySide6.QtWidgets import QApplication, QComboBox, QDialog
 
@@ -123,6 +123,9 @@ def test_view_switch_keeps_master_undo_and_caret(window):
         assert window.doc == before
         assert window._undo == undo
         assert window.editor.current_id() == target
+        actions = {a.text(): a for a in window.findChildren(QAction)}
+        for label in ('Bulleted list', 'Apply character style…', 'Page masters…'):
+            assert actions[label].isEnabled() == supports(fmt, FORMATS[fmt]['commands'][label])
     window.undo()
     assert window.doc['blocks'][0]['text'] == 'Alpha beta'
 
