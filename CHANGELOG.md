@@ -20,7 +20,8 @@ installers, so install 0.1.1 instead. The application itself is unchanged.
   stroke is seeded by a random block id, so this happened on some runs only. It failed every
   post-merge Ubuntu run, which skipped the Ubuntu package build, and publishing waits for both
   platforms, so no Windows installer was attached either. The test now allows for the area a pixel
-  covers. The drawn marks are unchanged.
+  covers, and a failed check is retried up to twice with a fresh stroke before the test gives up. The
+  drawn marks are unchanged.
 - When a GitHub Release already exists for the tag, for example one created from the GitHub web
   page, the release workflow now also replaces its title and notes with this changelog entry
   instead of only attaching files.
