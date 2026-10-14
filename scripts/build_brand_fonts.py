@@ -12,6 +12,7 @@ import argparse
 import hashlib
 import json
 from pathlib import Path
+import shutil
 import sys
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -25,6 +26,7 @@ from brandfonts import families, masters, specimens  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'assets/brand-fonts'
+APP_FONTS = ROOT / 'src/byax/resources/fonts'
 LABELS = ROOT / 'src/byax/resources/fonts'
 ROLES = {
     'irongall': 'Logo: a rough inked serif',
@@ -52,6 +54,17 @@ def font_features(path):
         if table in font:
             tags |= {record.FeatureTag for record in font[table].table.FeatureList.FeatureRecord}
     return sorted(tags)
+
+
+def install(out):
+    """Copy every built TTF listed in the manifest into the application's bundled fonts (and report how many)."""
+    manifest = json.loads((out / 'manifest.json').read_text(encoding='utf-8'))
+    count = 0
+    for entry in manifest['families']:
+        source = out / entry['files']['ttf']['path']
+        shutil.copy2(source, APP_FONTS / source.name)
+        count += 1
+    return count
 
 
 def apply_masters(shapes, sheet_path):
@@ -129,9 +142,16 @@ def main():
     parser.add_argument('--from-masters', action='store_true', help='compile from the glyph masters in Vixl')
     parser.add_argument('--skip-masters', action='store_true')
     parser.add_argument('--skip-specimens', action='store_true')
+    parser.add_argument('--no-install', action='store_true', help='do not copy the TTFs into the application')
+    parser.add_argument(
+        '--install-only', action='store_true', help='copy the built TTFs into the application and stop'
+    )
     args = parser.parse_args()
     out = args.out.resolve()
     out.mkdir(parents=True, exist_ok=True)
+    if args.install_only:
+        print(f'installed {install(out)} fonts into {APP_FONTS.relative_to(ROOT)}')
+        return
     labels = {'manrope': LABELS / 'Manrope-400.ttf', 'manrope-semibold': LABELS / 'Manrope-600.ttf'}
     keys = args.only or list(families.FAMILIES)
     entries, compiled_all, paths = [], {}, {}
@@ -161,6 +181,8 @@ def main():
     )
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     print(f'wrote {manifest_path}')
+    if out == OUT and not args.no_install:
+        print(f'installed {install(out)} fonts into {APP_FONTS.relative_to(ROOT)}')
 
 
 if __name__ == '__main__':

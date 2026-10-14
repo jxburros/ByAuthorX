@@ -26,7 +26,7 @@
 
 Controls use a 6 px radius; panels use 8 px. Layout uses the supplied 4/8 px rhythm. A 2 px deep-green focus border identifies keyboard focus. Primary green buttons carry white text. Color never replaces the control label.
 
-The native workspace keeps a professional control layer: Manrope labels, restrained toolbar buttons, plain panel headings, and a white writing surface within warm-paper margins. The document header reports its title, save state, and current view. Outline and Inspector start at 230 and 300 px and remain resizable. Selected paragraph styles have readable labels while retaining canonical engine keys.
+The native workspace keeps a professional control layer: Manrope labels and controls, restrained toolbar buttons, Irongall panel headings, and a white writing surface within warm-paper margins. The document header reports its title, save state, and current view. Outline and Inspector start at 230 and 300 px and remain resizable. Selected paragraph styles have readable labels while retaining canonical engine keys.
 
 When Review has no active items, a small static illustration from the logo companion library accompanies a clear explanation and a local-checks action. Real items replace that empty state; reply/accept/reject controls enable only when the selected item supports them. Interface artwork stays outside authored content and exports.
 
@@ -42,9 +42,21 @@ Other empty states use companion stills in the same way, always beside a readabl
 
 `gui_art.themed_art()` chooses the light or dark variant from the effective window palette (window lightness below 50% selects dark). The current application palette is light, so dark variants are dormant until a dark palette ships.
 
-Manrope Regular/Semibold provides interface type (11 pt by default). IM FELL English appears in the About headline. Source Serif 4 is registered and selectable for reading/document styles. All three families are bundled with their SIL OFL notices. Existing document styles, content, revision history, and export typography are preserved; branding does not inject decoration into authored documents. The writing page stays white.
+Each kind of interface text has a font role in `tokens.json`, and `byax.brand.stylesheet()` applies them:
 
-Six custom display faces drawn with Vixl live in [assets/brand-fonts](../assets/brand-fonts/README.md): Irongall (from the wordmark), Scholium (from the companion illustrations), Tenuis (tall and thin), Brobdingnag (big and bold), Onionskin (a typewriter face) and Decussate (every letter stitched from X marks). They are design assets for artwork and marketing, with editable Vixl glyph masters and checked specimens. The application does not bundle or load them, and the interface and document typography above are unchanged.
+| Role (`font.*`) | Family | Where it sets text |
+| --- | --- | --- |
+| `body` | Manrope Regular/Semibold | Menus, toolbar buttons, labels, inputs, tabs and the status message (11 pt by default) |
+| `display` | Irongall | The About headline, the document title, dock titles (Outline, Inspector) and empty-state headings |
+| `annotation` | Scholium | Helper text under an empty-state heading and the AI tab's status and hint lines |
+| `counter` | Onionskin | The word, character and reading-time counters in the status bar |
+| `reading` | Source Serif 4 | Registered and selectable for reading and document styles |
+
+Controls stay in Manrope so they remain calm and legible; the expressive faces take headings and brand moments. Irongall is the wordmark's own serif, Scholium is drawn from the illustrations and is set at 16 px in ink colour because its pen line is thin, and Onionskin's fixed pitch keeps the counters steady as they change. The brand faces cover Latin only, so each role lists Manrope after its own family: a character they lack (Cyrillic, Greek) is set in Manrope rather than in whatever the system picks. Under a platform high-contrast theme the stylesheet is dropped and every role falls back to the system font. Tenuis, Brobdingnag and Decussate are bundled and selectable in documents but the interface does not use them: a hairline, an ultra-black slab and a stitched face are display faces for artwork. The fonts are drawn and compiled by `scripts/build_brand_fonts.py`; its `--install-only` step copies the built files into `src/byax/resources/fonts`, where `register_bundled_fonts()` registers every `*.ttf` at startup and `bundled_font_path()` fingerprints them for font identity, embedding and reproduction records.
+
+Manrope, IM FELL English and Source Serif 4 are bundled with their SIL OFL notices, and the six brand fonts are original ByAuthorX designs under the project's MIT license. Existing document styles, content, revision history, and export typography are preserved; branding does not inject decoration into authored documents. The writing page stays white.
+
+Six custom display faces drawn with Vixl live in [assets/brand-fonts](../assets/brand-fonts/README.md): Irongall (from the wordmark), Scholium (from the companion illustrations), Tenuis (tall and thin), Brobdingnag (big and bold), Onionskin (a typewriter face) and Decussate (every letter stitched from X marks). They have editable Vixl glyph masters and checked specimens, and are bundled with the application as described above; document typography is unchanged.
 
 ## Logos and platform icons
 
@@ -100,4 +112,4 @@ The earlier [pen-settle experiment](../design/brand/motion/pen-settle.vixl), its
 
 The [editable sources](../design/brand/README.md) preserve the supplied guide, examples, and new timeline. Vixl is the animation authoring tool; native playback stays in `gui_motion.py`. Preserve the immediate reduced-motion path when adding transitions.
 
-`tests/test_brand_motion.py`, `tests/test_ui_art.py`, and `tests/test_gui_ai.py` exercise resources, companion provenance and loop endpoints, palette-based variant choice, task-owned AI/spelling loops, exact sprite endpoints, completion/interruption, reduced motion, hidden/minimized windows, concurrent workers, terminal job states, explicit save versus autosave, style-key mapping, and document preservation. Existing GUI and engine tests remain required. Screenshots are captured from Qt's offscreen native renderer using a sample document; its Source Serif 4 style is an explicit specimen choice. The busy capture holds a local task open for inspection. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.
+`tests/test_brand_motion.py`, `tests/test_ui_art.py`, and `tests/test_gui_ai.py` exercise resources, companion provenance and loop endpoints, palette-based variant choice, task-owned AI/spelling loops, exact sprite endpoints, completion/interruption, reduced motion, hidden/minimized windows, concurrent workers, terminal job states, explicit save versus autosave, style-key mapping, and document preservation. Existing GUI and engine tests remain required. Screenshots are captured from Qt's offscreen native renderer using a sample document (`python scripts/capture_screens.py` regenerates all five after a typography or branding change); its Source Serif 4 style is an explicit specimen choice. The busy capture holds a local task open for inspection. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.

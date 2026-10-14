@@ -506,6 +506,7 @@ class MainWindow(QMainWindow):
         self.statusBar().addWidget(self.activity_slot)
         self.statusBar().addWidget(self.status_label, 1)
         self.word_label = QLabel()
+        self.word_label.setObjectName('statusCounter')
         self.statusBar().addPermanentWidget(self.word_label)
 
     def create_about_dialog(self):

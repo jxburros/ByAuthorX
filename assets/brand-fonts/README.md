@@ -18,7 +18,7 @@ Each family is one style. Every font has the same 244 characters: Basic Latin, t
 ## Files
 
 ```
-fonts/<family>/<Family>-<Style>.ttf   desktop and Vixl (and the app, once registered)
+fonts/<family>/<Family>-<Style>.ttf   desktop and Vixl; also bundled in the app
 fonts/<family>/<Family>-<Style>.woff2 web
 masters/<family>-glyphs.vixl          the editable vector glyph sheet
 specimens/<family>-specimen.vixl/png  a type specimen, also a Vixl document
@@ -32,6 +32,10 @@ The fonts are released under the repository's [MIT License](../../LICENSE); the 
 ### Names
 
 The six names were picked because a quick search found no existing typeface with them (an earlier set, Broadside among them, was already in use). That is a sanity check, not a trademark search: look them up in a font catalogue and a trademark register before you publish the fonts outside this project.
+
+## In the application
+
+All six TTFs are bundled with ByAuthorX in `src/byax/resources/fonts`, so they are registered at startup, appear in the document font picker, and ship in the wheel and the frozen builds. The interface uses three of them: Irongall for headings and the About screen, Scholium for helper text, and Onionskin for the status-bar counters, while controls stay in Manrope ([brand and typography](../../docs/brand.md)). A full build copies the fonts into the application itself; `--install-only` re-copies the committed ones, and a test fails if the bundled copies drift from `manifest.json`.
 
 ## How they were made
 
@@ -66,4 +70,4 @@ Using a font in Vixl takes one import, because documents embed the fonts they us
 vixl font import assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf --name irongall
 ```
 
-or an `import-font` step with the same `path` and `name` in `vixl_apply`. Then use `"font": "irongall"` in any text operation. As with the supplied brand fonts, the application does not load these automatically.
+or an `import-font` step with the same `path` and `name` in `vixl_apply`. Then use `"font": "irongall"` in any text operation.

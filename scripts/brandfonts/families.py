@@ -136,8 +136,6 @@ def brobdingnag():
     spec = Spec(
         key='brobdingnag',
         family='Brobdingnag',
-        style='Black',
-        legacy_family='Brobdingnag Black',
         weight=900,
         width=7,
         metrics=m,

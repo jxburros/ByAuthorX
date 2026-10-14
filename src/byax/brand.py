@@ -81,6 +81,12 @@ def configure_application(app: QApplication):
 def stylesheet():
     c = COLORS
     control, panel = TOKENS['radius']['control'], TOKENS['radius']['panel']
+    # The brand faces cover Latin only; the body face is the named fallback, so a character they lack
+    # (Cyrillic, Greek, Latin Extended-B) is set in Manrope rather than in whatever the system picks.
+    display, annotation, counter = (
+        f'"{TOKENS["font"][role]}", "{TOKENS["font"]["body"]}"'
+        for role in ('display', 'annotation', 'counter')
+    )
     return f"""
         QMainWindow, QDialog {{ background: {c['paper']}; color: {c['ink']}; }}
         QMenuBar, QToolBar, QStatusBar {{ background: {c['surface']}; color: {c['ink']};
@@ -100,7 +106,7 @@ def stylesheet():
         QPushButton[primary="true"] {{ background: {c['green']}; color: white; border-color: {c['green']}; }}
         QPushButton[primary="true"]:hover {{ background: {c['greenText']}; }}
         QPushButton:disabled, QToolButton:disabled {{ color: {c['muted']}; background: {c['paper']}; }}
-        QDockWidget {{ color: {c['ink']}; font-weight: 600; }}
+        QDockWidget {{ color: {c['ink']}; font-family: {display}; font-size: 16px; }}
         QDockWidget::title {{ background: {c['surface']}; padding: 12px; }}
         QTreeWidget, QListWidget {{ border: 0; background: {c['surface']}; color: {c['ink']}; padding: 8px; }}
         QTreeWidget::item, QListWidget::item {{ padding: 8px; }}
@@ -117,13 +123,14 @@ def stylesheet():
         QAbstractScrollArea:focus, QLineEdit:focus, QComboBox:focus, QSpinBox:focus,
         QDoubleSpinBox:focus, QToolButton:focus, QPushButton:focus {{ border: 2px solid {c['greenText']}; }}
         QScrollArea#pagePreview {{ background: {c['paper']}; border: 0; }}
-        QLabel#brandTagline {{ font-family: "IM Fell English"; font-size: 32px; color: {c['ink']}; }}
+        QLabel#brandTagline {{ font-family: {display}; font-size: 32px; color: {c['ink']}; }}
         QWidget#writingWorkspace {{ background: {c['paper']}; }}
-        QLabel#documentTitle {{ font-size: 16px; font-weight: 600; color: {c['ink']}; }}
+        QLabel#documentTitle {{ font-family: {display}; font-size: 19px; color: {c['ink']}; }}
         QLabel#documentState, QLabel#workspaceView {{ color: {c['muted']}; font-size: 12px; }}
         QWidget#emptyPanel {{ background: {c['surface']}; }}
-        QLabel#emptyHeading {{ font-weight: 600; font-size: 15px; color: {c['ink']}; }}
-        QLabel#emptyDescription {{ color: {c['muted']}; font-size: 13px; }}
+        QLabel#emptyHeading {{ font-family: {display}; font-size: 18px; color: {c['ink']}; }}
+        QLabel#emptyDescription {{ font-family: {annotation}; color: {c['ink']}; font-size: 16px; }}
+        QLabel#statusCounter {{ font-family: {counter}; color: {c['ink']}; font-size: 13px; }}
     """
 
 

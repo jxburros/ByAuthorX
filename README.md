@@ -46,7 +46,7 @@ Unconfigured AI functions do not prevent writing, saving, printing, or determini
 
 ## Identity and motion
 
-Warm paper, quiet ink, and familiar controls frame a clean writing page. Manrope is bundled for the interface; IM Fell English gives introductions their print character. Source Serif 4 is available as an optional document font. Your document keeps its chosen styles.
+Warm paper, quiet ink, and familiar controls frame a clean writing page. Manrope is bundled for controls; Irongall, drawn from the wordmark, sets headings and the About screen, Scholium the helper text and Onionskin the status counters. Source Serif 4 and the other brand fonts are available as optional document fonts. Your document keeps its chosen styles.
 
 View and inspector changes use brief 180 ms transitions. Review, Outline, Layers, and the AI tab have small empty-state illustrations from the logo companion library; a writing/erasing pen loop appears only while work is running. In the AI tab, the red ink blot breathes only while the assistant is thinking, and a green margin gesture writes only while spelling is being checked. Explicit save draws a brief checkmark, and About writes the signature once. Controls use clean Manrope typography and restrained native styling. Choose **View → Reduce motion** for static artwork and immediate transitions; supported system preferences and `BYAX_REDUCED_MOTION=1` also disable motion. Typing and autosave remain quiet.
 

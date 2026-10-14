@@ -28,7 +28,17 @@ def make_window(qtbot, monkeypatch, tmp_path):
 def test_fonts_and_icon_sizes_available(qtbot, monkeypatch, tmp_path):
     window = make_window(qtbot, monkeypatch, tmp_path)
     assert QApplication.instance().font().family() == 'Manrope'
-    for family in ('Manrope', 'IM Fell English', 'Source Serif 4'):
+    for family in (
+        'Manrope',
+        'IM Fell English',
+        'Source Serif 4',
+        'Irongall',
+        'Scholium',
+        'Tenuis',
+        'Brobdingnag',
+        'Onionskin',
+        'Decussate',
+    ):
         assert family.casefold() in {name.casefold() for name in QFontDatabase.families()}
         assert bundled_font_path(family).is_file()
     assert bundled_font_path('Manrope', bold=True).name == 'Manrope-600.ttf'
@@ -39,6 +49,32 @@ def test_fonts_and_icon_sizes_available(qtbot, monkeypatch, tmp_path):
     assert window.brand_mark.width() >= 240
     for file in ('wordmark-light.png', 'byauthorx.ico', 'tokens.json'):
         assert (BRAND_ROOT / file).is_file()
+
+
+def test_interface_text_uses_the_brand_fonts_by_role(qtbot, monkeypatch, tmp_path):
+    from PySide6.QtWidgets import QDockWidget, QLabel
+
+    window = make_window(qtbot, monkeypatch, tmp_path)
+    # headings and brand moments: Irongall
+    assert window.document_title.font().family() == 'Irongall'
+    about = window.create_about_dialog()
+    qtbot.addWidget(about)
+    about.show()
+    assert about.findChild(QLabel, 'brandTagline').font().family() == 'Irongall'
+    assert all(dock.styleSheet() == '' for dock in window.findChildren(QDockWidget))
+    assert (
+        'font-family: "Irongall"'
+        in QApplication.instance().styleSheet().split('QDockWidget {')[1].split('}')[0]
+    )
+    heading = next(label for label in window.findChildren(QLabel, 'emptyHeading'))
+    assert heading.font().family() == 'Irongall'
+    # helper text: Scholium; status counters: Onionskin; controls stay in Manrope
+    helper = next(label for label in window.findChildren(QLabel, 'emptyDescription'))
+    assert helper.font().family() == 'Scholium'
+    assert window.word_label.font().family() == 'Onionskin'
+    assert window.menuBar().font().family() == 'Manrope'
+    assert window.status_label.font().family() == 'Manrope'
+    assert window.document_state.font().family() == 'Manrope'
 
 
 def test_view_motion_completes_without_changing_document(qtbot, monkeypatch, tmp_path):

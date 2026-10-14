@@ -25,6 +25,13 @@ def bundled_font_path(family, bold=False, italic=False):
         'manrope': 'Manrope-600.ttf' if bold else 'Manrope-400.ttf',
         'im fell english': 'IM-Fell-English-400.ttf',
         'source serif 4': 'Source-Serif-4-400.ttf',
+        # The six ByAuthorX brand fonts (assets/brand-fonts), each a single upright style.
+        'irongall': 'Irongall-Regular.ttf',
+        'scholium': 'Scholium-Regular.ttf',
+        'tenuis': 'Tenuis-Regular.ttf',
+        'brobdingnag': 'Brobdingnag-Regular.ttf',
+        'onionskin': 'Onionskin-Regular.ttf',
+        'decussate': 'Decussate-Regular.ttf',
     }
     if family.casefold() in brand_fonts:
         # Only supplied faces are fingerprinted; synthetic styles have no font file.

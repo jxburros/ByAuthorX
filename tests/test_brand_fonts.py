@@ -22,7 +22,7 @@ EXPECTED = {
     'irongall': ('Irongall', 'Regular', 600),
     'scholium': ('Scholium', 'Regular', 400),
     'tenuis': ('Tenuis', 'Regular', 200),
-    'brobdingnag': ('Brobdingnag', 'Black', 900),
+    'brobdingnag': ('Brobdingnag', 'Regular', 900),
     'onionskin': ('Onionskin', 'Regular', 400),
     'decussate': ('Decussate', 'Regular', 700),
 }
@@ -245,6 +245,41 @@ def test_overview_sheet_exists():
     with Image.open(BRAND / 'overview.png') as image:
         assert image.width == 1600 and image.height > 1400
     assert zipfile.is_zipfile(BRAND / 'overview.vixl')
+
+
+# the application bundles them and sets its text in them
+
+BUNDLED = ROOT / 'src/byax/resources/fonts'
+
+
+@pytest.mark.parametrize('key', EXPECTED)
+def test_the_application_bundles_the_built_fonts(key):
+    entry = FAMILIES[key]['files']['ttf']
+    bundled = BUNDLED / Path(entry['path']).name
+    assert bundled.is_file(), (
+        f'run scripts/build_brand_fonts.py --install-only: {bundled.name} is not bundled'
+    )
+    assert hashlib.sha256(bundled.read_bytes()).hexdigest() == entry['sha256']
+
+
+def test_fingerprinted_bundled_faces_cover_every_brand_font():
+    from byax import fonts
+
+    for key, (family, _, _) in EXPECTED.items():
+        resolved = fonts.bundled_font_path(family)
+        assert resolved is not None and resolved.is_file(), key
+        assert resolved.name == Path(FAMILIES[key]['files']['ttf']['path']).name
+        assert fonts.bundled_font_path(family, italic=True) is None
+
+
+def test_the_design_tokens_name_a_brand_font_for_each_text_role():
+    tokens = json.loads((ROOT / 'src/byax/resources/brand/tokens.json').read_text(encoding='utf-8'))['font']
+    assert (
+        tokens['display'] == 'Irongall'
+        and tokens['annotation'] == 'Scholium'
+        and tokens['counter'] == 'Onionskin'
+    )
+    assert tokens['body'] == 'Manrope'  # controls stay in the calm sans
 
 
 # the desktop toolkit can load them ----------------------------------------------------------------------
