@@ -6,6 +6,7 @@ import difflib
 import hashlib
 import re
 from datetime import UTC, datetime
+from typing import Any
 
 import regex as unicode_regex
 
@@ -67,7 +68,7 @@ OP_SCHEMAS = {
 }
 
 
-def operation_schema():
+def operation_schema() -> dict[str, Any]:
     return {
         'schema_version': 1,
         'discriminator': 'type',
@@ -1320,7 +1321,14 @@ def _commit(before, candidate, operations, request_id=None, origin='api', *, aut
     return candidate
 
 
-def apply(doc, envelope, *, dry_run=False, allow_policy_changes=False, auto_compact_history=False):
+def apply(
+    doc: dict[str, Any],
+    envelope: dict[str, Any],
+    *,
+    dry_run: bool = False,
+    allow_policy_changes: bool = False,
+    auto_compact_history: bool = False,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     validate_document(doc, include_history=False)
     if not isinstance(envelope, dict):
         _error('Edit envelope must be an object.', '$')
@@ -1485,7 +1493,7 @@ def _revision(doc, revision):
     raise ByaxError('missing_target', 'Revision or checkpoint is not in retained history.', target=revision)
 
 
-def diff(doc, from_revision):
+def diff(doc: dict[str, Any], from_revision: str) -> dict[str, Any]:
     before = _revision(doc, from_revision)
     return {
         'schema_version': 1,
@@ -1505,7 +1513,9 @@ def diff(doc, from_revision):
     }
 
 
-def restore(doc, revision, *, auto_compact_history=False):
+def restore(
+    doc: dict[str, Any], revision: str, *, auto_compact_history: bool = False
+) -> tuple[dict[str, Any], dict[str, Any]]:
     state = _revision(doc, revision)
     candidate = {
         **copy.deepcopy(state),
@@ -1520,7 +1530,7 @@ def restore(doc, revision, *, auto_compact_history=False):
     return candidate, _result(candidate, doc['revision'], [b['id'] for b in candidate['blocks']])
 
 
-def checkpoint(doc, name):
+def checkpoint(doc: dict[str, Any], name: str) -> tuple[dict[str, Any], dict[str, Any]]:
     if not isinstance(name, str) or not name.strip():
         _error('Checkpoint name cannot be empty.', 'name')
     if any(r.get('name') == name for r in doc['history']['revisions']):
@@ -1547,7 +1557,7 @@ def checkpoint(doc, name):
     return candidate, _result(candidate, doc['revision'])
 
 
-def branch(doc, name):
+def branch(doc: dict[str, Any], name: str) -> tuple[dict[str, Any], dict[str, Any]]:
     if not isinstance(name, str) or not name.strip():
         _error('Branch name cannot be empty.', 'name')
     if name in doc['history']['branches']:
@@ -1558,7 +1568,9 @@ def branch(doc, name):
     return candidate, _result(candidate, doc['revision'])
 
 
-def inspect(doc, section=None, target=None, limit=100):
+def inspect(
+    doc: dict[str, Any], section: str | None = None, target: str | None = None, limit: int = 100
+) -> dict[str, Any]:
     if type(limit) is not int or limit < 0:
         _error('Limit must be a nonnegative integer.', 'limit')
     if target:
@@ -1624,7 +1636,13 @@ def inspect(doc, section=None, target=None, limit=100):
     }
 
 
-def find(doc, query, case_sensitive=False, whole_word=False, regex=False):
+def find(
+    doc: dict[str, Any],
+    query: str,
+    case_sensitive: bool = False,
+    whole_word: bool = False,
+    regex: bool = False,
+) -> dict[str, Any]:
     if not isinstance(query, str) or not query:
         _error('Search query must be nonempty text.', 'query')
     pattern = query if regex else re.escape(query)
@@ -1662,7 +1680,9 @@ def find(doc, query, case_sensitive=False, whole_word=False, regex=False):
     }
 
 
-def context(doc, target=None, limit=10000, profile=None):
+def context(
+    doc: dict[str, Any], target: str | None = None, limit: int = 10000, profile: str | None = None
+) -> dict[str, Any]:
     if type(limit) is not int or limit < 0:
         _error('Context limit must be a nonnegative integer.', 'limit')
     if profile and profile not in doc['profiles']:
@@ -1766,7 +1786,7 @@ def context(doc, target=None, limit=10000, profile=None):
     return result
 
 
-def revision_document(doc, revision):
+def revision_document(doc: dict[str, Any], revision: str) -> dict[str, Any]:
     """Independent historical document suitable for layout, inspection or export."""
     state = _revision(doc, revision)
     state['history'] = {'revisions': [], 'branches': {}, 'current_branch': 'historical'}

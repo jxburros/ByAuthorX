@@ -6,11 +6,13 @@ import hashlib
 import json
 import os
 import stat
+import sys
 import tempfile
 import threading
 import zipfile
 import zlib
 from pathlib import Path, PurePosixPath
+from typing import Any, Self
 
 from platformdirs import user_cache_path
 
@@ -20,7 +22,7 @@ from .model import new_id, validate_document
 MAX_PACKAGE_BYTES = 256 * 1024 * 1024
 MAX_MEMBER_BYTES = 64 * 1024 * 1024
 MAX_MEMBERS = 10000
-_LOCKS = {}
+_LOCKS: dict[str, dict[str, Any]] = {}
 _MUTEX = threading.RLock()
 _SECRET_KEYS = {
     'api_key',
@@ -34,7 +36,7 @@ _SECRET_KEYS = {
 }
 
 
-def _check_secrets(value, path='$'):
+def _check_secrets(value: Any, path: str = '$') -> None:
     pending = [(value, path, 0)]
     while pending:
         current, current_path, depth = pending.pop()
@@ -58,12 +60,12 @@ def _check_secrets(value, path='$'):
 
 
 class DocumentLock:
-    def __init__(self, path, owner=None):
+    def __init__(self, path: str | os.PathLike[str], owner: str | None = None) -> None:
         self.path = str(Path(path).resolve())
         self.owner = owner or new_id('owner')
         self.acquired = False
 
-    def acquire(self):
+    def acquire(self) -> Self:
         if self.acquired:
             return self
         with _MUTEX:
@@ -85,7 +87,7 @@ class DocumentLock:
                 lock_path.parent.mkdir(parents=True, exist_ok=True)
                 handle = open(lock_path, 'a+b')  # noqa: SIM115 -- held until DocumentLock.release across calls
                 try:
-                    if os.name == 'nt':
+                    if sys.platform == 'win32':
                         import msvcrt
 
                         handle.seek(0)
@@ -107,7 +109,7 @@ class DocumentLock:
             self.acquired = True
         return self
 
-    def release(self):
+    def release(self) -> None:
         with _MUTEX:
             if not self.acquired:
                 return
@@ -115,7 +117,7 @@ class DocumentLock:
             held['count'] -= 1
             if not held['count']:
                 handle = held['handle']
-                if os.name == 'nt':
+                if sys.platform == 'win32':
                     import msvcrt
 
                     handle.seek(0)
@@ -128,18 +130,18 @@ class DocumentLock:
                 del _LOCKS[self.path]
             self.acquired = False
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         return self.acquire()
 
-    def __exit__(self, *_):
+    def __exit__(self, *_: object) -> None:
         self.release()
 
 
-def _json(data, name):
+def _json(data: bytes, name: str) -> Any:
     try:
 
-        def pairs(items):
-            result = {}
+        def pairs(items: list[tuple[str, Any]]) -> dict[str, Any]:
+            result: dict[str, Any] = {}
             for key, value in items:
                 if key in result:
                     raise ValueError('Duplicate JSON key: ' + key)
@@ -157,7 +159,7 @@ def _json(data, name):
         raise ByaxError('invalid_input', 'Invalid UTF-8 JSON resource.', target=name) from exc
 
 
-def _members(doc):
+def _members(doc: dict[str, Any]) -> dict[str, bytes]:
     _check_secrets(doc)
     validate_document(doc)
     stored = copy.deepcopy(doc)
@@ -189,7 +191,7 @@ def _members(doc):
     return members
 
 
-def _validate_sizes(members):
+def _validate_sizes(members: dict[str, bytes]) -> None:
     if (
         len(members) > MAX_MEMBERS
         or sum(len(v) for v in members.values()) > MAX_PACKAGE_BYTES
@@ -198,7 +200,7 @@ def _validate_sizes(members):
         raise ByaxError('limit_exceeded', 'Package exceeds configured storage limits.')
 
 
-def _safe_name(name):
+def _safe_name(name: str) -> bool:
     p = PurePosixPath(name)
     return (
         bool(name)
@@ -210,7 +212,7 @@ def _safe_name(name):
     )
 
 
-def _decode(members):
+def _decode(members: dict[str, bytes]) -> dict[str, Any]:
     _validate_sizes(members)
     if 'manifest.json' not in members or 'document.json' not in members:
         raise ByaxError('invalid_input', 'Package is missing required manifest or document resource.')
@@ -273,7 +275,7 @@ def _decode(members):
     return doc
 
 
-def load_document(path):
+def load_document(path: str | os.PathLike[str]) -> dict[str, Any]:
     try:
         with zipfile.ZipFile(path) as archive:
             infos = archive.infolist()
@@ -299,7 +301,7 @@ def load_document(path):
         raise ByaxError('invalid_input', f'Cannot read native package: {exc}', target=str(path)) from exc
 
 
-def save_document(doc, path, *, owner=None):
+def save_document(doc: dict[str, Any], path: str | os.PathLike[str], *, owner: str | None = None) -> None:
     members = _members(doc)
     target = Path(path).resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -331,7 +333,9 @@ def save_document(doc, path, *, owner=None):
                 os.unlink(tmp)
 
 
-def unpack(path, out_dir, include_history=False):
+def unpack(
+    path: str | os.PathLike[str], out_dir: str | os.PathLike[str], include_history: bool = False
+) -> dict[str, Any]:
     doc = load_document(path)
     if not include_history:
         doc['history'] = {'revisions': [], 'branches': {}, 'current_branch': 'main'}
@@ -348,9 +352,9 @@ def unpack(path, out_dir, include_history=False):
     return {'path': str(target), 'history_included': include_history}
 
 
-def pack(source_dir, out_path):
+def pack(source_dir: str | os.PathLike[str], out_path: str | os.PathLike[str]) -> dict[str, Any]:
     source = Path(source_dir)
-    members = {}
+    members: dict[str, bytes] = {}
     total = 0
     for entry in source.rglob('*'):
         if entry.is_symlink():
