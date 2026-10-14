@@ -135,6 +135,7 @@ def gui_metrics(doc, args):
         window.error = lambda error: errors.append(str(error))
         window.show()
         window.open_path(path)
+        window.set_file_view(args.file_view)
         settle(0.5)
         paragraphs = [b['id'] for b in window.doc['blocks'] if b['type'] == 'paragraph']
         middle = paragraphs[len(paragraphs) // 2]
@@ -208,6 +209,9 @@ def gui_metrics(doc, args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=Path('artifacts/benchmark.json'))
+    parser.add_argument(
+        '--file-view', choices=['byax', 'pdf', 'docx', 'odt', 'rtf', 'html', 'md', 'txt'], default='byax'
+    )
     parser.add_argument('--samples', type=int, default=20)
     parser.add_argument('--no-gui', action='store_true', help='Skip GUI startup/latency/idle metrics.')
     parser.add_argument('--startup-samples', type=int, default=5)
@@ -237,6 +241,7 @@ def main():
             'qt_platform': os.environ.get('QT_QPA_PLATFORM'),
             'hardware_qualification': 'Unqualified execution host; CPU/SSD target hardware not verified.',
         },
+        'file_view': args.file_view,
         'provider_configuration': 'None; local deterministic operations only.',
         'definitions': {
             'p95': 'Nearest-rank percentile of wall-clock sample durations.',

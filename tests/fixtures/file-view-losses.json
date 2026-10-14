@@ -1,0 +1,285 @@
+{
+  "baseline": "66ba944",
+  "document": {
+    "schema_version": 2,
+    "id": "golden_document",
+    "revision": "golden_revision",
+    "metadata": {
+      "title": "Untitled",
+      "author": "",
+      "language": "en"
+    },
+    "blocks": [
+      {
+        "id": "block_0",
+        "type": "heading",
+        "text": "Heading",
+        "style": "heading1",
+        "marks": [],
+        "attrs": {
+          "level": 1
+        }
+      },
+      {
+        "id": "block_1",
+        "type": "paragraph",
+        "text": "Marked paragraph",
+        "style": "body",
+        "marks": [
+          {
+            "start": 0,
+            "end": 6,
+            "type": "bold",
+            "value": true
+          },
+          {
+            "start": 7,
+            "end": 16,
+            "type": "underline",
+            "value": true
+          }
+        ],
+        "attrs": {
+          "alignment": "center"
+        }
+      },
+      {
+        "id": "block_2",
+        "type": "footnote",
+        "text": "Footnote",
+        "style": "body",
+        "marks": [],
+        "attrs": {}
+      }
+    ],
+    "styles": {
+      "body": {
+        "font_family": "DejaVu Sans",
+        "font_size": 11
+      },
+      "heading1": {
+        "based_on": "body",
+        "font_size": 24,
+        "bold": true
+      },
+      "heading2": {
+        "based_on": "body",
+        "font_size": 18,
+        "bold": true
+      },
+      "heading3": {
+        "based_on": "body",
+        "font_size": 14,
+        "bold": true
+      },
+      "heading4": {
+        "based_on": "body",
+        "font_size": 12,
+        "bold": true
+      },
+      "heading5": {
+        "based_on": "body",
+        "font_size": 11,
+        "bold": true
+      },
+      "heading6": {
+        "based_on": "body",
+        "font_size": 11,
+        "italic": true
+      },
+      "title": {
+        "based_on": "body",
+        "font_size": 30,
+        "bold": true
+      },
+      "subtitle": {
+        "based_on": "body",
+        "font_size": 16
+      },
+      "quotation": {
+        "based_on": "body",
+        "italic": true,
+        "left_margin": 24
+      },
+      "caption": {
+        "based_on": "body",
+        "font_size": 9,
+        "italic": true
+      },
+      "code": {
+        "font_family": "DejaVu Sans Mono",
+        "font_size": 10
+      },
+      "list": {
+        "based_on": "body",
+        "font_size": 11
+      }
+    },
+    "layout": {
+      "paper": "Letter",
+      "width": 612,
+      "height": 792,
+      "margins": {
+        "top": 72,
+        "right": 72,
+        "bottom": 72,
+        "left": 72
+      }
+    },
+    "assets": {},
+    "dependencies": {},
+    "references": {},
+    "profiles": {},
+    "review": {
+      "comments": [],
+      "proposals": [],
+      "tracked_changes": [],
+      "findings": []
+    },
+    "fields": {},
+    "layers": [],
+    "history": {
+      "revisions": [],
+      "branches": {},
+      "current_branch": "main"
+    },
+    "requests": {},
+    "settings": {}
+  },
+  "losses": {
+    "byax": [],
+    "pdf": [],
+    "txt": [
+      {
+        "code": "named_styles",
+        "severity": "warning",
+        "message": "Named style definitions and inheritance are not preserved; supported direct formatting is exported.",
+        "target": "styles"
+      },
+      {
+        "code": "page_layout",
+        "severity": "warning",
+        "message": "Page geometry, masters, repeated regions and exact pagination are not represented in this adapter.",
+        "target": "layout"
+      },
+      {
+        "code": "heading_flattened",
+        "severity": "warning",
+        "message": "Heading text retained without heading semantics.",
+        "target": "block_0"
+      },
+      {
+        "code": "inline_formatting",
+        "severity": "warning",
+        "message": "Unsupported inline marks: bold, underline",
+        "target": "block_1"
+      },
+      {
+        "code": "paragraph_format",
+        "severity": "warning",
+        "message": "Paragraph alignment is not represented.",
+        "target": "block_1"
+      },
+      {
+        "code": "structural_object",
+        "severity": "warning",
+        "message": "footnote has no active equivalent in this export adapter; only available text is retained.",
+        "target": "block_2"
+      }
+    ],
+    "md": [
+      {
+        "code": "named_styles",
+        "severity": "warning",
+        "message": "Named style definitions and inheritance are not preserved; supported direct formatting is exported.",
+        "target": "styles"
+      },
+      {
+        "code": "page_layout",
+        "severity": "warning",
+        "message": "Page geometry, masters, repeated regions and exact pagination are not represented in this adapter.",
+        "target": "layout"
+      },
+      {
+        "code": "inline_formatting",
+        "severity": "warning",
+        "message": "Unsupported inline marks: underline",
+        "target": "block_1"
+      },
+      {
+        "code": "paragraph_format",
+        "severity": "warning",
+        "message": "Paragraph alignment is not represented.",
+        "target": "block_1"
+      },
+      {
+        "code": "structural_object",
+        "severity": "warning",
+        "message": "footnote has no active equivalent in this export adapter; only available text is retained.",
+        "target": "block_2"
+      }
+    ],
+    "html": [
+      {
+        "code": "named_styles",
+        "severity": "warning",
+        "message": "Named style definitions and inheritance are not preserved; supported direct formatting is exported.",
+        "target": "styles"
+      },
+      {
+        "code": "page_layout",
+        "severity": "warning",
+        "message": "Page geometry, masters, repeated regions and exact pagination are not represented in this adapter.",
+        "target": "layout"
+      },
+      {
+        "code": "paragraph_format",
+        "severity": "warning",
+        "message": "Paragraph alignment is not represented.",
+        "target": "block_1"
+      },
+      {
+        "code": "structural_object",
+        "severity": "warning",
+        "message": "footnote has no active equivalent in this export adapter; only available text is retained.",
+        "target": "block_2"
+      }
+    ],
+    "rtf": [
+      {
+        "code": "page_layout",
+        "severity": "warning",
+        "message": "Page size, margins and one header/footer are exported; masters, sections and exact pagination are not.",
+        "target": "layout"
+      },
+      {
+        "code": "structural_object",
+        "severity": "warning",
+        "message": "footnote has no active equivalent in this export adapter; only available text is retained.",
+        "target": "block_2"
+      }
+    ],
+    "docx": [
+      {
+        "code": "structural_object",
+        "severity": "warning",
+        "message": "footnote has no active equivalent in this export adapter; only available text is retained.",
+        "target": "block_2"
+      }
+    ],
+    "odt": [
+      {
+        "code": "paragraph_format",
+        "severity": "warning",
+        "message": "Paragraph alignment is not represented.",
+        "target": "block_1"
+      },
+      {
+        "code": "structural_object",
+        "severity": "warning",
+        "message": "footnote has no active equivalent in this export adapter; only available text is retained.",
+        "target": "block_2"
+      }
+    ]
+  }
+}

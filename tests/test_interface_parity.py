@@ -205,7 +205,15 @@ def test_every_exit_state_is_reachable_with_structured_errors(tmp_path, capsys, 
     root = tmp_path / 'jobs'
     manager = JobManager(root)
     gate = threading.Event()
-    job = manager.submit('review', {'remote': True}, lambda payload, cancel: gate.wait(5) and {})
+    started = threading.Event()
+
+    def remote_work(payload, cancel):
+        started.set()
+        gate.wait(5)
+        return {}
+
+    job = manager.submit('review', {'remote': True}, remote_work)
+    assert started.wait(5)
     manager.cancel(job['id'])
     gate.set()
     manager.wait(job['id'], 5)

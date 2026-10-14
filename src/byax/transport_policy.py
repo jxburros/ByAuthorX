@@ -31,6 +31,11 @@ def is_path_argument(name):
 def check_provider_admin(command, arguments):
     if not isinstance(arguments, dict):
         raise ByaxError('invalid_input', 'Arguments must be an object')
+    if command == 'dependencies' and arguments.get('action') == 'refresh':
+        raise ByaxError(
+            'unsupported_feature',
+            'Retrieve document-linked files through the local CLI or desktop; transport path scope does not authorize embedded URIs',
+        )
     if command == 'providers' and arguments.get('action') == 'configure':
         raise ByaxError('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
     if command == 'jobs' and arguments.get('action') == 'submit':
@@ -46,6 +51,28 @@ def check_provider_admin(command, arguments):
 # action, or None when the operation is headless-only. Kept in sync with
 # docs/interface-parity.md by tests/test_interface_parity.py.
 INTERFACE_INVENTORY = (
+    (
+        'Inspection',
+        'document statistics',
+        'statistics',
+        'byax.statistics.document_statistics',
+        'Tools > Document statistics',
+    ),
+    (
+        'Inspection',
+        'linked dependencies',
+        'dependencies',
+        'byax.engine.dependency_report',
+        'Tools > Linked assets…',
+    ),
+    (
+        'Files',
+        'settings collections',
+        'collection',
+        'byax.profiles.export_settings',
+        'Tools > Reusable settings…',
+    ),
+    ('Inspection', 'file view', 'view', 'byax.formats.project', 'View > File view'),
     ('Discovery', 'version', 'version', 'byax.__version__', 'Help > About ByAuthorX'),
     ('Discovery', 'capabilities', 'capabilities', 'byax.providers.list_capabilities', None),
     ('Discovery', 'command schema', 'schema', 'byax.cli.command_schema', None),

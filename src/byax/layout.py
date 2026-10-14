@@ -19,6 +19,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, QRectF, QSizeF, Qt, QUrl
 from PySide6.QtGui import (
+    QAbstractTextDocumentLayout,
     QColor,
     QFont,
     QFontDatabase,
@@ -28,6 +29,7 @@ from PySide6.QtGui import (
     QPageLayout,
     QPageSize,
     QPainter,
+    QPalette,
     QPdfWriter,
     QTextBlockFormat,
     QTextCharFormat,
@@ -169,10 +171,11 @@ def _safe_link(value):
     return value.startswith(('https://', 'http://', 'mailto:', '#')) or ':' not in value
 
 
-def _insert_marked(cursor, text, marks, base=None):
+def _insert_marked(cursor, text, marks, base=None, doc=None):
     start = cursor.position()
     cursor.insertText(text.replace('\n', '\u2028'), base or QTextCharFormat())
-    for mark in marks:
+    # Named character styles precede direct overrides regardless of mark order.
+    for mark in sorted(marks, key=lambda item: item.get('type') != 'character_style'):
         lo, hi = max(0, int(mark.get('start', 0))), min(len(text), int(mark.get('end', len(text))))
         if hi <= lo:
             continue
@@ -182,7 +185,12 @@ def _insert_marked(cursor, text, marks, base=None):
         selection.setPosition(
             start + len(text[:hi].encode('utf-16-le')) // 2, QTextCursor.MoveMode.KeepAnchor
         )
-        selection.mergeCharFormat(_char_format({mark.get('type'): mark.get('value', True)}))
+        values = (
+            _style(doc, mark['value'])
+            if doc is not None and mark.get('type') == 'character_style'
+            else {mark.get('type'): mark.get('value', True)}
+        )
+        selection.mergeCharFormat(_char_format(values))
 
 
 def _decode_image(raw):
@@ -334,14 +342,25 @@ def _emit_text(result, cursor, block, values, list_objects):
             else QTextListFormat.Style.ListDisc
         )
         lf.setIndent(max(1, level))
-        list_key = (list_kind, level)
-        if values.get('restart') or list_key not in list_objects:
+        resolved = getattr(result, 'byax_lists', {}).get(ident, {})
+        list_key = (resolved.get('list_id', list_kind), level, resolved.get('instance', 0))
+        if (
+            values.get('restart')
+            or list_key not in list_objects
+            or (resolved and list_kind in ('ordered', 'numbered', 'decimal'))
+        ):
             if hasattr(lf, 'setStart'):
-                lf.setStart(int(values.get('start', 1)))
+                lf.setStart(int(resolved.get('number', values.get('start', 1))))
             list_objects[list_key] = cursor.createList(lf)
         else:
             list_objects[list_key].add(cursor.block())
-    _insert_marked(cursor, block.get('text', ''), block.get('marks', []), _char_format(values))
+    _insert_marked(
+        cursor,
+        block.get('text', ''),
+        block.get('marks', []),
+        _char_format(values),
+        {'styles': getattr(result, 'byax_source_styles', {})},
+    )
     if kind not in ('paragraph', 'heading', 'footnote', 'page_break', 'section_break'):
         result.byax_findings.append(
             _finding('unknown_block', f'Unsupported block {kind!r} rendered as text.', ident)
@@ -372,6 +391,10 @@ def build_document(doc: dict, _toc_pages=None, _flow=None) -> QTextDocument:
     frame_fmt.setLeftMargin(margins['left'])
     frame_fmt.setRightMargin(margins['right'])
     result.rootFrame().setFrameFormat(frame_fmt)
+    from .formatting import resolve_lists
+
+    result.byax_source_styles = doc.get('styles', {})
+    result.byax_lists = {entry['id']: entry for entry in resolve_lists(doc)}
     result.byax_findings = []
     result.byax_positions = {}
     cursor = QTextCursor(result)
@@ -448,7 +471,7 @@ def build_document(doc: dict, _toc_pages=None, _flow=None) -> QTextDocument:
                             cell_values['bold'] = True
                         cell_values.update(cell.get('attrs', {}))
                         _insert_marked(
-                            cc, cell.get('text', ''), cell.get('marks', []), _char_format(cell_values)
+                            cc, cell.get('text', ''), cell.get('marks', []), _char_format(cell_values), doc
                         )
                         cell_attrs = cell.get('attrs', {})
                         if cell_attrs.get('background'):
@@ -2754,7 +2777,12 @@ def draw_page(painter, qdoc, doc, page_index, output=None):
         painter.setClipRect(rect)
         painter.translate(rect.x() - source.x(), rect.y() - source.y())
         # Shrinking the paint clip keeps boundary lines out of the neighbouring fragment's PDF text.
-        part.drawContents(painter, source.adjusted(0, EPSILON, 0, -EPSILON))
+        # Publication colors belong to the document, independently of the desktop theme.
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.clip = source.adjusted(0, EPSILON, 0, -EPSILON)
+        context.palette.setColor(QPalette.Text, QColor('black'))
+        context.palette.setColor(QPalette.Base, QColor('white'))
+        part.documentLayout().draw(painter, context)
         painter.restore()
         for edge, left, right, color, pen_width in fragment.get('edges', []):
             painter.save()

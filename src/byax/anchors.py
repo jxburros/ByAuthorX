@@ -9,13 +9,14 @@ become explicitly ``unresolved`` and deleted targets become ``orphaned``.
 import contextvars
 import copy
 import re
+from typing import Any
 
 import regex as unicode_regex
 
 from .errors import ByaxError
 from .model import new_id
 
-_JOURNAL = contextvars.ContextVar('byax_journal', default=None)
+_JOURNAL: contextvars.ContextVar[dict[str, Any] | None] = contextvars.ContextVar('byax_journal', default=None)
 NEEDS_REVIEW = {'overlapped', 'replaced'}
 
 

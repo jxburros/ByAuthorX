@@ -28,7 +28,7 @@ Windows:
 iscc packaging/windows.iss
 ```
 
-The installer registers `.byax` and a Start menu shortcut. The installer adds the installation directory to your user PATH; open a new terminal to run `byax` and `byax-mcp`. Uninstall removes that directory from the user PATH. It requires Windows 11 build 22000 or later. Current packages are unsigned development builds; signing and an update channel are not configured.
+The installer registers `.byax` and a Start menu shortcut. The installer adds the installation directory to your user PATH; open a new terminal to run `byax` and `byax-mcp`. Uninstall removes that directory from the user PATH. It requires Windows 11 build 22000 or later. Current packages are unsigned development builds. Signing credentials are not configured, so these are not signed production releases. The explicit update workflow below is the distribution policy for development builds.
 
 ## Continuous integration
 
@@ -37,3 +37,18 @@ The installer registers `.byax` and a Start menu shortcut. The installer adds th
 ## Verification still required for release
 
 Install the generated packages on clean Windows 11 and Ubuntu 24.04 desktops. Exercise file associations, PowerShell/UTF-8 CLI, native dialogs, clipboard, input methods, display scaling, accessibility services, physical printing, keyring access and microphone capture. Provider integrations require selected accounts or installed local executables and models. Record these results in the acceptance matrix rather than implying they were tested by offscreen unit tests.
+
+## Explicit update and rollback policy
+
+Help → Download updates opens the official GitHub Releases page only when requested.
+The application never polls for updates, downloads an installer or replaces itself in the background.
+Choose the installer for the supported platform and retain the previous installer until the new version
+has passed local acceptance. CI artifacts are development packages, not signed production releases.
+There is no claim that signing, notarization or SmartScreen reputation has been established.
+
+Before upgrading, save and keep a separate copy of working documents. Close the application, install the
+selected version using the platform package manager, and reopen the copies. To roll back, close the new
+version, reinstall the retained prior package and open a pre-upgrade document copy. Native migration
+retains schema backups as documented in `architecture.md`; an older application refuses newer schemas
+instead of silently downgrading them. Release signing remains blocked on separately provisioned signing
+identities and a real Windows 11 / Ubuntu 24.04 installation audit.

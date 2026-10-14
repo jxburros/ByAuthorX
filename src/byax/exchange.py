@@ -831,7 +831,7 @@ def _import_docx(doc, raw, losses):
 
     def paragraph_block(element, paragraph):
         name = paragraph.style.name if paragraph.style else 'Normal'
-        match = re.match(r'Heading (\d)', name)
+        match = re.match(r'Heading\s*(\d)', name, re.IGNORECASE)
         block = _block('', 'heading' if match else 'paragraph')
         if paragraph.style:
             block['style'] = paragraph.style.style_id
@@ -1278,6 +1278,9 @@ def _import_odt(doc, raw, losses):
                         values['underline'] = True
                     if attr(properties, 'style', 'text-line-through-style', 'none') != 'none':
                         values['strikethrough'] = True
+                    position = attr(properties, 'style', 'text-position', '').split()
+                    if position and position[0] in ('super', 'sub'):
+                        values['superscript' if position[0] == 'super' else 'subscript'] = True
                 paragraph = style.find('style:paragraph-properties', ns)
                 if paragraph is not None:
                     alignment = attr(paragraph, 'fo', 'text-align')
@@ -1924,8 +1927,8 @@ def _md_structure(block):
     ]
 
 
-_MD_MARKS = {'bold', 'italic', 'code', 'link'}
-_MD_STYLES = {'body', 'code', 'quotation', 'Normal'} | {f'heading{n}' for n in range(1, 7)}
+from .formats import MD_MARKS as _MD_MARKS
+from .formats import MD_STYLES as _MD_STYLES
 
 
 def markdown_unrepresentable(doc):
@@ -2630,6 +2633,23 @@ def _export_odt(doc, path):
         element = H(outlinelevel=attrs.get('level', 1)) if kind == 'heading' else P()
         if block.get('style') in style_map:
             element.setAttribute('stylename', style_map[block['style']])
+        direct = {
+            target: f'{attrs[key]}pt'
+            for key, target in (
+                ('space_before', 'margintop'),
+                ('space_after', 'marginbottom'),
+                ('indent', 'marginleft'),
+                ('first_line_indent', 'textindent'),
+            )
+            if key in attrs
+        }
+        if direct:
+            direct_style = Style(name='ByaxParagraph' + block['id'], family='paragraph')
+            if block.get('style') in style_map:
+                direct_style.setAttribute('parentstylename', style_map[block['style']])
+            direct_style.addElement(ParagraphProperties(**direct))
+            output.automaticstyles.addElement(direct_style)
+            element.setAttribute('stylename', direct_style)
         add_text(element, block)
         for number, note in notes.get(block.get('id'), []):
             note_element = Note(id=note['id'], noteclass='footnote')
@@ -2839,40 +2859,9 @@ def _exchange_losses(doc, fmt, losses):
                 'Page geometry, masters, repeated regions and exact pagination are not represented in this adapter.',
                 'layout',
             )
-    supported_marks = {
-        'md': {'bold', 'italic', 'code', 'link'},
-        'markdown': {'bold', 'italic', 'code', 'link'},
-        'html': {'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'code', 'link'},
-        'htm': {'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'code', 'link'},
-        'odt': {
-            'bold',
-            'italic',
-            'underline',
-            'strikethrough',
-            'superscript',
-            'subscript',
-            'font_family',
-            'font_size',
-            'color',
-            'highlight',
-            'link',
-        },
-        'docx': {
-            'link',
-            'bold',
-            'italic',
-            'underline',
-            'strikethrough',
-            'superscript',
-            'subscript',
-            'font_family',
-            'font_size',
-            'font',
-            'size',
-            'color',
-        },
-        'rtf': {'bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript'},
-    }.get(fmt, set())
+    from .formats import FORMATS, canonical_format
+
+    supported_marks = set(FORMATS[canonical_format(fmt)]['marks'])
     for block in doc['blocks']:
         kind, attrs = block.get('type'), block.get('attrs', {})
         if fmt != 'pdf':
@@ -3005,14 +2994,14 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         raise ByaxError(
             'conflict', 'Conversion must preserve the imported original; choose a separate output path'
         )
-    candidate = copy.deepcopy(doc)
-    if not settings.get('include_hidden'):
-        candidate['blocks'] = [b for b in candidate['blocks'] if not b.get('attrs', {}).get('excluded')]
+    from .formats import output_document
+
+    candidate, policy_losses = output_document(doc, fmt, include_hidden=settings.get('include_hidden', False))
     if settings.get('layout'):
         candidate['layout'].update(settings['layout'])
     if settings.get('metadata') == 'omit' or settings.get('include_metadata') is False:
         candidate['metadata'] = {'title': '', 'author': '', 'language': 'en'}
-    losses = []
+    losses = list(policy_losses)
     _exchange_losses(candidate, fmt, losses)
     markdown = None
     if fmt in ('md', 'markdown'):
@@ -3033,6 +3022,20 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
                 losses=markdown['unrepresentable'],
                 dialect=MARKDOWN_DIALECT['name'],
             )
+    # Use the same structural projection as file views. Unsupported structural
+    # content remains in the master, never as stray text in an exchange file.
+    from .formats import FORMATS, canonical_format
+
+    capabilities = FORMATS[canonical_format(fmt)]
+    candidate['blocks'] = [
+        b
+        for b in candidate['blocks']
+        if capabilities['blocks'].get(b['type'], 'full') != 'hidden'
+        and not (
+            b['type'] == 'footnote' and fmt in ('odt', 'rtf') and not b.get('attrs', {}).get('reference')
+        )
+    ]
+    markdown_content = _markdown(candidate, losses, markdown) if markdown is not None else None
     if preview:
         report = _report(fmt, losses)
         report.update(preview=True, review='required' if losses else 'not_required')
@@ -3101,7 +3104,7 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
                 elif provenance.get('format') == 'txt' and not settings.get('line_ending'):
                     content = content.replace('\n', provenance.get('line_ending', '\n'))
             elif fmt in ('md', 'markdown'):
-                content = _markdown(candidate, losses, markdown)
+                content = markdown_content
             elif fmt in ('html', 'htm'):
                 content = _html(candidate)
             else:
@@ -3133,6 +3136,19 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         report['checks'] = checks
         report['validation'] = checks['validation']
     return report
+
+
+def source_text(doc, format):
+    """Exact UTF-8 text written by the selected adapter, without a user output file."""
+    from .formats import FORMATS, canonical_format
+
+    fmt = canonical_format(format)
+    if not FORMATS[fmt]['source']:
+        raise ByaxError('unsupported_feature', 'This format has no textual source view')
+    with tempfile.TemporaryDirectory(prefix='byax-source-') as temporary:
+        target = Path(temporary) / ('source.' + fmt)
+        export_document(doc, target, format=fmt, profile={'allow_markdown_losses': True})
+        return target.read_bytes().decode('utf-8')
 
 
 def _rtf_group(source, opening):

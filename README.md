@@ -44,6 +44,19 @@ The Inspector's **AI** tab checks spelling locally (selection or whole document)
 
 Unconfigured AI functions do not prevent writing, saving, printing, or deterministic checks. Each provider requires a chosen model and local configuration; keys stay in OS credential storage or explicit environment references. No accounts, telemetry, or background model polling are required.
 
+## File views and appearance
+
+The toolbar's File view selector shows the master as PDF, Word, OpenDocument, RTF, HTML,
+Markdown or plain text. Format limits appear in the status bar; the source toggle shows exact,
+read-only export text. Hidden content stays in the master, and edits to simplified objects are
+locked. Word/OpenDocument/RTF previews are approximate. Save keeps the ByAuthorX master and
+can offer a separate export. Markdown opens as an import by default; the first-open chooser
+and Tools → Markdown opening preference let you keep editing `.md` files directly.
+
+View → Theme selects System, Light or Dark. Theme and view choices are local preferences,
+not document revisions. See [the file-view evidence](docs/acceptance-matrix.md#file-view-evidence--14-october-2026)
+and [the open-issue audit](docs/issue-audit-2026-10-14.md) for remaining limits.
+
 ## Identity and motion
 
 Warm paper, quiet ink, and familiar controls frame a clean writing page. Irongall, the typeface drawn from the wordmark, is the application font: menus, controls, headings and the About screen are all set in it. Scholium, drawn from the illustrations, sets helper text and Onionskin the status counters. Manrope stays bundled as the plain fallback for scripts Irongall lacks and for high-contrast mode. Source Serif 4 and the other brand fonts are available as optional document fonts. Your document keeps its chosen styles.
@@ -62,6 +75,8 @@ Six custom display fonts made with Vixl, two of them drawn from the logo and the
 
 ```bash
 byax capabilities --json
+byax view report.byax --as md --source --json
+byax statistics report.byax --format txt --json
 byax new --out report.byax --title "Quarterly report" --text "An opening paragraph." --json
 byax inspect report.byax --outline --json
 byax inspect report.byax --json

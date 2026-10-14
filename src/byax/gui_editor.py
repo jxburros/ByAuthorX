@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import uuid
 from dataclasses import dataclass
+from itertools import pairwise
 
 from PySide6.QtCore import QEasingCurve, QEvent, QPoint, QRectF, QSize, Qt, QVariantAnimation, Signal
 from PySide6.QtGui import QColor, QFontMetricsF, QPainter, QTextCursor
@@ -92,6 +93,7 @@ class ProofMark:
 
 class SemanticEditor(QTextEdit):
     fileDropped = Signal(str)
+    viewEditRequested = Signal(object)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -115,10 +117,6 @@ class SemanticEditor(QTextEdit):
         self.setPlaceholderText(self.tr('Write your first line…'))
         self.setUndoRedoEnabled(False)
         self.setTabChangesFocus(False)
-        self.setStyleSheet(f"""QTextEdit {{ background: white; color: {COLORS['ink']};
-            border: 2px solid {COLORS['control']}; border-radius: 8px; padding: 24px;
-            selection-background-color: {COLORS['greenText']}; selection-color: white; }}
-            QTextEdit:focus {{ border: 2px solid {COLORS['greenText']}; }}""")
 
     # -- hand-drawn marks ---------------------------------------------------------------------------
     def set_hand_marks(self, enabled):
@@ -330,6 +328,85 @@ class SemanticEditor(QTextEdit):
             block = block.next()
         return False
 
+    def _selection_crosses_hidden(self):
+        targets = self.selection_targets()
+        return self.textCursor().hasSelection() and any(
+            (a[0], b[0]) in getattr(self, 'view_gaps', set()) for a, b in pairwise(targets)
+        )
+
+    def insertPlainText(self, text):
+        if self._selection_crosses_hidden():
+            targets = self.selection_targets()
+            if any(target in getattr(self, 'view_locked', set()) for target, _, _ in targets):
+                return
+            operations = [
+                {'type': 'delete_text', 'target': target, 'start': start, 'end': end}
+                for target, start, end in targets
+                if end > start
+            ]
+            if text and targets:
+                parts = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+                target, offset = targets[0][0], targets[0][1]
+                operations.append(
+                    {'type': 'insert_text', 'target': target, 'offset': offset, 'text': parts[0]}
+                )
+                for previous, part in pairwise(parts):
+                    fresh = 'p_' + uuid.uuid4().hex
+                    operations.append(
+                        {
+                            'type': 'split_block',
+                            'target': target,
+                            'offset': offset + len(previous),
+                            'id': fresh,
+                        }
+                    )
+                    operations.append({'type': 'insert_text', 'target': fresh, 'offset': 0, 'text': part})
+                    if getattr(self, 'view_format', 'byax') == 'txt':
+                        operations.append({'type': 'apply_style', 'target': fresh, 'style': 'body'})
+                    target, offset = fresh, 0
+            self.viewEditRequested.emit(operations)
+            return
+        super().insertPlainText(text)
+
+    def cut(self):
+        if self._selection_crosses_hidden():
+            QApplication.clipboard().setText(self.textCursor().selectedText().replace('\u2029', '\n'))
+            self.insertPlainText('')
+            return
+        super().cut()
+
+    def keyPressEvent(self, event):
+        cursor = self.textCursor()
+        if self._selection_crosses_hidden() and (
+            event.key() in (Qt.Key_Backspace, Qt.Key_Delete)
+            or (event.text() and not event.modifiers() & (Qt.ControlModifier | Qt.AltModifier))
+        ):
+            self.insertPlainText('' if event.key() in (Qt.Key_Backspace, Qt.Key_Delete) else event.text())
+            event.accept()
+            return
+        if getattr(self, 'view_format', 'byax') != 'byax' and not cursor.hasSelection():
+            direction = (
+                -1
+                if event.key() == Qt.Key_Backspace and cursor.atBlockStart()
+                else 1
+                if event.key() == Qt.Key_Delete and cursor.atBlockEnd()
+                else 0
+            )
+            if direction:
+                current = cursor.block()
+                adjacent = current.previous() if direction < 0 else current.next()
+                pair = (current.blockFormat().property(BLOCK_ID), adjacent.blockFormat().property(BLOCK_ID))
+                if pair in getattr(self, 'view_gaps', set()):
+                    QToolTip.showText(
+                        self.mapToGlobal(self.cursorRect().bottomLeft()),
+                        self.tr(
+                            'A hidden item sits between these paragraphs. Switch to the Full view to join them.'
+                        ),
+                    )
+                    event.accept()
+                    return
+        super().keyPressEvent(event)
+
     def collect_changes(self, canonical):
         """Translate native edits into localized canonical operations.
 
@@ -350,6 +427,20 @@ class SemanticEditor(QTextEdit):
         observed_text = {}
         for _, ident, text in observed:
             observed_text.setdefault(ident, []).append(text)
+        for left, right in getattr(self, 'view_gaps', set()):
+            if (
+                left in observed_ids
+                and right not in observed_ids
+                and observed_text.get(left) != getattr(self, 'object_text', {}).get(left)
+            ):
+                raise ValueError(
+                    'A hidden item sits between these paragraphs. Switch to the Full view to join them.'
+                )
+        for ident in getattr(self, 'view_locked', set()):
+            if ident in rendered_ids and observed_text.get(ident) != getattr(self, 'object_text', {}).get(
+                ident
+            ):
+                raise ValueError('This simplified object is read-only. Switch to the Full view to edit it.')
         for ident, record in records.items():
             if (
                 ident in rendered_ids
@@ -419,12 +510,18 @@ class SemanticEditor(QTextEdit):
                             'id': fresh,
                         }
                     )
+                    if getattr(self, 'view_format', 'byax') == 'txt':
+                        operations.append({'type': 'apply_style', 'target': fresh, 'style': 'body'})
                     tags.append((parts[part_index + 1][0], fresh))
                     seen.add(fresh)
                     previous = fresh
-            elif text or (ident in seen and ident in records) or not canonical['blocks']:
+            elif text or (ident in seen and ident in records) or not rendered_ids:
                 fresh = 'p_' + uuid.uuid4().hex
-                style = records.get(ident, {}).get('style', 'body')
+                style = (
+                    'body'
+                    if getattr(self, 'view_format', 'byax') == 'txt'
+                    else records.get(ident, {}).get('style', 'body')
+                )
                 operations.append(
                     {'type': 'insert_paragraph', 'after': previous, 'text': text, 'style': style, 'id': fresh}
                 )

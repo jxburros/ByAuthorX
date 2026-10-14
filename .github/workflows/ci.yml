@@ -29,8 +29,7 @@ jobs:
         run: uv run ruff format --check .
       - name: Lint
         run: uv run ruff check src tests
-      - name: Type check (advisory)
-        continue-on-error: true
+      - name: Type check
         run: uv run mypy src/byax/engine.py src/byax/storage.py src/byax/cli.py
       - name: Tests with coverage floor
         run: uv run python -m pytest -q --cov=byax --cov-report=term --cov-fail-under=70

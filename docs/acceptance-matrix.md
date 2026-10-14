@@ -391,3 +391,26 @@ The completed full automated suite on this development container reported **218 
 ```
 
 </details>
+
+
+## File-view evidence — 14 October 2026
+
+`tests/test_file_views.py` verifies:
+
+- Every export format/alias resolves to one registry entry, and all model block types are classified.
+- Pure, deterministic projection preserving editable block identities and master state; loss parity with conversion preview.
+- Golden adapter loss reports captured from `66ba944` remain unchanged by the registry refactor. Markdown preview now also reports normalization that previously appeared only during export.
+- Source text equals actual exporter bytes for TXT, Markdown, HTML and RTF. Non-native output policies are applied identically to views and all six editable exporters.
+- Heading/text/explicit-mark round trips for TXT, Markdown, HTML, DOCX, ODT and RTF; DOCX custom heading names now retain heading semantics. This is a bounded corpus, not exhaustive proof of every table/image/style attribute in every adapter.
+- View switches preserve revision, undo and visible caret identity; seeded localized edits preserve hidden blocks/marks; joins across hidden blocks are blocked; partial and complete selection deletion preserves hidden content and surviving marks; simplified tables are locked; TXT heading splits produce body text and retain tracking.
+- Markdown imports are clean until edited, direct-file editing is an explicit opt-out, the chooser remembers its choice, and direct-file mode locks the selector and preserves original source bytes.
+- Export offers are untimed, suppressed per document or globally, and source mode is read-only. CLI/MCP view calls do not modify the master. New controls/dialogs are included in the accessibility tree audit.
+- System/Light/Dark appearance is a local preference; dark text/control contrast is measured and changing appearance does not mutate authored content.
+
+`tests/test_backlog_workflows.py` adds evidence for inherited character styles with direct overrides, explicit list identities/restarts, shared authored/output/selection statistics, collection import/conflict preservation, authorized local dependency retrieval boundaries, GUI style inspection and branch-to-merge-proposal workflows. These supplement, rather than replace, the existing feature rows above.
+
+Remaining file-view acceptance: exhaustive per-feature/format round trips (especially images, advanced tables, named-style variations and complex Markdown), randomized *structural* edit sequences, and complete capability gating of every advanced command. Physical screen readers and target-application layout remain unverified. P1 (replacement of imported originals) is deliberately not enabled; exports suggest a sibling filename. Editable source, remembered export targets, `apply --view` and new formats remain Phase 3 work.
+
+The complete open-issue audit is in [issue-audit-2026-10-14.md](issue-audit-2026-10-14.md). It records remaining implementation work as well as external acceptance prerequisites; passing CI must not close the umbrella completion issue.
+
+Additional backlog evidence: `test_backlog_workflows.py` exercises native export-policy creation and collection/storage round-trips, staged DOCX publication, master region editing with artwork preservation and undo, section-profile override preservation/removal, and layer geometry/grouping/output policies. `test_file_views.py` checks the registered inline capabilities against all six import/export adapters, ODT direct spacing, and hidden-content randomized tail insert/delete sequences across all seven export views. These are bounded regressions, not the complete nine-scenario or physical-platform acceptance suite.
