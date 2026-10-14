@@ -1,0 +1,50 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "ink swoosh"
+    },
+    {
+      "type": "shape",
+      "name": "swoosh",
+      "shape": "path",
+      "x": 118,
+      "y": 137,
+      "width": 407,
+      "height": 65,
+      "fill": "none",
+      "path": "M0 38 C131 4 237 16 403 0 M46 61 C162 27 299 38 379 14",
+      "stroke": "#183e3d",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

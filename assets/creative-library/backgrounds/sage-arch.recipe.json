@@ -1,0 +1,71 @@
+{
+  "canvas": {
+    "width": 1600,
+    "height": 900,
+    "background": "#fffdf7"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "sage arch"
+    },
+    {
+      "type": "shape",
+      "name": "large-arch",
+      "shape": "path",
+      "x": 1030,
+      "y": 173,
+      "width": 470,
+      "height": 650,
+      "fill": "#e8ede9",
+      "path": "M0 650 L0 300 C0 -100 470 -100 470 300 L470 650 Z"
+    },
+    {
+      "type": "shape",
+      "name": "inner-arch",
+      "shape": "path",
+      "x": 1105,
+      "y": 298,
+      "width": 320,
+      "height": 490,
+      "fill": "none",
+      "path": "M0 490 L0 240 C0 -80 320 -80 320 240 L320 490",
+      "stroke": "#b5d5ce",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "arch-star",
+      "shape": "sparkle",
+      "x": 1240,
+      "y": 363,
+      "width": 50,
+      "height": 50,
+      "fill": "#e5c890"
+    }
+  ]
+}

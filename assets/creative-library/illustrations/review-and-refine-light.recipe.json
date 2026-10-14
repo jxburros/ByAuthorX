@@ -1,0 +1,306 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "review and refine"
+    },
+    {
+      "type": "shape",
+      "name": "paper-halo",
+      "shape": "ellipse",
+      "x": 94,
+      "y": 54,
+      "width": 430,
+      "height": 355,
+      "fill": "#e8ede9"
+    },
+    {
+      "type": "shape",
+      "name": "sage-halo",
+      "shape": "ellipse",
+      "x": 348,
+      "y": 240,
+      "width": 180,
+      "height": 140,
+      "fill": "#b5d5ce"
+    },
+    {
+      "type": "shape",
+      "name": "accent-star",
+      "shape": "sparkle",
+      "x": 505,
+      "y": 113,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "accent-dot",
+      "shape": "ellipse",
+      "x": 95,
+      "y": 295,
+      "width": 10,
+      "height": 10,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "draft-shadow",
+      "shape": "rounded-rectangle",
+      "x": 185,
+      "y": 110,
+      "width": 235,
+      "height": 273,
+      "fill": "#c7d3cc",
+      "radius": 14
+    },
+    {
+      "type": "shape",
+      "name": "draft",
+      "shape": "rounded-rectangle",
+      "x": 178,
+      "y": 101,
+      "width": 235,
+      "height": 273,
+      "fill": "#fffdf7",
+      "radius": 14,
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "draft-heading",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 131,
+      "width": 117.5,
+      "height": 9,
+      "fill": "#183e3d",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "draft-line-0",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 165,
+      "width": 191,
+      "height": 5,
+      "fill": "#677b76",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "draft-line-1",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 191,
+      "width": 191,
+      "height": 5,
+      "fill": "#677b76",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "draft-line-2",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 217,
+      "width": 122.24000000000001,
+      "height": 5,
+      "fill": "#677b76",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "draft-line-3",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 243,
+      "width": 191,
+      "height": 5,
+      "fill": "#677b76",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "draft-line-4",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 269,
+      "width": 191,
+      "height": 5,
+      "fill": "#677b76",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "draft-line-5",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 295,
+      "width": 122.24000000000001,
+      "height": 5,
+      "fill": "#677b76",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "highlight",
+      "shape": "rounded-rectangle",
+      "x": 200,
+      "y": 191,
+      "width": 145,
+      "height": 16,
+      "fill": "#e5c890",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "highlighted-words",
+      "shape": "path",
+      "x": 207,
+      "y": 199,
+      "width": 126,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L126 0",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "revision-circle",
+      "shape": "path",
+      "x": 202,
+      "y": 243,
+      "width": 85,
+      "height": 32,
+      "fill": "none",
+      "path": "M0 15 C-2 -3 66 -4 79 9 C91 28 12 34 0 15",
+      "stroke": "#bb7661",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-leader",
+      "shape": "path",
+      "x": 405,
+      "y": 181,
+      "width": 36,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L36 0",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-note",
+      "shape": "rounded-rectangle",
+      "x": 427,
+      "y": 126,
+      "width": 103,
+      "height": 88,
+      "fill": "#b5d5ce",
+      "radius": 20,
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-check",
+      "shape": "checkmark",
+      "x": 459,
+      "y": 152,
+      "width": 42,
+      "height": 33,
+      "fill": "#183e3d"
+    },
+    {
+      "type": "shape",
+      "name": "review-pen",
+      "shape": "path",
+      "x": 108,
+      "y": 201,
+      "width": 50,
+      "height": 150,
+      "fill": "#183e3d",
+      "path": "M25 0 L44 20 L37 115 L25 148 L13 115 L6 20 Z"
+    },
+    {
+      "type": "shape",
+      "name": "review-pen-inlay",
+      "shape": "path",
+      "x": 108,
+      "y": 201,
+      "width": 50,
+      "height": 150,
+      "fill": "#e5c890",
+      "path": "M25 10 L32 23 L28 107 L25 127 L22 107 L18 23 Z"
+    },
+    {
+      "type": "shape",
+      "name": "review-pen-slit",
+      "shape": "path",
+      "x": 133,
+      "y": 320,
+      "width": 1,
+      "height": 23,
+      "fill": "none",
+      "path": "M0 0 L0 23",
+      "stroke": "#fffdf7",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-pen-breather",
+      "shape": "ellipse",
+      "x": 130,
+      "y": 313,
+      "width": 6,
+      "height": 6,
+      "fill": "#fffdf7"
+    }
+  ]
+}

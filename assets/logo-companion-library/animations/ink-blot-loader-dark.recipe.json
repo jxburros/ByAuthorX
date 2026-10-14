@@ -1,0 +1,126 @@
+{
+  "canvas": {
+    "width": 112,
+    "height": 56,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "ink blot loader"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 2400,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "ink-body",
+      "shape": "path",
+      "x": 46,
+      "y": 18,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "ink-body",
+      "width": 17.04489795918367,
+      "height": 18.0
+    },
+    {
+      "type": "shape",
+      "name": "ink-fleck",
+      "shape": "path",
+      "x": 45.55918411428571,
+      "y": 30.857142857142854,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "ink-fleck",
+      "width": 3.0857142857142854,
+      "height": 4.114285714285714
+    },
+    {
+      "type": "group",
+      "name": "ink",
+      "targets": [
+        "ink-body",
+        "ink-fleck"
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "ink",
+      "property": "scale-x",
+      "sample": {
+        "fn": "sin",
+        "period": 2400,
+        "amplitude": 0.08,
+        "offset": 1,
+        "phase": -0.25,
+        "samples": 48,
+        "duration": 2400
+      }
+    },
+    {
+      "type": "keyframes",
+      "target": "ink",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 2400,
+        "amplitude": 0.08,
+        "offset": 1,
+        "phase": -0.25,
+        "samples": 48,
+        "duration": 2400
+      }
+    },
+    {
+      "type": "keyframes",
+      "target": "ink",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 2400,
+        "amplitude": 2,
+        "offset": 0,
+        "phase": 0,
+        "samples": 48,
+        "duration": 2400
+      }
+    }
+  ]
+}

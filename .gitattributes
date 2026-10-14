@@ -1,3 +1,4 @@
 # Preserve the supplied font license notices byte-for-byte, including upstream whitespace.
 src/byax/resources/fonts/*-LICENSE.txt whitespace=-blank-at-eol
 design/brand/kit/fonts/*-LICENSE.txt whitespace=-blank-at-eol
+assets/logo-companion-library/fonts/*-LICENSE.txt whitespace=-blank-at-eol

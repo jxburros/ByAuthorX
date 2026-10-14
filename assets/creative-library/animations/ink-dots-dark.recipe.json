@@ -1,0 +1,114 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 48,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "ink dots"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 1600,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "dot-0",
+      "shape": "ellipse",
+      "x": 26,
+      "y": 17,
+      "width": 14,
+      "height": 14,
+      "fill": "#f4f1e7"
+    },
+    {
+      "type": "keyframes",
+      "target": "dot-0",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 1600,
+        "amplitude": 5,
+        "offset": 0,
+        "phase": 0.0,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "dot-1",
+      "shape": "ellipse",
+      "x": 57,
+      "y": 17,
+      "width": 14,
+      "height": 14,
+      "fill": "#f4f1e7"
+    },
+    {
+      "type": "keyframes",
+      "target": "dot-1",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 1600,
+        "amplitude": 5,
+        "offset": 0,
+        "phase": -0.3333333333333333,
+        "samples": 48,
+        "duration": 1600
+      }
+    },
+    {
+      "type": "shape",
+      "name": "dot-2",
+      "shape": "ellipse",
+      "x": 88,
+      "y": 17,
+      "width": 14,
+      "height": 14,
+      "fill": "#f4f1e7"
+    },
+    {
+      "type": "keyframes",
+      "target": "dot-2",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 1600,
+        "amplitude": 5,
+        "offset": 0,
+        "phase": -0.6666666666666666,
+        "samples": 48,
+        "duration": 1600
+      }
+    }
+  ]
+}

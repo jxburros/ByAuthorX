@@ -1,0 +1,184 @@
+{
+  "canvas": {
+    "width": 320,
+    "height": 224,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "pen loop wait"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 2400,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "waiting-loop",
+      "shape": "path",
+      "x": 92,
+      "y": 65,
+      "width": 104.98383760272375,
+      "height": 56.1,
+      "fill": "none",
+      "path": "M50.55 2.549999999999997C40.55 23.549999999999997 45.55 43.55 72.55 40.55C109.55 33.55 112.55 7.549999999999997 79.55 16.549999999999997C47.55 28.549999999999997 24.549999999999997 47.55 2.549999999999997 53.55",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "resize",
+      "target": "waiting-loop",
+      "width": 136.4789888835409,
+      "height": 72.93
+    },
+    {
+      "type": "shape",
+      "target": "waiting-loop",
+      "stroke_width": 6.5
+    },
+    {
+      "type": "keyframes",
+      "target": "waiting-loop",
+      "property": "trim_end",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 120,
+          "value": 0,
+          "easing": "linear"
+        },
+        {
+          "time": 1080,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2280,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2281,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 2400,
+          "value": 0,
+          "easing": "hold"
+        }
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "waiting-loop",
+      "property": "trim_start",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 1440,
+          "value": 0,
+          "easing": "linear"
+        },
+        {
+          "time": 2160,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2280,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2281,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 2400,
+          "value": 0,
+          "easing": "hold"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "waiting-ink-body",
+      "shape": "path",
+      "x": 80,
+      "y": 128,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "waiting-ink-body",
+      "width": 16.097959183673467,
+      "height": 17.0
+    },
+    {
+      "type": "shape",
+      "name": "waiting-ink-fleck",
+      "shape": "path",
+      "x": 79.58367388571429,
+      "y": 140.14285714285714,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "waiting-ink-fleck",
+      "width": 2.914285714285714,
+      "height": 3.8857142857142857
+    },
+    {
+      "type": "group",
+      "name": "waiting-ink",
+      "targets": [
+        "waiting-ink-body",
+        "waiting-ink-fleck"
+      ]
+    }
+  ]
+}

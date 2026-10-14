@@ -1,0 +1,299 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "document library"
+    },
+    {
+      "type": "shape",
+      "name": "paper-halo",
+      "shape": "ellipse",
+      "x": 94,
+      "y": 54,
+      "width": 430,
+      "height": 355,
+      "fill": "#1d4240"
+    },
+    {
+      "type": "shape",
+      "name": "sage-halo",
+      "shape": "ellipse",
+      "x": 348,
+      "y": 240,
+      "width": 180,
+      "height": 140,
+      "fill": "#80b4a7"
+    },
+    {
+      "type": "shape",
+      "name": "accent-star",
+      "shape": "sparkle",
+      "x": 505,
+      "y": 113,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "accent-dot",
+      "shape": "ellipse",
+      "x": 95,
+      "y": 295,
+      "width": 10,
+      "height": 10,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "back-draft-shadow",
+      "shape": "rounded-rectangle",
+      "x": 149,
+      "y": 124,
+      "width": 150,
+      "height": 218,
+      "fill": "#102f30",
+      "radius": 14
+    },
+    {
+      "type": "shape",
+      "name": "back-draft",
+      "shape": "rounded-rectangle",
+      "x": 142,
+      "y": 115,
+      "width": 150,
+      "height": 218,
+      "fill": "#1d4240",
+      "radius": 14,
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "back-draft-heading",
+      "shape": "rounded-rectangle",
+      "x": 164,
+      "y": 145,
+      "width": 75.0,
+      "height": 9,
+      "fill": "#f4f1e7",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "back-draft-line-0",
+      "shape": "rounded-rectangle",
+      "x": 164,
+      "y": 179,
+      "width": 106,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "back-draft-line-1",
+      "shape": "rounded-rectangle",
+      "x": 164,
+      "y": 205,
+      "width": 106,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "back-draft-line-2",
+      "shape": "rounded-rectangle",
+      "x": 164,
+      "y": 231,
+      "width": 67.84,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "back-draft-line-3",
+      "shape": "rounded-rectangle",
+      "x": 164,
+      "y": 257,
+      "width": 106,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-shadow",
+      "shape": "rounded-rectangle",
+      "x": 291,
+      "y": 91,
+      "width": 155,
+      "height": 226,
+      "fill": "#102f30",
+      "radius": 14
+    },
+    {
+      "type": "shape",
+      "name": "front-draft",
+      "shape": "rounded-rectangle",
+      "x": 284,
+      "y": 82,
+      "width": 155,
+      "height": 226,
+      "fill": "#244b48",
+      "radius": 14,
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-heading",
+      "shape": "rounded-rectangle",
+      "x": 306,
+      "y": 112,
+      "width": 77.5,
+      "height": 9,
+      "fill": "#f4f1e7",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-line-0",
+      "shape": "rounded-rectangle",
+      "x": 306,
+      "y": 146,
+      "width": 111,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-line-1",
+      "shape": "rounded-rectangle",
+      "x": 306,
+      "y": 172,
+      "width": 111,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-line-2",
+      "shape": "rounded-rectangle",
+      "x": 306,
+      "y": 198,
+      "width": 71.04,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-line-3",
+      "shape": "rounded-rectangle",
+      "x": 306,
+      "y": 224,
+      "width": 111,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "front-draft-line-4",
+      "shape": "rounded-rectangle",
+      "x": 306,
+      "y": 250,
+      "width": 111,
+      "height": 5,
+      "fill": "#acc3ba",
+      "radius": 2
+    },
+    {
+      "type": "shape",
+      "name": "folder",
+      "shape": "path",
+      "x": 135,
+      "y": 210,
+      "width": 320,
+      "height": 185,
+      "fill": "#80b4a7",
+      "path": "M0 18 L110 18 L138 44 L320 44 L300 185 L10 185 Z",
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "folder-label",
+      "shape": "rounded-rectangle",
+      "x": 223,
+      "y": 291,
+      "width": 137,
+      "height": 37,
+      "fill": "#244b48",
+      "radius": 8
+    },
+    {
+      "type": "shape",
+      "name": "label-line",
+      "shape": "path",
+      "x": 251,
+      "y": 310,
+      "width": 80,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L80 0",
+      "stroke": "#acc3ba",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "library-bookmark",
+      "shape": "banner",
+      "x": 399,
+      "y": 285,
+      "width": 40,
+      "height": 73,
+      "fill": "#e5c890"
+    }
+  ]
+}

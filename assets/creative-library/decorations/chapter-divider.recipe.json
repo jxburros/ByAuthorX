@@ -1,0 +1,95 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "chapter divider"
+    },
+    {
+      "type": "shape",
+      "name": "left-rule",
+      "shape": "path",
+      "x": 94,
+      "y": 160,
+      "width": 179,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L179 0",
+      "stroke": "#677b76",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "right-rule",
+      "shape": "path",
+      "x": 367,
+      "y": 160,
+      "width": 179,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L179 0",
+      "stroke": "#677b76",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "divider-spark",
+      "shape": "sparkle",
+      "x": 305,
+      "y": 145,
+      "width": 30,
+      "height": 30,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "left-dot",
+      "shape": "ellipse",
+      "x": 289,
+      "y": 158,
+      "width": 5,
+      "height": 5,
+      "fill": "#183e3d"
+    },
+    {
+      "type": "shape",
+      "name": "right-dot",
+      "shape": "ellipse",
+      "x": 346,
+      "y": 158,
+      "width": 5,
+      "height": 5,
+      "fill": "#183e3d"
+    }
+  ]
+}

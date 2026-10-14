@@ -1,0 +1,165 @@
+{
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "review scan"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 1600,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "review-page",
+      "shape": "rounded-rectangle",
+      "x": 70,
+      "y": 51,
+      "width": 116,
+      "height": 154,
+      "fill": "#fffdf7",
+      "radius": 12,
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-line-0",
+      "shape": "path",
+      "x": 92,
+      "y": 86,
+      "width": 72,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L72 0",
+      "stroke": "#677b76",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-line-1",
+      "shape": "path",
+      "x": 92,
+      "y": 113,
+      "width": 72,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L72 0",
+      "stroke": "#677b76",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-line-2",
+      "shape": "path",
+      "x": 92,
+      "y": 140,
+      "width": 72,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L72 0",
+      "stroke": "#677b76",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-line-3",
+      "shape": "path",
+      "x": 92,
+      "y": 167,
+      "width": 72,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L72 0",
+      "stroke": "#677b76",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "scan-highlight",
+      "shape": "rounded-rectangle",
+      "x": 83,
+      "y": 72,
+      "width": 91,
+      "height": 17,
+      "fill": "#e5c890",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "scan-ink",
+      "shape": "path",
+      "x": 91,
+      "y": 81,
+      "width": 73,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0 L73 0",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "group",
+      "name": "scan",
+      "targets": [
+        "scan-highlight",
+        "scan-ink"
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "scan",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 1600,
+        "amplitude": 33,
+        "offset": 36,
+        "phase": -0.25,
+        "samples": 48,
+        "duration": 1600
+      }
+    }
+  ]
+}

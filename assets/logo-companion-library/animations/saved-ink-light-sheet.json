@@ -1,0 +1,48 @@
+{
+  "width": 1280,
+  "height": 448,
+  "fps": 24,
+  "loop": 1,
+  "frames": [
+    {
+      "time": 0,
+      "duration": 42,
+      "x": 0,
+      "y": 0,
+      "width": 320,
+      "height": 224
+    },
+    {
+      "time": 42,
+      "duration": 41,
+      "x": 320,
+      "y": 0,
+      "width": 320,
+      "height": 224
+    },
+    {
+      "time": 83,
+      "duration": 42,
+      "x": 640,
+      "y": 0,
+      "width": 320,
+      "height": 224
+    },
+    {
+      "time": 125,
+      "duration": 42,
+      "x": 960,
+      "y": 0,
+      "width": 320,
+      "height": 224
+    },
+    {
+      "time": 167,
+      "duration": 13,
+      "x": 0,
+      "y": 224,
+      "width": 320,
+      "height": 224
+    }
+  ]
+}

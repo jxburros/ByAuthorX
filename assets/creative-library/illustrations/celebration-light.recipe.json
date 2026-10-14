@@ -1,0 +1,329 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "celebration"
+    },
+    {
+      "type": "shape",
+      "name": "paper-halo",
+      "shape": "ellipse",
+      "x": 94,
+      "y": 54,
+      "width": 430,
+      "height": 355,
+      "fill": "#e8ede9"
+    },
+    {
+      "type": "shape",
+      "name": "sage-halo",
+      "shape": "ellipse",
+      "x": 348,
+      "y": 240,
+      "width": 180,
+      "height": 140,
+      "fill": "#b5d5ce"
+    },
+    {
+      "type": "shape",
+      "name": "accent-star",
+      "shape": "sparkle",
+      "x": 505,
+      "y": 113,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "accent-dot",
+      "shape": "ellipse",
+      "x": 95,
+      "y": 295,
+      "width": 10,
+      "height": 10,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-shadow",
+      "shape": "path",
+      "x": 144,
+      "y": 230,
+      "width": 332,
+      "height": 165,
+      "fill": "#c7d3cc",
+      "path": "M0 8 Q82 -2 166 35 Q248 -2 332 8 L332 144 Q252 126 166 164 Q82 126 0 144 Z"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-pages",
+      "shape": "path",
+      "x": 139,
+      "y": 222,
+      "width": 332,
+      "height": 165,
+      "fill": "#fffdf7",
+      "path": "M0 8 Q82 -2 166 35 Q248 -2 332 8 L332 144 Q252 126 166 164 Q82 126 0 144 Z",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-spine",
+      "shape": "path",
+      "x": 305,
+      "y": 257,
+      "width": 1,
+      "height": 124,
+      "fill": "none",
+      "path": "M0 0 L0 124",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-0-0",
+      "shape": "path",
+      "x": 161,
+      "y": 268,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-0-1",
+      "shape": "path",
+      "x": 161,
+      "y": 291,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-0-2",
+      "shape": "path",
+      "x": 161,
+      "y": 314,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-0-3",
+      "shape": "path",
+      "x": 161,
+      "y": 337,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-1-0",
+      "shape": "path",
+      "x": 331,
+      "y": 268,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-1-1",
+      "shape": "path",
+      "x": 331,
+      "y": 291,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-1-2",
+      "shape": "path",
+      "x": 331,
+      "y": 314,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-ink-1-3",
+      "shape": "path",
+      "x": 331,
+      "y": 337,
+      "width": 112,
+      "height": 15,
+      "fill": "none",
+      "path": "M0 0 Q55 -7 112 12",
+      "stroke": "#677b76",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "finished-story-bookmark",
+      "shape": "path",
+      "x": 409,
+      "y": 239,
+      "width": 18,
+      "height": 100,
+      "fill": "#e5c890",
+      "path": "M0 0 L18 2 L18 100 L9 91 L0 98 Z"
+    },
+    {
+      "type": "shape",
+      "name": "achievement",
+      "shape": "ellipse",
+      "x": 259,
+      "y": 102,
+      "width": 113,
+      "height": 113,
+      "fill": "#e5c890",
+      "stroke": "#183e3d",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "achievement-check",
+      "shape": "checkmark",
+      "x": 288,
+      "y": 138,
+      "width": 56,
+      "height": 39,
+      "fill": "#183e3d"
+    },
+    {
+      "type": "shape",
+      "name": "confetti-0",
+      "shape": "rounded-rectangle",
+      "x": 128,
+      "y": 155,
+      "width": 9,
+      "height": 23,
+      "fill": "#bb7661",
+      "radius": 4,
+      "rotation": -25
+    },
+    {
+      "type": "shape",
+      "name": "confetti-1",
+      "shape": "rounded-rectangle",
+      "x": 428,
+      "y": 114,
+      "width": 9,
+      "height": 23,
+      "fill": "#b5d5ce",
+      "radius": 4,
+      "rotation": 30
+    },
+    {
+      "type": "shape",
+      "name": "confetti-2",
+      "shape": "rounded-rectangle",
+      "x": 493,
+      "y": 220,
+      "width": 9,
+      "height": 23,
+      "fill": "#bb7661",
+      "radius": 4,
+      "rotation": -20
+    },
+    {
+      "type": "shape",
+      "name": "confetti-3",
+      "shape": "rounded-rectangle",
+      "x": 181,
+      "y": 90,
+      "width": 9,
+      "height": 23,
+      "fill": "#b5d5ce",
+      "radius": 4,
+      "rotation": 18
+    },
+    {
+      "type": "shape",
+      "name": "celebration-star",
+      "shape": "sparkle",
+      "x": 400,
+      "y": 173,
+      "width": 33,
+      "height": 33,
+      "fill": "#e5c890"
+    }
+  ]
+}

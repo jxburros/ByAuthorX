@@ -1,0 +1,62 @@
+{
+  "generator": "Vixl 0.26.0",
+  "source": "assets/logo-companion-library/animations/signature-settle-light.vixl",
+  "source_sha256": "d5e9e2fb20fb8b3077e90078909ce2181790efdebf207287836fe95711a57266",
+  "durationMs": 180,
+  "frameWidth": 277,
+  "frameHeight": 44,
+  "frameTimesMs": [
+    0,
+    17,
+    33,
+    50,
+    67,
+    83,
+    100,
+    117,
+    133,
+    150,
+    167,
+    180
+  ],
+  "loop": false,
+  "posterTimeMs": 180,
+  "crop": [
+    17,
+    84,
+    294,
+    128
+  ],
+  "hiddenLayers": [],
+  "checks": {
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "info": 0,
+    "by_action": {
+      "fix": [],
+      "review": [],
+      "informational": []
+    },
+    "outcome": {
+      "state": "validated",
+      "execution": "completed",
+      "validation": "passed",
+      "review": "not_required",
+      "review_reasons": [],
+      "validated_by": [
+        "design checks"
+      ]
+    },
+    "issues": [],
+    "checked": {
+      "checks": [
+        "bounds",
+        "motion"
+      ],
+      "layers_checked": 4,
+      "layers_total": 4,
+      "text_layers": 0
+    }
+  }
+}

@@ -1,0 +1,211 @@
+{
+  "passed": true,
+  "designs": 54,
+  "variants": 94,
+  "categories": {
+    "illustrations": 24,
+    "icons": 36,
+    "animations": 20,
+    "decorations": 8,
+    "backgrounds": 6
+  },
+  "masters_reopened": 94,
+  "images_decoded": 315,
+  "vectors_verified": 94,
+  "frame_archives_verified": 6,
+  "animations": [
+    {
+      "id": "ink-dots-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "ink-dots-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "quill-writing-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "quill-writing-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "page-breathe-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "page-breathe-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "orbit-spark-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "orbit-spark-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "voice-wave-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "voice-wave-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "review-scan-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "review-scan-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "book-idle-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "book-idle-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "thinking-spark-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "thinking-spark-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "success-bloom-light",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "success-bloom-dark",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "saved-stamp-light",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "saved-stamp-dark",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    }
+  ],
+  "loop_seam_max_mean_error": 0,
+  "vector_raster_max_mean_error": 1.1570638020833333,
+  "catalog": {
+    "passed": true,
+    "browser": "Chromium",
+    "local_file_catalog": true,
+    "filters_and_search": true,
+    "individual_download": true,
+    "reduced_motion_initial_and_changes": true,
+    "manual_motion_control": true,
+    "mobile_no_horizontal_overflow": true,
+    "javascript_errors": []
+  }
+}

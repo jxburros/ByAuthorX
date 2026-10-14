@@ -1,0 +1,254 @@
+{
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "success bloom"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 1200,
+      "fps": 24,
+      "loop": 1,
+      "loop_mode": "off"
+    },
+    {
+      "type": "shape",
+      "name": "success-disc",
+      "shape": "ellipse",
+      "x": 70,
+      "y": 70,
+      "width": 116,
+      "height": 116,
+      "fill": "#b5d5ce"
+    },
+    {
+      "type": "shape",
+      "name": "success-check",
+      "shape": "path",
+      "x": 95,
+      "y": 104,
+      "width": 70,
+      "height": 50,
+      "fill": "none",
+      "path": "M0 24 L23 47 L67 0",
+      "stroke": "#183e3d",
+      "stroke_width": 7,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "keyframes",
+      "target": "success-disc",
+      "property": "scale-x",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0.76,
+          "easing": "ease-out"
+        },
+        {
+          "time": 350,
+          "value": 1.06,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 550,
+          "value": 1,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 1200,
+          "value": 1,
+          "easing": "linear"
+        }
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "success-disc",
+      "property": "scale-y",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0.76,
+          "easing": "ease-out"
+        },
+        {
+          "time": 350,
+          "value": 1.06,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 550,
+          "value": 1,
+          "easing": "ease-in-out"
+        },
+        {
+          "time": 1200,
+          "value": 1,
+          "easing": "linear"
+        }
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "success-check",
+      "property": "trim_end",
+      "keys": [
+        {
+          "time": 0,
+          "value": 5,
+          "easing": "ease-out"
+        },
+        {
+          "time": 460,
+          "value": 100,
+          "easing": "ease-out"
+        },
+        {
+          "time": 1200,
+          "value": 100,
+          "easing": "linear"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "success-spark-0",
+      "shape": "sparkle",
+      "x": 49,
+      "y": 62,
+      "width": 16,
+      "height": 16,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "keyframes",
+      "target": "success-spark-0",
+      "property": "opacity",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "ease-out"
+        },
+        {
+          "time": 250,
+          "value": 1,
+          "easing": "ease-out"
+        },
+        {
+          "time": 900,
+          "value": 0,
+          "easing": "ease-in"
+        },
+        {
+          "time": 1200,
+          "value": 0,
+          "easing": "linear"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "success-spark-1",
+      "shape": "sparkle",
+      "x": 191,
+      "y": 54,
+      "width": 16,
+      "height": 16,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "keyframes",
+      "target": "success-spark-1",
+      "property": "opacity",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "ease-out"
+        },
+        {
+          "time": 330,
+          "value": 1,
+          "easing": "ease-out"
+        },
+        {
+          "time": 900,
+          "value": 0,
+          "easing": "ease-in"
+        },
+        {
+          "time": 1200,
+          "value": 0,
+          "easing": "linear"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "success-spark-2",
+      "shape": "sparkle",
+      "x": 194,
+      "y": 186,
+      "width": 16,
+      "height": 16,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "keyframes",
+      "target": "success-spark-2",
+      "property": "opacity",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "ease-out"
+        },
+        {
+          "time": 410,
+          "value": 1,
+          "easing": "ease-out"
+        },
+        {
+          "time": 900,
+          "value": 0,
+          "easing": "ease-in"
+        },
+        {
+          "time": 1200,
+          "value": 0,
+          "easing": "linear"
+        }
+      ]
+    }
+  ]
+}

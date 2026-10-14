@@ -1,0 +1,429 @@
+{
+  "passed": true,
+  "designs": 24,
+  "variants": 44,
+  "categories": {
+    "illustrations": 16,
+    "animations": 12,
+    "decorations": 12,
+    "backgrounds": 4
+  },
+  "masters_reopened": 44,
+  "images_decoded": 123,
+  "vectors_verified": 44,
+  "frame_archives_verified": 0,
+  "animations": [
+    {
+      "id": "ink-blot-loader-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "ink-blot-loader-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "pen-loop-wait-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "pen-loop-wait-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "reading-breath-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "reading-breath-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "margin-review-light",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "margin-review-dark",
+      "playback": "loop",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "saved-ink-light",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "saved-ink-dark",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "signature-settle-light",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    },
+    {
+      "id": "signature-settle-dark",
+      "playback": "once",
+      "formats_verified": [
+        "webp",
+        "apng",
+        "gif"
+      ]
+    }
+  ],
+  "loop_seam_max_mean_error": 0,
+  "vector_raster_max_mean_error": 0.9000034877232143,
+  "source_reference_hashes_verified": true,
+  "catalog": {
+    "passed": true,
+    "browser": "Chromium",
+    "local_file_catalog": true,
+    "filters_and_search": true,
+    "individual_download": true,
+    "reduced_motion_initial_and_changes": true,
+    "manual_motion_control": true,
+    "mobile_no_horizontal_overflow": true,
+    "javascript_errors": []
+  },
+  "writing_motion": {
+    "passed": true,
+    "changed_variants": 10,
+    "checks": [
+      {
+        "id": "pen-loop-wait-light",
+        "behavior": "write-erase",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          120,
+          400,
+          800,
+          1200,
+          1440,
+          1700,
+          2000,
+          2160,
+          2281,
+          2400
+        ],
+        "green_pixels": [
+          0,
+          0,
+          564,
+          1319,
+          1782,
+          1782,
+          1173,
+          417,
+          0,
+          0,
+          0
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "pen-loop-wait-dark",
+        "behavior": "write-erase",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          120,
+          400,
+          800,
+          1200,
+          1440,
+          1700,
+          2000,
+          2160,
+          2281,
+          2400
+        ],
+        "green_pixels": [
+          0,
+          0,
+          564,
+          1319,
+          1782,
+          1782,
+          1173,
+          417,
+          0,
+          0,
+          0
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "reading-breath-light",
+        "behavior": "write-erase",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          120,
+          400,
+          800,
+          1200,
+          1440,
+          1700,
+          2000,
+          2160,
+          2281,
+          2400
+        ],
+        "green_pixels": [
+          0,
+          0,
+          134,
+          323,
+          447,
+          447,
+          286,
+          97,
+          0,
+          0,
+          0
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "reading-breath-dark",
+        "behavior": "write-erase",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          120,
+          400,
+          800,
+          1200,
+          1440,
+          1700,
+          2000,
+          2160,
+          2281,
+          2400
+        ],
+        "green_pixels": [
+          0,
+          0,
+          134,
+          323,
+          447,
+          447,
+          286,
+          97,
+          0,
+          0,
+          0
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "margin-review-light",
+        "behavior": "write-erase",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          120,
+          400,
+          800,
+          1200,
+          1440,
+          1700,
+          2000,
+          2160,
+          2281,
+          2400
+        ],
+        "green_pixels": [
+          0,
+          0,
+          86,
+          209,
+          269,
+          269,
+          176,
+          52,
+          0,
+          0,
+          0
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "margin-review-dark",
+        "behavior": "write-erase",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          120,
+          400,
+          800,
+          1200,
+          1440,
+          1700,
+          2000,
+          2160,
+          2281,
+          2400
+        ],
+        "green_pixels": [
+          0,
+          0,
+          86,
+          209,
+          276,
+          276,
+          183,
+          59,
+          0,
+          0,
+          0
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "saved-ink-light",
+        "behavior": "write-once",
+        "original_centerline_verified": false,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          45.0,
+          90.0,
+          180
+        ],
+        "green_pixels": [
+          0,
+          79,
+          135,
+          192
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "saved-ink-dark",
+        "behavior": "write-once",
+        "original_centerline_verified": false,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          45.0,
+          90.0,
+          180
+        ],
+        "green_pixels": [
+          0,
+          87,
+          151,
+          214
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "signature-settle-light",
+        "behavior": "write-once",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          45.0,
+          90.0,
+          180
+        ],
+        "green_pixels": [
+          0,
+          265,
+          476,
+          680
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      },
+      {
+        "id": "signature-settle-dark",
+        "behavior": "write-once",
+        "original_centerline_verified": true,
+        "no_hover_tracks": true,
+        "times_ms": [
+          0,
+          45.0,
+          90.0,
+          180
+        ],
+        "green_pixels": [
+          0,
+          265,
+          476,
+          680
+        ],
+        "poster_verified": true,
+        "exported_apng_progression_verified": true
+      }
+    ]
+  }
+}

@@ -1,0 +1,5079 @@
+{
+  "schema_version": 1,
+  "name": "ByAuthorX Logo Companion Library",
+  "design_count": 24,
+  "variant_count": 44,
+  "engine": {
+    "name": "Vixl",
+    "version": "0.26.0",
+    "commit": "afaee339bfc2fa7959c8b6399dc0740f6023bc86"
+  },
+  "brand_tokens": {
+    "color": {
+      "paper": "#F4EEE3",
+      "ink": "#252927",
+      "green": "#367B6C",
+      "red": "#AD283E",
+      "surface": "#FFFCF7",
+      "rule": "#D7D0C3",
+      "muted": "#52615B",
+      "greenText": "#246052"
+    },
+    "font": {
+      "display": "IM Fell English",
+      "body": "Manrope",
+      "reading": "Source Serif 4"
+    },
+    "spacing": [
+      4,
+      8,
+      12,
+      16,
+      24,
+      32,
+      48,
+      64,
+      96
+    ],
+    "radius": {
+      "control": 6,
+      "panel": 8
+    },
+    "logo": {
+      "source": "logos/primary.svg",
+      "minimumDigitalWidth": 240,
+      "minimumPrintWidthMm": 50,
+      "clearSpace": "0.5 x capital B height"
+    },
+    "motion": {
+      "durationMs": 180,
+      "easing": "ease-out",
+      "reducedMotion": "instant"
+    }
+  },
+  "reference_masters": [
+    {
+      "name": "pen-line",
+      "source": "design/brand/kit/graphics/pen-line.vixl",
+      "sha256": "a6f9418087dcdb2bfd86bcbf9dd4ab599db17f7a0e678e134ea638a3a23ac2e8"
+    },
+    {
+      "name": "ink-dot",
+      "source": "design/brand/kit/graphics/ink-dot.vixl",
+      "sha256": "1d934a707164be4a3bb07444ba21f9f1dcc761efcd478e1d69c3cfdd892e815d"
+    },
+    {
+      "name": "mark",
+      "source": "design/brand/logo-masters/app-transparent.vixl",
+      "sha256": "40cab288f79d0c77eaadc6345d587e1abc4c226e3991f8d33f5aefa9383b3a6f"
+    },
+    {
+      "name": "tokens",
+      "source": "src/byax/resources/brand/tokens.json",
+      "sha256": "adc74a6f503275be8b2d57081cbffdd74864afdd81802376b2b0d83af048b7c7"
+    },
+    {
+      "name": "wordmark-light",
+      "source": "src/byax/resources/brand/wordmark-light.png",
+      "sha256": "3151bd155a99640d717cf0da878c6d9ca2a233177a3e3907f30ece53a9a1b94b"
+    },
+    {
+      "name": "wordmark-dark",
+      "source": "src/byax/resources/brand/wordmark-dark.png",
+      "sha256": "c0ed84928de12069e595afa7c545f922890fcbc31e49dc8597ad0cccea6d1c4c"
+    }
+  ],
+  "assets": [
+    {
+      "id": "signature-manuscript-light",
+      "design": "signature-manuscript",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Signature Manuscript",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Opening, empty-state, or editorial artwork with the supplied pen gesture.",
+      "master": "illustrations/signature-manuscript-light.vixl",
+      "recipe": "illustrations/signature-manuscript-light.recipe.json",
+      "preview": "illustrations/signature-manuscript-light.png",
+      "vector": "illustrations/signature-manuscript-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "manuscript",
+              "manuscript-line-0",
+              "manuscript-line-1",
+              "manuscript-line-2",
+              "manuscript-line-3",
+              "manuscript-line-4",
+              "manuscript-line-5",
+              "manuscript-line-6",
+              "signature",
+              "signature-ink-body",
+              "signature-ink-fleck",
+              "pen"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "signature-manuscript-dark",
+      "design": "signature-manuscript",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Signature Manuscript",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Opening, empty-state, or editorial artwork with the supplied pen gesture.",
+      "master": "illustrations/signature-manuscript-dark.vixl",
+      "recipe": "illustrations/signature-manuscript-dark.recipe.json",
+      "preview": "illustrations/signature-manuscript-dark.png",
+      "vector": "illustrations/signature-manuscript-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "manuscript",
+              "manuscript-line-0",
+              "manuscript-line-1",
+              "manuscript-line-2",
+              "manuscript-line-3",
+              "manuscript-line-4",
+              "manuscript-line-5",
+              "manuscript-line-6",
+              "signature",
+              "signature-ink-body",
+              "signature-ink-fleck",
+              "pen"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "margin-notes-light",
+      "design": "margin-notes",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Margin Notes",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Review and annotation surfaces; a green margin gesture connects the notes.",
+      "master": "illustrations/margin-notes-light.vixl",
+      "recipe": "illustrations/margin-notes-light.recipe.json",
+      "preview": "illustrations/margin-notes-light.png",
+      "vector": "illustrations/margin-notes-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 16,
+          "layers_total": 16,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 15,
+            "layers": [
+              "draft",
+              "draft-line-0",
+              "draft-line-1",
+              "draft-line-2",
+              "draft-line-3",
+              "draft-line-4",
+              "draft-line-5",
+              "draft-line-6",
+              "note",
+              "note-line-0",
+              "note-line-1",
+              "note-connector",
+              "note-ink-body",
+              "note-ink-fleck",
+              "annotation"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "margin-notes-dark",
+      "design": "margin-notes",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Margin Notes",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Review and annotation surfaces; a green margin gesture connects the notes.",
+      "master": "illustrations/margin-notes-dark.vixl",
+      "recipe": "illustrations/margin-notes-dark.recipe.json",
+      "preview": "illustrations/margin-notes-dark.png",
+      "vector": "illustrations/margin-notes-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 16,
+          "layers_total": 16,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 15,
+            "layers": [
+              "draft",
+              "draft-line-0",
+              "draft-line-1",
+              "draft-line-2",
+              "draft-line-3",
+              "draft-line-4",
+              "draft-line-5",
+              "draft-line-6",
+              "note",
+              "note-line-0",
+              "note-line-1",
+              "note-connector",
+              "note-ink-body",
+              "note-ink-fleck",
+              "annotation"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "loop-bound-book-light",
+      "design": "loop-bound-book",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Loop Bound Book",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Reading, chapters, or long-form writing, with the logo's green loop beneath the page.",
+      "master": "illustrations/loop-bound-book-light.vixl",
+      "recipe": "illustrations/loop-bound-book-light.recipe.json",
+      "preview": "illustrations/loop-bound-book-light.png",
+      "vector": "illustrations/loop-bound-book-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "book",
+              "book-text-0-0",
+              "book-text-0-1",
+              "book-text-0-2",
+              "book-text-0-3",
+              "book-text-1-0",
+              "book-text-1-1",
+              "book-text-1-2",
+              "book-text-1-3",
+              "book-signature",
+              "book-ink-body",
+              "book-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "loop-bound-book-dark",
+      "design": "loop-bound-book",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Loop Bound Book",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Reading, chapters, or long-form writing, with the logo's green loop beneath the page.",
+      "master": "illustrations/loop-bound-book-dark.vixl",
+      "recipe": "illustrations/loop-bound-book-dark.recipe.json",
+      "preview": "illustrations/loop-bound-book-dark.png",
+      "vector": "illustrations/loop-bound-book-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "book",
+              "book-text-0-0",
+              "book-text-0-1",
+              "book-text-0-2",
+              "book-text-0-3",
+              "book-text-1-0",
+              "book-text-1-1",
+              "book-text-1-2",
+              "book-text-1-3",
+              "book-signature",
+              "book-ink-body",
+              "book-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "author-workbench-light",
+      "design": "author-workbench",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Author Workbench",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Writing at work: a hand, pen, working page, and one signature ink mark.",
+      "master": "illustrations/author-workbench-light.vixl",
+      "recipe": "illustrations/author-workbench-light.recipe.json",
+      "preview": "illustrations/author-workbench-light.png",
+      "vector": "illustrations/author-workbench-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 14,
+          "layers_total": 14,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 13,
+            "layers": [
+              "working-page",
+              "working-page-line-0",
+              "working-page-line-1",
+              "working-page-line-2",
+              "working-page-line-3",
+              "working-page-line-4",
+              "working-page-line-5",
+              "working-page-line-6",
+              "hand",
+              "pen",
+              "desk-line",
+              "working-ink-body",
+              "working-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "author-workbench-dark",
+      "design": "author-workbench",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Author Workbench",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Writing at work: a hand, pen, working page, and one signature ink mark.",
+      "master": "illustrations/author-workbench-dark.vixl",
+      "recipe": "illustrations/author-workbench-dark.recipe.json",
+      "preview": "illustrations/author-workbench-dark.png",
+      "vector": "illustrations/author-workbench-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 14,
+          "layers_total": 14,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 13,
+            "layers": [
+              "working-page",
+              "working-page-line-0",
+              "working-page-line-1",
+              "working-page-line-2",
+              "working-page-line-3",
+              "working-page-line-4",
+              "working-page-line-5",
+              "working-page-line-6",
+              "hand",
+              "pen",
+              "desk-line",
+              "working-ink-body",
+              "working-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "idea-on-paper-light",
+      "design": "idea-on-paper",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Idea On Paper",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "A quiet idea or template illustration made from working notes.",
+      "master": "illustrations/idea-on-paper-light.vixl",
+      "recipe": "illustrations/idea-on-paper-light.recipe.json",
+      "preview": "illustrations/idea-on-paper-light.png",
+      "vector": "illustrations/idea-on-paper-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 16,
+          "layers_total": 16,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 15,
+            "layers": [
+              "idea-back",
+              "idea-back-line-0",
+              "idea-back-line-1",
+              "idea-back-line-2",
+              "idea-back-line-3",
+              "idea-front",
+              "idea-front-line-0",
+              "idea-front-line-1",
+              "idea-front-line-2",
+              "idea-front-line-3",
+              "idea-front-line-4",
+              "idea-gesture",
+              "idea-ink-body",
+              "idea-ink-fleck",
+              "folded-corner"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "idea-on-paper-dark",
+      "design": "idea-on-paper",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Idea On Paper",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "A quiet idea or template illustration made from working notes.",
+      "master": "illustrations/idea-on-paper-dark.vixl",
+      "recipe": "illustrations/idea-on-paper-dark.recipe.json",
+      "preview": "illustrations/idea-on-paper-dark.png",
+      "vector": "illustrations/idea-on-paper-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 16,
+          "layers_total": 16,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 15,
+            "layers": [
+              "idea-back",
+              "idea-back-line-0",
+              "idea-back-line-1",
+              "idea-back-line-2",
+              "idea-back-line-3",
+              "idea-front",
+              "idea-front-line-0",
+              "idea-front-line-1",
+              "idea-front-line-2",
+              "idea-front-line-3",
+              "idea-front-line-4",
+              "idea-gesture",
+              "idea-ink-body",
+              "idea-ink-fleck",
+              "folded-corner"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "local-copy-light",
+      "design": "local-copy",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Local Copy",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Local document artwork; pair with a textual privacy or storage explanation.",
+      "master": "illustrations/local-copy-light.vixl",
+      "recipe": "illustrations/local-copy-light.recipe.json",
+      "preview": "illustrations/local-copy-light.png",
+      "vector": "illustrations/local-copy-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "local-draft",
+              "local-draft-line-0",
+              "local-draft-line-1",
+              "local-draft-line-2",
+              "local-draft-line-3",
+              "local-draft-line-4",
+              "local-draft-line-5",
+              "shield",
+              "lock",
+              "key-ink-body",
+              "key-ink-fleck",
+              "local-signature"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "local-copy-dark",
+      "design": "local-copy",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Local Copy",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Local document artwork; pair with a textual privacy or storage explanation.",
+      "master": "illustrations/local-copy-dark.vixl",
+      "recipe": "illustrations/local-copy-dark.recipe.json",
+      "preview": "illustrations/local-copy-dark.png",
+      "vector": "illustrations/local-copy-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "local-draft",
+              "local-draft-line-0",
+              "local-draft-line-1",
+              "local-draft-line-2",
+              "local-draft-line-3",
+              "local-draft-line-4",
+              "local-draft-line-5",
+              "shield",
+              "lock",
+              "key-ink-body",
+              "key-ink-fleck",
+              "local-signature"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "revision-pages-light",
+      "design": "revision-pages",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Revision Pages",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Revisions, comparisons, or history; handwritten green annotation on working pages.",
+      "master": "illustrations/revision-pages-light.vixl",
+      "recipe": "illustrations/revision-pages-light.recipe.json",
+      "preview": "illustrations/revision-pages-light.png",
+      "vector": "illustrations/revision-pages-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 20,
+          "layers_total": 20,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 19,
+            "layers": [
+              "before",
+              "before-line-0",
+              "before-line-1",
+              "before-line-2",
+              "before-line-3",
+              "before-line-4",
+              "before-line-5",
+              "after",
+              "after-line-0",
+              "after-line-1",
+              "after-line-2",
+              "after-line-3",
+              "after-line-4",
+              "after-line-5",
+              "after-line-6",
+              "edit-strike",
+              "revision-link",
+              "revision-ink-body",
+              "revision-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "revision-pages-dark",
+      "design": "revision-pages",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Revision Pages",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Revisions, comparisons, or history; handwritten green annotation on working pages.",
+      "master": "illustrations/revision-pages-dark.vixl",
+      "recipe": "illustrations/revision-pages-dark.recipe.json",
+      "preview": "illustrations/revision-pages-dark.png",
+      "vector": "illustrations/revision-pages-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 20,
+          "layers_total": 20,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 19,
+            "layers": [
+              "before",
+              "before-line-0",
+              "before-line-1",
+              "before-line-2",
+              "before-line-3",
+              "before-line-4",
+              "before-line-5",
+              "after",
+              "after-line-0",
+              "after-line-1",
+              "after-line-2",
+              "after-line-3",
+              "after-line-4",
+              "after-line-5",
+              "after-line-6",
+              "edit-strike",
+              "revision-link",
+              "revision-ink-body",
+              "revision-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "ready-to-share-light",
+      "design": "ready-to-share",
+      "category": "illustrations",
+      "theme": "light",
+      "title": "Ready To Share",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Export or completion artwork with one green editorial gesture.",
+      "master": "illustrations/ready-to-share-light.vixl",
+      "recipe": "illustrations/ready-to-share-light.recipe.json",
+      "preview": "illustrations/ready-to-share-light.png",
+      "vector": "illustrations/ready-to-share-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "finished-page",
+              "finished-page-line-0",
+              "finished-page-line-1",
+              "finished-page-line-2",
+              "finished-page-line-3",
+              "finished-page-line-4",
+              "finished-page-line-5",
+              "finished-page-line-6",
+              "hand-check",
+              "share-signature",
+              "share-ink-body",
+              "share-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "ready-to-share-dark",
+      "design": "ready-to-share",
+      "category": "illustrations",
+      "theme": "dark",
+      "title": "Ready To Share",
+      "width": 640,
+      "height": 480,
+      "transparent": true,
+      "use": "Export or completion artwork with one green editorial gesture.",
+      "master": "illustrations/ready-to-share-dark.vixl",
+      "recipe": "illustrations/ready-to-share-dark.recipe.json",
+      "preview": "illustrations/ready-to-share-dark.png",
+      "vector": "illustrations/ready-to-share-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "finished-page",
+              "finished-page-line-0",
+              "finished-page-line-1",
+              "finished-page-line-2",
+              "finished-page-line-3",
+              "finished-page-line-4",
+              "finished-page-line-5",
+              "finished-page-line-6",
+              "hand-check",
+              "share-signature",
+              "share-ink-body",
+              "share-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "ink-blot-loader-light",
+      "design": "ink-blot-loader",
+      "category": "animations",
+      "theme": "light",
+      "title": "Ink Blot Loader",
+      "width": 112,
+      "height": 56,
+      "transparent": true,
+      "use": "Compact indeterminate loading from the actual red ink blot and its fleck.",
+      "master": "animations/ink-blot-loader-light.vixl",
+      "recipe": "animations/ink-blot-loader-light.recipe.json",
+      "preview": "animations/ink-blot-loader-light.png",
+      "vector": "animations/ink-blot-loader-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 3,
+          "layers_total": 3,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 2,
+            "layers": [
+              "ink-body",
+              "ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "animation": "animations/ink-blot-loader-light.webp",
+      "reduced_motion": "animations/ink-blot-loader-light.png",
+      "apng": "animations/ink-blot-loader-light.apng",
+      "gif": "animations/ink-blot-loader-light.gif",
+      "on_complete": null,
+      "family": "logo-companions"
+    },
+    {
+      "id": "ink-blot-loader-dark",
+      "design": "ink-blot-loader",
+      "category": "animations",
+      "theme": "dark",
+      "title": "Ink Blot Loader",
+      "width": 112,
+      "height": 56,
+      "transparent": true,
+      "use": "Compact indeterminate loading from the actual red ink blot and its fleck.",
+      "master": "animations/ink-blot-loader-dark.vixl",
+      "recipe": "animations/ink-blot-loader-dark.recipe.json",
+      "preview": "animations/ink-blot-loader-dark.png",
+      "vector": "animations/ink-blot-loader-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 3,
+          "layers_total": 3,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 2,
+            "layers": [
+              "ink-body",
+              "ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "animation": "animations/ink-blot-loader-dark.webp",
+      "reduced_motion": "animations/ink-blot-loader-dark.png",
+      "apng": "animations/ink-blot-loader-dark.apng",
+      "gif": "animations/ink-blot-loader-dark.gif",
+      "on_complete": null,
+      "family": "logo-companions"
+    },
+    {
+      "id": "pen-loop-wait-light",
+      "design": "pen-loop-wait",
+      "category": "animations",
+      "theme": "light",
+      "title": "Pen Loop — Write and Erase",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "The original green pen loop writes itself, holds, and erases in the writing direction.",
+      "master": "animations/pen-loop-wait-light.vixl",
+      "recipe": "animations/pen-loop-wait-light.recipe.json",
+      "preview": "animations/pen-loop-wait-light.png",
+      "vector": "animations/pen-loop-wait-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "waiting-loop",
+              "waiting-ink-body",
+              "waiting-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "poster_time_ms": 1200,
+      "animation": "animations/pen-loop-wait-light.webp",
+      "reduced_motion": "animations/pen-loop-wait-light.png",
+      "apng": "animations/pen-loop-wait-light.apng",
+      "gif": "animations/pen-loop-wait-light.gif",
+      "on_complete": null,
+      "family": "logo-companions",
+      "motion_behavior": "write-erase"
+    },
+    {
+      "id": "pen-loop-wait-dark",
+      "design": "pen-loop-wait",
+      "category": "animations",
+      "theme": "dark",
+      "title": "Pen Loop — Write and Erase",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "The original green pen loop writes itself, holds, and erases in the writing direction.",
+      "master": "animations/pen-loop-wait-dark.vixl",
+      "recipe": "animations/pen-loop-wait-dark.recipe.json",
+      "preview": "animations/pen-loop-wait-dark.png",
+      "vector": "animations/pen-loop-wait-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "waiting-loop",
+              "waiting-ink-body",
+              "waiting-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "poster_time_ms": 1200,
+      "animation": "animations/pen-loop-wait-dark.webp",
+      "reduced_motion": "animations/pen-loop-wait-dark.png",
+      "apng": "animations/pen-loop-wait-dark.apng",
+      "gif": "animations/pen-loop-wait-dark.gif",
+      "on_complete": null,
+      "family": "logo-companions",
+      "motion_behavior": "write-erase"
+    },
+    {
+      "id": "reading-breath-light",
+      "design": "reading-breath",
+      "category": "animations",
+      "theme": "light",
+      "title": "Reading — Write and Erase",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "Book lines and the signature underline write themselves, hold, and erase.",
+      "master": "animations/reading-breath-light.vixl",
+      "recipe": "animations/reading-breath-light.recipe.json",
+      "preview": "animations/reading-breath-light.png",
+      "vector": "animations/reading-breath-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "reading",
+              "reading-text-0-0",
+              "reading-text-0-1",
+              "reading-text-0-2",
+              "reading-text-0-3",
+              "reading-text-1-0",
+              "reading-text-1-1",
+              "reading-text-1-2",
+              "reading-text-1-3",
+              "reading-gesture",
+              "reading-ink-body",
+              "reading-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "poster_time_ms": 1200,
+      "animation": "animations/reading-breath-light.webp",
+      "reduced_motion": "animations/reading-breath-light.png",
+      "apng": "animations/reading-breath-light.apng",
+      "gif": "animations/reading-breath-light.gif",
+      "on_complete": null,
+      "family": "logo-companions",
+      "motion_behavior": "write-erase"
+    },
+    {
+      "id": "reading-breath-dark",
+      "design": "reading-breath",
+      "category": "animations",
+      "theme": "dark",
+      "title": "Reading — Write and Erase",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "Book lines and the signature underline write themselves, hold, and erase.",
+      "master": "animations/reading-breath-dark.vixl",
+      "recipe": "animations/reading-breath-dark.recipe.json",
+      "preview": "animations/reading-breath-dark.png",
+      "vector": "animations/reading-breath-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 13,
+          "layers_total": 13,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 12,
+            "layers": [
+              "reading",
+              "reading-text-0-0",
+              "reading-text-0-1",
+              "reading-text-0-2",
+              "reading-text-0-3",
+              "reading-text-1-0",
+              "reading-text-1-1",
+              "reading-text-1-2",
+              "reading-text-1-3",
+              "reading-gesture",
+              "reading-ink-body",
+              "reading-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "poster_time_ms": 1200,
+      "animation": "animations/reading-breath-dark.webp",
+      "reduced_motion": "animations/reading-breath-dark.png",
+      "apng": "animations/reading-breath-dark.apng",
+      "gif": "animations/reading-breath-dark.gif",
+      "on_complete": null,
+      "family": "logo-companions",
+      "motion_behavior": "write-erase"
+    },
+    {
+      "id": "margin-review-light",
+      "design": "margin-review",
+      "category": "animations",
+      "theme": "light",
+      "title": "Margin Review — Write and Erase",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "Review in progress; the original green margin stroke writes and erases in place.",
+      "master": "animations/margin-review-light.vixl",
+      "recipe": "animations/margin-review-light.recipe.json",
+      "preview": "animations/margin-review-light.png",
+      "vector": "animations/margin-review-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 9,
+          "layers_total": 9,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 8,
+            "layers": [
+              "review-page",
+              "review-page-line-0",
+              "review-page-line-1",
+              "review-page-line-2",
+              "review-page-line-3",
+              "margin-loop",
+              "review-ink-body",
+              "review-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "poster_time_ms": 1200,
+      "animation": "animations/margin-review-light.webp",
+      "reduced_motion": "animations/margin-review-light.png",
+      "apng": "animations/margin-review-light.apng",
+      "gif": "animations/margin-review-light.gif",
+      "on_complete": null,
+      "family": "logo-companions",
+      "motion_behavior": "write-erase"
+    },
+    {
+      "id": "margin-review-dark",
+      "design": "margin-review",
+      "category": "animations",
+      "theme": "dark",
+      "title": "Margin Review — Write and Erase",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "Review in progress; the original green margin stroke writes and erases in place.",
+      "master": "animations/margin-review-dark.vixl",
+      "recipe": "animations/margin-review-dark.recipe.json",
+      "preview": "animations/margin-review-dark.png",
+      "vector": "animations/margin-review-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 9,
+          "layers_total": 9,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 8,
+            "layers": [
+              "review-page",
+              "review-page-line-0",
+              "review-page-line-1",
+              "review-page-line-2",
+              "review-page-line-3",
+              "margin-loop",
+              "review-ink-body",
+              "review-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 2400,
+      "fps": 24,
+      "loop": true,
+      "poster_time_ms": 1200,
+      "animation": "animations/margin-review-dark.webp",
+      "reduced_motion": "animations/margin-review-dark.png",
+      "apng": "animations/margin-review-dark.apng",
+      "gif": "animations/margin-review-dark.gif",
+      "on_complete": null,
+      "family": "logo-companions",
+      "motion_behavior": "write-erase"
+    },
+    {
+      "id": "saved-ink-light",
+      "design": "saved-ink",
+      "category": "animations",
+      "theme": "light",
+      "title": "Saved — Draw the Check",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "A 180 ms save confirmation draws the checkmark; hold the completed pose after one play.",
+      "master": "animations/saved-ink-light.vixl",
+      "recipe": "animations/saved-ink-light.recipe.json",
+      "preview": "animations/saved-ink-light.png",
+      "vector": "animations/saved-ink-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 8,
+          "layers_total": 8,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 7,
+            "layers": [
+              "saved-page",
+              "saved-page-line-0",
+              "saved-page-line-1",
+              "saved-page-line-2",
+              "save-check",
+              "saved-ink-body",
+              "saved-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 180,
+      "fps": 24,
+      "loop": false,
+      "poster_time_ms": 180,
+      "animation": "animations/saved-ink-light.webp",
+      "reduced_motion": "animations/saved-ink-light.png",
+      "apng": "animations/saved-ink-light.apng",
+      "gif": "animations/saved-ink-light.gif",
+      "on_complete": "hold-last-frame",
+      "family": "logo-companions",
+      "motion_behavior": "write-once"
+    },
+    {
+      "id": "saved-ink-dark",
+      "design": "saved-ink",
+      "category": "animations",
+      "theme": "dark",
+      "title": "Saved — Draw the Check",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "A 180 ms save confirmation draws the checkmark; hold the completed pose after one play.",
+      "master": "animations/saved-ink-dark.vixl",
+      "recipe": "animations/saved-ink-dark.recipe.json",
+      "preview": "animations/saved-ink-dark.png",
+      "vector": "animations/saved-ink-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 8,
+          "layers_total": 8,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 7,
+            "layers": [
+              "saved-page",
+              "saved-page-line-0",
+              "saved-page-line-1",
+              "saved-page-line-2",
+              "save-check",
+              "saved-ink-body",
+              "saved-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 180,
+      "fps": 24,
+      "loop": false,
+      "poster_time_ms": 180,
+      "animation": "animations/saved-ink-dark.webp",
+      "reduced_motion": "animations/saved-ink-dark.png",
+      "apng": "animations/saved-ink-dark.apng",
+      "gif": "animations/saved-ink-dark.gif",
+      "on_complete": "hold-last-frame",
+      "family": "logo-companions",
+      "motion_behavior": "write-once"
+    },
+    {
+      "id": "signature-settle-light",
+      "design": "signature-settle",
+      "category": "animations",
+      "theme": "light",
+      "title": "Signature — Write Once",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "The original pen gesture writes itself once in 180 ms for an explicit reveal.",
+      "master": "animations/signature-settle-light.vixl",
+      "recipe": "animations/signature-settle-light.recipe.json",
+      "preview": "animations/signature-settle-light.png",
+      "vector": "animations/signature-settle-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "settling-pen",
+              "settling-ink-body",
+              "settling-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 180,
+      "fps": 24,
+      "loop": false,
+      "poster_time_ms": 180,
+      "animation": "animations/signature-settle-light.webp",
+      "reduced_motion": "animations/signature-settle-light.png",
+      "apng": "animations/signature-settle-light.apng",
+      "gif": "animations/signature-settle-light.gif",
+      "on_complete": "hold-last-frame",
+      "family": "logo-companions",
+      "motion_behavior": "write-once"
+    },
+    {
+      "id": "signature-settle-dark",
+      "design": "signature-settle",
+      "category": "animations",
+      "theme": "dark",
+      "title": "Signature — Write Once",
+      "width": 320,
+      "height": 224,
+      "transparent": true,
+      "use": "The original pen gesture writes itself once in 180 ms for an explicit reveal.",
+      "master": "animations/signature-settle-dark.vixl",
+      "recipe": "animations/signature-settle-dark.recipe.json",
+      "preview": "animations/signature-settle-dark.png",
+      "vector": "animations/signature-settle-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "webp",
+        "apng",
+        "gif",
+        "sheet.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "settling-pen",
+              "settling-ink-body",
+              "settling-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "duration_ms": 180,
+      "fps": 24,
+      "loop": false,
+      "poster_time_ms": 180,
+      "animation": "animations/signature-settle-dark.webp",
+      "reduced_motion": "animations/signature-settle-dark.png",
+      "apng": "animations/signature-settle-dark.apng",
+      "gif": "animations/signature-settle-dark.gif",
+      "on_complete": "hold-last-frame",
+      "family": "logo-companions",
+      "motion_behavior": "write-once"
+    },
+    {
+      "id": "signature-underline-light",
+      "design": "signature-underline",
+      "category": "decorations",
+      "theme": "light",
+      "title": "Signature Underline",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/signature-underline-light.vixl",
+      "recipe": "decorations/signature-underline-light.recipe.json",
+      "preview": "decorations/signature-underline-light.png",
+      "vector": "decorations/signature-underline-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "underline",
+              "underline-ink-body",
+              "underline-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "signature-underline-dark",
+      "design": "signature-underline",
+      "category": "decorations",
+      "theme": "dark",
+      "title": "Signature Underline",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/signature-underline-dark.vixl",
+      "recipe": "decorations/signature-underline-dark.recipe.json",
+      "preview": "decorations/signature-underline-dark.png",
+      "vector": "decorations/signature-underline-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "underline",
+              "underline-ink-body",
+              "underline-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "loop-corner-light",
+      "design": "loop-corner",
+      "category": "decorations",
+      "theme": "light",
+      "title": "Loop Corner",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/loop-corner-light.vixl",
+      "recipe": "decorations/loop-corner-light.recipe.json",
+      "preview": "decorations/loop-corner-light.png",
+      "vector": "decorations/loop-corner-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "corner-loop",
+              "corner-ink-body",
+              "corner-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "loop-corner-dark",
+      "design": "loop-corner",
+      "category": "decorations",
+      "theme": "dark",
+      "title": "Loop Corner",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/loop-corner-dark.vixl",
+      "recipe": "decorations/loop-corner-dark.recipe.json",
+      "preview": "decorations/loop-corner-dark.png",
+      "vector": "decorations/loop-corner-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "corner-loop",
+              "corner-ink-body",
+              "corner-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "margin-gesture-light",
+      "design": "margin-gesture",
+      "category": "decorations",
+      "theme": "light",
+      "title": "Margin Gesture",
+      "width": 320,
+      "height": 560,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/margin-gesture-light.vixl",
+      "recipe": "decorations/margin-gesture-light.recipe.json",
+      "preview": "decorations/margin-gesture-light.png",
+      "vector": "decorations/margin-gesture-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 1,
+          "layers_total": 1,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 1,
+            "layers": [
+              "margin-stroke"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "margin-gesture-dark",
+      "design": "margin-gesture",
+      "category": "decorations",
+      "theme": "dark",
+      "title": "Margin Gesture",
+      "width": 320,
+      "height": 560,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/margin-gesture-dark.vixl",
+      "recipe": "decorations/margin-gesture-dark.recipe.json",
+      "preview": "decorations/margin-gesture-dark.png",
+      "vector": "decorations/margin-gesture-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 1,
+          "layers_total": 1,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 1,
+            "layers": [
+              "margin-stroke"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "chapter-stop-light",
+      "design": "chapter-stop",
+      "category": "decorations",
+      "theme": "light",
+      "title": "Chapter Stop",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/chapter-stop-light.vixl",
+      "recipe": "decorations/chapter-stop-light.recipe.json",
+      "preview": "decorations/chapter-stop-light.png",
+      "vector": "decorations/chapter-stop-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "chapter-rule-left",
+              "chapter-rule-right",
+              "chapter-ink-body",
+              "chapter-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "chapter-stop-dark",
+      "design": "chapter-stop",
+      "category": "decorations",
+      "theme": "dark",
+      "title": "Chapter Stop",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/chapter-stop-dark.vixl",
+      "recipe": "decorations/chapter-stop-dark.recipe.json",
+      "preview": "decorations/chapter-stop-dark.png",
+      "vector": "decorations/chapter-stop-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "chapter-rule-left",
+              "chapter-rule-right",
+              "chapter-ink-body",
+              "chapter-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "author-seal-light",
+      "design": "author-seal",
+      "category": "decorations",
+      "theme": "light",
+      "title": "Author Seal",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/author-seal-light.vixl",
+      "recipe": "decorations/author-seal-light.recipe.json",
+      "preview": "decorations/author-seal-light.png",
+      "vector": "decorations/author-seal-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 6,
+          "layers_total": 6,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 5,
+            "layers": [
+              "seal-border",
+              "supplied-mark-X-fall",
+              "supplied-mark-X-rise",
+              "supplied-mark-loop",
+              "supplied-mark-ink-dot"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "author-seal-dark",
+      "design": "author-seal",
+      "category": "decorations",
+      "theme": "dark",
+      "title": "Author Seal",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/author-seal-dark.vixl",
+      "recipe": "decorations/author-seal-dark.recipe.json",
+      "preview": "decorations/author-seal-dark.png",
+      "vector": "decorations/author-seal-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 6,
+          "layers_total": 6,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 5,
+            "layers": [
+              "seal-border",
+              "supplied-mark-X-fall",
+              "supplied-mark-X-rise",
+              "supplied-mark-loop",
+              "supplied-mark-ink-dot"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "ink-emphasis-light",
+      "design": "ink-emphasis",
+      "category": "decorations",
+      "theme": "light",
+      "title": "Ink Emphasis",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/ink-emphasis-light.vixl",
+      "recipe": "decorations/ink-emphasis-light.recipe.json",
+      "preview": "decorations/ink-emphasis-light.png",
+      "vector": "decorations/ink-emphasis-light.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "emphasis",
+              "emphasis-ink-body",
+              "emphasis-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "ink-emphasis-dark",
+      "design": "ink-emphasis",
+      "category": "decorations",
+      "theme": "dark",
+      "title": "Ink Emphasis",
+      "width": 640,
+      "height": 320,
+      "transparent": true,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "decorations/ink-emphasis-dark.vixl",
+      "recipe": "decorations/ink-emphasis-dark.recipe.json",
+      "preview": "decorations/ink-emphasis-dark.png",
+      "vector": "decorations/ink-emphasis-dark.svg",
+      "exports": [
+        "svg",
+        "png",
+        "@2x.png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "emphasis",
+              "emphasis-ink-body",
+              "emphasis-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "manuscript-paper",
+      "design": "manuscript-paper",
+      "category": "backgrounds",
+      "theme": "universal",
+      "title": "Manuscript Paper",
+      "width": 1600,
+      "height": 900,
+      "transparent": false,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "backgrounds/manuscript-paper.vixl",
+      "recipe": "backgrounds/manuscript-paper.recipe.json",
+      "preview": "backgrounds/manuscript-paper.png",
+      "vector": "backgrounds/manuscript-paper.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "footer-signature",
+              "footer-ink-body",
+              "footer-ink-fleck",
+              "editorial-rule"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "green-margin",
+      "design": "green-margin",
+      "category": "backgrounds",
+      "theme": "universal",
+      "title": "Green Margin",
+      "width": 1600,
+      "height": 900,
+      "transparent": false,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "backgrounds/green-margin.vixl",
+      "recipe": "backgrounds/green-margin.recipe.json",
+      "preview": "backgrounds/green-margin.png",
+      "vector": "backgrounds/green-margin.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 16,
+          "layers_total": 16,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 15,
+            "layers": [
+              "margin-page",
+              "margin-page-line-0",
+              "margin-page-line-1",
+              "margin-page-line-2",
+              "margin-page-line-3",
+              "margin-page-line-4",
+              "margin-page-line-5",
+              "margin-page-line-6",
+              "margin-page-line-7",
+              "margin-page-line-8",
+              "margin-page-line-9",
+              "margin-page-line-10",
+              "margin-signature",
+              "margin-ink-body",
+              "margin-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "midnight-signature",
+      "design": "midnight-signature",
+      "category": "backgrounds",
+      "theme": "universal",
+      "title": "Midnight Signature",
+      "width": 1600,
+      "height": 900,
+      "transparent": false,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "backgrounds/midnight-signature.vixl",
+      "recipe": "backgrounds/midnight-signature.recipe.json",
+      "preview": "backgrounds/midnight-signature.png",
+      "vector": "backgrounds/midnight-signature.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "midnight-gesture",
+              "midnight-ink-body",
+              "midnight-ink-fleck",
+              "midnight-rule"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    },
+    {
+      "id": "editorial-frame",
+      "design": "editorial-frame",
+      "category": "backgrounds",
+      "theme": "universal",
+      "title": "Editorial Frame",
+      "width": 1600,
+      "height": 900,
+      "transparent": false,
+      "use": "Reusable logo-led editorial artwork for app or marketing.",
+      "master": "backgrounds/editorial-frame.vixl",
+      "recipe": "backgrounds/editorial-frame.recipe.json",
+      "preview": "backgrounds/editorial-frame.png",
+      "vector": "backgrounds/editorial-frame.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "8c9401faa75ff0d3856fc2996e7d837e2296b89b45f8d7650fe01388657c57b2",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "editorial-edge",
+              "frame-signature",
+              "frame-ink-body",
+              "frame-ink-fleck"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "export_warnings": [],
+      "family": "logo-companions"
+    }
+  ]
+}

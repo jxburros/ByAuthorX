@@ -1,0 +1,2 @@
+# Authoring dependency only. Pin the downloaded GitHub source used for this pack.
+vixl-engine @ git+https://github.com/jxburros/Vixl.git@afaee339bfc2fa7959c8b6399dc0740f6023bc86

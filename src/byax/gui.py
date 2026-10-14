@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QFileDialog,
     QFontComboBox,
     QFormLayout,
+    QHBoxLayout,
     QInputDialog,
     QLabel,
     QLineEdit,
@@ -38,6 +39,7 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
+    QSizePolicy,
     QStackedWidget,
     QTabWidget,
     QToolBar,
@@ -49,6 +51,7 @@ from PySide6.QtWidgets import (
 
 from . import engine, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
+from .gui_art import ActivityGraphic, EmptyPanel
 from .gui_editor import PageCanvas, SemanticEditor
 from .gui_motion import MotionController, PenLineAnimation
 
@@ -93,6 +96,7 @@ class MainWindow(QMainWindow):
         self._undo = []
         self._redo = []
         self._workers = set()
+        self._active_tasks = {}
         self._last_report = None
         self._recording = None
         self.recovery_dir = user_data_path('ByAuthorX') / 'recovery'
@@ -147,7 +151,26 @@ class MainWindow(QMainWindow):
         scroll.setWidget(self.pages)
         scroll.setAlignment(Qt.AlignHCenter)
         self.stack.addWidget(scroll)
-        self.setCentralWidget(self.stack)
+        workspace = QWidget()
+        workspace.setObjectName('writingWorkspace')
+        workspace_layout = QVBoxLayout(workspace)
+        workspace_layout.setContentsMargins(24, 16, 24, 24)
+        workspace_layout.setSpacing(12)
+        document_bar = QHBoxLayout()
+        document_bar.setSpacing(16)
+        self.document_title = QLabel()
+        self.document_title.setObjectName('documentTitle')
+        self.document_title.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Preferred)
+        document_bar.addWidget(self.document_title, 1)
+        self.document_state = QLabel()
+        self.document_state.setObjectName('documentState')
+        document_bar.addWidget(self.document_state)
+        self.view_label = QLabel('Writing view')
+        self.view_label.setObjectName('workspaceView')
+        document_bar.addWidget(self.view_label)
+        workspace_layout.addLayout(document_bar)
+        workspace_layout.addWidget(self.stack, 1)
+        self.setCentralWidget(workspace)
         for title, slot, key in [('Undo', self.undo, QKeySequence.Undo), ('Redo', self.redo, QKeySequence.Redo),
                                  ('Cut', self.editor.cut, QKeySequence.Cut), ('Copy', self.editor.copy, QKeySequence.Copy),
                                  ('Paste', self.editor.paste, QKeySequence.Paste), ('Select all', self.editor.selectAll, QKeySequence.SelectAll),
@@ -162,8 +185,11 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         self.style_box = QComboBox()
         self.style_box.setAccessibleName('Paragraph style')
-        self.style_box.addItems(['body', 'title', 'subtitle', 'heading1', 'heading2', 'heading3', 'quotation', 'caption', 'code'])
-        self.style_box.activated.connect(lambda: self.apply_style(self.style_box.currentText()))
+        for key, label in [('body', 'Body'), ('title', 'Title'), ('subtitle', 'Subtitle'),
+                           ('heading1', 'Heading 1'), ('heading2', 'Heading 2'), ('heading3', 'Heading 3'),
+                           ('quotation', 'Quotation'), ('caption', 'Caption'), ('code', 'Code')]:
+            self.style_box.addItem(label, key)
+        self.style_box.activated.connect(lambda: self.apply_style(self.style_box.currentData() or self.style_box.currentText()))
         toolbar.addWidget(self.style_box)
         toolbar.addSeparator()
         for label, mark, shortcut in [('Bold', 'bold', 'Ctrl+B'), ('Italic', 'italic', 'Ctrl+I'), ('Underline', 'underline', 'Ctrl+U')]:
@@ -230,8 +256,12 @@ class MainWindow(QMainWindow):
         self.outline.setAccessibleName('Document outline')
         self.outline.itemActivated.connect(lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole)))
         self.outline.itemClicked.connect(lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole)))
-        outline_dock = QDockWidget('DOCUMENT', self)
-        outline_dock.setWidget(self.outline)
+        self.outline_stack = QStackedWidget()
+        self.outline_stack.addWidget(self.outline)
+        self.outline_stack.addWidget(EmptyPanel('Your document outline',
+                                              'Headings, tables, images, and bookmarks appear here.'))
+        outline_dock = QDockWidget('Outline', self)
+        outline_dock.setWidget(self.outline_stack)
         outline_dock.setMinimumWidth(195)
         self.addDockWidget(Qt.LeftDockWidgetArea, outline_dock)
         self.inspector = QTabWidget()
@@ -241,28 +271,45 @@ class MainWindow(QMainWindow):
         self.review_list.itemActivated.connect(self.review_item)
         review = QWidget()
         rv = QVBoxLayout(review)
-        rv.addWidget(self.review_list)
+        rv.setContentsMargins(8, 12, 8, 12)
+        rv.setSpacing(8)
+        self.review_stack = QStackedWidget()
+        self.review_stack.addWidget(self.review_list)
+        self.review_stack.addWidget(EmptyPanel('No open review items',
+            'Comments, suggested edits, and check results appear here.',
+            graphic='ui/review-empty.png', action=('Run document checks', self.run_checks)))
+        rv.addWidget(self.review_stack)
+        self.review_buttons = []
         for label, slot in [('Open selected item', self.review_item), ('Reply to comment…', self.reply_comment), ('Resolve / accept…', self.accept_item), ('Reject proposal', self.reject_item)]:
             btn = QPushButton(label)
             if label == 'Resolve / accept…':
                 btn.setProperty('primary', True)
             btn.clicked.connect(slot)
             rv.addWidget(btn)
+            self.review_buttons.append(btn)
+        self.review_list.currentRowChanged.connect(self._sync_review_actions)
         self.inspector.addTab(review, 'Review')
         self.layer_list = QListWidget()
         self.layer_list.setAccessibleName('Document layers')
         layers = QWidget()
         ll = QVBoxLayout(layers)
-        ll.addWidget(self.layer_list)
+        ll.setContentsMargins(8, 12, 8, 12)
+        ll.setSpacing(8)
+        self.layer_stack = QStackedWidget()
+        self.layer_stack.addWidget(self.layer_list)
+        self.layer_stack.addWidget(EmptyPanel('No document layers',
+                                            'Add a watermark or a layer from the Insert menu.'))
+        ll.addWidget(self.layer_stack)
         for label, slot in [('Add layer…', self.add_layer), ('Show / hide', self.toggle_layer), ('Lock / unlock', self.lock_layer)]:
             button = QPushButton(label)
             button.clicked.connect(slot)
             ll.addWidget(button)
         self.inspector.addTab(layers, 'Layers')
-        inspector_dock = QDockWidget('INSPECT', self)
+        inspector_dock = QDockWidget('Inspector', self)
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(260)
         self.addDockWidget(Qt.RightDockWidgetArea, inspector_dock)
+        self.resizeDocks([outline_dock, inspector_dock], [230, 300], Qt.Horizontal)
         menus['&View'].addAction(outline_dock.toggleViewAction())
         menus['&View'].addAction(inspector_dock.toggleViewAction())
         for dock in (outline_dock, inspector_dock):
@@ -271,6 +318,13 @@ class MainWindow(QMainWindow):
                 lambda visible, widget=widget: self.motion.fade(widget) if visible else self.motion.finish(widget))
         self.inspector.currentChanged.connect(lambda index: self.motion.fade(self.inspector.widget(index)))
         self.status_label = QLabel('Ready')
+        self.activity_graphic = ActivityGraphic(self.motion, self)
+        self.activity_slot = QWidget()
+        self.activity_slot.setFixedSize(56, 28)
+        activity_layout = QHBoxLayout(self.activity_slot)
+        activity_layout.setContentsMargins(0, 0, 0, 0)
+        activity_layout.addWidget(self.activity_graphic, alignment=Qt.AlignCenter)
+        self.statusBar().addWidget(self.activity_slot)
         self.statusBar().addWidget(self.status_label, 1)
         self.word_label = QLabel()
         self.statusBar().addPermanentWidget(self.word_label)
@@ -414,38 +468,69 @@ class MainWindow(QMainWindow):
     def background(self, label, fn, done):
         worker = Worker(fn)
         self._workers.add(worker)
-        self.status_label.setText(label)
+        self._begin_activity(worker, label)
         def finish(result):
             self._workers.discard(worker)
-            self.status_label.setText('Ready')
+            self._end_activity(worker)
             done(result)
         def fail(error):
             self._workers.discard(worker)
-            self.status_label.setText('Task failed')
+            self._end_activity(worker, 'Task failed')
             self.error(error)
         worker.signals.done.connect(finish)
         worker.signals.failed.connect(fail)
         QThreadPool.globalInstance().start(worker)
+
+    def _begin_activity(self, token, label):
+        self._active_tasks[token] = label
+        self._sync_activity()
+
+    def _end_activity(self, token, message='Ready'):
+        self._active_tasks.pop(token, None)
+        self._sync_activity(message)
+
+    def _sync_activity(self, message='Ready'):
+        if self._active_tasks:
+            count = len(self._active_tasks)
+            label = next(reversed(self._active_tasks.values()))
+            self.status_label.setText(label if count == 1 else f'{count} tasks in progress · {label}')
+            self.activity_graphic.show_busy()
+        else:
+            self.activity_graphic.clear()
+            self.status_label.setText(message)
+
+    def _saved_feedback(self):
+        if not self._active_tasks:
+            self.status_label.setText('Saved locally')
+            self.activity_graphic.show_saved()
+            self.motion.fade(self.status_label)
 
     def start_job(self, kind, payload, worker, done):
         from .jobs import JobManager
         if not hasattr(self, 'job_manager'):
             self.job_manager = JobManager()
         job = self.job_manager.submit(kind, payload, worker)
-        self.status_label.setText(kind.title() + ' job running · ' + job['id'])
+        self._begin_activity(job['id'], kind.replace('_', ' ').title() + ' in progress…')
         timer = QTimer(self)
         timer.setInterval(350)
         def poll():
-            status = self.job_manager.status(job['id'], current_revision=self.doc['revision'])
-            if status['state'] in ('completed', 'failed', 'cancelled', 'uncertain'):
+            try:
+                status = self.job_manager.status(job['id'], current_revision=self.doc['revision'])
+                if status['state'] not in ('completed', 'failed', 'cancelled', 'uncertain'):
+                    return
                 timer.stop()
                 timer.deleteLater()
-                self.status_label.setText(kind.title() + ': ' + status['state'] + ' · Results available in Tools → Background jobs')
+                self._end_activity(job['id'], kind.title() + ': ' + status['state'] + ' · Results available in Tools → Background jobs')
                 recorded = self.job_manager.result(job['id'], current_revision=self.doc['revision'])
                 if status['state'] == 'completed':
                     done(recorded['result'])
                 elif status['state'] == 'failed':
                     self.error((status.get('error') or {}).get('message', 'Background job failed.'))
+            except Exception as exc:
+                timer.stop()
+                timer.deleteLater()
+                self._end_activity(job['id'], 'Task failed')
+                self.error(str(exc))
         timer.timeout.connect(poll)
         timer.start()
         return job
@@ -500,21 +585,47 @@ class MainWindow(QMainWindow):
                     show_replies(record)
         if self._last_report:
             for finding in self._last_report.get('findings', []):
+                if finding in self.doc['review'].get('findings', []):
+                    continue
                 self.review_list.addItem(finding.get('message') or finding.get('explanation') or str(finding.get('rule', 'Finding')))
                 self.review_list.item(self.review_list.count() - 1).setData(Qt.UserRole, ('findings', finding))
         self.layer_list.clear()
         for layer in self.doc.get('layers', []):
             self.layer_list.addItem(('● ' if layer.get('visible', True) else '○ ') + layer.get('name', 'Layer') + ('  🔒' if layer.get('locked') else ''))
             self.layer_list.item(self.layer_list.count() - 1).setData(Qt.UserRole, layer)
+        self.outline_stack.setCurrentIndex(0 if self.outline.topLevelItemCount() else 1)
+        self.review_stack.setCurrentIndex(0 if self.review_list.count() else 1)
+        self.layer_stack.setCurrentIndex(0 if self.layer_list.count() else 1)
+        self._sync_review_actions()
+
+    def _sync_review_actions(self, *_):
+        item = self.review_list.currentItem()
+        kind = item.data(Qt.UserRole)[0] if item else None
+        enabled = (bool(item), kind == 'comments', kind in ('comments', 'proposals', 'tracked_changes'),
+                   kind in ('proposals', 'tracked_changes'))
+        for button, available in zip(self.review_buttons, enabled):
+            button.setVisible(bool(self.review_list.count()))
+            button.setEnabled(available)
 
     def update_status(self):
         text = model.text_of(self.doc)
         words = len(text.split())
         self.word_label.setText(f'{words:,} words   ·   {len(text):,} characters   ·   {max(1, round(words / 225))} min read')
         self.setWindowTitle(f'{self.doc["metadata"].get("title", "Untitled")}{" •" if self.dirty else ""} — ByAuthorX')
+        title = self.doc['metadata'].get('title', 'Untitled')
+        self.document_title.setText(title)
+        self.document_title.setToolTip(title)
+        self.document_state.setText('Unsaved changes' if self.dirty else 'Saved locally' if self.path else 'New document')
 
     def selection_changed(self):
         if not hasattr(self, 'word_label'):
+            return
+        block = next((block for block in self.doc['blocks'] if block['id'] == self.editor.current_id()), None)
+        if block is not None:
+            index = self.style_box.findData(block.get('style', 'body'))
+            if index >= 0:
+                self.style_box.setCurrentIndex(index)
+        if self._active_tasks:
             return
         selection = self.editor.textCursor().selectedText()
         if selection:
@@ -681,8 +792,7 @@ class MainWindow(QMainWindow):
             self.dirty = False
             self.recovery_path().unlink(missing_ok=True)
             self.update_status()
-            self.status_label.setText('Saved locally')
-            self.motion.fade(self.status_label)
+            self._saved_feedback()
             return True
         except Exception as exc:
             self.error(exc)
@@ -711,6 +821,7 @@ class MainWindow(QMainWindow):
             self.recovery_path().unlink(missing_ok=True)
             self.add_recent(target)
             self.update_status()
+            self._saved_feedback()
             return True
         except Exception as exc:
             candidate_lock.release()
@@ -724,7 +835,8 @@ class MainWindow(QMainWindow):
         if self.dirty and self.flush_edits():
             try:
                 storage.save_document(self.doc, self.recovery_path(), owner=self.owner)
-                self.status_label.setText('Recovery copy saved')
+                if not self._active_tasks:
+                    self.status_label.setText('Recovery copy saved')
             except Exception as exc:
                 self.status_label.setText('Recovery copy failed: ' + str(exc))
 
@@ -1292,8 +1404,8 @@ class MainWindow(QMainWindow):
         form.addRow(buttons)
         if dialog.exec() and name.text().strip():
             self.commit([{'type': 'define_style', 'name': name.text().strip(), 'values': {'based_on': based_on.currentText(), 'font_family': font.currentFont().family(), 'font_size': size.value(), 'bold': bold.isChecked(), 'italic': italic.isChecked()}}])
-            if name.text().strip() in self.doc['styles'] and self.style_box.findText(name.text().strip()) == -1:
-                self.style_box.addItem(name.text().strip())
+            if name.text().strip() in self.doc['styles'] and self.style_box.findData(name.text().strip()) == -1:
+                self.style_box.addItem(name.text().strip(), name.text().strip())
 
     def add_comment(self):
         text, ok = QInputDialog.getMultiLineText(self, 'Add comment', 'Comment')
@@ -1595,11 +1707,15 @@ class MainWindow(QMainWindow):
         if self.stack.currentIndex() == 0:
             self.pages.set_document(self.editor.document(), self.doc)
             self.stack.setCurrentIndex(1)
-            self.status_label.setText('Print layout · Ctrl+Alt+L to return to writing')
+            self.view_label.setText('Page preview')
+            if not self._active_tasks:
+                self.status_label.setText('Print layout · Ctrl+Alt+L to return to writing')
         else:
             self.stack.setCurrentIndex(0)
             self.editor.setFocus()
-            self.status_label.setText('Writing view')
+            self.view_label.setText('Writing view')
+            if not self._active_tasks:
+                self.status_label.setText('Writing view')
         self.motion.fade(self.stack.currentWidget())
 
     def print_preview(self):

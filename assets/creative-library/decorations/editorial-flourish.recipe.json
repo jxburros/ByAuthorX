@@ -1,0 +1,50 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 320,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "editorial flourish"
+    },
+    {
+      "type": "shape",
+      "name": "flourish",
+      "shape": "path",
+      "x": 108,
+      "y": 120,
+      "width": 424,
+      "height": 97,
+      "fill": "none",
+      "path": "M0 55 C40 95 145 16 99 3 C48 -14 79 71 146 51 C192 37 201 14 242 29 C274 44 277 74 321 55 C350 42 330 12 303 33 C280 62 367 77 419 45",
+      "stroke": "#183e3d",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -1,0 +1,242 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "author workbench"
+    },
+    {
+      "type": "shape",
+      "name": "working-page",
+      "shape": "path",
+      "x": 125,
+      "y": 89,
+      "width": 242,
+      "height": 286,
+      "fill": "#303735",
+      "path": "M4 1 L237 0 L242 5 L240 283 L234 286 L0 285 L2 8 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-0",
+      "shape": "path",
+      "x": 144,
+      "y": 129,
+      "width": 204,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q91.8 0 204 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-1",
+      "shape": "path",
+      "x": 144,
+      "y": 157,
+      "width": 204,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q91.8 3 204 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-2",
+      "shape": "path",
+      "x": 144,
+      "y": 185,
+      "width": 146.88,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q66.096 0 146.88 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-3",
+      "shape": "path",
+      "x": 144,
+      "y": 213,
+      "width": 204,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q91.8 3 204 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-4",
+      "shape": "path",
+      "x": 144,
+      "y": 241,
+      "width": 204,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q91.8 0 204 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-5",
+      "shape": "path",
+      "x": 144,
+      "y": 269,
+      "width": 146.88,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q66.096 3 146.88 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-page-line-6",
+      "shape": "path",
+      "x": 144,
+      "y": 297,
+      "width": 204,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q91.8 0 204 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "hand",
+      "shape": "path",
+      "x": 342,
+      "y": 227,
+      "width": 156,
+      "height": 154,
+      "fill": "#303735",
+      "path": "M0 90 C20 78 42 59 53 39 C60 27 62 0 73 0 C83 0 83 19 77 40 L96 24 C108 14 119 15 120 25 L98 45 C126 23 141 35 131 46 L109 62 C139 42 153 56 139 68 L113 84 C137 78 145 90 132 100 C111 116 79 131 56 133 L37 153 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "pen",
+      "shape": "path",
+      "x": 333,
+      "y": 188,
+      "width": 85,
+      "height": 130,
+      "fill": "#367B6C",
+      "path": "M0 110 L74 0 L84 7 L10 117 L0 129 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "desk-line",
+      "shape": "path",
+      "x": 109,
+      "y": 410,
+      "width": 418,
+      "height": 5,
+      "fill": "none",
+      "path": "M0 1 Q215 -1 415 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "working-ink-body",
+      "shape": "path",
+      "x": 270,
+      "y": 302,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "working-ink-body",
+      "width": 14.20408163265306,
+      "height": 15.0
+    },
+    {
+      "type": "shape",
+      "name": "working-ink-fleck",
+      "shape": "path",
+      "x": 269.6326534285714,
+      "y": 312.7142857142857,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "working-ink-fleck",
+      "width": 2.571428571428571,
+      "height": 3.4285714285714284
+    },
+    {
+      "type": "group",
+      "name": "working-ink",
+      "targets": [
+        "working-ink-body",
+        "working-ink-fleck"
+      ]
+    }
+  ]
+}

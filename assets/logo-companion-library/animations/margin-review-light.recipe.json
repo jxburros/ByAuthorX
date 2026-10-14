@@ -1,0 +1,259 @@
+{
+  "canvas": {
+    "width": 320,
+    "height": 224,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "margin review"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 2400,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "review-page",
+      "shape": "path",
+      "x": 72,
+      "y": 32,
+      "width": 137,
+      "height": 162,
+      "fill": "#FFFCF7",
+      "path": "M4 1 L132 0 L137 5 L135 159 L129 162 L0 161 L2 8 Z",
+      "stroke": "#252927",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-page-line-0",
+      "shape": "path",
+      "x": 91,
+      "y": 72,
+      "width": 99,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q44.550000000000004 0 99 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-page-line-1",
+      "shape": "path",
+      "x": 91,
+      "y": 100,
+      "width": 99,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q44.550000000000004 3 99 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-page-line-2",
+      "shape": "path",
+      "x": 91,
+      "y": 128,
+      "width": 71.28,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q32.076 0 71.28 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "review-page-line-3",
+      "shape": "path",
+      "x": 91,
+      "y": 156,
+      "width": 99,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q44.550000000000004 3 99 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "margin-loop",
+      "shape": "path",
+      "x": 199,
+      "y": 97,
+      "width": 104.98383760272375,
+      "height": 56.1,
+      "fill": "none",
+      "path": "M50.55 2.549999999999997C40.55 23.549999999999997 45.55 43.55 72.55 40.55C109.55 33.55 112.55 7.549999999999997 79.55 16.549999999999997C47.55 28.549999999999997 24.549999999999997 47.55 2.549999999999997 53.55",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "resize",
+      "target": "margin-loop",
+      "width": 52.49191880136188,
+      "height": 28.05
+    },
+    {
+      "type": "shape",
+      "target": "margin-loop",
+      "stroke_width": 2.5
+    },
+    {
+      "type": "keyframes",
+      "target": "margin-loop",
+      "property": "trim_end",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 120,
+          "value": 0,
+          "easing": "linear"
+        },
+        {
+          "time": 1080,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2280,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2281,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 2400,
+          "value": 0,
+          "easing": "hold"
+        }
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "margin-loop",
+      "property": "trim_start",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 1440,
+          "value": 0,
+          "easing": "linear"
+        },
+        {
+          "time": 2160,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2280,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2281,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 2400,
+          "value": 0,
+          "easing": "hold"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "review-ink-body",
+      "shape": "path",
+      "x": 89,
+      "y": 47,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "review-ink-body",
+      "width": 8.522448979591834,
+      "height": 9.0
+    },
+    {
+      "type": "shape",
+      "name": "review-ink-fleck",
+      "shape": "path",
+      "x": 88.77959205714286,
+      "y": 53.42857142857143,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "review-ink-fleck",
+      "width": 1.5428571428571427,
+      "height": 2.057142857142857
+    },
+    {
+      "type": "group",
+      "name": "review-ink",
+      "targets": [
+        "review-ink-body",
+        "review-ink-fleck"
+      ]
+    }
+  ]
+}

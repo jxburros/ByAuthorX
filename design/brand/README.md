@@ -8,7 +8,9 @@ The product owner supplied `ByAuthorX-brand-kit.zip` and `ByAuthorX-logo-assets.
 - `kit/`: editable Vixl guide, reusable graphics, desktop/social concepts, fonts and original implementation tokens. Relative kit links are preserved. Validation logs were omitted.
 - `logo-masters/`: supplied editable Vixl and scalable SVG logo family, including light/dark, single-color, stacked, app, micro, and avatar variants.
 - `social/`: avatars and the supplied 1200 × 630 social preview.
-- `motion/`: the custom Vixl pen-settle timeline, operation recipe, contact sheet, and passing bounds/motion check report. Its transparent frames are played in the native About window.
+- `motion/`: the earlier Vixl pen-settle experiment, operation recipe, contact sheet, and passing bounds/motion report, retained as reference artwork.
+- [../../assets/logo-companion-library](../../assets/logo-companion-library): editable masters for the writing/erasing busy loop, save check, About signature, and Review empty-state illustration integrated into the app.
+- [../../src/byax/resources/brand/ui](../../src/byax/resources/brand/ui): selected transparent PNG sprites, static posters, timing manifests, and provenance for native playback.
 - `logo-assets.json`: upstream inventory describing paths in the original logo archive, not a runtime asset manifest.
 - [../../src/byax/resources/brand](../../src/byax/resources/brand): curated runtime assets and the canonical token file used by Qt.
 

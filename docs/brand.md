@@ -26,6 +26,10 @@
 
 Controls use a 6 px radius; panels use 8 px. Layout uses the supplied 4/8 px rhythm. A 2 px deep-green focus border identifies keyboard focus. Primary green buttons carry white text. Color never replaces the control label.
 
+The native workspace keeps a professional control layer: Manrope labels, restrained toolbar buttons, plain panel headings, and a white writing surface within warm-paper margins. The document header reports its title, save state, and current view. Outline and Inspector start at 230 and 300 px and remain resizable. Selected paragraph styles have readable labels while retaining canonical engine keys.
+
+When Review has no active items, a small static illustration from the logo companion library accompanies a clear explanation and a local-checks action. Real items replace that empty state; reply/accept/reject controls enable only when the selected item supports them. Outline and Layers use text-only empty states. Interface artwork stays outside authored content and exports.
+
 Manrope Regular/Semibold provides interface type (11 pt by default). IM FELL English appears in the About headline. Source Serif 4 is registered and selectable for reading/document styles. All three families are bundled with their SIL OFL notices. Existing document styles, content, revision history, and export typography are preserved; branding does not inject decoration into authored documents. The writing page stays white.
 
 ## Logos and platform icons
@@ -42,10 +46,15 @@ The Qt application icon uses the simplified micro mark at 16–24 px and the X/l
 | --- | --- | --- |
 | Writing/pages switch | New view fades from 35% to full opacity | 180 ms, ease out |
 | Inspector tab change or dock reveal | Panel content fades in | 180 ms, ease out |
-| Explicit successful save | “Saved locally” fades in | 180 ms, ease out |
-| About opens | Vixl-authored pen line fades from 35% and settles upward 4 source pixels | 180 ms, ease out |
+| Background worker or durable job | Small green pen loop writes, holds, and erases beside the task label | 2.4 s loop, only while work is pending |
+| Explicit successful save | Small checkmark draws beside “Saved locally” | 180 ms, then holds briefly and hides |
+| About opens | Original green signature stroke writes itself once | 180 ms, ease out |
 
-Qt `QPropertyAnimation` uses `OutCubic` for interface fades. The custom About gesture is authored and rendered in Vixl using its `ease-out` curve; Qt advances a linear clock through 12 baked transparent frames, including the exact final pose. Its original filled-vector geometry and color remain intact. Transitions are finite and do not block typing or change document state. Finished fade effects are removed. Rapid view switches restart the relevant fade and settle at full visibility. No typing, autosave, or idle loop triggers decorative motion.
+Qt `QPropertyAnimation` uses `OutCubic` for interface fades. Vixl-authored artwork uses a linear playback clock because its stroke timing is already baked. About and save feedback include the exact 180 ms endpoint; their original centerlines, proportions, stroke widths, and colors are preserved. Finished fade effects are removed. Rapid view switches settle at full visibility. Typing, autosave, and idle time do not trigger artwork.
+
+Busy artwork appears after a 200 ms delay to avoid flashing on quick tasks. A reserved status-bar slot prevents layout shifts. Overlapping workers/jobs keep one indicator active until the last task finishes; completion, cancellation, uncertainty, failure, and polling errors clear the corresponding activity. The loop stops when hidden or minimized. Explicit save confirmation never interrupts a running task, and its artwork hides after 1.2 s.
+
+Native previews show [work in progress](images/editor-busy.png), [explicit save confirmation](images/editor-saved.png), and [a populated review panel](images/editor-review.png). The review illustration gives way to the author's actual review items.
 
 **View → Reduce motion** persists in local QSettings. When enabled, changes appear immediately and active transitions finish immediately. `BYAX_REDUCED_MOTION=1` forces the same behavior for managed desktops or headless runs. Qt accessibility motion preferences, where exposed by the installed Qt/platform combination, also force reduced motion and update live. The preference cannot override an active system/environment request for reduced motion. On older Qt builds without accessibility motion hints, use the menu or environment setting.
 
@@ -53,21 +62,22 @@ Qt `QPropertyAnimation` uses `OutCubic` for interface fades. The custom About ge
 
 ## Authoring with Vixl
 
-![Vixl pen-settle preview](images/pen-settle.gif)
+The integrated profiles come from the [logo companion library](../assets/logo-companion-library/README.md): `pen-loop-wait`, `saved-ink`, `signature-settle`, and the static `margin-notes` illustration. Their editable masters retain original pen centerlines and writing/erasing tracks. Native assets live in `src/byax/resources/brand/ui`; each sprite manifest records its source hash, timing, crop, selected layers, loop mode, poster time, and Vixl check results.
 
-The new [Vixl master](../design/brand/motion/pen-settle.vixl) retains editable opacity and translation tracks. [The contact sheet](../design/brand/motion/contact-sheet.png) shows 0, 90, and 180 ms. [The saved check report](../design/brand/motion/checks.json) passes Vixl's bounds and motion checks with no warnings. The timeline plays once and has no sound.
-
-Install the authoring tool and rebuild the master, preview, transparent sprite sheet, static reduced-motion pose, and timing manifest:
+Install Vixl into the separate authoring environment, regenerate a companion master if needed, then bake the selected profiles:
 
 ```bash
-uv tool install https://github.com/jxburros/Vixl/archive/refs/tags/v0.26.0.tar.gz
-uv run python scripts/build_brand_motion.py
+python -m venv .venv-assets
+.venv-assets/bin/python -m pip install -r assets/logo-companion-library/requirements.txt
+.venv-assets/bin/python scripts/build_ui_art.py
 ```
 
-The script uses the installed `vixl` CLI to apply the saved operation recipe to the supplied source master, validate motion, render each sample, and export the GIF. Pillow only arranges the Vixl-rendered frames into a sprite sheet. `pen-settle.json` records timing and the master hash. The committed outputs let the app run without installing Vixl or importing its engine. Modify `pen-settle.operations.json` and rebuild to revise the motion. Editing the generated master directly in Vixl is also possible; rerunning the build script replaces it from the source and recipe.
+On Windows use `.venv-assets\Scripts\python.exe`. The bake script renders all frames in Vixl, crops only transparent margins, and uses Pillow to arrange those frames into PNG sprites. The save profile selects only its checkmark and ink accent so the status bar carries no miniature document illustration. Busy motion includes the exact loop endpoint; finite motion includes the exact completed pose. Poster PNGs are independent of the final frame so reduced-motion waiting states remain fully drawn. The application and frozen builds use these committed PNG/JSON resources, with no Vixl runtime dependency or animation-format plugin requirement.
+
+The earlier [pen-settle experiment](../design/brand/motion/pen-settle.vixl), its contact sheet, and `scripts/build_brand_motion.py` remain as source references. They do not rebuild the current `ui/` profiles.
 
 ## Verification
 
 The [editable sources](../design/brand/README.md) preserve the supplied guide, examples, and new timeline. Vixl is the animation authoring tool; native playback stays in `gui_motion.py`. Preserve the immediate reduced-motion path when adding transitions.
 
-`tests/test_brand_motion.py` exercises resource/font availability, animation completion, interruption by reduced motion, rapid view switches, and preservation of document state. Existing GUI and engine tests remain required. Screenshots above are captured from Qt's offscreen native renderer using a sample document; its Source Serif 4 style is an explicit specimen choice. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.
+`tests/test_brand_motion.py` and `tests/test_ui_art.py` exercise resources, exact sprite endpoints, completion/interruption, reduced motion, hidden/minimized windows, concurrent workers, terminal job states, explicit save versus autosave, style-key mapping, and document preservation. Existing GUI and engine tests remain required. Screenshots are captured from Qt's offscreen native renderer using a sample document; its Source Serif 4 style is an explicit specimen choice. The busy capture holds a local task open for inspection. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.

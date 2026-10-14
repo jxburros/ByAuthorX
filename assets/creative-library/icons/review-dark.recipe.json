@@ -1,0 +1,75 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 128,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "review"
+    },
+    {
+      "type": "shape",
+      "name": "comment",
+      "shape": "rounded-rectangle",
+      "x": 20,
+      "y": 25,
+      "width": 88,
+      "height": 65,
+      "fill": "none",
+      "radius": 14,
+      "stroke": "#f4f1e7",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "tail",
+      "shape": "path",
+      "x": 34,
+      "y": 91,
+      "width": 24,
+      "height": 19,
+      "fill": "none",
+      "path": "M0 0 L0 17 L22 0",
+      "stroke": "#f4f1e7",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "check",
+      "shape": "checkmark",
+      "x": 42,
+      "y": 44,
+      "width": 43,
+      "height": 29,
+      "fill": "#f4f1e7"
+    }
+  ]
+}

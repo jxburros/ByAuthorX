@@ -1,0 +1,172 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "blank page"
+    },
+    {
+      "type": "shape",
+      "name": "paper-halo",
+      "shape": "ellipse",
+      "x": 94,
+      "y": 54,
+      "width": 430,
+      "height": 355,
+      "fill": "#1d4240"
+    },
+    {
+      "type": "shape",
+      "name": "sage-halo",
+      "shape": "ellipse",
+      "x": 348,
+      "y": 240,
+      "width": 180,
+      "height": 140,
+      "fill": "#80b4a7"
+    },
+    {
+      "type": "shape",
+      "name": "accent-star",
+      "shape": "sparkle",
+      "x": 505,
+      "y": 113,
+      "width": 29,
+      "height": 29,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "accent-dot",
+      "shape": "ellipse",
+      "x": 95,
+      "y": 295,
+      "width": 10,
+      "height": 10,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "new-document-shadow",
+      "shape": "rounded-rectangle",
+      "x": 232,
+      "y": 108,
+      "width": 188,
+      "height": 271,
+      "fill": "#102f30",
+      "radius": 14
+    },
+    {
+      "type": "shape",
+      "name": "new-document",
+      "shape": "rounded-rectangle",
+      "x": 225,
+      "y": 99,
+      "width": 188,
+      "height": 271,
+      "fill": "#244b48",
+      "radius": 14,
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "new-document-heading",
+      "shape": "rounded-rectangle",
+      "x": 247,
+      "y": 129,
+      "width": 94.0,
+      "height": 9,
+      "fill": "#f4f1e7",
+      "radius": 4
+    },
+    {
+      "type": "shape",
+      "name": "insertion-caret",
+      "shape": "path",
+      "x": 250,
+      "y": 171,
+      "width": 1,
+      "height": 30,
+      "fill": "none",
+      "path": "M0 0 L0 30",
+      "stroke": "#f4f1e7",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "first-idea",
+      "shape": "sparkle",
+      "x": 357,
+      "y": 151,
+      "width": 43,
+      "height": 43,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "shape",
+      "name": "new-growth",
+      "shape": "path",
+      "x": 137,
+      "y": 232,
+      "width": 100,
+      "height": 150,
+      "fill": "#80b4a7",
+      "path": "M45 150 C38 110 44 68 70 5 M44 115 C5 110 4 81 10 70 C41 77 47 95 44 115 Z M45 94 C80 88 94 63 88 50 C61 52 48 68 45 94 Z M52 60 C25 52 24 26 30 16 C53 25 59 40 52 60 Z M63 30 C81 29 93 10 90 0 C70 5 64 18 63 30 Z",
+      "stroke": "#80b4a7",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "scale",
+      "target": "new-growth",
+      "factor": 0.85
+    },
+    {
+      "type": "shape",
+      "name": "small-arc",
+      "shape": "path",
+      "x": 431,
+      "y": 281,
+      "width": 75,
+      "height": 25,
+      "fill": "none",
+      "path": "M0 21 Q40 0 75 20",
+      "stroke": "#acc3ba",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

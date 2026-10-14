@@ -1,0 +1,127 @@
+{
+  "canvas": {
+    "width": 320,
+    "height": 224,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "signature settle"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 180,
+      "fps": 24,
+      "loop": 1,
+      "loop_mode": "off"
+    },
+    {
+      "type": "shape",
+      "name": "settling-pen",
+      "shape": "path",
+      "x": 35,
+      "y": 91,
+      "width": 629.0314643198849,
+      "height": 59.93634544611697,
+      "fill": "none",
+      "path": "M2.55 54.97381008136627C90.55 44.97381008136627 178.55 64.97381008136627 261.55 53.97381008136627C345.55 44.97381008136627 433.55 64.97381008136627 512.55 48.97381008136627C559.55 40.97381008136627 593.55 33.97381008136627 617.55 18.97381008136627C640.55 -5.0261899186337295 600.55 -3.0261899186337295 603.55 26.97381008136627C607.55 57.97381008136627 642.55 35.97381008136627 617.55 18.97381008136627",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "resize",
+      "target": "settling-pen",
+      "width": 253.0,
+      "height": 24.106735923397643
+    },
+    {
+      "type": "shape",
+      "target": "settling-pen",
+      "stroke_width": 2.011028178642432
+    },
+    {
+      "type": "shape",
+      "name": "settling-ink-body",
+      "shape": "path",
+      "x": 24,
+      "y": 110,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "settling-ink-body",
+      "width": 11.363265306122448,
+      "height": 12.0
+    },
+    {
+      "type": "shape",
+      "name": "settling-ink-fleck",
+      "shape": "path",
+      "x": 23.706122742857143,
+      "y": 118.57142857142857,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "settling-ink-fleck",
+      "width": 2.057142857142857,
+      "height": 2.742857142857143
+    },
+    {
+      "type": "group",
+      "name": "settling-ink",
+      "targets": [
+        "settling-ink-body",
+        "settling-ink-fleck"
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "settling-pen",
+      "property": "trim_end",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "ease-out"
+        },
+        {
+          "time": 180,
+          "value": 100,
+          "easing": "ease-out"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,139 @@
+{
+  "canvas": {
+    "width": 256,
+    "height": 256,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "book idle"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 2400,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "book",
+      "shape": "path",
+      "x": 50,
+      "y": 105,
+      "width": 156,
+      "height": 92,
+      "fill": "#244b48",
+      "path": "M0 0 Q40 -6 78 12 Q118 -6 156 0 L156 73 Q112 66 78 90 Q40 66 0 73 Z M78 12 L78 90",
+      "stroke": "#f4f1e7",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "book-star",
+      "shape": "sparkle",
+      "x": 116,
+      "y": 63,
+      "width": 25,
+      "height": 25,
+      "fill": "#e5c890"
+    },
+    {
+      "type": "keyframes",
+      "target": "book-star",
+      "property": "translate-y",
+      "sample": {
+        "fn": "sin",
+        "period": 2400,
+        "amplitude": 7,
+        "offset": 0,
+        "phase": 0,
+        "samples": 48,
+        "duration": 2400
+      }
+    },
+    {
+      "type": "keyframes",
+      "target": "book-star",
+      "property": "scale-x",
+      "sample": {
+        "fn": "sin",
+        "period": 2400,
+        "amplitude": 0.12,
+        "offset": 1,
+        "phase": 0,
+        "samples": 48,
+        "duration": 2400
+      }
+    },
+    {
+      "type": "keyframes",
+      "target": "book-star",
+      "property": "scale-y",
+      "sample": {
+        "fn": "sin",
+        "period": 2400,
+        "amplitude": 0.12,
+        "offset": 1,
+        "phase": 0,
+        "samples": 48,
+        "duration": 2400
+      }
+    },
+    {
+      "type": "shape",
+      "name": "book-ink-0",
+      "shape": "path",
+      "x": 66,
+      "y": 136,
+      "width": 40,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 0 L40 4",
+      "stroke": "#acc3ba",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "book-ink-1",
+      "shape": "path",
+      "x": 147,
+      "y": 136,
+      "width": 40,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 0 L40 4",
+      "stroke": "#acc3ba",
+      "stroke_width": 3,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

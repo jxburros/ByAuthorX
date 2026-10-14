@@ -68,14 +68,14 @@ class MotionController(QObject):
 
 class PenLineAnimation(BrandGraphic):
     """Play Vixl-authored transparent frames once, then retain the exact resting pose."""
-    def __init__(self, motion, parent=None):
-        super().__init__('pen-settle-rest.png', 360, parent)
+    def __init__(self, motion, parent=None, *, profile='about-write', width=360):
+        super().__init__(f'ui/{profile}-poster.png', width, parent)
         self.motion = motion
-        self.manifest = json.loads((BRAND_ROOT / 'pen-settle.json').read_text(encoding='utf-8'))
-        self.sprite = QPixmap(str(BRAND_ROOT / 'pen-settle.png'))
+        self.manifest = json.loads((BRAND_ROOT / 'ui' / f'{profile}.json').read_text(encoding='utf-8'))
+        self.sprite = QPixmap(str(BRAND_ROOT / 'ui' / f'{profile}-sprite.png'))
         self.frame_times = self.manifest['frameTimesMs']
         if self.sprite.isNull():
-            raise RuntimeError('Missing Vixl motion frames: pen-settle.png')
+            raise RuntimeError(f'Missing Vixl motion frames: {profile}')
         self._progress = 1.0
         self.animation = QPropertyAnimation(self, b'progress', self)
         self.animation.setDuration(self.manifest['durationMs'])

@@ -1,0 +1,55 @@
+{
+  "canvas": {
+    "width": 128,
+    "height": 128,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "spark"
+    },
+    {
+      "type": "shape",
+      "name": "large-spark",
+      "shape": "sparkle",
+      "x": 29,
+      "y": 32,
+      "width": 65,
+      "height": 65,
+      "fill": "#183e3d"
+    },
+    {
+      "type": "shape",
+      "name": "small-spark",
+      "shape": "sparkle",
+      "x": 89,
+      "y": 21,
+      "width": 19,
+      "height": 19,
+      "fill": "#e5c890"
+    }
+  ]
+}
