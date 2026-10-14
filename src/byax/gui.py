@@ -96,6 +96,7 @@ class MainWindow(QMainWindow):
         self._disk_stamp = None
         self._save_task = None
         self._save_again = False
+        self._pages_generation = 0
         self._last_save_ok = None
         self._undo = []
         self._redo = []
@@ -722,22 +723,26 @@ class MainWindow(QMainWindow):
         timer.start()
         return job
 
-    def refresh(self, position=None):
-        from .layout import build_document
+    def refresh(self, position=None, previous=None):
+        from .layout import build_document, update_document
 
         self._refreshing = True
         try:
             position = self.editor.textCursor().position() if position is None else position
-            document = build_document(self.doc)
-            document.setParent(self.editor)
-            self.editor.setDocument(document)
+            document = self.editor.document()
+            # Structural edits confined to plain text blocks rewrite only the
+            # affected blocks; anything else rebuilds the shared document.
+            if previous is None or not update_document(document, previous, self.doc):
+                document = build_document(self.doc)
+                document.setParent(self.editor)
+                self.editor.setDocument(document)
+                self.editor.setUndoRedoEnabled(False)
             self.editor.capture_baseline()
-            self.editor.setUndoRedoEnabled(False)
             cursor = self.editor.textCursor()
             cursor.setPosition(min(position, max(0, document.characterCount() - 1)))
             self.editor.setTextCursor(cursor)
             if self.stack.currentIndex() == 1:
-                self.pages.set_document(document, self.doc)
+                self.update_pages()
             self.update_sidebar()
             self.update_status()
             self.track_action.setChecked(bool(self.doc['settings'].get('track_changes')))
@@ -903,12 +908,12 @@ class MainWindow(QMainWindow):
         )
         self._undo.append(old_revision)
         self._redo.clear()
-        self.doc = candidate
+        previous, self.doc = self.doc, candidate
         self._prune_history_stacks()
         self.dirty = True
         self._last_report = None
         if refresh:
-            self.refresh()
+            self.refresh(previous=previous)
         else:
             if hasattr(self.editor.document(), 'byax_resolved'):
                 del self.editor.document().byax_resolved
@@ -1264,10 +1269,10 @@ class MainWindow(QMainWindow):
                 candidate, _ = engine.restore(self.doc, revision, auto_compact_history=True)
                 self._undo.pop()
                 self._redo.append(self.doc['revision'])
-                self.doc = candidate
+                previous, self.doc = self.doc, candidate
                 self._prune_history_stacks()
                 self.dirty = True
-                self.refresh()
+                self.refresh(previous=previous)
             except Exception as exc:
                 self.error(exc)
 
@@ -1280,10 +1285,10 @@ class MainWindow(QMainWindow):
                 candidate, _ = engine.restore(self.doc, revision, auto_compact_history=True)
                 self._redo.pop()
                 self._undo.append(self.doc['revision'])
-                self.doc = candidate
+                previous, self.doc = self.doc, candidate
                 self._prune_history_stacks()
                 self.dirty = True
-                self.refresh()
+                self.refresh(previous=previous)
             except Exception as exc:
                 self.error(exc)
 
@@ -2531,8 +2536,8 @@ class MainWindow(QMainWindow):
     def toggle_pages(self):
         self.flush_edits()
         if self.stack.currentIndex() == 0:
-            self.pages.set_document(self.editor.document(), self.doc)
             self.stack.setCurrentIndex(1)
+            self.update_pages()
             self.view_label.setText('Page preview')
             if not self._active_tasks:
                 self.status_label.setText('Print layout · Ctrl+Alt+L to return to writing')
@@ -2543,6 +2548,38 @@ class MainWindow(QMainWindow):
             if not self._active_tasks:
                 self.status_label.setText('Writing view')
         self.motion.fade(self.stack.currentWidget())
+
+    def update_pages(self):
+        """Resolve physical pages on a worker and show them when they match the model."""
+        from .layout import adopt_resolved, resolve_pages, resolved_documents
+
+        document, doc = self.editor.document(), self.doc
+        if hasattr(document, 'byax_resolved'):
+            self.pages.set_document(document, doc)
+            return
+        self._pages_generation += 1
+        generation = self._pages_generation
+        main_thread = QApplication.instance().thread()
+
+        def work():
+            # Only unparented documents are built here; they are handed to the
+            # GUI thread before any widget paints them.
+            resolved = resolve_pages(copy.copy(doc))
+            for part in resolved_documents(resolved):
+                part.moveToThread(main_thread)
+            return resolved
+
+        def done(resolved):
+            if generation != self._pages_generation:
+                return
+            if self.doc is not doc or self.editor.document() is not document:
+                if self.stack.currentIndex() == 1:
+                    self.update_pages()
+                return
+            adopt_resolved(document, resolved)
+            self.pages.set_document(document, doc)
+
+        self.background('Laying out pages…', work, done)
 
     def print_preview(self):
         self.flush_edits()
@@ -2663,11 +2700,12 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
-        try:
-            report = export_clean(self.doc, path)
-            self.report('Export result and compatibility', report)
-        except Exception as exc:
-            self.error(exc)
+        doc = copy.copy(self.doc)
+        self.background(
+            'Exporting…',
+            lambda: export_clean(doc, path),
+            lambda report: self.report('Export result and compatibility', report),
+        )
 
     def source_view(self):
         from .exchange import export_document, import_document

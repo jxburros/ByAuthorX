@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import base64
 import copy
+import difflib
+import itertools
 import math
 import os
 import unicodedata
@@ -176,10 +178,10 @@ def _decode_image(raw):
     return reader.read()
 
 
-def _check_glyphs(qdoc):
+def _check_glyphs(qdoc, block=None, stop=None):
     checked = {}
-    block = qdoc.firstBlock()
-    while block.isValid():
+    block = qdoc.firstBlock() if block is None else block
+    while block.isValid() and block != stop:
         missing = set()
         fragments = block.begin()
         while not fragments.atEnd():
@@ -206,6 +208,112 @@ def _check_glyphs(qdoc):
                 )
             )
         block = block.next()
+
+
+_ALIGNMENTS = {
+    'left': Qt.AlignmentFlag.AlignLeft,
+    'right': Qt.AlignmentFlag.AlignRight,
+    'center': Qt.AlignmentFlag.AlignHCenter,
+    'justify': Qt.AlignmentFlag.AlignJustify,
+}
+# Top-level kinds whose rendering depends only on the block itself, its style and
+# the document geometry; edits confined to them can update a document in place.
+INCREMENTAL_KINDS = {'paragraph', 'heading', 'footnote', 'page_break', 'section_break'}
+
+
+def _block_format(result, doc, block):
+    attrs = block.get('attrs', {})
+    kind, ident = block.get('type', 'paragraph'), block.get('id')
+    bf = QTextBlockFormat()
+    bf.setProperty(BLOCK_ID_PROPERTY, ident)
+    values = _style(doc, block.get('style', 'body'))
+    values.update(attrs)
+    if kind == 'heading':
+        level = max(1, min(6, int(attrs.get('level', 1))))
+        bf.setHeadingLevel(level)
+        bf.setTopMargin(12)
+        bf.setBottomMargin(6)
+        values = {'bold': True, 'font_size': [24, 19, 16, 14, 12, 12][level - 1], **values}
+    else:
+        bf.setBottomMargin(float(values.get('space_after', 6)))
+    bf.setTopMargin(float(values.get('space_before', bf.topMargin())))
+    bf.setAlignment(_ALIGNMENTS.get(values.get('alignment', 'left'), Qt.AlignmentFlag.AlignLeft))
+    bf.setLeftMargin(float(values.get('indent', 0)))
+    bf.setTextIndent(float(values.get('first_line_indent', 0)))
+    if values.get('line_spacing'):
+        bf.setLineHeight(
+            float(values['line_spacing']) * 100, QTextBlockFormat.LineHeightTypes.ProportionalHeight.value
+        )
+    if values.get('tabs'):
+        tabs = []
+        for position in values['tabs']:
+            tab = QTextOption.Tab()
+            tab.position = float(position)
+            tabs.append(tab)
+        bf.setTabPositions(tabs)
+    if (
+        kind in ('page_break', 'section_break')
+        or attrs.get('page_break_before')
+        or attrs.get('column_break_before')
+    ):
+        bf.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore)
+        if kind == 'section_break' and any(k in attrs for k in ('layout', 'columns', 'width', 'height')):
+            result.byax_findings.append(
+                _finding(
+                    'section_geometry',
+                    'This renderer uses document page geometry; section-specific geometry/columns require a different layout backend.',
+                    ident,
+                )
+            )
+    return bf, values
+
+
+def _font_finding(result, values, ident, families):
+    font = values.get('font_family', values.get('font'))
+    if font and font not in families:
+        result.byax_findings.append(
+            _finding(
+                'font_substitution',
+                f'Requested font {font!r} is unavailable; Qt substitutes a local font.',
+                ident,
+            )
+        )
+
+
+def _emit_text(result, cursor, block, values, list_objects):
+    kind, ident = block.get('type', 'paragraph'), block.get('id')
+    if kind == 'footnote':
+        result.byax_findings.append(
+            _finding(
+                'footnote_placement',
+                'Footnote text is retained in document flow; bottom-of-page placement and continuation are not resolved.',
+                ident,
+            )
+        )
+        values['font_size'] = 10
+    if values.get('list'):
+        listing = values['list']
+        list_kind = listing.get('kind', 'bullet') if isinstance(listing, dict) else listing
+        level = int(listing.get('level', 1) if isinstance(listing, dict) else values.get('level', 1))
+        lf = QTextListFormat()
+        lf.setStyle(
+            QTextListFormat.Style.ListDecimal
+            if list_kind in ('ordered', 'numbered', 'decimal')
+            else QTextListFormat.Style.ListDisc
+        )
+        lf.setIndent(max(1, level))
+        list_key = (list_kind, level)
+        if values.get('restart') or list_key not in list_objects:
+            if hasattr(lf, 'setStart'):
+                lf.setStart(int(values.get('start', 1)))
+            list_objects[list_key] = cursor.createList(lf)
+        else:
+            list_objects[list_key].add(cursor.block())
+    _insert_marked(cursor, block.get('text', ''), block.get('marks', []), _char_format(values))
+    if kind not in ('paragraph', 'heading', 'footnote', 'page_break', 'section_break'):
+        result.byax_findings.append(
+            _finding('unknown_block', f'Unsupported block {kind!r} rendered as text.', ident)
+        )
 
 
 def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
@@ -254,64 +362,10 @@ def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
         if not first:
             cursor.insertBlock(QTextBlockFormat(), QTextCharFormat())
         first = False
-        bf = QTextBlockFormat()
-        bf.setProperty(BLOCK_ID_PROPERTY, ident)
-        values = _style(doc, block.get('style', 'body'))
-        values.update(attrs)
-        if kind == 'heading':
-            level = max(1, min(6, int(attrs.get('level', 1))))
-            bf.setHeadingLevel(level)
-            bf.setTopMargin(12)
-            bf.setBottomMargin(6)
-            values = {'bold': True, 'font_size': [24, 19, 16, 14, 12, 12][level - 1], **values}
-        else:
-            bf.setBottomMargin(float(values.get('space_after', 6)))
-        bf.setTopMargin(float(values.get('space_before', bf.topMargin())))
-        alignments = {
-            'left': Qt.AlignmentFlag.AlignLeft,
-            'right': Qt.AlignmentFlag.AlignRight,
-            'center': Qt.AlignmentFlag.AlignHCenter,
-            'justify': Qt.AlignmentFlag.AlignJustify,
-        }
-        bf.setAlignment(alignments.get(values.get('alignment', 'left'), Qt.AlignmentFlag.AlignLeft))
-        bf.setLeftMargin(float(values.get('indent', 0)))
-        bf.setTextIndent(float(values.get('first_line_indent', 0)))
-        if values.get('line_spacing'):
-            bf.setLineHeight(
-                float(values['line_spacing']) * 100, QTextBlockFormat.LineHeightTypes.ProportionalHeight.value
-            )
-        if values.get('tabs'):
-            tabs = []
-            for position in values['tabs']:
-                tab = QTextOption.Tab()
-                tab.position = float(position)
-                tabs.append(tab)
-            bf.setTabPositions(tabs)
-        if (
-            kind in ('page_break', 'section_break')
-            or attrs.get('page_break_before')
-            or attrs.get('column_break_before')
-        ):
-            bf.setPageBreakPolicy(QTextFormat.PageBreakFlag.PageBreak_AlwaysBefore)
-            if kind == 'section_break' and any(k in attrs for k in ('layout', 'columns', 'width', 'height')):
-                result.byax_findings.append(
-                    _finding(
-                        'section_geometry',
-                        'This renderer uses document page geometry; section-specific geometry/columns require a different layout backend.',
-                        ident,
-                    )
-                )
+        bf, values = _block_format(result, doc, block)
         cursor.setBlockFormat(bf)
         result.byax_positions[ident] = cursor.position()
-        font = values.get('font_family', values.get('font'))
-        if font and font not in families:
-            result.byax_findings.append(
-                _finding(
-                    'font_substitution',
-                    f'Requested font {font!r} is unavailable; Qt substitutes a local font.',
-                    ident,
-                )
-            )
+        _font_finding(result, values, ident, families)
         if kind == 'table':
             rows = block.get('rows', [])
             columns = max((len(row.get('cells', [])) for row in rows), default=0)
@@ -331,7 +385,7 @@ def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
                     )
                 if attrs.get('width'):
                     tf.setWidth(QTextLength(QTextLength.Type.FixedLength, float(attrs['width'])))
-                tf.setAlignment(alignments.get(attrs.get('alignment', 'left'), Qt.AlignmentFlag.AlignLeft))
+                tf.setAlignment(_ALIGNMENTS.get(attrs.get('alignment', 'left'), Qt.AlignmentFlag.AlignLeft))
                 tf.setCellPadding(float(attrs.get('padding', 4)))
                 tf.setCellSpacing(0)
                 tf.setHeaderRowCount(int(attrs.get('header_rows', 0)))
@@ -432,38 +486,7 @@ def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
                     + str(page)
                 )
             continue
-        if kind == 'footnote':
-            result.byax_findings.append(
-                _finding(
-                    'footnote_placement',
-                    'Footnote text is retained in document flow; bottom-of-page placement and continuation are not resolved.',
-                    ident,
-                )
-            )
-            values['font_size'] = 10
-        if values.get('list'):
-            listing = values['list']
-            list_kind = listing.get('kind', 'bullet') if isinstance(listing, dict) else listing
-            level = int(listing.get('level', 1) if isinstance(listing, dict) else values.get('level', 1))
-            lf = QTextListFormat()
-            lf.setStyle(
-                QTextListFormat.Style.ListDecimal
-                if list_kind in ('ordered', 'numbered', 'decimal')
-                else QTextListFormat.Style.ListDisc
-            )
-            lf.setIndent(max(1, level))
-            list_key = (list_kind, level)
-            if values.get('restart') or list_key not in list_objects:
-                if hasattr(lf, 'setStart'):
-                    lf.setStart(int(values.get('start', 1)))
-                list_objects[list_key] = cursor.createList(lf)
-            else:
-                list_objects[list_key].add(cursor.block())
-        _insert_marked(cursor, block.get('text', ''), block.get('marks', []), _char_format(values))
-        if kind not in ('paragraph', 'heading', 'footnote', 'page_break', 'section_break'):
-            result.byax_findings.append(
-                _finding('unknown_block', f'Unsupported block {kind!r} rendered as text.', ident)
-            )
+        _emit_text(result, cursor, block, values, list_objects)
     if doc.get('layout', {}).get('columns', 1) != 1:
         result.byax_findings.append(
             _finding('columns', 'Multi-column flow is not resolved; output uses one column.', 'layout')
@@ -488,6 +511,143 @@ def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
             )
         )
     return result
+
+
+def _render_inputs(doc):
+    return {
+        k: v
+        for k, v in doc.items()
+        if k not in ('blocks', 'review', 'history', 'requests', 'revision', 'metadata', 'settings')
+    }
+
+
+def _incremental_block(doc, block):
+    attrs = block.get('attrs', {})
+    values = {**_style(doc, block.get('style', 'body')), **attrs}
+    return (
+        block.get('type', 'paragraph') in INCREMENTAL_KINDS
+        and not attrs.get('excluded')
+        and not attrs.get('redacted')
+        and not values.get('list')
+    )
+
+
+def update_document(qdoc, old, new):
+    """Bring a document built by ``build_document(old)`` up to date with ``new`` in place.
+
+    Only the changed run of top-level blocks is rewritten, so Qt relayouts the
+    affected region instead of the whole document. Returns False, leaving
+    ``qdoc`` untouched, when the change needs a full rebuild (tables, images,
+    lists, contents, excluded blocks, or styles/geometry/assets changes).
+    Derived keep-rule breaks are not recomputed here; physical pages are
+    resolved separately from the semantic model.
+    """
+    if not hasattr(qdoc, 'byax_positions') or _render_inputs(old) != _render_inputs(new):
+        return False
+    before, after = old.get('blocks', []), new.get('blocks', [])
+    if any(b.get('type') == 'toc' for b in after) or not before or not after:
+        return False
+    hunks = _changed_runs(before, after)
+    if hunks is None:
+        return False
+    if not hunks:
+        return True
+    spans = {}
+    block = qdoc.firstBlock()
+    while block.isValid():
+        ident = block.blockFormat().property(BLOCK_ID_PROPERTY)
+        if ident:
+            span = spans.setdefault(ident, [block, block])
+            if span[1] != block:
+                if span[1].next() != block:
+                    span.append(None)
+                span[1] = block
+        block = block.next()
+    plan = []
+    for i1, i2, j1, j2 in hunks:
+        removed, inserted = before[i1:i2], after[j1:j2]
+        if not all(_incremental_block(old, b) for b in removed) or not all(
+            _incremental_block(new, b) for b in inserted
+        ):
+            return False
+        chain = [spans.get(b['id']) for b in removed]
+        if any(span is None or len(span) != 2 for span in chain) or any(
+            left[1].next() != right[0] for left, right in itertools.pairwise(chain)
+        ):
+            return False
+        plan.append((chain[0][0], chain[-1][1], removed, inserted))
+    removed_ids = {b['id'] for _, _, removed, _ in plan for b in removed}
+    findings = [f for f in qdoc.byax_findings if f.get('target') not in removed_ids]
+    qdoc.byax_findings = []
+    families = set(QFontDatabase.families())
+    cursor = QTextCursor(qdoc)
+    cursor.beginEditBlock()
+    for first, last, _, inserted in reversed(plan):
+        cursor.setPosition(first.position())
+        cursor.setPosition(last.position() + last.length() - 1, QTextCursor.MoveMode.KeepAnchor)
+        cursor.removeSelectedText()
+        cursor.setBlockCharFormat(QTextCharFormat())
+        start = cursor.position()
+        for index, block in enumerate(inserted):
+            if index:
+                cursor.insertBlock(QTextBlockFormat(), QTextCharFormat())
+            bf, values = _block_format(qdoc, new, block)
+            cursor.setBlockFormat(bf)
+            _font_finding(qdoc, values, block['id'], families)
+            _emit_text(qdoc, cursor, block, values, {})
+        _check_glyphs(qdoc, qdoc.findBlock(start), cursor.block().next())
+    cursor.endEditBlock()
+    qdoc.byax_findings = findings + qdoc.byax_findings
+    positions = {}
+    block = qdoc.firstBlock()
+    while block.isValid():
+        ident = block.blockFormat().property(BLOCK_ID_PROPERTY)
+        if ident and ident not in positions:
+            positions[ident] = block.position()
+        block = block.next()
+    qdoc.byax_positions = positions
+    if hasattr(qdoc, 'byax_resolved'):
+        del qdoc.byax_resolved
+    return True
+
+
+def _changed_runs(before, after):
+    """Disjoint [i1, i2, j1, j2) runs of changed top-level blocks, neither side empty."""
+    old, new = [b.get('id') for b in before], [b.get('id') for b in after]
+    hunks = []
+    for tag, i1, i2, j1, j2 in difflib.SequenceMatcher(None, old, new, autojunk=False).get_opcodes():
+        if tag != 'equal':
+            hunks.append([i1, i2, j1, j2])
+            continue
+        k = 0
+        while k < i2 - i1:
+            if before[i1 + k] == after[j1 + k]:
+                k += 1
+                continue
+            start = k
+            while k < i2 - i1 and before[i1 + k] != after[j1 + k]:
+                k += 1
+            hunks.append([i1 + start, i1 + k, j1 + start, j1 + k])
+    for hunk in hunks:
+        if hunk[0] == hunk[1] or hunk[2] == hunk[3]:
+            if hunk[1] < len(before) and hunk[3] < len(after):
+                hunk[1], hunk[3] = hunk[1] + 1, hunk[3] + 1
+            elif hunk[0] and hunk[2]:
+                hunk[0], hunk[2] = hunk[0] - 1, hunk[2] - 1
+            else:
+                return None
+    merged = []
+    for hunk in hunks:
+        if merged and (hunk[0] <= merged[-1][1] or hunk[2] <= merged[-1][3]):
+            merged[-1] = [
+                min(merged[-1][0], hunk[0]),
+                max(merged[-1][1], hunk[1]),
+                min(merged[-1][2], hunk[2]),
+                max(merged[-1][3], hunk[3]),
+            ]
+        else:
+            merged.append(hunk)
+    return merged
 
 
 def _block_page(qdoc, position):
@@ -1069,10 +1229,13 @@ def _resolve_pass(doc, toc_pages):
     return {'pages': pages, 'positions': positions, 'anchors': anchors, 'findings': findings}
 
 
-def resolve_layout(qdoc, doc):
-    """Resolve physical sheets independently of the semantic editor document."""
-    if hasattr(qdoc, 'byax_resolved'):
-        return qdoc.byax_resolved
+def resolve_pages(doc):
+    """Resolve physical sheets from the semantic model alone.
+
+    Builds only unparented QTextDocuments, so it may run on a worker thread;
+    the caller moves the result to the GUI thread with ``adopt_resolved``.
+    """
+    ensure_app()
     pages = {}
     resolved = None
     for iteration in range(4):
@@ -1088,12 +1251,29 @@ def resolve_layout(qdoc, doc):
         resolved['findings'].append(
             _finding('toc_unstable', 'Resolved contents references did not stabilize in four passes.', 'toc')
         )
+    return resolved
+
+
+def resolved_documents(resolved):
+    return list(
+        {id(f['document']): f['document'] for p in resolved['pages'] for f in p['fragments']}.values()
+    )
+
+
+def adopt_resolved(qdoc, resolved):
     obsolete = {'columns', 'section_geometry', 'footnote_placement', 'toc_unstable'}
     combined = [f for f in qdoc.byax_findings if f['code'] not in obsolete] + resolved['findings']
     unique = {(f['code'], f.get('target'), f['message']): f for f in combined}
     qdoc.byax_findings = list(unique.values())
     qdoc.byax_resolved = resolved
     return resolved
+
+
+def resolve_layout(qdoc, doc):
+    """Resolve physical sheets independently of the semantic editor document."""
+    if hasattr(qdoc, 'byax_resolved'):
+        return qdoc.byax_resolved
+    return adopt_resolved(qdoc, resolve_pages(doc))
 
 
 def resolved_page_count(qdoc, doc=None):
