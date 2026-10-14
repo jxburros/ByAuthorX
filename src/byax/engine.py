@@ -1215,6 +1215,43 @@ def _finish_proposal(proposal, edits):
         proposal['status'] = 'partially_accepted'
 
 
+def _check_required_suites(doc, proposal, proposal_before):
+    required = proposal.get('required_suites', [])
+    if required:
+        frozen = _candidate(doc)
+        frozen['settings']['requirements'] = copy.deepcopy(
+            proposal_before['settings'].get('requirements', {})
+        )
+        frozen['profiles'] = copy.deepcopy(proposal_before['profiles'])
+        report = run_checks(frozen, required)
+        if report['validation'] != 'passed':
+            raise ByaxError(
+                'failed_requirement' if report['validation'] == 'failed' else 'incomplete_coverage',
+                'Proposal required policy was not satisfied.',
+                findings=report['findings'],
+                coverage=report['coverage'],
+            )
+
+
+def _reject_selected(op, edits, selected, chosen):
+    blocked, frontier = set(), set(chosen)
+    while frontier:
+        frontier = {
+            e['id'] for e in edits if e['status'] == 'pending' and set(e['depends_on']) & frontier
+        } - blocked
+        blocked |= frontier
+    blocked -= chosen
+    if blocked:
+        raise ByaxError(
+            'conflict',
+            'Rejecting these edits strands dependent edits; select them too.',
+            target=op['target'],
+            dependent_edits=sorted(blocked, key=_edit_number),
+        )
+    for edit in selected:
+        edit['status'] = 'rejected'
+
+
 def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_changes):
     proposal = _find_review(doc, 'proposals', op['target'])
     if proposal['status'] != 'pending':
@@ -1276,21 +1313,7 @@ def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_cha
             if current is not None:
                 current.update(saved)
         _preserve(proposal_before, doc, proposal.get('protect', []))
-        required = proposal.get('required_suites', [])
-        if required:
-            frozen = _candidate(doc)
-            frozen['settings']['requirements'] = copy.deepcopy(
-                proposal_before['settings'].get('requirements', {})
-            )
-            frozen['profiles'] = copy.deepcopy(proposal_before['profiles'])
-            report = run_checks(frozen, required)
-            if report['validation'] != 'passed':
-                raise ByaxError(
-                    'failed_requirement' if report['validation'] == 'failed' else 'incomplete_coverage',
-                    'Proposal required policy was not satisfied.',
-                    findings=report['findings'],
-                    coverage=report['coverage'],
-                )
+        _check_required_suites(doc, proposal, proposal_before)
         for edit in selected:
             edit['status'] = 'accepted'
         preconditions = dict(proposal.get('preconditions', {}))
@@ -1301,22 +1324,7 @@ def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_cha
                 preconditions.pop(identity, None)
         proposal['preconditions'] = preconditions
     else:
-        blocked, frontier = set(), set(chosen)
-        while frontier:
-            frontier = {
-                e['id'] for e in edits if e['status'] == 'pending' and set(e['depends_on']) & frontier
-            } - blocked
-            blocked |= frontier
-        blocked -= chosen
-        if blocked:
-            raise ByaxError(
-                'conflict',
-                'Rejecting these edits strands dependent edits; select them too.',
-                target=op['target'],
-                dependent_edits=sorted(blocked, key=_edit_number),
-            )
-        for edit in selected:
-            edit['status'] = 'rejected'
+        _reject_selected(op, edits, selected, chosen)
     _finish_proposal(proposal, edits)
     if proposal.get('kind') == 'merge' and proposal['status'] in ('accepted', 'partially_accepted'):
         merge = proposal.get('merge', {})
@@ -3022,32 +3030,85 @@ def _field_items(doc, names):
     return items
 
 
-def inspect(
-    doc,
-    section=None,
-    target=None,
-    limit=100,
-    *,
-    continuation=None,
-    radius=None,
-    fields=None,
-    status=None,
-    layout=False,
-):
-    """Selective, bounded inspection with revision, scope, totals and usable continuation."""
-    offset = 0
-    if continuation is not None:
-        payload = _read_token(doc, continuation, 'inspect')
-        params, offset = payload['params'], payload['offset']
-        section, target, radius, fields, status, layout = (
-            params.get(k) for k in ('section', 'target', 'radius', 'fields', 'status', 'layout')
+def _inspect_findings(doc, target, status, extra):
+    wanted = (
+        ('open', 'needs review', 'stale')
+        if status in (None, 'unresolved')
+        else None
+        if status == 'all'
+        else (status,)
+    )
+    from .checks import STATUSES, health
+
+    if wanted and any(s not in STATUSES for s in wanted):
+        _error('Unknown finding status filter.', 'status', supported=list(STATUSES) + ['unresolved', 'all'])
+    ids = None
+    if target:
+        index = _block_index(doc, target)
+        if index is None:
+            raise ByaxError('missing_target', 'Target is not in the document body.', target=target)
+        block = doc['blocks'][index]
+        ids = (
+            {block['id']}
+            | {r['id'] for r in block.get('rows', [])}
+            | {c['id'] for r in block.get('rows', []) for c in r['cells']}
         )
-    if type(limit) is not int or limit < 0:
-        _error('Limit must be a nonnegative integer.', 'limit')
-    if radius is not None and (type(radius) is not int or not 0 <= radius <= 1000):
-        _error('Radius must be an integer from 0 to 1000.', 'radius')
-    if fields is not None and (not isinstance(fields, list) or not all(isinstance(f, str) for f in fields)):
-        _error('Fields must be a list of field names.', 'fields')
+    items = [
+        copy.deepcopy(f)
+        for f in doc['review']['findings']
+        if (wanted is None or f.get('status') in wanted)
+        and (ids is None or set(f.get('affected_ids', [])) & ids)
+    ]
+    extra['health'] = {
+        k: v for k, v in health(doc).items() if k in ('validation', 'findings_by_status', 'stale_units')
+    }
+    scope = {'findings': status or 'unresolved', **({'target': target} if target else {})}
+    return items, scope
+
+
+def _inspect_stored(doc, section):
+    if section in (
+        'metadata',
+        'styles',
+        'layout',
+        'assets',
+        'references',
+        'profiles',
+        'layers',
+        'history',
+        'review',
+        'settings',
+    ):
+        value = copy.deepcopy(doc[section])
+        if section == 'assets':
+            value = {k: {key: v for key, v in a.items() if key != 'data'} for k, a in value.items()}
+        if section == 'history':
+            value['revisions'] = [
+                {k: v for k, v in r.items() if k not in ('snapshot', 'delta')} for r in value['revisions']
+            ]
+        return value if isinstance(value, list) else [{'key': k, 'value': v} for k, v in value.items()]
+    elif section and section not in ('document', 'blocks'):
+        indices = [i for i, b in enumerate(doc['blocks']) if b['id'] == section]
+        if not indices:
+            raise ByaxError('missing_target', 'Section does not exist.', target=section)
+        start = indices[0]
+        first = doc['blocks'][start]
+        stop = next(
+            (
+                i
+                for i in range(start + 1, len(doc['blocks']))
+                if doc['blocks'][i]['type'] == 'heading'
+                and doc['blocks'][i].get('attrs', {}).get('level', 1)
+                <= first.get('attrs', {}).get('level', 1)
+            ),
+            len(doc['blocks']),
+        )
+        return copy.deepcopy(doc['blocks'][start:stop])
+    else:
+        return copy.deepcopy(doc['blocks'])
+
+
+def _inspect_items(doc, section, target, radius, fields, status):
     extra = {}
     scope = target or section or 'document'
     if section == 'nearby' or (target and radius is not None):
@@ -3078,40 +3139,7 @@ def inspect(
         items = _field_items(doc, fields)
         scope = {'fields': fields} if fields else 'fields'
     elif section == 'findings':
-        wanted = (
-            ('open', 'needs review', 'stale')
-            if status in (None, 'unresolved')
-            else None
-            if status == 'all'
-            else (status,)
-        )
-        from .checks import STATUSES, health
-
-        if wanted and any(s not in STATUSES for s in wanted):
-            _error(
-                'Unknown finding status filter.', 'status', supported=list(STATUSES) + ['unresolved', 'all']
-            )
-        ids = None
-        if target:
-            index = _block_index(doc, target)
-            if index is None:
-                raise ByaxError('missing_target', 'Target is not in the document body.', target=target)
-            block = doc['blocks'][index]
-            ids = (
-                {block['id']}
-                | {r['id'] for r in block.get('rows', [])}
-                | {c['id'] for r in block.get('rows', []) for c in r['cells']}
-            )
-        items = [
-            copy.deepcopy(f)
-            for f in doc['review']['findings']
-            if (wanted is None or f.get('status') in wanted)
-            and (ids is None or set(f.get('affected_ids', [])) & ids)
-        ]
-        extra['health'] = {
-            k: v for k, v in health(doc).items() if k in ('validation', 'findings_by_status', 'stale_units')
-        }
-        scope = {'findings': status or 'unresolved', **({'target': target} if target else {})}
+        items, scope = _inspect_findings(doc, target, status, extra)
     elif section == 'health':
         from .checks import health
 
@@ -3145,63 +3173,12 @@ def inspect(
             }
             for k, v in doc['requests'].items()
         ] + [{'retention': _retention(doc)}]
-    elif section in (
-        'metadata',
-        'styles',
-        'layout',
-        'assets',
-        'references',
-        'profiles',
-        'layers',
-        'history',
-        'review',
-        'settings',
-    ):
-        value = copy.deepcopy(doc[section])
-        if section == 'assets':
-            value = {k: {key: v for key, v in a.items() if key != 'data'} for k, a in value.items()}
-        if section == 'history':
-            value['revisions'] = [
-                {k: v for k, v in r.items() if k not in ('snapshot', 'delta')} for r in value['revisions']
-            ]
-        items = value if isinstance(value, list) else [{'key': k, 'value': v} for k, v in value.items()]
-    elif section and section not in ('document', 'blocks'):
-        indices = [i for i, b in enumerate(doc['blocks']) if b['id'] == section]
-        if not indices:
-            raise ByaxError('missing_target', 'Section does not exist.', target=section)
-        start = indices[0]
-        first = doc['blocks'][start]
-        stop = next(
-            (
-                i
-                for i in range(start + 1, len(doc['blocks']))
-                if doc['blocks'][i]['type'] == 'heading'
-                and doc['blocks'][i].get('attrs', {}).get('level', 1)
-                <= first.get('attrs', {}).get('level', 1)
-            ),
-            len(doc['blocks']),
-        )
-        items = copy.deepcopy(doc['blocks'][start:stop])
     else:
-        items = copy.deepcopy(doc['blocks'])
-    params = {
-        'section': section,
-        'target': target,
-        'radius': radius,
-        'fields': fields,
-        'status': status,
-        'layout': layout,
-    }
-    selected, paging = _page(doc, 'inspect', params, items, offset, limit)
-    result = {
-        'schema_version': 1,
-        'document_id': doc['id'],
-        'revision': doc['revision'],
-        'scope': scope,
-        'items': selected,
-        **paging,
-        **extra,
-    }
+        items = _inspect_stored(doc, section)
+    return items, scope, extra
+
+
+def _inspect_identities(doc, selected, result, layout):
     identities = [
         item['id'] for item in selected if isinstance(item, dict) and isinstance(item.get('id'), str)
     ]
@@ -3225,6 +3202,54 @@ def inspect(
         except (ImportError, RuntimeError, ValueError, ByaxError) as exc:
             result['layout'] = {'status': 'unmeasured', 'reason': str(exc)}
     return result
+
+
+def inspect(
+    doc,
+    section=None,
+    target=None,
+    limit=100,
+    *,
+    continuation=None,
+    radius=None,
+    fields=None,
+    status=None,
+    layout=False,
+):
+    """Selective, bounded inspection with revision, scope, totals and usable continuation."""
+    offset = 0
+    if continuation is not None:
+        payload = _read_token(doc, continuation, 'inspect')
+        params, offset = payload['params'], payload['offset']
+        section, target, radius, fields, status, layout = (
+            params.get(k) for k in ('section', 'target', 'radius', 'fields', 'status', 'layout')
+        )
+    if type(limit) is not int or limit < 0:
+        _error('Limit must be a nonnegative integer.', 'limit')
+    if radius is not None and (type(radius) is not int or not 0 <= radius <= 1000):
+        _error('Radius must be an integer from 0 to 1000.', 'radius')
+    if fields is not None and (not isinstance(fields, list) or not all(isinstance(f, str) for f in fields)):
+        _error('Fields must be a list of field names.', 'fields')
+    items, scope, extra = _inspect_items(doc, section, target, radius, fields, status)
+    params = {
+        'section': section,
+        'target': target,
+        'radius': radius,
+        'fields': fields,
+        'status': status,
+        'layout': layout,
+    }
+    selected, paging = _page(doc, 'inspect', params, items, offset, limit)
+    result = {
+        'schema_version': 1,
+        'document_id': doc['id'],
+        'revision': doc['revision'],
+        'scope': scope,
+        'items': selected,
+        **paging,
+        **extra,
+    }
+    return _inspect_identities(doc, selected, result, layout)
 
 
 def find(
