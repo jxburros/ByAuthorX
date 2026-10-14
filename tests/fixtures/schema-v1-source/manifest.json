@@ -1,0 +1,19 @@
+{
+  "document_id": "doc_00000000000000000000000000000001",
+  "format": "ByAuthorX",
+  "format_version": 1,
+  "resources": {
+    "assets/2b1da20a14b97d8f01f0a809d9f7d53eeefc59df6312eaa5a0c8b5c1228d1d7f": {
+      "bytes": 67,
+      "sha256": "2b1da20a14b97d8f01f0a809d9f7d53eeefc59df6312eaa5a0c8b5c1228d1d7f"
+    },
+    "document.json": {
+      "bytes": 5773,
+      "sha256": "2f406470980dedeb61d1e21538f76c92a1bcb6089b56f3cd05499375a531e2a9"
+    }
+  },
+  "revision": "rev_00000000000000000000000000000013",
+  "schema_versions": {
+    "document": 1
+  }
+}
