@@ -13,7 +13,7 @@ import copy
 import html
 import re
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QTimer
 from PySide6.QtWidgets import (
     QButtonGroup,
     QComboBox,
@@ -36,6 +36,7 @@ from PySide6.QtWidgets import (
 
 from . import engine, model
 from .gui_art import EmptyPanel, TaskLoop, themed_art
+from .gui_editor import ProofMark
 
 TEXT_KINDS = {'openai', 'anthropic', 'gemini', 'ollama'}
 CONTEXT_LIMIT = 40_000
@@ -116,6 +117,11 @@ class AIPanel(QWidget):
         self.spell_list.setWordWrap(True)
         self.spell_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.spell_list.currentItemChanged.connect(self._spelling_selected)
+        # Marks in the text follow this list; coalesce the burst of row changes into one update.
+        self._marks_pending = False
+        rows = self.spell_list.model()
+        for signal in (rows.rowsInserted, rows.rowsRemoved, rows.modelReset):
+            signal.connect(self._marks_changed)
         self.spell_list.itemClicked.connect(self._navigate)
         self.spell_list.itemActivated.connect(self._navigate)
         self.spell_stack = QStackedWidget()
@@ -204,7 +210,11 @@ class AIPanel(QWidget):
             self.spell_status.setText(self.tr('Spelling check failed: ') + result['error'])
             return
         self.spell_list.clear()
+        current = result['revision'] == self.window.doc['revision']
         for finding in result['findings']:
+            # Marks need the text the finding was measured on; skip them if the document moved on.
+            block = model.find_object(self.window.doc, finding['target']) if current else None
+            finding['text'] = (block or {}).get('text')
             hint = ', '.join(finding['suggestions'][:3]) or 'no suggestions'
             item = QListWidgetItem(f'{finding["word"]}  →  {hint}')
             item.setData(Qt.UserRole, finding)
@@ -227,6 +237,36 @@ class AIPanel(QWidget):
             self.spell_list.setCurrentRow(0)
         self._spelling_selected()
         self.window.motion.fade(self.spell_stack)
+
+    def _marks_changed(self, *_):
+        if not self._marks_pending:
+            self._marks_pending = True
+            QTimer.singleShot(0, self._flush_marks)
+
+    def _flush_marks(self):
+        self._marks_pending = False
+        self.window.sync_proof_marks()
+
+    def spelling_marks(self):
+        """Red-pen marks for the listed misspellings, measured on the text the check actually saw."""
+        marks = []
+        for index in range(self.spell_list.count()):
+            finding = self.spell_list.item(index).data(Qt.UserRole)
+            if not finding or not finding.get('text'):
+                continue
+            hint = ', '.join(finding['suggestions'][:3])
+            label = self.tr('Possible misspelling: {0}').format(finding['word'])
+            marks.append(
+                ProofMark(
+                    finding['target'],
+                    finding['start'],
+                    finding['end'],
+                    'spelling',
+                    f'{label} → {hint}' if hint else label,
+                    finding['text'],
+                )
+            )
+        return marks
 
     def _current_finding(self):
         item = self.spell_list.currentItem()

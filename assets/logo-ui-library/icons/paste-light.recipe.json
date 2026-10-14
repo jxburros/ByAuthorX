@@ -1,0 +1,121 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Paste"
+    },
+    {
+      "type": "shape",
+      "name": "board",
+      "shape": "path",
+      "x": 17,
+      "y": 17,
+      "width": 62,
+      "height": 69,
+      "fill": "none",
+      "path": "M4.39 0.24 Q30.6 0.99 56.82 1.37 Q60.82 1.45 60.83 5.45 Q61.41 34.83 60.98 64.21 Q60.99 68.21 56.99 68.2 Q30.91 68.73 4.84 68.15 Q0.84 68.14 0.81 64.14 Q1.41 34.14 0.42 4.15 Q0.39 0.15 4.39 0.24 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "clip",
+      "shape": "path",
+      "x": 36,
+      "y": 9,
+      "width": 25,
+      "height": 18,
+      "fill": "none",
+      "path": "M3.53 0.61 Q12.69 0.87 21.84 0.65 Q24.84 0.66 24.85 3.66 Q24.87 8.67 24.88 13.69 Q24.89 16.69 21.89 16.76 Q12.69 16.84 3.49 17.22 Q0.49 17.29 0.5 14.29 Q0.51 8.95 0.52 3.6 Q0.53 0.6 3.53 0.61 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 29,
+      "y": 42,
+      "width": 37,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.27 1.29 C6.3 1.31 6.38 0.82 18.36 1.35 C30.35 1.89 30.27 2.37 36.22 2.88",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 30,
+      "y": 57,
+      "width": 36,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.2 Q18 0.24 36 1.22",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-2",
+      "shape": "path",
+      "x": 30,
+      "y": 71,
+      "width": 26,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.12 Q13 0.05 26 0.51",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

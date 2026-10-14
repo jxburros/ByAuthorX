@@ -1,0 +1,151 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Track changes"
+    },
+    {
+      "type": "shape",
+      "name": "page",
+      "shape": "path",
+      "x": 11,
+      "y": 8,
+      "width": 56,
+      "height": 79,
+      "fill": "none",
+      "path": "M2.94 0.18 Q20.91 0.69 38.88 0.62 Q41.48 0.65 43.28 2.53 Q48.01 7.8 53.05 12.77 Q54.85 14.65 54.88 17.25 Q55.41 46.38 55.54 75.51 Q55.57 78.11 52.97 78.1 Q28.29 77.55 3.6 77.77 Q1 77.75 0.98 75.15 Q1.46 38.94 0.36 2.75 Q0.34 0.15 2.94 0.18 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "page-fold",
+      "shape": "path",
+      "x": 51,
+      "y": 7,
+      "width": 15,
+      "height": 15,
+      "fill": "none",
+      "path": "M0.9 0.5 Q0.81 6.54 0.72 12.59 Q0.7 14.19 2.3 14.2 Q8.38 14.23 14.46 14.26",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 22,
+      "y": 29,
+      "width": 32,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.13 Q16 0.19 32 1.25",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "strike",
+      "shape": "path",
+      "x": 21,
+      "y": 42,
+      "width": 33,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.31 1.14 C5.77 1 5.95 0.73 16.68 0.74 C27.42 0.75 27.24 1.03 32.51 1.18",
+      "stroke": "#367B6C",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-2",
+      "shape": "path",
+      "x": 22,
+      "y": 57,
+      "width": 24,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.94 Q12 0.04 24 0.81",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "pen",
+      "shape": "path",
+      "x": 50,
+      "y": 45,
+      "width": 34,
+      "height": 41,
+      "fill": "none",
+      "path": "M0.39 40.6 C5.55 34.63 4.76 35.98 15.86 22.68 C26.96 9.39 27.75 8.04 33.69 0.72",
+      "stroke": "#367B6C",
+      "stroke_width": 7,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "pen-tip",
+      "shape": "path",
+      "x": 42,
+      "y": 81,
+      "width": 9,
+      "height": 8,
+      "fill": "none",
+      "path": "M8.33 5 C6.38 5.46 4.08 7.82 2.48 6.38 C0.89 4.93 3.19 2.56 3.54 0.65",
+      "stroke": "#367B6C",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

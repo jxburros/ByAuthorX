@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Protect"
+    },
+    {
+      "type": "shape",
+      "name": "body",
+      "shape": "path",
+      "x": 21,
+      "y": 42,
+      "width": 53,
+      "height": 45,
+      "fill": "none",
+      "path": "M6.85 0.07 Q27.02 0.48 47.18 0.02 Q52.18 0.02 52.18 5.02 Q52.01 22.12 52.21 39.22 Q52.22 44.22 47.22 44.16 Q26.54 44.07 5.87 43.68 Q0.87 43.62 0.98 38.62 Q0.71 21.83 1.74 5.07 Q1.85 0.07 6.85 0.07 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "shackle",
+      "shape": "path",
+      "x": 29,
+      "y": 10,
+      "width": 37,
+      "height": 33,
+      "fill": "none",
+      "path": "M3.37 31.91 C3.61 27.27 0.92 27.13 4.09 17.98 C7.25 8.82 5.3 8.89 12.86 4.45 C20.42 0.02 19.65 0.33 26.77 4.67 C33.88 9.01 31.98 8.21 34.22 17.47 C36.46 26.74 33.73 27.46 33.49 32.46",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "keyhole",
+      "shape": "path",
+      "x": 41,
+      "y": 54,
+      "width": 14,
+      "height": 14,
+      "fill": "none",
+      "path": "M7 1.19 C9.55 1.26 8.75 0.97 10.73 2.56 C12.7 4.14 12.47 3.49 12.93 5.95 C13.38 8.42 13.37 7.67 12.09 9.94 C10.82 12.21 11.5 11.84 9.1 12.78 C6.71 13.71 7.35 13.66 4.91 12.74 C2.47 11.82 3.05 12.27 1.78 10.01 C0.51 7.75 0.66 8.52 1.09 5.96 C1.53 3.4 1.11 3.92 3.08 2.33 C5.05 0.74 4.45 1.11 7 1.19 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "keyhole-slot",
+      "shape": "path",
+      "x": 47,
+      "y": 65,
+      "width": 1,
+      "height": 10,
+      "fill": "none",
+      "path": "M1 0.59 Q0.9 5.26 0.8 9.94",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

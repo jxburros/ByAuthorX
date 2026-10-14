@@ -1,0 +1,91 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Text color"
+    },
+    {
+      "type": "shape",
+      "name": "letter",
+      "shape": "path",
+      "x": 24,
+      "y": 12,
+      "width": 49,
+      "height": 59,
+      "fill": "none",
+      "path": "M0.88 57.65 Q12.31 30.32 22.8 2.63 Q23.54 0.77 24.32 2.61 Q36.91 30.21 48.05 58.42",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bar",
+      "shape": "path",
+      "x": 33,
+      "y": 51,
+      "width": 30,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.7 1.28 Q14.99 1.8 29.24 0.56",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5.199999999999999,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "swatch",
+      "shape": "path",
+      "x": 20,
+      "y": 83,
+      "width": 56,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.8 2.74 C9.11 1.86 7.45 0.12 25.73 0.1 C44.01 0.09 45.67 1.84 55.64 2.7",
+      "stroke": "#367B6C",
+      "stroke_width": 9,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -1,0 +1,76 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Bookmark"
+    },
+    {
+      "type": "shape",
+      "name": "ribbon",
+      "shape": "path",
+      "x": 25,
+      "y": 7,
+      "width": 45,
+      "height": 81,
+      "fill": "none",
+      "path": "M3.72 1.26 Q22.44 0.71 41.17 0.43 Q44.17 0.36 44.18 3.36 Q44.11 40.36 44.58 77.36 Q44.6 80.36 42.42 78.3 Q34 70.83 26.07 62.84 Q23.89 60.78 21.6 62.72 Q11.69 70.18 2.7 78.73 Q0.41 80.67 0.42 77.67 Q1.14 41 0.71 4.33 Q0.72 1.33 3.72 1.26 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "band",
+      "shape": "path",
+      "x": 26,
+      "y": 25,
+      "width": 44,
+      "height": 1,
+      "fill": "none",
+      "path": "M0.65 0.52 C7.88 0.47 8.05 0.29 22.34 0.37 C36.63 0.45 36.46 0.62 43.52 0.75",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

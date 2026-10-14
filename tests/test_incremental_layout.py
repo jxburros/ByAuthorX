@@ -226,7 +226,7 @@ def test_export_runs_on_worker(window, monkeypatch, tmp_path):
         return real(doc, target)
 
     monkeypatch.setattr(publication, 'export_clean', export)
-    monkeypatch.setattr(window, 'report', lambda title, result: reports.append(result))
+    monkeypatch.setattr(window, 'report', lambda title, result, art=None: reports.append(result))
     window.export()
     deadline = time.perf_counter() + 60
     while not reports and time.perf_counter() < deadline:

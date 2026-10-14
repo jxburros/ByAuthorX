@@ -1,0 +1,97 @@
+{
+  "generator": "Vixl 0.27.0 (delivered APNG frames, unpacked without resampling)",
+  "source": "assets/logo-ui-library/animations/listening-wave-light.apng",
+  "source_sha256": "d57365eef160cf7deff6868dc2f3203c0d9b9b79b3d915210b054b6874a93794",
+  "poster_source": "assets/logo-ui-library/animations/listening-wave-light.png",
+  "poster_source_sha256": "6b02afad1ed88e946c6dd1718d02b00e61eed26352e8675c1e1fdcde45a0a338",
+  "durationMs": 2400,
+  "frameWidth": 269,
+  "frameHeight": 130,
+  "frameTimesMs": [
+    0,
+    125,
+    167,
+    208,
+    250,
+    292,
+    333,
+    375,
+    417,
+    458,
+    500,
+    542,
+    583,
+    625,
+    667,
+    708,
+    750,
+    792,
+    833,
+    875,
+    917,
+    958,
+    1000,
+    1042,
+    1083,
+    1458,
+    1500,
+    1542,
+    1583,
+    1625,
+    1667,
+    1708,
+    1750,
+    1792,
+    1833,
+    1875,
+    1917,
+    1958,
+    2000,
+    2042,
+    2083,
+    2125,
+    2167,
+    2400
+  ],
+  "loop": true,
+  "posterTimeMs": 1200,
+  "crop": [
+    35,
+    50,
+    304,
+    180
+  ],
+  "theme": "light",
+  "checks": {
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "info": 0,
+    "by_action": {
+      "fix": [],
+      "review": [],
+      "informational": []
+    },
+    "outcome": {
+      "state": "validated",
+      "execution": "completed",
+      "validation": "passed",
+      "review": "not_required",
+      "review_reasons": [],
+      "validated_by": [
+        "design checks"
+      ]
+    },
+    "issues": [],
+    "checked": {
+      "checks": [
+        "bounds",
+        "motion",
+        "composition"
+      ],
+      "layers_checked": 8,
+      "layers_total": 8,
+      "text_layers": 0
+    }
+  }
+}

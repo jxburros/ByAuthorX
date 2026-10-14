@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Italic"
+    },
+    {
+      "type": "shape",
+      "name": "stem",
+      "shape": "path",
+      "x": 40,
+      "y": 16,
+      "width": 15,
+      "height": 60,
+      "fill": "none",
+      "path": "M14.23 0.22 Q7.68 30.07 0.79 59.85",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "top-serif",
+      "shape": "path",
+      "x": 40,
+      "y": 15,
+      "width": 25,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.16 0.94 Q12.29 1.66 24.43 1.3",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "base-serif",
+      "shape": "path",
+      "x": 29,
+      "y": 75,
+      "width": 25,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.14 1.05 Q12.08 0.57 24.03 0.69",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "underline",
+      "shape": "path",
+      "x": 23,
+      "y": 87,
+      "width": 49,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.31 1.82 C8 1.33 7.35 0.01 23.38 0.35 C39.4 0.7 40.04 2.03 48.37 2.86",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Bold"
+    },
+    {
+      "type": "shape",
+      "name": "stem",
+      "shape": "path",
+      "x": 30,
+      "y": 14,
+      "width": 1,
+      "height": 64,
+      "fill": "none",
+      "path": "M0.7 0.4 C0.63 11.19 0.67 11.71 0.49 32.77 C0.31 53.84 0.26 53.32 0.15 63.59",
+      "stroke": "#252927",
+      "stroke_width": 8,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "upper-bowl",
+      "shape": "path",
+      "x": 29,
+      "y": 10,
+      "width": 33,
+      "height": 39,
+      "fill": "none",
+      "path": "M0.29 5.84 C6.92 4.99 9.78 0.74 20.19 3.28 C30.59 5.82 30.81 4.16 31.51 13.45 C32.2 22.74 32.67 24.09 22.27 31.16 C11.87 38.22 7.63 33.49 0.31 34.65",
+      "stroke": "#252927",
+      "stroke_width": 8,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "lower-bowl",
+      "shape": "path",
+      "x": 29,
+      "y": 39,
+      "width": 40,
+      "height": 45,
+      "fill": "none",
+      "path": "M1.55 5.79 C9.46 5.47 12.91 0.57 25.27 4.83 C37.64 9.09 38.13 7.65 38.65 18.58 C39.18 29.5 39.42 31.09 26.86 37.61 C14.3 44.13 9.6 37.95 0.97 38.13",
+      "stroke": "#252927",
+      "stroke_width": 8,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "underline",
+      "shape": "path",
+      "x": 23,
+      "y": 86,
+      "width": 49,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.89 2.15 C8.25 1.64 7.18 0.59 22.95 0.62 C38.72 0.66 39.79 1.71 48.21 2.25",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

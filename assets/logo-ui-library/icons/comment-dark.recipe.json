@@ -1,0 +1,133 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Comment"
+    },
+    {
+      "type": "shape",
+      "name": "bubble",
+      "shape": "path",
+      "x": 10,
+      "y": 13,
+      "width": 75,
+      "height": 69,
+      "fill": "none",
+      "path": "M5.26 1.1 Q37.6 1.47 69.93 0.92 Q73.93 0.91 74.01 4.91 Q73.63 24.69 74.8 44.44 Q74.88 48.44 70.88 48.61 Q58.58 49.19 46.28 49.71 Q42.29 49.88 39.21 52.43 Q30.69 58.7 22.94 65.9 Q19.86 68.46 20.23 64.47 Q20.8 58.31 21.38 52.14 Q21.75 48.16 17.75 48.34 Q11.43 48.62 5.11 48.89 Q1.12 49.07 1.13 45.07 Q0.41 25.09 1.25 5.11 Q1.26 1.11 5.26 1.1 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "origin-body",
+      "shape": "path",
+      "x": 19.308571428571426,
+      "y": 25.034285714285716,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "origin-body",
+      "width": 11.363265306122448,
+      "height": 12.0
+    },
+    {
+      "type": "shape",
+      "name": "origin-fleck",
+      "shape": "path",
+      "x": 19.01469417142857,
+      "y": 33.605714285714285,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "origin-fleck",
+      "width": 2.057142857142857,
+      "height": 2.742857142857143
+    },
+    {
+      "type": "group",
+      "name": "origin",
+      "targets": [
+        "origin-body",
+        "origin-fleck"
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 38,
+      "y": 30,
+      "width": 32,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.5 Q16 0.64 32 0.99",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 24,
+      "y": 45,
+      "width": 38,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.65 1.64 C5.81 1.44 3.77 0.76 16.14 1.03 C28.52 1.3 30.55 1.98 37.76 2.45",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

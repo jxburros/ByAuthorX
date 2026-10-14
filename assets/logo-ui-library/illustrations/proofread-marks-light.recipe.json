@@ -1,0 +1,332 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "proofread marks"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript",
+      "shape": "path",
+      "x": 120,
+      "y": 56,
+      "width": 270,
+      "height": 330,
+      "fill": "#FFFCF7",
+      "path": "M4 1 L265 0 L270 5 L268 327 L262 330 L0 329 L2 8 Z",
+      "stroke": "#252927",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-0",
+      "shape": "path",
+      "x": 139,
+      "y": 96,
+      "width": 232,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q104.4 0 232 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-1",
+      "shape": "path",
+      "x": 139,
+      "y": 124,
+      "width": 232,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q104.4 3 232 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-2",
+      "shape": "path",
+      "x": 139,
+      "y": 152,
+      "width": 167.04,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q75.16799999999999 0 167.04 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-3",
+      "shape": "path",
+      "x": 139,
+      "y": 180,
+      "width": 232,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q104.4 3 232 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-4",
+      "shape": "path",
+      "x": 139,
+      "y": 208,
+      "width": 232,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q104.4 0 232 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-5",
+      "shape": "path",
+      "x": 139,
+      "y": 236,
+      "width": 167.04,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q75.16799999999999 3 167.04 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-6",
+      "shape": "path",
+      "x": 139,
+      "y": 264,
+      "width": 232,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q104.4 0 232 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-7",
+      "shape": "path",
+      "x": 139,
+      "y": 292,
+      "width": 232,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q104.4 3 232 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "manuscript-line-8",
+      "shape": "path",
+      "x": 139,
+      "y": 320,
+      "width": 167.04,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q75.16799999999999 0 167.04 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "spelling-mark",
+      "shape": "path",
+      "x": 171,
+      "y": 164,
+      "width": 92,
+      "height": 17,
+      "fill": "none",
+      "path": "M0.33 13.27 C2.47 9.77 1.87 2.86 6.76 2.78 C11.65 2.69 10.2 13.49 15 13.01 C19.8 12.52 16.34 1.26 21.16 1.32 C25.98 1.38 24.26 13.07 29.46 13.19 C34.67 13.31 31.18 0.79 36.77 1.68 C42.36 2.57 40.66 15.35 46.24 15.86 C51.82 16.37 49.19 4.82 53.51 3.21 C57.82 1.6 53.86 11.01 59.19 11.04 C64.51 11.06 64.3 3.18 69.48 3.3 C74.66 3.41 70.37 11.34 74.74 11.39 C79.1 11.43 76.93 2.43 82.57 3.44 C88.22 4.44 88.65 10.75 91.69 14.4",
+      "stroke": "#AD283E",
+      "stroke_width": 3.4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "grammar-mark",
+      "shape": "path",
+      "x": 190,
+      "y": 247,
+      "width": 151,
+      "height": 18,
+      "fill": "none",
+      "path": "M0.56 16.45 C2.47 11.89 1.06 3.55 6.3 2.78 C11.55 2.02 11.03 14.01 16.3 14.15 C21.56 14.29 17.17 2.61 22.11 3.2 C27.04 3.79 26.18 16.47 31.1 15.91 C36.02 15.36 31.92 2.15 36.86 1.53 C41.8 0.91 41.12 13.45 45.91 14.05 C50.71 14.64 46.06 2.82 51.24 3.32 C56.42 3.81 56.41 15.92 61.45 15.53 C66.5 15.15 61.68 2.2 66.37 2.17 C71.06 2.13 70 14.8 75.52 15.43 C81.04 16.05 77.57 4.45 82.92 4.04 C88.27 3.63 86.31 14.52 91.58 14.2 C96.84 13.88 94.01 2.8 98.71 3.07 C103.41 3.35 100.8 15.07 105.68 15.03 C110.57 14.99 108.48 2.4 113.36 2.96 C118.23 3.53 116.01 16.91 120.3 16.72 C124.59 16.53 121.8 3.25 126.23 2.38 C130.66 1.52 127.91 13.45 133.59 14.12 C139.26 14.78 137.78 3.41 143.26 4.38 C148.74 5.35 147.78 12.81 150.04 17.02",
+      "stroke": "#367B6C",
+      "stroke_width": 3.4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "margin-connector",
+      "shape": "path",
+      "x": 267,
+      "y": 146,
+      "width": 171,
+      "height": 37,
+      "fill": "none",
+      "path": "M0.88 24.28 C17.77 17.06 10.38 0.67 51.54 2.61 C92.7 4.56 84.61 23.25 124.36 30.12 C164.1 37 155.31 25.53 170.78 23.24",
+      "stroke": "#367B6C",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "margin-note",
+      "shape": "path",
+      "x": 440,
+      "y": 120,
+      "width": 132,
+      "height": 116,
+      "fill": "#F4EEE3",
+      "path": "M4 1 L127 0 L132 5 L130 113 L124 116 L0 115 L2 8 Z",
+      "stroke": "#252927",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "margin-note-line-0",
+      "shape": "path",
+      "x": 459,
+      "y": 160,
+      "width": 94,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q42.300000000000004 0 94 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "margin-note-line-1",
+      "shape": "path",
+      "x": 459,
+      "y": 188,
+      "width": 94,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q42.300000000000004 3 94 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "margin-note-line-2",
+      "shape": "path",
+      "x": 459,
+      "y": 216,
+      "width": 67.67999999999999,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q30.455999999999996 0 67.67999999999999 2",
+      "stroke": "#52615B",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "note-ink-body",
+      "shape": "path",
+      "x": 460,
+      "y": 146,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "note-ink-body",
+      "width": 13.257142857142856,
+      "height": 14.0
+    },
+    {
+      "type": "shape",
+      "name": "note-ink-fleck",
+      "shape": "path",
+      "x": 459.6571432,
+      "y": 156.0,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "note-ink-fleck",
+      "width": 2.4000000000000004,
+      "height": 3.2
+    },
+    {
+      "type": "group",
+      "name": "note-ink",
+      "targets": [
+        "note-ink-body",
+        "note-ink-fleck"
+      ]
+    }
+  ]
+}

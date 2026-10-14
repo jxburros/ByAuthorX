@@ -12,7 +12,9 @@ import difflib
 import itertools
 import math
 import os
+import threading
 import unicodedata
+from contextlib import contextmanager
 from pathlib import Path
 
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, QRectF, QSizeF, Qt, QUrl
@@ -50,6 +52,33 @@ FLOW_HEIGHT = 10_000_000.0
 EPSILON = 0.05
 
 BLOCK_ID_PROPERTY = int(QTextFormat.Property.UserProperty) + 1
+# Editing-view decorations: with hand-drawn marks on, authored underline and strikethrough are stored as
+# these properties and drawn by the editor as pen strokes. Pages, print and exports never set them.
+INK_UNDERLINE_PROPERTY = int(QTextFormat.Property.UserProperty) + 11
+INK_STRIKE_PROPERTY = int(QTextFormat.Property.UserProperty) + 12
+_DISPLAY = threading.local()
+
+
+@contextmanager
+def hand_drawn_marks(enabled=True):
+    """Build editor documents with pen-stroke decorations; thread-local, so exports are never affected."""
+    previous = getattr(_DISPLAY, 'hand', False)
+    _DISPLAY.hand = bool(enabled)
+    try:
+        yield
+    finally:
+        _DISPLAY.hand = previous
+
+
+def _decoration(fmt, kind, on):
+    if getattr(_DISPLAY, 'hand', False):
+        fmt.setProperty(INK_UNDERLINE_PROPERTY if kind == 'underline' else INK_STRIKE_PROPERTY, on)
+    elif kind == 'underline':
+        fmt.setFontUnderline(on)
+    else:
+        fmt.setFontStrikeOut(on)
+
+
 _APP = None
 
 
@@ -109,9 +138,9 @@ def _char_format(values):
         elif key in ('italic', 'emphasis'):
             fmt.setFontItalic(bool(value))
         elif key == 'underline':
-            fmt.setFontUnderline(bool(value))
+            _decoration(fmt, 'underline', bool(value))
         elif key in ('strikethrough', 'strike'):
-            fmt.setFontStrikeOut(bool(value))
+            _decoration(fmt, 'strike', bool(value))
         elif key in ('font', 'font_family'):
             fmt.setFontFamilies([str(value)])
         elif key in ('font_size', 'size'):
@@ -2236,6 +2265,12 @@ def _dependent_targets(doc):
 
 
 def resolve_pages(doc, output=None):
+    """Physical pages for printing, preview and export: always typographically exact lines."""
+    with hand_drawn_marks(False):
+        return _resolve_pages(doc, output)
+
+
+def _resolve_pages(doc, output=None):
     """Resolve physical sheets from the semantic model alone.
 
     Builds only unparented QTextDocuments, so it may run on a worker thread;
