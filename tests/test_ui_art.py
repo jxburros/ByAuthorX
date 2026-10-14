@@ -183,3 +183,83 @@ def test_baked_resources_have_exact_endpoints_and_no_document_art(qtbot, monkeyp
                 assert (
                     sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes() == poster.tobytes()
                 )
+
+
+COMPANION_STILLS = ('ai-empty', 'ai-setup', 'spelling-clean', 'layers-empty', 'outline-empty')
+COMPANION_LOOPS = ('ai-thinking', 'spelling-review')
+
+
+def test_companion_resources_load_with_provenance(qtbot):
+    from PySide6.QtGui import QPixmap
+
+    provenance = json.loads((BRAND_ROOT / 'ui' / 'provenance.json').read_text())
+    root = BRAND_ROOT.parents[3]
+    for theme in ('light', 'dark'):
+        for name in COMPANION_STILLS:
+            path = BRAND_ROOT / 'ui' / f'{name}-{theme}.png'
+            assert not QPixmap(str(path)).isNull()
+            record = provenance[path.name]
+            source = root / record['source']
+            assert record['source'].startswith('assets/logo-companion-library/illustrations/')
+            if source.exists():
+                assert source.read_bytes() == path.read_bytes()
+        for name in COMPANION_LOOPS:
+            manifest = json.loads((BRAND_ROOT / 'ui' / f'{name}-{theme}.json').read_text())
+            assert manifest['loop'] and manifest['checks']['passed']
+            assert manifest['frameTimesMs'][0] == 0
+            assert manifest['frameTimesMs'][-1] == manifest['durationMs'] == 2400
+            with (
+                Image.open(BRAND_ROOT / 'ui' / f'{name}-{theme}-sprite.png') as sprite,
+                Image.open(BRAND_ROOT / 'ui' / f'{name}-{theme}-poster.png') as poster,
+            ):
+                width, height = poster.size
+                assert (width, height) == (manifest['frameWidth'], manifest['frameHeight'])
+                assert sprite.size == (width * len(manifest['frameTimesMs']), height)
+                # The loop closes on its opening pose, so the boundary is invisible.
+                assert (
+                    sprite.crop((0, 0, width, height)).tobytes()
+                    == sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes()
+                )
+
+
+def test_themed_art_follows_palette(qtbot):
+    from PySide6.QtGui import QColor, QPalette
+    from PySide6.QtWidgets import QWidget
+
+    from byax.gui_art import art_theme, themed_art
+
+    widget = QWidget()
+    qtbot.addWidget(widget)
+    assert themed_art('ai-empty', widget) == 'ui/ai-empty-light.png'
+    palette = widget.palette()
+    palette.setColor(QPalette.Window, QColor('#252927'))
+    widget.setPalette(palette)
+    assert art_theme(widget) == 'dark'
+
+
+def test_empty_states_use_companion_art(qtbot, monkeypatch, tmp_path):
+    from byax.brand import BrandGraphic
+
+    window = make_window(qtbot, monkeypatch, tmp_path)
+    for stack in (window.outline_stack, window.layer_stack, window.ai_panel.history_stack):
+        assert stack.widget(stack.count() - 1 if stack is not window.ai_panel.history_stack else 0).findChild(
+            BrandGraphic
+        )
+    window.dirty = False
+
+
+def test_task_loop_plays_only_while_running_and_honours_reduced_motion(qtbot, monkeypatch, tmp_path):
+    window = make_window(qtbot, monkeypatch, tmp_path)
+    window.inspector.setCurrentWidget(window.ai_panel)
+    loop = window.ai_panel.spell_loop
+    assert loop.isHidden() and not loop.running
+    loop.start()
+    qtbot.waitUntil(lambda: loop.animation.state() == QAbstractAnimation.Running)
+    window.motion.set_reduced(True)
+    assert loop.animation.state() == QAbstractAnimation.Stopped and loop.isVisible()
+    loop.grab()  # Reduced motion paints the delivered still.
+    window.motion.set_reduced(False)
+    assert loop.animation.state() == QAbstractAnimation.Running
+    loop.stop()
+    assert loop.isHidden() and loop.animation.state() == QAbstractAnimation.Stopped
+    window.dirty = False

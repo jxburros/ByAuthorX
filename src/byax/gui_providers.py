@@ -7,7 +7,10 @@ from __future__ import annotations
 import copy
 import json
 import tempfile
+import uuid
+from pathlib import Path
 
+from PySide6.QtCore import QObject, Qt, Signal
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -15,10 +18,13 @@ from PySide6.QtWidgets import (
     QDialogButtonBox,
     QFileDialog,
     QFormLayout,
+    QGroupBox,
     QHBoxLayout,
     QInputDialog,
     QLabel,
     QLineEdit,
+    QListWidget,
+    QListWidgetItem,
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
@@ -27,8 +33,19 @@ from PySide6.QtWidgets import (
 )
 
 from . import engine, model
+from .errors import ByaxError
 from .providers import ProviderConfig, ProviderRegistry
-from .transcription import DictationSession, QtMicrophoneRecorder
+from .transcription import (
+    DictationJournal,
+    DictationSession,
+    LiveDictation,
+    QtMicrophoneRecorder,
+    RetentionStore,
+    apply_direct_options,
+    build_context,
+    discard_session,
+    recover_sessions,
+)
 
 
 class ProviderDialog(QDialog):
@@ -391,30 +408,142 @@ def import_audio(window, path=None):
     cancel.clicked.connect(lambda: window.job_manager.cancel(job['id']))
 
 
+class _EventBridge(QObject):
+    """Delivers recognizer events from the job thread to the GUI thread."""
+
+    event = Signal(dict)
+
+
+def _clock(seconds):
+    if seconds is None:
+        return '--:--'
+    minutes, rest = divmod(float(seconds), 60)
+    return f'{int(minutes):02d}:{rest:04.1f}'
+
+
+def _size(count):
+    for unit in ('bytes', 'KB', 'MB', 'GB'):
+        if count < 1024 or unit == 'GB':
+            return f'{count:.0f} {unit}' if unit == 'bytes' else f'{count:.1f} {unit}'
+        count /= 1024
+
+
 class DictationDialog(QDialog):
-    def __init__(self, window):
+    """Microphone or imported audio through one pipeline: explicit context, retention,
+    application policy, provisional display, phrase commits and segment navigation."""
+
+    def __init__(self, window, *, registry=None, journal_root=None, store=None):
         super().__init__(window)
         self.window = window
-        self.setWindowTitle('Microphone dictation')
-        self.resize(510, 240)
+        self.registry = registry or ProviderRegistry()
+        self.journal_root = journal_root
+        self.store = store or RetentionStore()
+        self.setWindowTitle('Dictation')
+        self.resize(620, 720)
         self.recorder = None
         self.audio_path = None
+        self.journal = None
+        self.session = None
+        self.live = None
+        self.bridge = _EventBridge(self)
+        self.bridge.event.connect(self.on_event)
         layout = QVBoxLayout(self)
         self.state = QLabel(
             'Choose a microphone, then start recording. Audio is recorded locally until you explicitly authorize transcription.'
         )
         self.state.setWordWrap(True)
         layout.addWidget(self.state)
+        form = QFormLayout()
+        layout.addLayout(form)
         self.devices = QComboBox()
-        self.devices.setAccessibleName('Microphone')
         try:
             for device in QtMicrophoneRecorder.devices():
                 self.devices.addItem(device['name'], device['id'])
             self.recorder = QtMicrophoneRecorder()
         except Exception as exc:
             self.state.setText('Microphone unavailable: ' + str(exc))
-        layout.addWidget(self.devices)
+        self.destination = QComboBox()
+        self.destination.addItem('Cursor position', ('cursor', None))
+        self.destination.addItem('Start of selected text', ('selection', None))
+        for name in sorted(window.doc.get('settings', {}).get('bookmarks', {})):
+            self.destination.addItem('Bookmark: ' + name, ('bookmark', name))
+        self.mode = QComboBox()
+        for label, value in (
+            ('Direct transcript', 'direct'),
+            ('Spelling and grammar cleanup', 'cleanup'),
+            ('Document aware', 'document_aware'),
+        ):
+            self.mode.addItem(label, value)
+        self.policy = QComboBox()
+        for label, value in (
+            ('Suggestions only (review before inserting)', 'suggestions_only'),
+            ('Insert final phrases automatically', 'automatic_direct'),
+            ('Insert phrases, then apply authorized cleanup', 'automatic_cleanup'),
+        ):
+            self.policy.addItem(label, value)
+        for label, control in (
+            ('Microphone', self.devices),
+            ('Insert at', self.destination),
+            ('Processing', self.mode),
+            ('Application', self.policy),
+        ):
+            control.setAccessibleName(label)
+            form.addRow(label, control)
+        self.fillers = QCheckBox('Remove filler words (um, uh)')
+        self.repetitions = QCheckBox('Collapse repeated words')
+        self.spoken = QCheckBox('Convert spoken punctuation (“comma”, “period”)')
+        for control in (self.fillers, self.repetitions, self.spoken):
+            form.addRow(control)
+        context = QGroupBox('Context sent for cleanup (nothing else is sent)')
+        context_form = QFormLayout(context)
+        self.nearby = QSpinBox()
+        self.nearby.setRange(0, 10)
+        self.nearby.setAccessibleName('Nearby paragraphs')
+        context_form.addRow('Nearby paragraphs', self.nearby)
+        self.section = QCheckBox('Current section')
+        self.whole = QCheckBox('Whole document')
+        self.dictionary = QCheckBox('Document and profile dictionary')
+        for control in (self.section, self.whole, self.dictionary):
+            context_form.addRow(control)
+        self.samples = QPlainTextEdit()
+        self.samples.setPlaceholderText('Optional writing samples, separated by blank lines')
+        self.samples.setAccessibleName('Writing samples')
+        self.samples.setMaximumHeight(70)
+        context_form.addRow('Writing samples', self.samples)
+        self.references = QListWidget()
+        self.references.setAccessibleName('Selected references')
+        self.references.setMaximumHeight(80)
+        for identity, reference in window.doc.get('references', {}).items():
+            item = QListWidgetItem(str(reference.get('title', identity)))
+            item.setData(Qt.UserRole, identity)
+            item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
+            item.setCheckState(Qt.Unchecked)
+            self.references.addItem(item)
+        context_form.addRow('References', self.references)
+        layout.addWidget(context)
+        retention = QGroupBox('Retention')
+        retention_form = QFormLayout(retention)
+        self.retain_raw = QCheckBox('Keep raw transcript and timestamps')
+        self.retain_audio = QCheckBox('Keep audio recording')
+        self.impact = QLabel()
+        self.impact.setWordWrap(True)
+        self.impact.setAccessibleName('Storage impact')
+        for control in (self.retain_raw, self.retain_audio, self.impact):
+            retention_form.addRow(control)
+        self.retain_raw.toggled.connect(self.update_impact)
+        self.retain_audio.toggled.connect(self.update_impact)
+        layout.addWidget(retention)
+        self.provisional = QLabel()
+        self.provisional.setWordWrap(True)
+        self.provisional.setStyleSheet('color: palette(mid); font-style: italic;')
+        self.provisional.setAccessibleName('Provisional recognition, not yet in the document')
+        layout.addWidget(self.provisional)
+        self.segments = QListWidget()
+        self.segments.setAccessibleName('Recognized segments; activate to show in document')
+        self.segments.itemActivated.connect(self.navigate_segment)
+        layout.addWidget(self.segments)
         controls = QHBoxLayout()
+        self.buttons = []
         for name, slot, key in [
             ('Start', self.start, 'Alt+S'),
             ('Pause', self.pause, 'Alt+P'),
@@ -426,17 +555,116 @@ class DictationDialog(QDialog):
             button.clicked.connect(slot)
             button.setEnabled(self.recorder is not None)
             controls.addWidget(button)
+            self.buttons.append(button)
         layout.addLayout(controls)
+        extra = QHBoxLayout()
+        for name, slot in [
+            ('Import audio file…', self.import_file),
+            ('Recover interrupted sessions…', self.recover),
+        ]:
+            button = QPushButton(name)
+            button.clicked.connect(slot)
+            extra.addWidget(button)
+        layout.addLayout(extra)
+        self.update_impact()
+        try:
+            pending = recover_sessions(self.journal_root)
+            if pending:
+                self.state.setText(
+                    self.state.text() + f'\n{len(pending)} interrupted dictation session(s) can be recovered.'
+                )
+        except Exception as exc:
+            self.state.setText(self.state.text() + ' Interrupted sessions could not be checked: ' + str(exc))
+
+    def options(self):
+        return {
+            'fillers': 'remove' if self.fillers.isChecked() else 'keep',
+            'repetitions': 'collapse' if self.repetitions.isChecked() else 'keep',
+            'punctuation': 'spoken' if self.spoken.isChecked() else 'recognizer',
+        }
+
+    def selected_references(self):
+        return [
+            self.references.item(i).data(Qt.UserRole)
+            for i in range(self.references.count())
+            if self.references.item(i).checkState() == Qt.Checked
+        ]
+
+    def insertion_point(self):
+        kind, name = self.destination.currentData()
+        if kind == 'bookmark':
+            mark = self.window.doc['settings']['bookmarks'][name]
+            return mark['target'], mark.get('offset', 0)
+        targets = self.window.editor.selection_targets()
+        if not targets:
+            raise ByaxError('invalid_input', 'Place the cursor in a text paragraph before dictating')
+        target, start, end = targets[0]
+        return target, start if kind == 'selection' else end
+
+    def profile(self):
+        profile_id = getattr(self.window, 'active_profile', None)
+        return copy.deepcopy(self.window.doc.get('profiles', {}).get(profile_id, {})) if profile_id else {}
+
+    def build_context(self, target):
+        samples = [part.strip() for part in self.samples.toPlainText().split('\n\n') if part.strip()]
+        return build_context(
+            self.window.doc,
+            target,
+            nearby=self.nearby.value(),
+            section=self.section.isChecked(),
+            whole_document=self.whole.isChecked(),
+            dictionary=self.dictionary.isChecked(),
+            writing_samples=samples,
+            references=self.selected_references(),
+            profile=self.profile() or None,
+        )
+
+    def update_impact(self, *_):
+        path = self.audio_path or (self.session.audio_path if self.session else None)
+        audio = Path(path).stat().st_size if path and Path(path).is_file() else 0
+        raw = len(self.session.raw_transcript.encode('utf-8')) if self.session else 0
+        lines = [
+            (
+                'Raw transcript: kept, about ' + _size(raw)
+                if self.session
+                else 'Raw transcript: kept (size known after recognition)'
+            )
+            if self.retain_raw.isChecked()
+            else 'Raw transcript: not kept after this session',
+            ('Audio: kept, ' + _size(audio) if audio else 'Audio: kept')
+            if self.retain_audio.isChecked()
+            else 'Audio: recordings are deleted after this session; imported files are never deleted',
+        ]
+        try:
+            usage = self.store.usage()
+            lines.append(
+                f'Retained so far: {usage["sessions"]} session(s), {_size(usage["total_bytes"])} in {usage["location"]}'
+            )
+        except Exception as exc:
+            lines.append('Retained storage could not be measured: ' + str(exc))
+        self.impact.setText('\n'.join(lines))
 
     def start(self):
-        if self.audio_path:
+        if self.audio_path or self.recorder is None:
             return
         try:
             with tempfile.NamedTemporaryFile(prefix='byax-recording-', suffix='.wav', delete=False) as handle:
                 self.audio_path = handle.name
+            Path(self.audio_path).unlink()
+            self.journal = DictationJournal(
+                'dictation_' + uuid.uuid4().hex,
+                self.journal_root,
+                source='microphone',
+                revision=self.window.doc['revision'],
+            )
+            self.recorder.journal = self.journal
+            self.journal.audio(self.audio_path, bytes_recorded=0, force=True)
             self.recorder.start(self.audio_path, self.devices.currentData())
             self.state.setText('Recording ● · Alt+P to pause · Alt+T to stop')
         except Exception as exc:
+            if self.journal is not None:
+                self.journal.finish('failed')
+                self.journal = None
             self.audio_path = None
             self.window.error(exc)
 
@@ -453,11 +681,304 @@ class DictationDialog(QDialog):
     def stop(self):
         if not self.audio_path:
             return
-        self.recorder.stop()
+        result = self.recorder.stop()
         path = self.audio_path
         self.audio_path = None
-        self.state.setText('Recording stopped. Audio is retained locally at ' + path)
-        import_audio(self.window, path)
+        note = (' · ' + result['error']) if result.get('error') else ''
+        self.state.setText('Recording stopped' + note + '. Audio is held locally at ' + path)
+        self.transcribe(path, owned=True)
+
+    def import_file(self):
+        path, _ = QFileDialog.getOpenFileName(
+            self,
+            'Import audio for transcription',
+            '',
+            'Audio (*.wav *.mp3 *.m4a *.ogg *.flac *.webm);;All files (*)',
+        )
+        if path:
+            self.journal = DictationJournal(
+                'dictation_' + uuid.uuid4().hex, self.journal_root, source='import'
+            )
+            self.transcribe(path, owned=False)
+
+    def choose(self, role, kinds, label, workflow):
+        try:
+            return self.registry.resolve(role, workflow=workflow, profile=self.profile() or None)['alias']
+        except ByaxError:
+            _, alias = select_provider(self.window, kinds, label)
+            return alias
+
+    def transcribe(self, path, *, owned):
+        self.window.flush_edits()
+        mode, policy = self.mode.currentData(), self.policy.currentData()
+        try:
+            target, offset = self.insertion_point()
+            recognizer = self.choose(
+                'recognition', {'openai', 'elevenlabs', 'whisper.cpp'}, 'Speech recognition', 'dictation'
+            )
+            editor = None
+            if recognizer and mode != 'direct':
+                editor = self.choose(
+                    'cleanup', {'openai', 'anthropic', 'gemini', 'ollama'}, 'Editorial processing', mode
+                )
+            if not recognizer or (mode != 'direct' and not editor):
+                self.abandon(owned)
+                return
+            context = self.build_context(target)
+            self.session = DictationSession(
+                self.window.doc,
+                target,
+                offset,
+                mode,
+                retain_raw=self.retain_raw.isChecked(),
+                retain_audio=self.retain_audio.isChecked(),
+                policy=policy,
+                direct_options=self.options(),
+                profile=self.profile(),
+                audio_owned=owned,
+                journal=self.journal,
+            )
+            preview = self.registry.preview(recognizer, kind='transcribe', audio_path=path)
+            preview['application_policy'] = policy
+            preview['retention'] = self.session.retention_impact()
+            if editor:
+                editorial = self.registry.preview(
+                    editor, text='(recognized transcript)', context=self.session.editorial_context(context)
+                )
+                preview['editorial_processing'] = {
+                    'provider': editor,
+                    'endpoint': editorial['endpoint'],
+                    'remote': editorial['remote'],
+                    'context': editorial['context'],
+                    'selection': context['selection'],
+                }
+            if not authorize_payload(self.window, 'Authorize transcription', preview):
+                self.abandon(owned)
+                return
+        except Exception as exc:
+            self.abandon(owned)
+            self.window.error(exc)
+            return
+        self.live = LiveDictation(
+            self.window.doc,
+            target,
+            offset,
+            journal=self.journal,
+            audio_path=str(Path(path).resolve()),
+            policy='suggestions_only' if policy == 'suggestions_only' else 'automatic_direct',
+        )
+        self.segments.clear()
+        self.provisional.clear()
+        if self.journal is not None:
+            self.journal.update(
+                meta={
+                    'mode': mode,
+                    'policy': policy,
+                    'recognizer': recognizer,
+                    'editor': editor,
+                    'target': target,
+                    'offset': offset,
+                    'revision': self.window.doc['revision'],
+                }
+            )
+        remote = preview['remote'] or bool(editor and preview['editorial_processing']['remote'])
+        session, bridge = self.session, self.bridge
+
+        def worker(payload, cancel_event):
+            return session.process(
+                self.registry,
+                recognizer,
+                path,
+                editor=editor,
+                context=context,
+                authorized=True,
+                cancel_event=cancel_event,
+                stream=True,
+                on_event=bridge.event.emit,
+            )
+
+        self.state.setText(
+            'Transcribing… provisional words appear in italics and are not part of the document yet.'
+        )
+        job = self.window.start_job(
+            'transcription',
+            {
+                'revision': session.revision,
+                'recognizer': recognizer,
+                'editor': editor,
+                'audio_path': str(path),
+                'mode': mode,
+                'remote': remote,
+            },
+            worker,
+            self.finished,
+        )
+        if self.journal is not None:
+            self.journal.job(job['id'], remote=remote)
+
+    def abandon(self, owned):
+        # An unsubmitted microphone recording stays journaled so it can be recovered later.
+        if self.journal is not None and not owned:
+            self.journal.finish('cancelled')
+            self.journal = None
+
+    def on_event(self, event):
+        if self.live is None:
+            return
+        if event.get('type') == 'provisional':
+            self.live.provisional(event.get('text', ''))
+            self.provisional.setText(self.live.provisional_text)
+            return
+        if event.get('type') != 'final':
+            return
+        self.provisional.clear()
+        text = apply_direct_options(event.get('text', ''), self.options())
+        self.window.flush_edits()
+        envelope = self.live.final(self.window.doc, text, start=event.get('start'), end=event.get('end'))
+        if envelope is not None:
+            try:
+                self.window._commit(envelope['operations'])
+                self.live.committed(self.window.doc)
+            except Exception as exc:
+                self.live.conflict = {'code': getattr(exc, 'code', 'conflict'), 'message': str(exc)}
+                self.live.phrases[-1]['status'] = 'conflict'
+        phrase = self.live.phrases[-1]
+        status = {
+            'committed': '',
+            'suggested': ' (suggestion)',
+            'conflict': ' (not inserted: destination changed)',
+        }[phrase['status']]
+        item = QListWidgetItem(
+            f'[{_clock(phrase["audio_start"])}–{_clock(phrase["audio_end"])}] {phrase["text"]}{status}'
+        )
+        item.setData(Qt.UserRole, phrase['index'])
+        self.segments.addItem(item)
+
+    def navigate_segment(self, item):
+        location = self.live.locate(self.window.doc, item.data(Qt.UserRole))
+        audio = location['audio']
+        if location['status'] in {'unchanged', 'moved'} and self.window.editor.navigate(location['target']):
+            from PySide6.QtGui import QTextCursor
+
+            from .gui_editor import qt_offset
+
+            cursor = self.window.editor.textCursor()
+            text, base = cursor.block().text(), cursor.block().position()
+            cursor.setPosition(base + qt_offset(text, location['start']))
+            cursor.setPosition(base + qt_offset(text, location['end']), QTextCursor.KeepAnchor)
+            self.window.editor.setTextCursor(cursor)
+        self.state.setText(
+            f'Segment {location["index"] + 1}: {location["status"]} · audio {_clock(audio["start"])}–{_clock(audio["end"])}'
+            + (f' in {audio["path"]}' if audio['path'] else '')
+        )
+        return location
+
+    def finished(self, result):
+        session, live = self.session, self.live
+        self.provisional.clear()
+        if not live.phrases and result.get('proposed_text'):
+            # Adapters that report no phrase events still yield one final transcript.
+            self.on_event({'type': 'final', 'text': result['raw_transcript']})
+        span = live.committed_span()
+        processed = result.get('proposed_text', '')
+        cleanup_ready = (
+            span
+            and session.mode != 'direct'
+            and not result.get('cleanup_error')
+            and processed != span['text']
+        )
+        if cleanup_ready and session.policy != 'automatic_cleanup':
+            self.window.report('Compare recognized and processed transcript', result)
+        if cleanup_ready and (
+            session.policy == 'automatic_cleanup'
+            or QMessageBox.question(
+                self,
+                'Apply cleanup?',
+                'Replace the inserted dictation with the processed text? Edited text is never overwritten.',
+            )
+            == QMessageBox.Yes
+        ):
+            try:
+                self.window.flush_edits()
+                envelope = live.cleanup_all(self.window.doc, processed)
+                self.window._commit(envelope['operations'])
+            except Exception as exc:
+                self.window.error(
+                    str(exc) + '\nThe recognized transcript remains in the document and in the job result.'
+                )
+        elif not span:
+            self.window.report('Compare recognized and processed transcript', result)
+            if (
+                processed
+                and QMessageBox.question(
+                    self, 'Insert transcript?', 'Insert the reviewed transcript at the chosen destination?'
+                )
+                == QMessageBox.Yes
+            ):
+                try:
+                    self.window.flush_edits()
+                    operations = session.proposal(self.window.doc)['operations']
+                    self.window._commit(
+                        [
+                            {('type' if key == 'op' else key): value for key, value in op.items()}
+                            for op in operations
+                        ]
+                    )
+                except Exception as exc:
+                    self.window.error(
+                        str(exc)
+                        + '\nThe transcript remains available in the job result; it was not inserted.'
+                    )
+        try:
+            retained = session.retain(self.store)
+            self.journal = None
+            if retained.get('record'):
+                self.state.setText(
+                    'Retained: '
+                    + retained['record']
+                    + (' · audio ' + retained['audio']['path'] if retained.get('audio') else '')
+                )
+            else:
+                self.state.setText('Transcription finished. Nothing was retained beyond the document.')
+        except Exception as exc:
+            self.window.error(exc)
+        self.update_impact()
+
+    def recover(self):
+        manager = getattr(self.window, 'job_manager', None)
+        sessions = recover_sessions(self.journal_root, job_manager=manager)
+        if not sessions:
+            self.window.message('Dictation recovery', 'No interrupted dictation sessions were found.')
+            return sessions
+        self.window.report(
+            'Interrupted dictation sessions',
+            {
+                'sessions': sessions,
+                'note': 'Nothing was resubmitted. Hosted work with an unknown outcome stays uncertain.',
+            },
+        )
+        for found in sessions:
+            text = ' '.join(segment['text'] for segment in found.get('segments', []) if segment.get('text'))
+            if (
+                text
+                and QMessageBox.question(
+                    self,
+                    'Insert recovered segments?',
+                    f'Insert {len(found["segments"])} recovered segment(s) at the cursor?',
+                )
+                == QMessageBox.Yes
+            ):
+                try:
+                    target, offset = self.insertion_point()
+                    self.window._commit(
+                        [{'type': 'insert_text', 'target': target, 'offset': offset, 'text': text}]
+                    )
+                except Exception as exc:
+                    self.window.error(exc)
+                    continue
+            if found.get('session_id'):
+                discard_session(found['session_id'], self.journal_root)
+        return sessions
 
     def reject(self):
         if self.audio_path:

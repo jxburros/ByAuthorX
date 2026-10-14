@@ -267,6 +267,7 @@ def validate_document(doc, *, include_history=True):
         for k in ('top', 'right', 'bottom', 'left')
     ):
         fail('Margins require finite nonnegative measurements.', 'layout.margins')
+    validate_layout_extensions(doc, fail)
     history = doc['history']
     if (
         not isinstance(history.get('revisions'), list)
@@ -328,3 +329,114 @@ def validate_document(doc, *, include_history=True):
     except (TypeError, ValueError, UnicodeError, RecursionError) as exc:
         fail(str(exc), '$')
     return doc
+
+
+COLUMN_KEYS = {'count', 'gap', 'gaps', 'widths', 'ratios', 'balance'}
+ROW_SPLIT_POLICIES = {'auto', 'allow', 'never'}
+SECTION_STARTS = {'next_page', 'continuous', 'odd_page', 'even_page'}
+XREF_SHOW = {'page', 'text', 'number', 'label'}
+
+
+def _number(value, positive=False):
+    return type(value) in (int, float) and math.isfinite(value) and (value > 0 if positive else value >= 0)
+
+
+def validate_columns(value, path, fail):
+    """Columns are a count or {count, gap|gaps, widths|ratios, balance} in points."""
+    if type(value) is int:
+        if not 1 <= value <= 12:
+            fail('Column count must be 1..12.', path)
+        return
+    if not isinstance(value, dict) or set(value) - COLUMN_KEYS:
+        fail('Columns must be a count or an object with count, gap, gaps, widths, ratios and balance.', path)
+    count = value.get('count', len(value.get('widths', [])) or 1)
+    if type(count) is not int or not 1 <= count <= 12:
+        fail('Column count must be 1..12.', path + '.count')
+    if 'gap' in value and not _number(value['gap']):
+        fail('Column gap must be a nonnegative number of points.', path + '.gap')
+    for key, size in (('gaps', count - 1), ('widths', count), ('ratios', count)):
+        if key in value and (
+            not isinstance(value[key], list)
+            or len(value[key]) != size
+            or not all(_number(v, positive=key != 'gaps') for v in value[key])
+        ):
+            fail(f'Column {key} must list {size} numbers.', path + '.' + key)
+    if 'balance' in value and type(value['balance']) is not bool:
+        fail('Column balance must be a boolean.', path + '.balance')
+
+
+def validate_master(name, master, fail, path='layout.masters'):
+    if not isinstance(name, str) or not name or not isinstance(master, dict):
+        fail('Page masters must be named objects.', path)
+    if 'margins' in master and (
+        not isinstance(master['margins'], dict) or not all(_number(v) for v in master['margins'].values())
+    ):
+        fail('Master margins require nonnegative numbers.', f'{path}.{name}.margins')
+    for key in ('width', 'height'):
+        if key in master and not _number(master[key], positive=True):
+            fail('Master paper dimensions must be positive numbers.', f'{path}.{name}.{key}')
+    if 'columns' in master:
+        validate_columns(master['columns'], f'{path}.{name}.columns', fail)
+    artwork = master.get('artwork', [])
+    if not isinstance(artwork, list) or any(not isinstance(item, dict) for item in artwork):
+        fail('Master artwork must be a list of objects.', f'{path}.{name}.artwork')
+
+
+def validate_layout_extensions(doc, fail):
+    """Additive checks for columns, masters, table pagination, layer groups and cross-references."""
+    layout = doc['layout']
+    masters = layout.get('masters', {})
+    if not isinstance(masters, dict):
+        fail('Page masters must be a mapping.', 'layout.masters')
+    for name, master in masters.items():
+        validate_master(name, master, fail)
+    if 'columns' in layout:
+        validate_columns(layout['columns'], 'layout.columns', fail)
+    if layout.get('master') is not None and layout['master'] not in masters:
+        fail('Assigned page master is not defined.', 'layout.master')
+    for index, block in enumerate(doc['blocks']):
+        attrs, path = block.get('attrs', {}), f'blocks[{index}].attrs'
+        if block.get('type') == 'section_break':
+            section = attrs.get('layout', {})
+            if not isinstance(section, dict):
+                fail('Section layout must be an object.', path + '.layout')
+            for source, prefix in ((section, path + '.layout'), (attrs, path)):
+                if 'columns' in source:
+                    validate_columns(source['columns'], prefix + '.columns', fail)
+                if source.get('master') is not None and source['master'] not in masters:
+                    fail('Assigned page master is not defined.', prefix + '.master')
+            if 'start' in attrs and attrs['start'] not in SECTION_STARTS:
+                fail('Section start must be next_page, continuous, odd_page or even_page.', path + '.start')
+        if block.get('type') == 'table':
+            if 'row_split' in attrs and attrs['row_split'] not in ROW_SPLIT_POLICIES:
+                fail('Table row_split must be auto, allow or never.', path + '.row_split')
+            if 'repeat_header' in attrs and type(attrs['repeat_header']) is not bool:
+                fail('Table repeat_header must be a boolean.', path + '.repeat_header')
+            if 'continued_label' in attrs and not isinstance(attrs['continued_label'], str):
+                fail('Table continued_label must be text.', path + '.continued_label')
+        for key in ('outputs', 'exclude_outputs'):
+            if key in attrs and (
+                not isinstance(attrs[key], list) or not all(isinstance(v, str) for v in attrs[key])
+            ):
+                fail('Output policies must list output names.', path + '.' + key)
+        for mark in block.get('marks', []):
+            if mark.get('type') == 'xref':
+                value = mark.get('value')
+                if (
+                    not isinstance(value, dict)
+                    or not isinstance(value.get('target'), str)
+                    or value.get('show', 'page') not in XREF_SHOW
+                ):
+                    fail('Cross-references require a target and a show mode.', f'blocks[{index}].marks')
+    groups = {
+        layer.get('id')
+        for layer in doc['layers']
+        if layer.get('kind') == 'group' or layer.get('type') == 'group'
+    }
+    for index, layer in enumerate(doc['layers']):
+        if layer.get('group') is not None and (layer['group'] not in groups or layer.get('id') in groups):
+            fail('Layer group must reference an existing, non-nested group layer.', f'layers[{index}].group')
+        if 'outputs' in layer and (
+            not isinstance(layer['outputs'], list) or not all(isinstance(v, str) for v in layer['outputs'])
+        ):
+            fail('Output policies must list output names.', f'layers[{index}].outputs')

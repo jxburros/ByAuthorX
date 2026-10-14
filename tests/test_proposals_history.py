@@ -111,10 +111,11 @@ def test_semantic_comparison_distinguishes_categories_without_pagination_noise()
         {'type': 'set_attributes', 'target': tail, 'values': {'page_break_before': True}},
         {'type': 'move_block', 'target': tail, 'after': heading},
         {'type': 'insert_table', 'rows': 1, 'columns': 2},
-        {'type': 'add_reference', 'id': 'ref1', 'values': {'title': 'Source'}},
         {'type': 'set_layout', 'values': {'width': 600}},
         {'type': 'define_style', 'name': 'caption', 'values': {'based_on': 'body', 'font_size': 8}},
     )
+    # Source corrections are a separate action from document edits.
+    doc, _ = edit(doc, {'type': 'add_reference', 'id': 'ref1', 'values': {'title': 'Source'}})
     report = engine.diff(doc, before['revision'])['semantic']
     assert report['wording'][0]['changes'] == [
         {'change': 'replace', 'before': 'text', 'after': 'words', 'before_start': 5, 'after_start': 5}

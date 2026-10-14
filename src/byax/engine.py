@@ -6,6 +6,7 @@ import difflib
 import hashlib
 import re
 from datetime import UTC, datetime
+from typing import Any
 
 import regex as unicode_regex
 
@@ -90,10 +91,53 @@ OP_SCHEMAS = {
     'replace_content': ('blocks', 'assets import_provenance'),
     'set_bookmark': ('name target', 'offset'),
     'remove_bookmark': ('name', ''),
+    'define_master': ('name values', ''),
+    'delete_master': ('name', ''),
+    'group_layers': ('name targets', 'id'),
+    'ungroup_layers': ('target', ''),
+    'reorder_layer': ('target to_index', ''),
+    'insert_cross_reference': ('target offset ref', 'show prefix'),
+}
+# Checking, evidence and section-profile operations (handlers defined near _measure).
+OP_SCHEMAS.update(
+    {
+        'record_checks': ('values', ''),
+        'record_findings': ('values', ''),
+        'set_finding_status': ('target status', 'reason author'),
+        'apply_repair': ('target', ''),
+        'set_section_profile': ('target values', ''),
+        'remove_reference': ('id', ''),
+    }
+)
+# Source corrections stay separate from document corrections (spec 13.2).
+SOURCE_OPERATIONS = {'add_reference', 'remove_reference'}
+CONTENT_OPERATIONS = {
+    'insert_text',
+    'replace_text',
+    'delete_text',
+    'set_text',
+    'update_cell',
+    'insert_paragraph',
+    'delete_block',
+    'move_block',
+    'move_section',
+    'split_block',
+    'join_blocks',
+    'insert_table',
+    'add_row',
+    'remove_row',
+    'add_column',
+    'remove_column',
+    'reorder_row',
+    'reorder_column',
+    'fill_fields',
+    'replace_content',
+    'place_image',
+    'apply_repair',
 }
 
 
-def operation_schema():
+def operation_schema() -> dict[str, Any]:
     return {
         'schema_version': 1,
         'discriminator': 'type',
@@ -242,6 +286,13 @@ def _splice(obj, start, end, replacement):
 
 def _fill_fields(doc, names, revision):
     changed = []
+    # Defining a field without a value keeps its literal placeholder visible (and checked).
+    valued = {
+        n
+        for n in names
+        if (doc['fields'][n].get('value') if isinstance(doc['fields'][n], dict) else doc['fields'][n])
+        not in (None, '')
+    }
     for block in doc['blocks']:
         targets = [block] if block['type'] != 'table' else [c for row in block['rows'] for c in row['cells']]
         for obj in targets:
@@ -253,7 +304,7 @@ def _fill_fields(doc, names, revision):
             for mark in field_marks:
                 replacements.append((mark['start'], mark['end'], mark['value']))
             for match in re.finditer(r'\{\{\s*([\w.-]+)\s*\}\}', text):
-                if match.group(1) in names and not any(
+                if match.group(1) in valued and not any(
                     m['start'] <= match.start() and m['end'] >= match.end() for m in field_marks
                 ):
                     replacements.append((match.start(), match.end(), match.group(1)))
@@ -363,7 +414,7 @@ def _containers(doc, target):
                 return [block]
             if any(cell.get('id') == target for cell in row.get('cells', [])):
                 return [block, row]
-    return []
+    return _layer_groups(doc, target)
 
 
 def _find_review(doc, collection, target):
@@ -1860,6 +1911,136 @@ def _op_compact_history(doc, op, base_revision, kind, changed, allow_policy_chan
     changed.append('history')
 
 
+def _layer_groups(doc, target):
+    """A locked layer group locks its member layers."""
+    layer = next((item for item in doc['layers'] if item.get('id') == target), None)
+    group = layer and layer.get('group')
+    return [item for item in doc['layers'] if group and item.get('id') == group]
+
+
+def _is_group(layer):
+    return layer.get('kind') == 'group' or layer.get('type') == 'group'
+
+
+def _master_users(doc, name):
+    users = ['layout'] if doc['layout'].get('master') == name else []
+    for block in doc['blocks']:
+        attrs = block.get('attrs', {})
+        if block.get('type') == 'section_break' and name in (
+            attrs.get('master'),
+            attrs.get('layout', {}).get('master'),
+        ):
+            users.append(block['id'])
+    return users
+
+
+def _op_define_master(doc, op, base_revision, kind, changed, allow_policy_changes):
+    from .model import validate_master
+
+    if not isinstance(op['values'], dict):
+        _error('Expected an object.', 'values')
+    validate_master(op['name'], op['values'], lambda message, path: _error(message, path))
+    doc['layout'].setdefault('masters', {})[op['name']] = copy.deepcopy(op['values'])
+    changed.append('layout')
+
+
+def _op_delete_master(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if op['name'] not in doc['layout'].get('masters', {}):
+        raise ByaxError('missing_target', 'The page master does not exist.', target=op['name'])
+    users = _master_users(doc, op['name'])
+    if users:
+        raise ByaxError(
+            'precondition_failed', 'The page master is still assigned.', target=op['name'], users=users
+        )
+    del doc['layout']['masters'][op['name']]
+    changed.append('layout')
+
+
+def _op_group_layers(doc, op, base_revision, kind, changed, allow_policy_changes):
+    targets = op['targets']
+    if not isinstance(targets, list) or not targets or any(not isinstance(t, str) for t in targets):
+        _error('Expected a nonempty list of layer IDs.', 'targets')
+    if len(set(targets)) != len(targets):
+        _error('Layer IDs must be unique.', 'targets')
+    members = []
+    for target in targets:
+        layer = _target(doc, {'target': target})
+        if layer not in doc['layers'] or _is_group(layer):
+            _error('Only ungrouped object layers can be grouped.', 'targets', target=target)
+        if layer.get('group'):
+            _error('Layer already belongs to a group.', 'targets', target=target)
+        members.append(layer)
+    ident = op.get('id') or new_id('group')
+    if any(item.get('id') == ident for item in doc['layers']):
+        _error('Duplicate object identity.', 'id')
+    group = {'id': ident, 'kind': 'group', 'name': op['name'], 'visible': True, 'locked': False}
+    doc['layers'].insert(min(doc['layers'].index(layer) for layer in members), group)
+    for layer in members:
+        layer['group'] = ident
+    changed.extend([ident, *targets])
+
+
+def _op_ungroup_layers(doc, op, base_revision, kind, changed, allow_policy_changes):
+    group = _target(doc, op)
+    if group not in doc['layers'] or not _is_group(group):
+        _error('Target must be a layer group.', 'target')
+    doc['layers'].remove(group)
+    for layer in doc['layers']:
+        if layer.get('group') == group['id']:
+            layer.pop('group')
+            changed.append(layer['id'])
+    changed.append(group['id'])
+
+
+def _op_reorder_layer(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Move a layer in the stacking list; z values are renumbered within each plane."""
+    layer = _target(doc, op)
+    if layer not in doc['layers']:
+        _error('Target must be a layer.', 'target')
+    if op['to_index'] >= len(doc['layers']):
+        _error('Layer index is outside the layer list.', 'to_index')
+    doc['layers'].remove(layer)
+    doc['layers'].insert(op['to_index'], layer)
+    planes = {True: [], False: []}
+    for item in doc['layers']:
+        if not _is_group(item):
+            planes[bool(item.get('foreground', item.get('z', 0) > 0))].append(item)
+    for foreground, items in planes.items():
+        for index, item in enumerate(items):
+            z = index + 1 if foreground else index - len(items)
+            if item.get('z', 0) != z:
+                item['z'] = z
+                changed.append(item['id'])
+    if layer['id'] not in changed:
+        changed.append(layer['id'])
+
+
+def _op_insert_cross_reference(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Insert a semantic reference whose visible label is resolved by layout after reflow."""
+    from .model import XREF_SHOW
+
+    obj = _target(doc, op)
+    if 'text' not in obj or obj.get('type') in ('table', 'image', 'page_break', 'section_break', 'toc'):
+        _error('Target is not editable text.', 'target')
+    show = op.get('show', 'page')
+    if show not in XREF_SHOW:
+        _error('Unsupported cross-reference display.', 'show', supported=sorted(XREF_SHOW))
+    bookmarks = doc['settings'].get('bookmarks', {})
+    if op['ref'] not in bookmarks:
+        find_object(doc, op['ref'])
+    value = {'target': op['ref'], 'show': show}
+    if 'prefix' in op:
+        if not isinstance(op['prefix'], str):
+            _error('Expected a string.', 'prefix')
+        value['prefix'] = op['prefix']
+    _splice(obj, op['offset'], op['offset'], '?')
+    obj.setdefault('marks', []).append(
+        {'start': op['offset'], 'end': op['offset'] + 1, 'type': 'xref', 'value': value}
+    )
+    _adjust_anchors(doc, obj['id'], op['offset'], op['offset'], 1)
+    changed.append(obj['id'])
+
+
 _HANDLERS = {
     'insert_text': _op_text_edit,
     'delete_text': _op_text_edit,
@@ -1924,6 +2105,12 @@ _HANDLERS = {
     'remove_bookmark': _op_remove_bookmark,
     'replace_content': _op_replace_content,
     'compact_history': _op_compact_history,
+    'define_master': _op_define_master,
+    'delete_master': _op_delete_master,
+    'group_layers': _op_group_layers,
+    'ungroup_layers': _op_ungroup_layers,
+    'reorder_layer': _op_reorder_layer,
+    'insert_cross_reference': _op_insert_cross_reference,
 }
 
 
@@ -1936,46 +2123,103 @@ def _operation(doc, op, base_revision, *, allow_policy_changes=False):
     return changed
 
 
-def _measure(doc, rule):
-    if not isinstance(rule, dict) or set(rule) != {'target', 'kind'}:
+PROTECTION_KINDS = {
+    'text': 'text',
+    'wording': 'text',
+    'values': 'values',
+    'table_values': 'values',
+    'attributes': 'attributes',
+    'object_attributes': 'attributes',
+    'style': 'style',
+    'styles': 'style',
+    'formatting': 'style',
+    'citations': 'citations',
+    'references': 'citations',
+    'all': 'object',
+    'object': 'object',
+    'visual': 'visual',
+    'visual_region': 'visual',
+}
+
+
+def _measure(doc, rule, cache=None):
+    """Measure one independently declared guarantee; raise when it cannot be measured."""
+    if (
+        not isinstance(rule, dict)
+        or set(rule) != {'target', 'kind'}
+        or not all(isinstance(rule.get(k), str) for k in rule)
+    ):
         _error('Protection requires exactly target and kind.', 'protect')
+    kind = PROTECTION_KINDS.get(rule['kind'])
+    if kind is None:
+        _error('Unknown protection kind.', 'protect.kind', supported=sorted(PROTECTION_KINDS))
     obj = find_object(doc, rule['target'])
-    kind = rule['kind']
-    if kind in ('text', 'wording'):
-        return obj.get('text', '')
-    if kind in ('values', 'table_values'):
+    cells = [list(r['cells']) for r in obj.get('rows', [])]
+    if kind == 'text':
+        # Exact wording only: pagination, styles and attributes may change.
+        return (
+            [[c.get('text', '') for c in row] for row in cells]
+            if obj.get('type') == 'table'
+            else obj.get('text', '')
+        )
+    if kind == 'values':
         if obj.get('type') != 'table':
             _error('Values protection requires a table.', 'protect.kind')
-        return [[c['text'] for c in r['cells']] for r in obj['rows']]
-    if kind in ('attributes', 'object_attributes'):
-        return obj.get('attrs', {})
-    if kind in ('style', 'styles', 'formatting'):
+        return [[c['text'] for c in row] for row in cells]
+    if kind == 'attributes':
+        return {'attrs': obj.get('attrs', {}), 'cells': [[c.get('attrs', {}) for c in row] for row in cells]}
+    if kind == 'style':
         definitions = {}
         name = obj.get('style')
         while name and name not in definitions:
             definitions[name] = doc['styles'].get(name)
             name = (definitions[name] or {}).get('based_on')
-        return {'style': obj.get('style'), 'marks': obj.get('marks'), 'definitions': definitions}
-    if kind in ('citations', 'references'):
+        excluded = ('citation', 'reference', 'field', 'comment', 'cross_reference', 'bookmark')
+        formatting = [m for m in obj.get('marks', []) if m.get('type') not in excluded]
+        return {'style': obj.get('style'), 'marks': formatting, 'definitions': definitions}
+    if kind == 'citations':
+        from .profiles import source_hash
+
         marks = [m for m in obj.get('marks', []) if m['type'] in ('citation', 'reference')]
+        sources = {m['value'] for m in marks} | {
+            k for k, v in doc['references'].items() if v.get('target') == rule['target']
+        }
         return {
             'citations': [
                 {'value': m.get('value'), 'text': obj.get('text', '')[m['start'] : m['end']]} for m in marks
             ],
-            'references': {m['value']: doc['references'].get(m['value']) for m in marks},
+            'references': {
+                key: source_hash(doc['references'][key]) if key in doc['references'] else None
+                for key in sorted(sources)
+            },
         }
-    if kind in ('all', 'object'):
+    if kind == 'object':
         return obj
-    if kind in ('visual', 'visual_region'):
+    # Visual regions are measured from freshly rendered pages: page, geometry and pixels.
+    cache = {} if cache is None else cache
+    if 'visual' not in cache:
+        from .checks import layout_snapshot
+
+        try:
+            cache['visual'] = layout_snapshot(doc, cache.get('visual_targets', [rule['target']]), pixels=True)
+        except (ImportError, RuntimeError, ValueError) as exc:
+            raise ByaxError(
+                'incomplete_coverage',
+                'Visual preservation cannot be measured: ' + str(exc),
+                target=rule['target'],
+            ) from exc
+    region = cache['visual']['regions'].get(rule['target'])
+    if not region:
         raise ByaxError(
             'incomplete_coverage',
-            'Visual preservation requires rendered comparison and cannot be guaranteed by semantic edits.',
+            'Visual region is not rendered and cannot be measured.',
             target=rule['target'],
         )
-    _error('Unknown protection kind.', 'protect.kind')
+    return region
 
 
 def _preserve(before, after, rules, *, allow_policy_changes=False):
+    """Enforce each declared guarantee independently against the original rules."""
     if not allow_policy_changes:
         old_rules = before['settings'].get('protections', [])
         if any(rule not in after['settings'].get('protections', []) for rule in old_rules):
@@ -1984,10 +2228,14 @@ def _preserve(before, after, rules, *, allow_policy_changes=False):
             )
         if before['settings'].get('track_changes') and not after['settings'].get('track_changes'):
             raise ByaxError('protected_edit', 'Tracking cannot be disabled without local confirmation.')
+    visual = [
+        r['target'] for r in rules if isinstance(r, dict) and PROTECTION_KINDS.get(r.get('kind')) == 'visual'
+    ]
+    caches = ({'visual_targets': visual}, {'visual_targets': visual})
     for rule in rules:
-        measured = _measure(before, rule)
+        measured = _measure(before, rule, caches[0])
         try:
-            result = _measure(after, rule)
+            result = _measure(after, rule, caches[1])
         except ByaxError as exc:
             if exc.code == 'missing_target':
                 raise ByaxError(
@@ -1995,12 +2243,94 @@ def _preserve(before, after, rules, *, allow_policy_changes=False):
                 ) from exc
             raise
         if measured != result:
+            details = (
+                {'before': measured, 'after': result} if PROTECTION_KINDS[rule['kind']] == 'visual' else {}
+            )
             raise ByaxError(
                 'protected_edit',
                 'Edit violates a preservation rule.',
                 target=rule['target'],
                 kind=rule['kind'],
+                **details,
             )
+
+
+def _separate_corrections(operations):
+    kinds = {op.get('type', op.get('op')) for op in operations}
+    if kinds & SOURCE_OPERATIONS and kinds & CONTENT_OPERATIONS:
+        raise ByaxError(
+            'conflict',
+            'Source corrections and document corrections must be separate actions.',
+            source_operations=sorted(kinds & SOURCE_OPERATIONS),
+            content_operations=sorted(kinds & CONTENT_OPERATIONS),
+        )
+
+
+def _op_record_checks(doc, op, base_revision, kind, changed, allow_policy_changes=False):
+    from .checks import record_checks
+
+    changed.extend(record_checks(doc, op['values']))
+
+
+def _op_record_findings(doc, op, base_revision, kind, changed, allow_policy_changes=False):
+    from .checks import record_findings
+
+    changed.extend(record_findings(doc, op['values'], base_revision))
+
+
+def _op_set_finding_status(doc, op, base_revision, kind, changed, allow_policy_changes=False):
+    from .checks import set_finding_status
+
+    if not isinstance(op['status'], str) or ('reason' in op and not isinstance(op['reason'], str)):
+        _error('Finding status and reason must be strings.', 'status')
+    changed.extend(
+        set_finding_status(doc, op['target'], op['status'], op.get('reason'), base_revision, op.get('author'))
+    )
+
+
+def _op_apply_repair(doc, op, base_revision, kind, changed, allow_policy_changes=False):
+    from .checks import mark_repaired, repair_operations
+
+    for index, operation in enumerate(repair_operations(doc, op['target'])):
+        if _validate_op(operation, index) not in CONTENT_OPERATIONS | {
+            'set_attributes',
+            'apply_style',
+            'format_text',
+        }:
+            _error('Repairs may contain only document edits.', 'target')
+        changed.extend(_operation(doc, operation, base_revision))
+    changed.extend(mark_repaired(doc, op['target'], base_revision))
+
+
+def _op_set_section_profile(doc, op, base_revision, kind, changed, allow_policy_changes=False):
+    from .profiles import validate_section_profile
+
+    assignments = doc['settings'].setdefault('section_profiles', {})
+    if op['values'] == {}:
+        if op['target'] not in assignments:
+            raise ByaxError('missing_target', 'Section has no profile assignment.', target=op['target'])
+        del assignments[op['target']]
+    else:
+        assignments[op['target']] = validate_section_profile(doc, op['target'], op['values'])
+    changed.extend((op['target'], 'section_profiles'))
+
+
+def _op_remove_reference(doc, op, base_revision, kind, changed, allow_policy_changes=False):
+    if op['id'] not in doc['references']:
+        raise ByaxError('missing_target', 'Reference does not exist.', target=op['id'])
+    del doc['references'][op['id']]
+    changed.append(op['id'])
+
+
+_CHECK_HANDLERS = {
+    'record_checks': _op_record_checks,
+    'record_findings': _op_record_findings,
+    'set_finding_status': _op_set_finding_status,
+    'apply_repair': _op_apply_repair,
+    'set_section_profile': _op_set_section_profile,
+    'remove_reference': _op_remove_reference,
+}
+_HANDLERS.update(_CHECK_HANDLERS)
 
 
 def _result(doc, base, changed=(), execution='completed', report=None):
@@ -2120,12 +2450,20 @@ def _commit(before, candidate, operations, request_id=None, origin='api', *, aut
                 'History limit reached. Increase history_limit or explicitly compact a copy before further edits.',
                 limit=limit,
             )
-    for finding in candidate['review']['findings']:
-        finding['status'] = 'stale'
+    from .checks import invalidate_findings
+
+    invalidate_findings(candidate)
     return candidate
 
 
-def apply(doc, envelope, *, dry_run=False, allow_policy_changes=False, auto_compact_history=False):
+def apply(
+    doc: dict[str, Any],
+    envelope: dict[str, Any],
+    *,
+    dry_run: bool = False,
+    allow_policy_changes: bool = False,
+    auto_compact_history: bool = False,
+) -> tuple[dict[str, Any], dict[str, Any]]:
     validate_document(doc, include_history=False)
     if not isinstance(envelope, dict):
         _error('Edit envelope must be an object.', '$')
@@ -2187,6 +2525,7 @@ def apply(doc, envelope, *, dry_run=False, allow_policy_changes=False, auto_comp
         )
     for i, operation in enumerate(operations):
         _validate_op(operation, i)
+    _separate_corrections(operations)
     journal = {
         'attribution': {
             'author': envelope.get('author', ''),
@@ -2242,6 +2581,7 @@ def _apply_operations(
     if suites:
         frozen = copy.deepcopy(candidate)
         frozen['profiles'] = copy.deepcopy(doc['profiles'])
+        frozen['references'] = copy.deepcopy(doc['references'])
         frozen['settings']['requirements'] = copy.deepcopy(doc['settings'].get('requirements', {}))
         report = run_checks(frozen, suites, limit=100)
         if report['validation'] == 'failed':
@@ -2262,11 +2602,11 @@ def _apply_operations(
         result = _result(candidate, doc['revision'], changed, 'dry_run', report)
         result['changes'] = _compare(doc, candidate)
         result['semantic'] = semantic_compare(doc, candidate)
-        result['layout_effects'] = {
-            'status': 'unmeasured',
-            'reason': 'Semantic dry run does not render candidate pages.',
-            'layout_changes': result['semantic']['layout'],
-        }
+        from .checks import layout_effects
+
+        result['layout_effects'] = layout_effects(doc, candidate, changed)
+        if isinstance(result['layout_effects'], dict):
+            result['layout_effects']['layout_changes'] = result['semantic']['layout']
         return candidate, result
     if snapshot(candidate) == snapshot(doc) and candidate['history'] == doc['history']:
         result = _result(candidate, doc['revision'], [], 'unchanged', report)
@@ -2436,7 +2776,7 @@ def _revision(doc, revision):
     raise ByaxError('missing_target', 'Revision or checkpoint is not in retained history.', target=revision)
 
 
-def diff(doc, from_revision):
+def diff(doc: dict[str, Any], from_revision: str) -> dict[str, Any]:
     before = _revision(doc, from_revision)
     return {
         'schema_version': 1,
@@ -2457,7 +2797,9 @@ def diff(doc, from_revision):
     }
 
 
-def restore(doc, revision, *, auto_compact_history=False):
+def restore(
+    doc: dict[str, Any], revision: str, *, auto_compact_history: bool = False
+) -> tuple[dict[str, Any], dict[str, Any]]:
     state = _revision(doc, revision)
     candidate = {
         **copy.deepcopy(state),
@@ -2477,7 +2819,7 @@ def restore(doc, revision, *, auto_compact_history=False):
     return candidate, _result(candidate, doc['revision'], [b['id'] for b in candidate['blocks']])
 
 
-def checkpoint(doc, name):
+def checkpoint(doc: dict[str, Any], name: str) -> tuple[dict[str, Any], dict[str, Any]]:
     if not isinstance(name, str) or not name.strip():
         _error('Checkpoint name cannot be empty.', 'name')
     if any(r.get('name') == name for r in doc['history']['revisions']):
@@ -2504,7 +2846,7 @@ def checkpoint(doc, name):
     return candidate, _result(candidate, doc['revision'])
 
 
-def branch(doc, name):
+def branch(doc: dict[str, Any], name: str) -> tuple[dict[str, Any], dict[str, Any]]:
     if not isinstance(name, str) or not name.strip():
         _error('Branch name cannot be empty.', 'name')
     if name in doc['history']['branches']:
@@ -2570,10 +2912,211 @@ def preview_proposal(doc, proposal, edits=None):
     return result
 
 
-def inspect(doc, section=None, target=None, limit=100):
+def _token(doc, kind, params, offset):
+    raw = canonical_json(
+        {'v': 1, 'kind': kind, 'revision': doc['revision'], 'params': params, 'offset': offset}
+    )
+    return (
+        base64.urlsafe_b64encode(raw.encode()).decode().rstrip('=')
+        + '.'
+        + hashlib.sha256(raw.encode()).hexdigest()[:16]
+    )
+
+
+def _read_token(doc, token, kind):
+    import json
+
+    try:
+        body, digest = token.rsplit('.', 1)
+        raw = base64.urlsafe_b64decode(body + '=' * (-len(body) % 4)).decode()
+        payload = json.loads(raw)
+        valid = (
+            hashlib.sha256(raw.encode()).hexdigest()[:16] == digest
+            and payload.get('kind') == kind
+            and payload.get('v') == 1
+        )
+    except (AttributeError, ValueError, UnicodeError, TypeError):
+        valid = False
+    if not valid:
+        _error('Continuation token is invalid for this request.', 'continuation')
+    if payload['revision'] != doc['revision']:
+        raise ByaxError(
+            'stale_revision',
+            'Document changed since the continuation was issued; inspect again.',
+            expected=payload['revision'],
+            actual=doc['revision'],
+        )
+    return payload
+
+
+def _page(doc, kind, params, items, offset, limit):
     if type(limit) is not int or limit < 0:
         _error('Limit must be a nonnegative integer.', 'limit')
-    if target and section == 'formatting':
+    selected = items[offset : offset + limit]
+    following = offset + len(selected)
+    remaining = len(items) - following
+    continuation = (
+        {
+            'token': _token(doc, kind, params, following),
+            'offset': following,
+            'remaining': remaining,
+            'increase_limit_to': len(items) - offset,
+        }
+        if remaining > 0
+        else None
+    )
+    return selected, {
+        'total': len(items),
+        'offset': offset,
+        'returned': len(selected),
+        'truncated': remaining > 0,
+        'continuation': continuation,
+    }
+
+
+def _block_index(doc, target):
+    for index, block in enumerate(doc['blocks']):
+        if block['id'] == target or any(
+            target == r['id'] or any(c['id'] == target for c in r['cells']) for r in block.get('rows', [])
+        ):
+            return index
+    return None
+
+
+def _field_items(doc, names):
+    from .checks import _field_filled
+    from .profiles import validate_field_value
+
+    occurrences = {}
+    for block in doc['blocks']:
+        for obj in [block] + [c for r in block.get('rows', []) for c in r['cells']]:
+            for match in re.finditer(r'\{\{\s*([\w.-]+)\s*\}\}', obj.get('text', '')):
+                occurrences.setdefault(match.group(1), []).append(
+                    {'target': obj['id'], 'start': match.start(), 'end': match.end(), 'kind': 'placeholder'}
+                )
+            for mark in obj.get('marks', []):
+                if mark.get('type') == 'field':
+                    occurrences.setdefault(mark.get('value'), []).append(
+                        {'target': obj['id'], 'start': mark['start'], 'end': mark['end'], 'kind': 'filled'}
+                    )
+    names = sorted(set(doc['fields']) | set(occurrences)) if names is None else names
+    items = []
+    for name in names:
+        definition = doc['fields'].get(name)
+        valid, reason = (
+            validate_field_value(definition, definition.get('value'), doc)
+            if isinstance(definition, dict)
+            else (definition is not None, None)
+        )
+        items.append(
+            {
+                'name': name,
+                'defined': name in doc['fields'],
+                'definition': copy.deepcopy(definition),
+                'filled': _field_filled(definition, doc),
+                'valid': valid,
+                'reason': reason,
+                'occurrences': occurrences.get(name, []),
+            }
+        )
+    return items
+
+
+def inspect(
+    doc,
+    section=None,
+    target=None,
+    limit=100,
+    *,
+    continuation=None,
+    radius=None,
+    fields=None,
+    status=None,
+    layout=False,
+):
+    """Selective, bounded inspection with revision, scope, totals and usable continuation."""
+    offset = 0
+    if continuation is not None:
+        payload = _read_token(doc, continuation, 'inspect')
+        params, offset = payload['params'], payload['offset']
+        section, target, radius, fields, status, layout = (
+            params.get(k) for k in ('section', 'target', 'radius', 'fields', 'status', 'layout')
+        )
+    if type(limit) is not int or limit < 0:
+        _error('Limit must be a nonnegative integer.', 'limit')
+    if radius is not None and (type(radius) is not int or not 0 <= radius <= 1000):
+        _error('Radius must be an integer from 0 to 1000.', 'radius')
+    if fields is not None and (not isinstance(fields, list) or not all(isinstance(f, str) for f in fields)):
+        _error('Fields must be a list of field names.', 'fields')
+    extra = {}
+    scope = target or section or 'document'
+    if section == 'nearby' or (target and radius is not None):
+        if not target:
+            _error('Nearby inspection requires a target.', 'target')
+        index = _block_index(doc, target)
+        if index is None:
+            raise ByaxError('missing_target', 'Target is not in the document body.', target=target)
+        span = 1 if radius is None else radius
+        items = [
+            {'role': 'selected' if i == index else 'nearby', 'distance': i - index, **copy.deepcopy(b)}
+            for i, b in enumerate(
+                doc['blocks'][max(0, index - span) : index + span + 1], start=max(0, index - span)
+            )
+        ]
+        scope = {'target': target, 'radius': span}
+    elif section == 'table':
+        table = find_object(doc, target) if target else None
+        if not table or table.get('type') != 'table':
+            _error('Table inspection requires a table target.', 'target')
+        items = copy.deepcopy(table['rows'])
+        extra['object'] = {k: copy.deepcopy(v) for k, v in table.items() if k != 'rows'}
+        extra['columns'] = len(table['rows'][0]['cells'])
+    elif section == 'fields':
+        unknown = [name for name in fields or [] if name not in doc['fields']]
+        if unknown:
+            raise ByaxError('missing_target', 'Selected fields do not exist.', targets=unknown)
+        items = _field_items(doc, fields)
+        scope = {'fields': fields} if fields else 'fields'
+    elif section == 'findings':
+        wanted = (
+            ('open', 'needs review', 'stale')
+            if status in (None, 'unresolved')
+            else None
+            if status == 'all'
+            else (status,)
+        )
+        from .checks import STATUSES, health
+
+        if wanted and any(s not in STATUSES for s in wanted):
+            _error(
+                'Unknown finding status filter.', 'status', supported=list(STATUSES) + ['unresolved', 'all']
+            )
+        ids = None
+        if target:
+            index = _block_index(doc, target)
+            if index is None:
+                raise ByaxError('missing_target', 'Target is not in the document body.', target=target)
+            block = doc['blocks'][index]
+            ids = (
+                {block['id']}
+                | {r['id'] for r in block.get('rows', [])}
+                | {c['id'] for r in block.get('rows', []) for c in r['cells']}
+            )
+        items = [
+            copy.deepcopy(f)
+            for f in doc['review']['findings']
+            if (wanted is None or f.get('status') in wanted)
+            and (ids is None or set(f.get('affected_ids', [])) & ids)
+        ]
+        extra['health'] = {
+            k: v for k, v in health(doc).items() if k in ('validation', 'findings_by_status', 'stale_units')
+        }
+        scope = {'findings': status or 'unresolved', **({'target': target} if target else {})}
+    elif section == 'health':
+        from .checks import health
+
+        items = [health(doc)]
+    elif target and section == 'formatting':
         items = [formatting.element_report(doc, find_object(doc, target))]
     elif target:
         items = [copy.deepcopy(find_object(doc, target))]
@@ -2583,7 +3126,7 @@ def inspect(doc, section=None, target=None, limit=100):
             for b in doc['blocks']
             if b['type'] == 'heading'
         ]
-    elif section in ('comments', 'proposals', 'tracked_changes', 'findings'):
+    elif section in ('comments', 'proposals', 'tracked_changes'):
         items = copy.deepcopy(doc['review'][section])
     elif section == 'dependencies':
         report = dependency_report(doc)
@@ -2609,7 +3152,6 @@ def inspect(doc, section=None, target=None, limit=100):
         'assets',
         'references',
         'profiles',
-        'fields',
         'layers',
         'history',
         'review',
@@ -2642,20 +3184,67 @@ def inspect(doc, section=None, target=None, limit=100):
         items = copy.deepcopy(doc['blocks'][start:stop])
     else:
         items = copy.deepcopy(doc['blocks'])
-    return {
+    params = {
+        'section': section,
+        'target': target,
+        'radius': radius,
+        'fields': fields,
+        'status': status,
+        'layout': layout,
+    }
+    selected, paging = _page(doc, 'inspect', params, items, offset, limit)
+    result = {
         'schema_version': 1,
         'document_id': doc['id'],
         'revision': doc['revision'],
-        'scope': target or section or 'document',
-        'items': items[:limit],
-        'total': len(items),
-        'returned': min(limit, len(items)),
-        'truncated': len(items) > limit,
-        'continuation': {'increase_limit_to': len(items)} if len(items) > limit else None,
+        'scope': scope,
+        'items': selected,
+        **paging,
+        **extra,
     }
+    identities = [
+        item['id'] for item in selected if isinstance(item, dict) and isinstance(item.get('id'), str)
+    ]
+    hashes = {}
+    for identity in identities:
+        try:
+            hashes[identity] = object_hash(find_object(doc, identity))
+        except ByaxError:
+            pass
+    result['hashes'] = hashes
+    if layout:
+        from .checks import layout_snapshot
+
+        try:
+            pages = layout_snapshot(doc, identities)['pages']
+            result['layout'] = {
+                'status': 'measured',
+                'pages': {k: pages[k] for k in identities if k in pages},
+                'note': 'Display page numbers are navigation aids, not stable identities.',
+            }
+        except (ImportError, RuntimeError, ValueError, ByaxError) as exc:
+            result['layout'] = {'status': 'unmeasured', 'reason': str(exc)}
+    return result
 
 
-def find(doc, query, case_sensitive=False, whole_word=False, regex=False):
+def find(
+    doc,
+    query,
+    case_sensitive=False,
+    whole_word=False,
+    regex=False,
+    *,
+    scope=None,
+    limit=None,
+    continuation=None,
+):
+    offset = 0
+    if continuation is not None:
+        payload = _read_token(doc, continuation, 'find')
+        params, offset = payload['params'], payload['offset']
+        query, case_sensitive, whole_word, regex, scope = (
+            params[k] for k in ('query', 'case_sensitive', 'whole_word', 'regex', 'scope')
+        )
     if not isinstance(query, str) or not query:
         _error('Search query must be nonempty text.', 'query')
     pattern = query if regex else re.escape(query)
@@ -2665,10 +3254,17 @@ def find(doc, query, case_sensitive=False, whole_word=False, regex=False):
         compiled = unicode_regex.compile(pattern, 0 if case_sensitive else unicode_regex.IGNORECASE)
     except unicode_regex.error as exc:
         raise ByaxError('schema_error', f'Invalid regular expression: {exc}', field='query') from exc
+    allowed = None
+    if scope is not None:
+        from .checks import resolve_scope
+
+        allowed = resolve_scope(doc, scope)['targets']
     matches = []
     for block in doc['blocks']:
         targets = [block] + [cell for row in block.get('rows', []) for cell in row['cells']]
         for obj in targets:
+            if allowed is not None and obj['id'] not in allowed:
+                continue
             try:
                 for match in compiled.finditer(obj.get('text', ''), timeout=0.1):
                     matches.append(
@@ -2684,112 +3280,290 @@ def find(doc, query, case_sensitive=False, whole_word=False, regex=False):
                         raise ByaxError('limit_exceeded', 'Search exceeded 100,000 matches.')
             except TimeoutError as exc:
                 raise ByaxError('limit_exceeded', 'Regular expression exceeded search time limit.') from exc
+    params = {
+        'query': query,
+        'case_sensitive': case_sensitive,
+        'whole_word': whole_word,
+        'regex': regex,
+        'scope': scope,
+    }
+    selected, paging = _page(doc, 'find', params, matches, offset, len(matches) if limit is None else limit)
     return {
         'schema_version': 1,
         'revision': doc['revision'],
-        'matches': matches,
-        'total': len(matches),
+        'scope': scope or 'document',
+        'matches': selected,
         'offset_unit': 'unicode_scalar',
+        **paging,
     }
 
 
-def context(doc, target=None, limit=10000, profile=None):
-    if type(limit) is not int or limit < 0:
-        _error('Context limit must be a nonnegative integer.', 'limit')
-    if profile and profile not in doc['profiles']:
-        raise ByaxError('missing_target', 'Unknown profile.', target=profile)
-    config = copy.deepcopy(doc['profiles'].get(profile, {}))
+def _context_selection(doc, target, radius):
     if target:
-        selected = find_object(doc, target)
-        index = next(
-            (
-                i
-                for i, b in enumerate(doc['blocks'])
-                if b['id'] == target or any(c['id'] == target for r in b.get('rows', []) for c in r['cells'])
-            ),
-            None,
+        selected_object = find_object(doc, target)
+        index = _block_index(doc, target)
+        selected_blocks = [doc['blocks'][index]] if index is not None else [selected_object]
+        nearby = (
+            [
+                b
+                for b in doc['blocks'][max(0, index - radius) : index + radius + 1]
+                if b not in selected_blocks
+            ]
+            if index is not None
+            else []
         )
-        blocks = doc['blocks'][max(0, index - 1) : index + 2] if index is not None else [selected]
     else:
-        blocks = doc['blocks']
-    included, omitted, remaining = [], [], limit
+        selected_blocks, nearby = list(doc['blocks']), []
+    selection_ids = {
+        i
+        for b in selected_blocks + nearby
+        for i in (
+            [b['id']]
+            + [r['id'] for r in b.get('rows', [])]
+            + [c['id'] for r in b.get('rows', []) for c in r['cells']]
+        )
+    }
+    return selected_blocks, nearby, selection_ids
 
-    def include(value, kind, identity):
-        nonlocal remaining
+
+def _context_candidates(
+    doc, settings, config, selected_blocks, nearby, selection_ids, applicable, authorized
+):
+    """Candidate items in priority order: required policy and selected content first."""
+    candidates = [
+        (
+            'profile',
+            'profile',
+            {
+                'settings': config,
+                'voice': settings['voice'],
+                'origins': settings['origins'],
+                'sections': settings['sections'],
+                'source_policy': settings.get('source_policy'),
+            },
+            True,
+        ),
+        ('protections', 'protections', applicable, True),
+        ('requirements', 'requirements', doc['settings'].get('requirements', {}), True),
+    ]
+    candidates += [('block', b['id'], b, True) for b in selected_blocks]
+    candidates += [('nearby', b['id'], b, False) for b in nearby]
+    style_names = set()
+    for block in selected_blocks + nearby:
+        name = block.get('style', 'body')
+        while name and name not in style_names:
+            style_names.add(name)
+            name = doc['styles'].get(name, {}).get('based_on')
+    candidates += [('style', name, doc['styles'].get(name, {}), False) for name in sorted(style_names)]
+    candidates.append(
+        (
+            'terminology',
+            'terminology',
+            {
+                'dictionary': doc['settings'].get('dictionary', []),
+                'preferred': doc['settings'].get('terminology', {}),
+            },
+            False,
+        )
+    )
+    omitted = []
+    for identity in authorized:
+        if identity in doc['references']:
+            candidates.append(('reference', identity, doc['references'][identity], False))
+        else:
+            omitted.append(
+                {
+                    'kind': 'reference',
+                    'id': identity,
+                    'reason': 'Selected reference is missing.',
+                    'required': False,
+                }
+            )
+    field_names = sorted(
+        {
+            m.group(1)
+            for b in selected_blocks + nearby
+            for o in [b] + [c for r in b.get('rows', []) for c in r['cells']]
+            for m in re.finditer(r'\{\{\s*([\w.-]+)\s*\}\}', o.get('text', ''))
+        }
+        | {
+            m.get('value')
+            for b in selected_blocks + nearby
+            for m in b.get('marks', [])
+            if m.get('type') == 'field'
+        }
+    )
+    candidates += [
+        ('field', name, doc['fields'].get(name), False) for name in field_names if isinstance(name, str)
+    ]
+    for finding in doc['review']['findings']:
+        if set(finding.get('affected_ids', [])) & selection_ids and finding.get('status') in (
+            'open',
+            'needs review',
+            'stale',
+        ):
+            candidates.append(('finding', finding.get('id', 'finding'), finding, False))
+    return candidates, omitted
+
+
+def _context_include(candidates, limit, omitted):
+    remaining, included, report = limit, {}, []
+    for kind, identity, value, required in candidates:
         length = len(canonical_json(value))
         if length <= remaining:
             remaining -= length
-            return copy.deepcopy(value)
-        omitted.append(
-            {'id': identity, 'kind': kind, 'reason': 'Context payload limit exceeded.', 'characters': length}
-        )
-        return None
+            included.setdefault(kind, []).append((identity, copy.deepcopy(value)))
+            report.append({'kind': kind, 'id': identity, 'characters': length, 'required': required})
+        else:
+            omitted.append(
+                {
+                    'kind': kind,
+                    'id': identity,
+                    'reason': 'Context payload limit exceeded.',
+                    'characters': length,
+                    'required': required,
+                }
+            )
+    return remaining, included, report
 
-    # Policy and protection are required context and receive budget before text.
-    selected_profile = include(config, 'profile', profile or 'profile')
-    protections = include(doc['settings'].get('protections', []), 'protections', 'protections')
-    requirements = include(doc['settings'].get('requirements', {}), 'requirements', 'requirements')
-    for block in blocks:
-        selected_block = include(block, 'block', block['id'])
-        if selected_block is not None:
-            included.append(selected_block)
-    style_names = {b.get('style', 'body') for b in included}
-    for name in list(style_names):
-        parent = doc['styles'].get(name, {}).get('based_on')
-        while parent and parent not in style_names:
-            style_names.add(parent)
-            parent = doc['styles'].get(parent, {}).get('based_on')
-    styles = {}
-    for name in sorted(style_names):
-        selected_style = include(doc['styles'].get(name, {}), 'style', name)
-        if selected_style is not None:
-            styles[name] = selected_style
-    terminology = include(doc['settings'].get('dictionary', []), 'terminology', 'terminology')
-    authorized = config.get('references', [])
-    references = {}
-    for identity in authorized:
-        if identity not in doc['references']:
-            omitted.append({'id': identity, 'kind': 'reference', 'reason': 'Selected reference is missing.'})
-            continue
-        reference = include(doc['references'][identity], 'reference', identity)
-        if reference is not None:
-            references[identity] = reference
-    findings = []
-    for finding in doc['review']['findings']:
-        if any(b['id'] in finding.get('affected_ids', []) for b in included):
-            selected_finding = include(finding, 'finding', finding.get('id', 'finding'))
-            if selected_finding is not None:
-                findings.append(selected_finding)
+
+def _context_provenance(config, settings, references):
+    from .profiles import source_hash
+
+    authority = config.get('source_authority', 'exclusive') if settings['profile'] else 'exclusive'
+    return {
+        'engine': 'byax/1',
+        'retrieval': 'none',
+        'accounts_consulted': [],
+        'files_read': [],
+        'source_authority': authority,
+        'outside_retrieval': 'not permitted'
+        if authority == 'exclusive'
+        else 'not performed; outside research requires a separate explicit workflow',
+        'source_versions': {
+            k: {
+                'version': v.get('version'),
+                'retrieved_at': v.get('retrieved_at'),
+                'content_hash': source_hash(v),
+            }
+            for k, v in references.items()
+        },
+    }
+
+
+def _context_summaries(doc, omitted):
+    return [
+        {
+            'id': o['id'],
+            'kind': 'derived_summary',
+            'exact': False,
+            'editable': False,
+            'characters': o['characters'],
+            'preview': text_of({'blocks': [b for b in doc['blocks'] if b['id'] == o['id']]})[:60],
+        }
+        for o in omitted
+        if o['kind'] in ('block', 'nearby')
+    ][:50]
+
+
+def _context_continuation(doc, target, profile, radius, budget_omitted):
+    if not budget_omitted:
+        return None
+    params = {
+        'target': target,
+        'profile': profile,
+        'radius': radius,
+        'pending': [[o['kind'], o['id']] for o in budget_omitted],
+    }
+    return {
+        'token': _token(doc, 'context', params, 0),
+        'target_ids': [o['id'] for o in budget_omitted],
+        'pending': len(budget_omitted),
+    }
+
+
+def context(doc, target=None, limit=10000, profile=None, *, radius=1, continuation=None):
+    """Bounded, exact context package with a complete inclusion and omission report.
+
+    Only document data and explicitly selected (profile-authorized) references are
+    used; no files, accounts or providers are consulted and nothing is retrieved.
+    Required information that exceeds the bound makes the package incomplete with
+    a continuation token; omitted optional context is reported, never silently lost.
+    """
+    from .profiles import request_settings
+
+    pending = None
+    if continuation is not None:
+        payload = _read_token(doc, continuation, 'context')
+        target, profile, radius, pending = (
+            payload['params'][k] for k in ('target', 'profile', 'radius', 'pending')
+        )
+    if type(limit) is not int or limit < 0:
+        _error('Context limit must be a nonnegative integer.', 'limit')
+    if type(radius) is not int or not 0 <= radius <= 100:
+        _error('Radius must be an integer from 0 to 100.', 'radius')
+    if profile and profile not in doc['profiles']:
+        raise ByaxError('missing_target', 'Unknown profile.', target=profile)
+    settings = (
+        request_settings(doc, target, profile) if (profile or target) else request_settings(doc, None, None)
+    )
+    config = settings['profile'] or {}
+    selected_blocks, nearby, selection_ids = _context_selection(doc, target, radius)
+    protections = doc['settings'].get('protections', [])
+    applicable = [p for p in protections if p.get('target') in selection_ids]
+    authorized = config.get('references', []) if settings['profile'] else []
+    candidates, omitted = _context_candidates(
+        doc, settings, config, selected_blocks, nearby, selection_ids, applicable, authorized
+    )
+    if pending is not None:
+        wanted = {tuple(item) for item in pending}
+        candidates = [
+            c
+            for c in candidates
+            if c[3] and c[0] in ('profile', 'protections', 'requirements') or (c[0], c[1]) in wanted
+        ]
+        omitted = []
+    remaining, included, report = _context_include(candidates, limit, omitted)
+    blocks = [dict(value, hash=object_hash(value)) for _, value in included.get('block', [])]
+    references = {identity: value for identity, value in included.get('reference', [])}
+    budget_omitted = [o for o in omitted if o['reason'] == 'Context payload limit exceeded.']
+    profile_value = dict(included.get('profile', [(None, {})])[0][1])
+    terminology = (included.get('terminology') or [(None, {})])[0][1]
     result = {
         'schema_version': 1,
         'document_id': doc['id'],
         'revision': doc['revision'],
-        'profile': selected_profile or {},
-        'blocks': included,
-        'styles': styles,
-        'terminology': terminology or [],
-        'protections': protections or [],
-        'requirements': requirements or {},
+        'target': target,
+        'profile': profile_value.get('settings', {}),
+        'effective_settings': {k: v for k, v in profile_value.items() if k != 'settings'},
+        'blocks': blocks,
+        'nearby': [dict(value, hash=object_hash(value)) for _, value in included.get('nearby', [])],
+        'styles': dict(included.get('style', [])),
+        'terminology': terminology.get('dictionary', []),
+        'preferred_terms': terminology.get('preferred', {}),
+        'protections': (included.get('protections') or [(None, [])])[0][1],
+        'requirements': (included.get('requirements') or [(None, {})])[0][1],
         'references': references,
-        'findings': findings,
-        'provenance': {
-            'engine': 'byax/1',
-            'retrieval': 'none',
-            'source_versions': {k: doc['references'][k].get('version') for k in references},
-        },
+        'fields': dict(included.get('field', [])),
+        'findings': [value for _, value in included.get('finding', [])],
+        'summaries': _context_summaries(doc, omitted),
+        'provenance': _context_provenance(config, settings, references),
         'inclusion_report': {
-            'included_ids': [b['id'] for b in included],
+            'included_ids': [b['id'] for b in blocks],
+            'included': report,
             'omitted': omitted,
             'unselected_references': [k for k in doc['references'] if k not in authorized],
+            'not_applicable_protections': [p for p in protections if p not in applicable],
+            'summaries_are_exact': False,
         },
         'limit': {
             'unit': 'serialized_payload_characters',
             'maximum': limit,
             'used': limit - remaining,
-            'excludes': 'Report framing, identities, provenance and omission diagnostics',
+            'excludes': 'Report framing, identities, hashes, summaries, provenance and omission diagnostics',
         },
-        'execution': 'incomplete' if omitted else 'completed',
-        'continuation': {'target_ids': [o['id'] for o in omitted]} if omitted else None,
+        'execution': 'incomplete' if any(o['required'] for o in budget_omitted) else 'completed',
+        'continuation': _context_continuation(doc, target, profile, radius, budget_omitted),
     }
     from .storage import _check_secrets
 
@@ -2797,7 +3571,7 @@ def context(doc, target=None, limit=10000, profile=None):
     return result
 
 
-def revision_document(doc, revision):
+def revision_document(doc: dict[str, Any], revision: str) -> dict[str, Any]:
     """Independent historical document suitable for layout, inspection or export."""
     state = _revision(doc, revision)
     state['history'] = {'revisions': [], 'branches': {}, 'current_branch': 'historical'}

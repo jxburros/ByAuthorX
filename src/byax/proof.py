@@ -58,22 +58,24 @@ def _semantic_bounds(doc, resolved, target):
     for page_number, page in enumerate(resolved['pages'], start=1):
         per_page = []
         for fragment in page['fragments']:
-            part, placement = fragment['document'], fragment['rect']
-            virtual_top = fragment['page'] * part.pageSize().height()
+            if 'document' not in fragment or fragment['kind'] == 'table_header':
+                continue
+            # Fragments map a source rectangle of a shared flow document onto the page.
+            part, placement, source = fragment['document'], fragment['rect'], fragment['source']
             for ident in ids:
                 position = part.byax_positions.get(ident)
                 if position is None:
                     continue
                 block_rect = part.documentLayout().blockBoundingRect(part.findBlock(position))
-                left = max(0.0, block_rect.left())
-                top = max(virtual_top, block_rect.top())
-                right = min(placement.width(), block_rect.right())
-                bottom = min(virtual_top + placement.height(), block_rect.bottom())
+                left = max(source.left(), block_rect.left())
+                top = max(source.top(), block_rect.top())
+                right = min(source.right(), block_rect.right())
+                bottom = min(source.bottom(), block_rect.bottom())
                 if right > left and bottom > top:
                     per_page.append(
                         [
-                            placement.left() + left,
-                            placement.top() + top - virtual_top,
+                            placement.left() + left - source.left(),
+                            placement.top() + top - source.top(),
                             right - left,
                             bottom - top,
                         ]

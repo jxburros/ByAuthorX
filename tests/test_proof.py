@@ -108,3 +108,14 @@ def test_cli_proof_retains_original_native_document(tmp_path):
     assert result['document_id'] == doc['id']
     assert native.read_bytes() == before
     assert any(path.endswith('contact-sheet.png') for path in result['outputs'])
+
+
+def test_proof_bounds_follow_resolved_column_fragments(tmp_path):
+    doc = new_document('Columns', 'x')
+    doc['layout']['columns'] = {'count': 2, 'widths': [300, 150], 'gap': 18}
+    doc['blocks'][0].update(id='story', text='word ' * 1100)
+    report = create_proof(doc, tmp_path / 'proof', overlays=[{'target': 'story'}], contact=False)
+    regions = {(region['page'], region['rect'][0], region['rect'][2]) for region in report['overlays']}
+    assert {(1, 72, 300), (1, 390, 150)} <= regions
+    assert all(region['rect'][1] >= 72 for region in report['overlays'])
+    assert all(f['code'] != 'proof.bounds_unresolved' for f in report['findings'])

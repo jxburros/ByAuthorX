@@ -4,7 +4,7 @@ import pytest
 
 from byax import engine
 from byax.errors import ByaxError
-from byax.model import new_document
+from byax.model import canonical_json, find_object, new_document, object_hash
 
 
 def edit(doc, *ops, **envelope):
@@ -598,3 +598,347 @@ def test_api_history_cap_stays_hard_and_desktop_compaction_keeps_branch_heads():
     with pytest.raises(ByaxError) as error:
         edit(doc, {'type': 'set_text', 'target': target, 'text': '4'})
     assert error.value.code == 'limit_exceeded'
+
+
+# Bounded inspection and context packages (spec 16.3-16.4) ---------------------------------
+def _long_document(count=12):
+    doc = new_document('Long', '\n'.join(f'Paragraph {i} text.' for i in range(count)))
+    doc['blocks'].insert(
+        0,
+        {
+            'id': 'h1',
+            'type': 'heading',
+            'text': 'Start',
+            'style': 'heading1',
+            'marks': [],
+            'attrs': {'level': 1},
+        },
+    )
+    return doc
+
+
+def test_inspection_continuation_tokens_cover_every_item_once():
+    doc = _long_document()
+    seen, result = [], engine.inspect(doc, limit=5)
+    assert result['total'] == 13 and result['truncated'] and result['continuation']['increase_limit_to'] == 13
+    while True:
+        seen += [item['id'] for item in result['items']]
+        assert set(result['hashes']) == {item['id'] for item in result['items']}
+        if not result['continuation']:
+            break
+        result = engine.inspect(doc, limit=5, continuation=result['continuation']['token'])
+    assert seen == [b['id'] for b in doc['blocks']]
+    token = engine.inspect(doc, limit=1)['continuation']['token']
+    changed, _ = edit(doc, {'type': 'set_metadata', 'values': {'title': 'New'}})
+    with pytest.raises(ByaxError) as error:
+        engine.inspect(changed, continuation=token)
+    assert error.value.code == 'stale_revision'
+    with pytest.raises(ByaxError):
+        engine.inspect(doc, continuation=token[:-2] + 'xx')
+
+
+def test_selective_inspection_nearby_table_fields_findings_and_layout():
+    doc = _long_document(4)
+    middle = doc['blocks'][2]['id']
+    nearby = engine.inspect(doc, target=middle, radius=1)
+    assert [i['role'] for i in nearby['items']] == ['nearby', 'selected', 'nearby'] and nearby['scope'] == {
+        'target': middle,
+        'radius': 1,
+    }
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 3, 'columns': 2})
+    table = doc['blocks'][-1]['id']
+    rows = engine.inspect(doc, section='table', target=table, limit=2)
+    assert (
+        rows['total'] == 3
+        and rows['returned'] == 2
+        and rows['object']['type'] == 'table'
+        and rows['columns'] == 2
+    )
+    doc, _ = edit(
+        doc,
+        {'type': 'insert_paragraph', 'text': 'Dear {{client}} and {{other}}'},
+        {'type': 'fill_fields', 'values': {'client': {'type': 'text', 'required': True}}},
+    )
+    fields = engine.inspect(doc, section='fields', fields=['client'])
+    assert (
+        fields['items'][0]['filled'] is False
+        and fields['items'][0]['occurrences'][0]['kind'] == 'placeholder'
+    )
+    assert {i['name'] for i in engine.inspect(doc, section='fields')['items']} == {'client', 'other'}
+    doc, _ = edit(doc, {'type': 'insert_paragraph', 'text': 'The the end'})
+    doc, _ = edit(doc, {'type': 'record_checks', 'values': {'suites': ['editorial']}})
+    unresolved = engine.inspect(doc, section='findings')
+    assert unresolved['total'] == 1 and unresolved['health']['validation'] == 'incomplete'
+    assert engine.inspect(doc, section='findings', status='dismissed')['total'] == 0
+    assert engine.inspect(doc, section='health')['items'][0]['validation'] == 'incomplete'
+    located = engine.inspect(doc, target=middle, layout=True)
+    assert located['layout']['status'] == 'measured' and located['layout']['pages'][middle] == [1]
+    found = engine.find(doc, 'Paragraph', limit=2)
+    assert found['total'] == 4 and found['returned'] == 2 and found['truncated']
+    rest = engine.find(doc, 'ignored', continuation=found['continuation']['token'], limit=10)
+    assert [m['target'] for m in found['matches'] + rest['matches']] == [b['id'] for b in doc['blocks'][1:5]]
+    assert engine.find(doc, 'Paragraph', scope=middle)['total'] == 1
+
+
+def test_context_package_contents_inclusion_report_and_exact_content(monkeypatch):
+    doc = _long_document(3)
+    target = doc['blocks'][2]['id']
+    doc['references'] = {
+        'chosen': {'title': 'Chosen', 'text': 'Exact source', 'version': '3'},
+        'other': {'title': 'Other', 'text': 'No'},
+    }
+    from byax.profiles import presets
+
+    doc['profiles']['house'] = {**presets()['editorial_review'], 'references': ['chosen']}
+    doc['settings']['requirements'] = {'r': {'kind': 'max_words', 'value': 900}}
+    doc['settings']['terminology'] = {'email': ['e-mail']}
+    doc, _ = edit(
+        doc,
+        {'type': 'protect', 'target': target, 'kind': 'text'},
+        {'type': 'protect', 'target': 'h1', 'kind': 'style'},
+    )
+    doc, _ = edit(doc, {'type': 'insert_paragraph', 'text': 'The the', 'after': target, 'id': 'p_find'})
+    doc, _ = edit(doc, {'type': 'record_checks', 'values': {'suites': ['editorial']}})
+    import builtins
+    import pathlib
+
+    def forbidden(*args, **kwargs):
+        raise AssertionError('context packaging must not read files')
+
+    monkeypatch.setattr(builtins, 'open', forbidden)
+    monkeypatch.setattr(pathlib.Path, 'read_text', forbidden)
+    package = engine.context(doc, target, profile='house', radius=1)
+    monkeypatch.undo()
+    assert [b['id'] for b in package['blocks']] == [target]
+    assert {b['id'] for b in package['nearby']} == {doc['blocks'][1]['id'], 'p_find'}
+    assert package['blocks'][0]['hash'] == object_hash(find_object(doc, target))
+    assert package['protections'] == [{'target': target, 'kind': 'text'}]
+    assert package['inclusion_report']['not_applicable_protections'] == [{'target': 'h1', 'kind': 'style'}]
+    assert package['requirements'] == doc['settings']['requirements'] and package['preferred_terms'] == {
+        'email': ['e-mail']
+    }
+    assert (
+        set(package['references']) == {'chosen'}
+        and package['provenance']['source_versions']['chosen']['version'] == '3'
+    )
+    assert [f['rule'] for f in package['findings']] == ['word.repeated']
+    assert (
+        package['effective_settings']['voice']['voice_preservation'] == 'strict'
+        and 'body' in package['styles']
+    )
+    kinds = {item['kind'] for item in package['inclusion_report']['included']}
+    assert kinds >= {
+        'profile',
+        'protections',
+        'requirements',
+        'block',
+        'nearby',
+        'style',
+        'terminology',
+        'reference',
+        'finding',
+    }
+    assert package['execution'] == 'completed' and package['continuation'] is None
+
+
+def test_context_bound_reports_omissions_continuation_and_summaries_are_not_exact():
+    doc = _long_document(6)
+    full = engine.context(doc)
+    budget = full['limit']['used'] // 2
+    first = engine.context(doc, limit=budget)
+    assert first['execution'] == 'incomplete' and first['continuation']['pending']
+    omitted = {o['id'] for o in first['inclusion_report']['omitted']}
+    assert all(not s['exact'] and not s['editable'] for s in first['summaries'])
+    second = engine.context(doc, limit=10**6, continuation=first['continuation']['token'])
+    assert {b['id'] for b in second['blocks']} == omitted & {b['id'] for b in doc['blocks']}
+    assert {b['id'] for b in first['blocks']} | {b['id'] for b in second['blocks']} == {
+        b['id'] for b in doc['blocks']
+    }
+    summary = first['summaries'][0]
+    with pytest.raises(ByaxError) as error:
+        edit(
+            doc,
+            {
+                'type': 'delete_text',
+                'target': summary['id'],
+                'start': 0,
+                'end': len(summary['preview']) + 1,
+                'expected_text': summary['preview'],
+            },
+        )
+    assert error.value.code in ('precondition_failed', 'schema_error')
+    target = doc['blocks'][1]
+    optional = engine.context(doc, target['id'], limit=len(canonical_json(target)) + 200)
+    assert optional['execution'] == 'completed' and optional['continuation']
+    assert all(not o['required'] for o in optional['inclusion_report']['omitted'])
+
+
+# Dry-run layout effects and independent protection kinds (spec 16.6-16.7) ---------------------
+def test_dry_run_measures_layout_effects_without_committing():
+    doc = new_document(text='\n'.join(['Line of body text.'] * 3))
+    original = copy.deepcopy(doc)
+    filler = [
+        {'type': 'insert_paragraph', 'text': 'Filler paragraph ' * 30, 'after': doc['blocks'][0]['id']}
+        for _ in range(20)
+    ]
+    candidate, result = engine.apply(doc, {'operations': filler}, dry_run=True)
+    effects = result['layout_effects']
+    assert effects['status'] == 'measured'
+    assert effects['page_count']['before'] == 1 and effects['page_count']['after'] > 1
+    assert any(m['id'] == doc['blocks'][-1]['id'] for m in effects['moved'])
+    assert 1 in effects['affected_pages'] and effects['outputs'] == []
+    assert doc == original and result['revision'] == doc['revision'] and not candidate['history']['revisions']
+
+
+def test_protection_kinds_are_independent():
+    doc = new_document(text='Quoted claim here.\nOther')
+    target = doc['blocks'][0]['id']
+    doc, _ = edit(doc, {'type': 'add_reference', 'id': 'src', 'values': {'text': 'Quoted claim'}})
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 1, 'columns': 2})
+    table = doc['blocks'][-1]
+    cell = table['rows'][0]['cells'][0]['id']
+    cases = [
+        (
+            'text',
+            target,
+            {'type': 'apply_style', 'target': target, 'style': 'quotation'},
+            {'type': 'insert_text', 'target': target, 'offset': 0, 'text': 'A '},
+        ),
+        (
+            'style',
+            target,
+            {'type': 'insert_text', 'target': target, 'offset': 0, 'text': 'A '},
+            {'type': 'format_text', 'target': target, 'start': 0, 'end': 6, 'marks': {'bold': True}},
+        ),
+        (
+            'citations',
+            target,
+            {'type': 'format_text', 'target': target, 'start': 0, 'end': 6, 'marks': {'bold': True}},
+            {'type': 'format_text', 'target': target, 'start': 0, 'end': 12, 'marks': {'citation': 'src'}},
+        ),
+        (
+            'attributes',
+            table['id'],
+            {'type': 'update_cell', 'target': cell, 'text': 'Changed'},
+            {'type': 'set_attributes', 'target': table['id'], 'values': {'column_widths': [100, 100]}},
+        ),
+        (
+            'values',
+            table['id'],
+            {'type': 'set_attributes', 'target': table['id'], 'values': {'border_width': 2}},
+            {'type': 'update_cell', 'target': cell, 'text': 'Changed'},
+        ),
+    ]
+    for kind, protected, allowed, violating in cases:
+        rule = [{'target': protected, 'kind': kind}]
+        edit(doc, allowed, protect=rule)
+        with pytest.raises(ByaxError) as error:
+            edit(doc, violating, protect=rule)
+        assert error.value.code == 'protected_edit', kind
+    cited, _ = edit(
+        doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 12, 'marks': {'citation': 'src'}}
+    )
+    cited, _ = edit(cited, {'type': 'protect', 'target': target, 'kind': 'citations'})
+    with pytest.raises(ByaxError):
+        edit(cited, {'type': 'add_reference', 'id': 'src', 'values': {'text': 'Different source'}})
+    with pytest.raises(ByaxError):
+        edit(
+            doc,
+            {'type': 'set_text', 'target': target, 'text': 'x'},
+            protect=[{'target': target, 'kind': 'loudness'}],
+        )
+
+
+def test_text_protection_allows_repagination_but_visual_region_protection_is_measured():
+    doc = new_document(text='Opening paragraph.\nProtected signature block.')
+    first, protected = doc['blocks'][0]['id'], doc['blocks'][1]['id']
+    push = [{'type': 'insert_paragraph', 'text': 'Filler paragraph ' * 30, 'after': first} for _ in range(25)]
+    _moved, result = edit(doc, *push, protect=[{'target': protected, 'kind': 'text'}])
+    assert result['execution'] == 'completed'
+    original = copy.deepcopy(doc)
+    with pytest.raises(ByaxError) as error:
+        edit(doc, *push, protect=[{'target': protected, 'kind': 'visual_region'}])
+    assert error.value.code == 'protected_edit' and error.value.details['before'][0]['page'] == 1
+    assert doc == original
+    doc, _ = edit(doc, {'type': 'protect', 'target': protected, 'kind': 'visual'})
+    later, _ = edit(doc, {'type': 'insert_paragraph', 'text': 'Appended after the protected region.'})
+    with pytest.raises(ByaxError):
+        edit(later, {'type': 'apply_style', 'target': protected, 'style': 'title'})
+    with pytest.raises(ByaxError) as error:
+        edit(
+            later,
+            {
+                'type': 'set_text',
+                'target': first,
+                'text': 'Opening paragraph that is now long enough to wrap onto a second line ' * 3,
+            },
+        )
+    assert error.value.code == 'protected_edit'
+    hidden = copy.deepcopy(later)
+    hidden['blocks'][1]['attrs']['excluded'] = True
+    with pytest.raises(ByaxError) as error:
+        engine._measure(hidden, {'target': protected, 'kind': 'visual'})
+    assert error.value.code == 'incomplete_coverage'
+
+
+def test_visual_and_table_protection_across_interfaces(tmp_path):
+    from byax.cli import execute
+    from byax.storage import load_document, save_document
+
+    doc = new_document(text='Intro\nSigned')
+    doc, _ = edit(doc, {'type': 'insert_table', 'rows': 2, 'columns': 2})
+    table = doc['blocks'][-1]
+    path = tmp_path / 'protected.byax'
+    save_document(doc, path)
+    rules = [{'target': table['id'], 'kind': 'values'}, {'target': doc['blocks'][1]['id'], 'kind': 'visual'}]
+    preview = execute(
+        'apply',
+        {
+            'path': str(path),
+            'dry_run': True,
+            'input': {
+                'protect': rules,
+                'operations': [
+                    {'type': 'set_attributes', 'target': table['id'], 'values': {'border_width': 1}}
+                ],
+            },
+        },
+    )
+    assert preview['execution'] == 'dry_run' and preview['layout_effects']['status'] == 'measured'
+    with pytest.raises(ByaxError) as error:
+        execute(
+            'apply',
+            {
+                'path': str(path),
+                'input': {
+                    'protect': rules,
+                    'operations': [
+                        {
+                            'type': 'update_cell',
+                            'target': table['rows'][0]['cells'][0]['id'],
+                            'text': 'Edited',
+                        }
+                    ],
+                },
+            },
+        )
+    assert error.value.code == 'protected_edit'
+    with pytest.raises(ByaxError) as error:
+        execute(
+            'apply',
+            {
+                'path': str(path),
+                'input': {
+                    'protect': rules,
+                    'operations': [
+                        {
+                            'type': 'insert_paragraph',
+                            'text': 'Pushes the signature',
+                            'after': doc['blocks'][0]['id'],
+                        }
+                    ],
+                },
+            },
+        )
+    assert error.value.code == 'protected_edit'
+    assert load_document(path)['revision'] == doc['revision']

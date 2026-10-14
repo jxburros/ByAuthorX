@@ -20,6 +20,7 @@ import subprocess
 import tempfile
 import uuid
 import zipfile
+import zlib
 from html.parser import HTMLParser
 from pathlib import Path, PurePosixPath
 
@@ -82,6 +83,20 @@ def _decode(raw):
         return raw.decode('cp1252', errors='replace'), 'cp1252'
 
 
+def _raised_by_package_reader(exc):
+    """True when the innermost frame is python-docx or zipfile rather than ByAuthorX code."""
+    import traceback
+
+    import docx
+
+    frames = traceback.extract_tb(exc.__traceback__)
+    origin = os.path.normcase(frames[-1].filename) if frames else ''
+    zip_source = os.path.normcase(zipfile.__file__)
+    if zip_source.endswith('__init__.py'):
+        zip_source = os.path.dirname(zip_source) + os.sep
+    return origin.startswith((os.path.normcase(os.path.dirname(docx.__file__)) + os.sep, zip_source))
+
+
 def _safe_zip(raw):
     try:
         archive = zipfile.ZipFile(io.BytesIO(raw))
@@ -113,8 +128,11 @@ def _safe_zip(raw):
                     raise ByaxError(
                         'unsafe_xml', 'Invalid XML or prohibited XML entity declaration', member=item.filename
                     ) from exc
+        corrupt = archive.testzip()
+        if corrupt:
+            raise ByaxError('invalid_input', 'Corrupt ZIP member', member=corrupt)
         return archive
-    except zipfile.BadZipFile as exc:
+    except (zipfile.BadZipFile, NotImplementedError, EOFError, zlib.error) as exc:
         raise ByaxError('invalid_input', 'Invalid ZIP-based document') from exc
 
 
@@ -169,7 +187,15 @@ def import_document(path):
 
     elif fmt == 'docx':
         _safe_zip(raw).close()
-        _import_docx(doc, raw, losses)
+        try:
+            _import_docx(doc, raw, losses)
+        except (KeyError, AttributeError) as exc:
+            # python-docx reports missing or mistyped package parts this way; keep our own bugs visible.
+            if not _raised_by_package_reader(exc):
+                raise
+            raise ByaxError(
+                'invalid_input', f'DOCX package is missing or has an invalid part: {exc}'
+            ) from exc
     elif fmt == 'odt':
         _import_odt(doc, raw, losses)
     elif fmt == 'doc':
