@@ -44,6 +44,8 @@ Other empty states use companion stills in the same way, always beside a readabl
 
 Manrope Regular/Semibold provides interface type (11 pt by default). IM FELL English appears in the About headline. Source Serif 4 is registered and selectable for reading/document styles. All three families are bundled with their SIL OFL notices. Existing document styles, content, revision history, and export typography are preserved; branding does not inject decoration into authored documents. The writing page stays white.
 
+Six custom display faces drawn with Vixl live in [assets/brand-fonts](../assets/brand-fonts/README.md): Irongall (from the wordmark), Scholium (from the companion illustrations), Tenuis (tall and thin), Brobdingnag (big and bold), Onionskin (a typewriter face) and Decussate (every letter stitched from X marks). They are design assets for artwork and marketing, with editable Vixl glyph masters and checked specimens. The application does not bundle or load them, and the interface and document typography above are unchanged.
+
 ## Logos and platform icons
 
 The full light wordmark appears at 240 px in the writing toolbar, with 20 px surrounding clearance, and at 360 px in About. Preserve aspect ratio, the loop, the rough terminal, and at least half a capital B's height of clear space. The approved name is outlined artwork; do not retype or redraw it as a substitute.

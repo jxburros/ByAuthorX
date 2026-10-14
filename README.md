@@ -52,6 +52,8 @@ View and inspector changes use brief 180 ms transitions. Review, Outline, Layers
 
 See the [design system and motion contract](docs/brand.md), [editable brand sources](design/brand/README.md), and [supplied brand guide](design/brand/kit/ByAuthorX-brand-guide.pdf).
 
+Six custom display fonts made with Vixl, two of them drawn from the logo and the illustrations, are in [assets/brand-fonts](assets/brand-fonts/README.md).
+
 ## CLI
 
 ```bash

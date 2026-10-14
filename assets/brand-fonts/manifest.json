@@ -1,0 +1,268 @@
+{
+  "vixl": "0.27.0",
+  "fonttools": "4.66.1",
+  "license": "MIT (see the repository LICENSE)",
+  "families": [
+    {
+      "key": "irongall",
+      "family": "Irongall",
+      "style": "Regular",
+      "postscript_name": "Irongall-Regular",
+      "role": "Logo: a rough inked serif",
+      "weight": 600,
+      "characters": 244,
+      "glyphs": 245,
+      "kerning_pairs": 4094,
+      "features": [
+        "kern"
+      ],
+      "files": {
+        "ttf": {
+          "path": "fonts/irongall/Irongall-Regular.ttf",
+          "bytes": 153660,
+          "sha256": "0db4102493713a14cdb7bf9b61e19d1d2257c13427bbfbc047b0af90bdaf38b8"
+        },
+        "woff2": {
+          "path": "fonts/irongall/Irongall-Regular.woff2",
+          "bytes": 46840,
+          "sha256": "b4f31c39a67bfa186ca8a614f502cb1c884923c32ea3ebd28054db52765d58e8"
+        }
+      },
+      "masters": {
+        "path": "masters/irongall-glyphs.vixl",
+        "glyph_layers": 143,
+        "warnings": null,
+        "check_passed": true
+      },
+      "specimen": {
+        "vixl": "specimens/irongall-specimen.vixl",
+        "png": "specimens/irongall-specimen.png",
+        "check": {
+          "passed": true,
+          "by_action": {
+            "fix": 0,
+            "review": 0,
+            "informational": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "scholium",
+      "family": "Scholium",
+      "style": "Regular",
+      "postscript_name": "Scholium-Regular",
+      "role": "Illustrations: a hand-drawn pen face",
+      "weight": 400,
+      "characters": 244,
+      "glyphs": 349,
+      "kerning_pairs": 3952,
+      "features": [
+        "calt",
+        "kern"
+      ],
+      "files": {
+        "ttf": {
+          "path": "fonts/scholium/Scholium-Regular.ttf",
+          "bytes": 107712,
+          "sha256": "620622821984239f3cf8c17c7c29af0613c255472563639ec446eb71841004a3"
+        },
+        "woff2": {
+          "path": "fonts/scholium/Scholium-Regular.woff2",
+          "bytes": 44848,
+          "sha256": "4149db8e4b4f00a8f15a6f8752db8fd42132df3c85f8a2fd5ccc20bba02f944c"
+        }
+      },
+      "masters": {
+        "path": "masters/scholium-glyphs.vixl",
+        "glyph_layers": 247,
+        "warnings": null,
+        "check_passed": true
+      },
+      "specimen": {
+        "vixl": "specimens/scholium-specimen.vixl",
+        "png": "specimens/scholium-specimen.png",
+        "check": {
+          "passed": true,
+          "by_action": {
+            "fix": 0,
+            "review": 0,
+            "informational": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "tenuis",
+      "family": "Tenuis",
+      "style": "Regular",
+      "postscript_name": "Tenuis-Regular",
+      "role": "Tall, thin and elegant",
+      "weight": 200,
+      "characters": 244,
+      "glyphs": 245,
+      "kerning_pairs": 3396,
+      "features": [
+        "kern"
+      ],
+      "files": {
+        "ttf": {
+          "path": "fonts/tenuis/Tenuis-Regular.ttf",
+          "bytes": 63692,
+          "sha256": "f7c8bde510af19316ea0213bdf5cc35211777d3f8c0147b2aa1c0688bf9e9ac0"
+        },
+        "woff2": {
+          "path": "fonts/tenuis/Tenuis-Regular.woff2",
+          "bytes": 19864,
+          "sha256": "316e7a5c0dec07b3387388dee65f4d3446a811ccc940c4497bcd73760b76f014"
+        }
+      },
+      "masters": {
+        "path": "masters/tenuis-glyphs.vixl",
+        "glyph_layers": 143,
+        "warnings": null,
+        "check_passed": true
+      },
+      "specimen": {
+        "vixl": "specimens/tenuis-specimen.vixl",
+        "png": "specimens/tenuis-specimen.png",
+        "check": {
+          "passed": true,
+          "by_action": {
+            "fix": 0,
+            "review": 0,
+            "informational": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "brobdingnag",
+      "family": "Brobdingnag",
+      "style": "Black",
+      "postscript_name": "Brobdingnag-Black",
+      "role": "Big and bold",
+      "weight": 900,
+      "characters": 244,
+      "glyphs": 245,
+      "kerning_pairs": 4068,
+      "features": [
+        "kern"
+      ],
+      "files": {
+        "ttf": {
+          "path": "fonts/brobdingnag/Brobdingnag-Black.ttf",
+          "bytes": 78756,
+          "sha256": "1c98fc31b1eddc153a268f8735e0ef56802d0399cfaa262f4675b729170fc41c"
+        },
+        "woff2": {
+          "path": "fonts/brobdingnag/Brobdingnag-Black.woff2",
+          "bytes": 23060,
+          "sha256": "912560fd987d232e3fc1d2f76831ac7aa570e753055232c069c03b2441488d08"
+        }
+      },
+      "masters": {
+        "path": "masters/brobdingnag-glyphs.vixl",
+        "glyph_layers": 143,
+        "warnings": null,
+        "check_passed": true
+      },
+      "specimen": {
+        "vixl": "specimens/brobdingnag-specimen.vixl",
+        "png": "specimens/brobdingnag-specimen.png",
+        "check": {
+          "passed": true,
+          "by_action": {
+            "fix": 0,
+            "review": 0,
+            "informational": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "onionskin",
+      "family": "Onionskin",
+      "style": "Regular",
+      "postscript_name": "Onionskin-Regular",
+      "role": "My pick: a typewriter",
+      "weight": 400,
+      "characters": 244,
+      "glyphs": 245,
+      "kerning_pairs": 0,
+      "features": [],
+      "files": {
+        "ttf": {
+          "path": "fonts/onionskin/Onionskin-Regular.ttf",
+          "bytes": 88416,
+          "sha256": "4045465ac20e4ce055e6bbcb415cbe323c9f0850f94faa8808868617bfdb2b94"
+        },
+        "woff2": {
+          "path": "fonts/onionskin/Onionskin-Regular.woff2",
+          "bytes": 31096,
+          "sha256": "a34443176cbb4fd820ed629678b7db15e2a9a2b4b1d73e7a5ed566be358465b9"
+        }
+      },
+      "masters": {
+        "path": "masters/onionskin-glyphs.vixl",
+        "glyph_layers": 143,
+        "warnings": null,
+        "check_passed": true
+      },
+      "specimen": {
+        "vixl": "specimens/onionskin-specimen.vixl",
+        "png": "specimens/onionskin-specimen.png",
+        "check": {
+          "passed": true,
+          "by_action": {
+            "fix": 0,
+            "review": 0,
+            "informational": 1
+          }
+        }
+      }
+    },
+    {
+      "key": "decussate",
+      "family": "Decussate",
+      "style": "Regular",
+      "postscript_name": "Decussate-Regular",
+      "role": "Bonus: every letter is made of X marks",
+      "weight": 700,
+      "characters": 244,
+      "glyphs": 245,
+      "kerning_pairs": 0,
+      "features": [],
+      "files": {
+        "ttf": {
+          "path": "fonts/decussate/Decussate-Regular.ttf",
+          "bytes": 499340,
+          "sha256": "8da76bde4c61ed6e2ce0929255ad4cc415974d5075db40e8d47ad3ee6a297e97"
+        },
+        "woff2": {
+          "path": "fonts/decussate/Decussate-Regular.woff2",
+          "bytes": 9380,
+          "sha256": "69f9f617f091f93c381d6481469d7a6e796d03c9c731e5e214f5822f1438e256"
+        }
+      },
+      "masters": {
+        "path": "masters/decussate-glyphs.vixl",
+        "glyph_layers": 143,
+        "warnings": null,
+        "check_passed": true
+      },
+      "specimen": {
+        "vixl": "specimens/decussate-specimen.vixl",
+        "png": "specimens/decussate-specimen.png",
+        "check": {
+          "passed": true,
+          "by_action": {
+            "fix": 0,
+            "review": 0,
+            "informational": 1
+          }
+        }
+      }
+    }
+  ]
+}
