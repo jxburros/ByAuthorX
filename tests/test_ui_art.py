@@ -250,7 +250,8 @@ def test_empty_states_use_companion_art(qtbot, monkeypatch, tmp_path):
 
 def test_task_loop_plays_only_while_running_and_honours_reduced_motion(qtbot, monkeypatch, tmp_path):
     window = make_window(qtbot, monkeypatch, tmp_path)
-    window.inspector.setCurrentWidget(window.ai_panel)
+    # Spelling and its activity indicator now belong to the Review tab.
+    window.inspector.setCurrentWidget(window.review_checks.parentWidget())
     loop = window.ai_panel.spell_loop
     assert loop.isHidden() and not loop.running
     loop.start()

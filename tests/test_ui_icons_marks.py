@@ -246,11 +246,13 @@ def test_jobs_dialog_explains_an_empty_queue(qtbot, monkeypatch, tmp_path):
 def test_checking_loop_runs_only_while_checks_run(qtbot, monkeypatch, tmp_path):
     window = make_window(qtbot, monkeypatch, tmp_path)
     capture_dialogs(monkeypatch)
+    errors = []
+    monkeypatch.setattr(window, 'error', errors.append)
     release = threading.Event()
     loop = window.review_empty.art.loop
     assert not loop.running and loop.isHidden()
 
-    def slow_checks(doc, profile=None):
+    def slow_checks(doc, profile=None, suites=None):
         release.wait(10)
         return {'validation': 'passed', 'findings': [], 'revision': doc['revision']}
 
@@ -261,6 +263,7 @@ def test_checking_loop_runs_only_while_checks_run(qtbot, monkeypatch, tmp_path):
     release.set()
     qtbot.waitUntil(lambda: not loop.running)
     assert loop.animation.state() == QAbstractAnimation.Stopped and window.review_empty.art.still.isVisible()
+    assert not errors
     window.dirty = False
 
 
@@ -269,7 +272,7 @@ def test_checking_loop_stops_when_the_checks_fail(qtbot, monkeypatch, tmp_path):
     errors = []
     monkeypatch.setattr(window, 'error', errors.append)
 
-    def broken(doc, profile=None):
+    def broken(doc, profile=None, suites=None):
         raise RuntimeError('boom')
 
     monkeypatch.setattr('byax.checks.run_checks', broken)
