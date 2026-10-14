@@ -197,7 +197,9 @@ def _suggest(a, doc):
     if not 0 <= start < end <= len(block.get('text', '')):
         raise ByaxError('invalid_input', 'Select a nonempty claim range')
     claim = block['text'][start:end]
-    retrieval = retrieve_context(doc, a.get('query') or claim, limit=min(a.get('limit', 5), 20))
+    retrieval = retrieve_context(
+        doc, a.get('query') or claim, target=block['id'], limit=min(a.get('limit', 5), 20)
+    )
     proposals = []
     for hit in retrieval['included']:
         source = source_from_hit(hit)

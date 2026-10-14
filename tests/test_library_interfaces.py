@@ -156,3 +156,20 @@ def test_transport_cannot_attach_libraries_via_operations(command):
         check_provider_admin(
             command, {'input': {'operations': [{'type': 'propose', 'values': {'operations': [operation]}}]}}
         )
+
+
+def test_source_suggestions_resolve_the_selected_section_profile(library_doc, monkeypatch):
+    from byax import retrieval
+
+    path, _identity = library_doc
+    target = load_document(path)['blocks'][0]['id']
+    original = retrieval.retrieve_context
+    targets = []
+
+    def scoped(doc, query, **kwargs):
+        targets.append(kwargs.get('target'))
+        return original(doc, query, **kwargs)
+
+    monkeypatch.setattr(retrieval, 'retrieve_context', scoped)
+    cli.execute('source', {'path': path, 'action': 'suggest', 'target': target, 'query': 'moons'})
+    assert targets == [target]
