@@ -1,4 +1,5 @@
 """Task lifetime, reduced motion, and presentation must preserve document behavior."""
+
 import copy
 import json
 import threading
@@ -29,7 +30,9 @@ def test_empty_review_switches_to_real_items_and_back(qtbot, monkeypatch, tmp_pa
     assert window.review_stack.currentIndex() == 1
     assert all(not button.isVisible() for button in window.review_buttons)
     assert window.doc == original
-    window.doc['review']['comments'].append({'id': 'comment-one', 'text': 'Keep this thought.', 'status': 'open'})
+    window.doc['review']['comments'].append(
+        {'id': 'comment-one', 'text': 'Keep this thought.', 'status': 'open'}
+    )
     window.update_sidebar()
     assert window.review_stack.currentIndex() == 0
     window.review_list.setCurrentRow(0)
@@ -48,7 +51,8 @@ def test_job_terminal_states_clear_activity(qtbot, monkeypatch, tmp_path, state)
     window.job_manager = SimpleNamespace(
         submit=lambda *_: {'id': 'test-job'},
         status=lambda *_, **__: {'state': state, 'error': {'message': 'Expected job failure'}},
-        result=lambda *_, **__: {'result': 'finished'})
+        result=lambda *_, **__: {'result': 'finished'},
+    )
     window.start_job('transcription', {}, lambda *_: None, results.append)
     qtbot.waitUntil(lambda: not window._active_tasks)
     assert window.activity_graphic.isHidden()
@@ -83,11 +87,13 @@ def test_overlapping_tasks_keep_busy_until_last_result_and_failure(qtbot, monkey
     monkeypatch.setattr(window, 'error', errors.append)
     first, second = threading.Event(), threading.Event()
     original = copy.deepcopy(window.doc)
+
     def work(event, fail=False):
         assert event.wait(3)
         if fail:
             raise RuntimeError('Expected task failure')
         return 'done'
+
     try:
         window.background('First task…', lambda: work(first), results.append)
         window.background('Second task…', lambda: work(second, True), results.append)
@@ -167,9 +173,13 @@ def test_baked_resources_have_exact_endpoints_and_no_document_art(qtbot, monkeyp
         assert manifest['checks']['passed']
         assert manifest['frameTimesMs'][0] == 0
         assert manifest['frameTimesMs'][-1] == manifest['durationMs']
-        with Image.open(BRAND_ROOT / 'ui' / f'{name}-sprite.png') as sprite, Image.open(
-                BRAND_ROOT / 'ui' / f'{name}-poster.png') as poster:
+        with (
+            Image.open(BRAND_ROOT / 'ui' / f'{name}-sprite.png') as sprite,
+            Image.open(BRAND_ROOT / 'ui' / f'{name}-poster.png') as poster,
+        ):
             width, height = poster.size
-            assert sprite.size == (width*len(manifest['frameTimesMs']), height)
+            assert sprite.size == (width * len(manifest['frameTimesMs']), height)
             if not manifest['loop']:
-                assert sprite.crop((sprite.width-width, 0, sprite.width, height)).tobytes() == poster.tobytes()
+                assert (
+                    sprite.crop((sprite.width - width, 0, sprite.width, height)).tobytes() == poster.tobytes()
+                )

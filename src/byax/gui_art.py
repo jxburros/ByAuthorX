@@ -1,4 +1,5 @@
 """Restrained native artwork and task-driven playback of Vixl-baked frames."""
+
 from __future__ import annotations
 
 import bisect
@@ -14,6 +15,7 @@ from .gui_motion import PenLineAnimation
 
 class EmptyPanel(QWidget):
     """Explain an empty inspector without placing artwork in authored content."""
+
     def __init__(self, title, description, *, graphic=None, action=None, parent=None):
         super().__init__(parent)
         self.setObjectName('emptyPanel')
@@ -45,6 +47,7 @@ class EmptyPanel(QWidget):
 
 class ActivityGraphic(PenLineAnimation):
     """Run only for an active task or a short explicit-save confirmation."""
+
     def __init__(self, motion, parent=None):
         super().__init__(motion, parent, profile='busy-write', width=48)
         self.mode = None
@@ -66,7 +69,7 @@ class ActivityGraphic(PenLineAnimation):
         self.pixmap = QPixmap(str(BRAND_ROOT / 'ui' / f'{profile}-poster.png'))
         if self.sprite.isNull() or self.pixmap.isNull():
             raise RuntimeError(f'Missing UI motion resource: {profile}')
-        height = round(width*self.pixmap.height()/self.pixmap.width())
+        height = round(width * self.pixmap.height() / self.pixmap.width())
         self.art_rect = QRectF(0, 0, width, height)
         self.setFixedSize(width, height)
         self.animation.setDuration(self.manifest['durationMs'])
@@ -112,7 +115,8 @@ class ActivityGraphic(PenLineAnimation):
             self.animation.stop()
             self.set_progress(1.0)
         elif self.animation.state() != QAbstractAnimation.Running and (
-                self.mode == 'busy' or self.mode == 'saved' and not self.confirmation.isActive()):
+            self.mode == 'busy' or self.mode == 'saved' and not self.confirmation.isActive()
+        ):
             self.animation.start()
 
     def _preference_changed(self, reduced):
@@ -139,7 +143,7 @@ class ActivityGraphic(PenLineAnimation):
         if self.motion.reduced or self.animation.state() == QAbstractAnimation.Stopped:
             painter.drawPixmap(self.art_rect, self.pixmap, QRectF(self.pixmap.rect()))
             return
-        time = self.progress*self.manifest['durationMs']
-        index = max(0, bisect.bisect_right(self.frame_times, time)-1)
+        time = self.progress * self.manifest['durationMs']
+        index = max(0, bisect.bisect_right(self.frame_times, time) - 1)
         width, height = self.manifest['frameWidth'], self.manifest['frameHeight']
-        painter.drawPixmap(self.art_rect, self.sprite, QRectF(index*width, 0, width, height))
+        painter.drawPixmap(self.art_rect, self.sprite, QRectF(index * width, 0, width, height))

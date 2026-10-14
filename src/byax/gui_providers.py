@@ -1,6 +1,7 @@
 # ruff: noqa: BLE001
 # GUI event boundaries report errors rather than terminating the application.
 """Explicit provider settings, payload review, and guarded dictation workflows."""
+
 from __future__ import annotations
 
 import copy
@@ -38,7 +39,9 @@ class ProviderDialog(QDialog):
         self.setWindowTitle('Providers and credentials')
         self.resize(650, 590)
         form = QFormLayout(self)
-        intro = QLabel('Choose your own hosted or local providers. Credentials stay in your operating system keyring or environment; documents never contain API keys.')
+        intro = QLabel(
+            'Choose your own hosted or local providers. Credentials stay in your operating system keyring or environment; documents never contain API keys.'
+        )
         intro.setWordWrap(True)
         form.addRow(intro)
         self.saved = QComboBox()
@@ -47,7 +50,12 @@ class ProviderDialog(QDialog):
             self.saved.addItem(config['alias'])
         self.saved.currentTextChanged.connect(self.load_config)
         form.addRow('Saved providers', self.saved)
-        self.alias, self.model, self.endpoint, self.credential = QLineEdit(), QLineEdit(), QLineEdit(), QLineEdit()
+        self.alias, self.model, self.endpoint, self.credential = (
+            QLineEdit(),
+            QLineEdit(),
+            QLineEdit(),
+            QLineEdit(),
+        )
         self.key = QLineEdit()
         self.key.setEchoMode(QLineEdit.Password)
         self.key.setPlaceholderText('Optional: securely store a new API key')
@@ -59,9 +67,16 @@ class ProviderDialog(QDialog):
         self.timeout.setRange(1, 3600)
         self.timeout.setValue(60)
         self.policy = QCheckBox('Allow remote calls without repeated authorization')
-        for label, control in [('Alias', self.alias), ('Provider', self.kind), ('Model (or local model path)', self.model),
-                               ('Endpoint (blank = provider default)', self.endpoint), ('Credential reference (env:NAME)', self.credential),
-                               ('API key', self.key), ('Local executable', self.executable), ('Timeout (seconds)', self.timeout)]:
+        for label, control in [
+            ('Alias', self.alias),
+            ('Provider', self.kind),
+            ('Model (or local model path)', self.model),
+            ('Endpoint (blank = provider default)', self.endpoint),
+            ('Credential reference (env:NAME)', self.credential),
+            ('API key', self.key),
+            ('Local executable', self.executable),
+            ('Timeout (seconds)', self.timeout),
+        ]:
             control.setAccessibleName(label)
             form.addRow(label, control)
         form.addRow(self.policy)
@@ -77,7 +92,13 @@ class ProviderDialog(QDialog):
         if alias == 'New provider…':
             return
         config = self.registry.get(alias)
-        for control, value in [(self.alias, config.alias), (self.model, config.model), (self.endpoint, config.endpoint), (self.credential, config.credential_ref), (self.executable, config.executable)]:
+        for control, value in [
+            (self.alias, config.alias),
+            (self.model, config.model),
+            (self.endpoint, config.endpoint),
+            (self.credential, config.credential_ref),
+            (self.executable, config.executable),
+        ]:
             control.setText(value or '')
         self.kind.setCurrentText(config.kind)
         self.timeout.setValue(config.timeout)
@@ -85,10 +106,18 @@ class ProviderDialog(QDialog):
 
     def save_config(self):
         try:
-            self.registry.save(ProviderConfig(alias=self.alias.text().strip(), kind=self.kind.currentText(),
-                model=self.model.text().strip(), endpoint=self.endpoint.text().strip() or None,
-                credential_ref=self.credential.text().strip() or None, executable=self.executable.text().strip() or None,
-                timeout=self.timeout.value(), allow_remote=self.policy.isChecked()))
+            self.registry.save(
+                ProviderConfig(
+                    alias=self.alias.text().strip(),
+                    kind=self.kind.currentText(),
+                    model=self.model.text().strip(),
+                    endpoint=self.endpoint.text().strip() or None,
+                    credential_ref=self.credential.text().strip() or None,
+                    executable=self.executable.text().strip() or None,
+                    timeout=self.timeout.value(),
+                    allow_remote=self.policy.isChecked(),
+                )
+            )
             if self.key.text():
                 self.registry.set_credential(self.alias.text().strip(), self.key.text())
                 self.key.clear()
@@ -102,15 +131,28 @@ class ProviderDialog(QDialog):
         if not self.save_config():
             return
         alias = self.alias.text().strip()
-        if QMessageBox.question(self, 'Test provider connection?', 'Contact this provider to check its connection and capabilities? No document content will be sent.') == QMessageBox.Yes:
-            self.window.background('Testing provider…', lambda: self.registry.test(alias, authorized=True), lambda result: self.window.report('Provider capability test', result))
+        if (
+            QMessageBox.question(
+                self,
+                'Test provider connection?',
+                'Contact this provider to check its connection and capabilities? No document content will be sent.',
+            )
+            == QMessageBox.Yes
+        ):
+            self.window.background(
+                'Testing provider…',
+                lambda: self.registry.test(alias, authorized=True),
+                lambda result: self.window.report('Provider capability test', result),
+            )
 
 
 def select_provider(window, kinds, label):
     registry = ProviderRegistry()
     aliases = [config['alias'] for config in registry.list() if config['kind'] in kinds]
     if not aliases:
-        window.message('Provider setup needed', 'Add a compatible provider in Tools → Provider settings first.')
+        window.message(
+            'Provider setup needed', 'Add a compatible provider in Tools → Provider settings first.'
+        )
         return None, None
     alias, ok = QInputDialog.getItem(window, label, 'Provider', aliases, 0, False)
     return (registry, alias) if ok else (None, None)
@@ -139,9 +181,14 @@ def authorize_payload(window, title, preview):
 def review_document(window):
     window.flush_edits()
     from .profiles import filter_findings, validate_profile
+
     frozen = copy.deepcopy(window.doc)
     profile_id = getattr(window, 'active_profile', None)
-    profile = validate_profile(frozen['profiles'][profile_id], strict=False) if profile_id in frozen.get('profiles', {}) else None
+    profile = (
+        validate_profile(frozen['profiles'][profile_id], strict=False)
+        if profile_id in frozen.get('profiles', {})
+        else None
+    )
     alias = profile['providers']['review'] if profile else None
     if alias:
         registry = ProviderRegistry()
@@ -151,7 +198,9 @@ def review_document(window):
             window.error(exc)
             return
     else:
-        registry, alias = select_provider(window, {'openai', 'anthropic', 'gemini', 'ollama'}, 'Review with model')
+        registry, alias = select_provider(
+            window, {'openai', 'anthropic', 'gemini', 'ollama'}, 'Review with model'
+        )
     if not alias:
         return
     selected = window.editor.textCursor().selectedText().replace('\u2029', '\n')
@@ -168,13 +217,28 @@ def review_document(window):
             if start not in boundaries or end not in boundaries:
                 window.error('Select complete characters before requesting a model edit.')
                 return
-            blocks.append({'id': target, 'text': original.get('text', '')[start:end],
-                           'source_offset': start, 'attrs': copy.deepcopy(original.get('attrs', {}))})
-    context = {'revision': frozen['revision'], 'scope': 'selection' if selected else 'document',
-               'profile': profile or {}, 'profile_version': profile.get('version') if profile else None,
-               'references': {identity: frozen['references'][identity] for identity in selected_sources if identity in frozen['references']},
-               'source_authority': profile['source_authority'] if profile else 'exclusive',
-               'blocks': blocks, 'protections': copy.deepcopy(frozen.get('settings', {}).get('protections', []))}
+            blocks.append(
+                {
+                    'id': target,
+                    'text': original.get('text', '')[start:end],
+                    'source_offset': start,
+                    'attrs': copy.deepcopy(original.get('attrs', {})),
+                }
+            )
+    context = {
+        'revision': frozen['revision'],
+        'scope': 'selection' if selected else 'document',
+        'profile': profile or {},
+        'profile_version': profile.get('version') if profile else None,
+        'references': {
+            identity: frozen['references'][identity]
+            for identity in selected_sources
+            if identity in frozen['references']
+        },
+        'source_authority': profile['source_authority'] if profile else 'exclusive',
+        'blocks': blocks,
+        'protections': copy.deepcopy(frozen.get('settings', {}).get('protections', [])),
+    }
     try:
         preview = registry.preview(alias, text=text, context=context)
     except Exception as exc:
@@ -182,6 +246,7 @@ def review_document(window):
         return
     if not authorize_payload(window, 'Authorize model review', preview):
         return
+
     def finished(result):
         if profile:
             result = filter_findings(result, profile)
@@ -194,29 +259,47 @@ def review_document(window):
                 # The adapter compiled strict range edits; model-supplied arbitrary
                 # operations never enter this path. Registration adds review records
                 # only; each actual edit requires explicit acceptance in the dock.
-                registered = window.commit([{'type': 'propose', 'values': proposal} for proposal in proposals])
+                registered = window.commit(
+                    [{'type': 'propose', 'values': proposal} for proposal in proposals]
+                )
                 result['proposals_registered'] = bool(registered)
             window._last_report = result
             window.update_sidebar()
         window.report('Model review · advisory findings and pending proposals', result)
-    window.background('Reviewing with ' + alias + '…', lambda: registry.review(alias, text, context=context, authorized=True), finished)
+
+    window.background(
+        'Reviewing with ' + alias + '…',
+        lambda: registry.review(alias, text, context=context, authorized=True),
+        finished,
+    )
 
 
 def import_audio(window, path=None):
     window.flush_edits()
     if path is None:
-        path, _ = QFileDialog.getOpenFileName(window, 'Import audio for transcription', '', 'Audio (*.wav *.mp3 *.m4a *.ogg *.flac *.webm);;All files (*)')
+        path, _ = QFileDialog.getOpenFileName(
+            window,
+            'Import audio for transcription',
+            '',
+            'Audio (*.wav *.mp3 *.m4a *.ogg *.flac *.webm);;All files (*)',
+        )
     if not path:
         return
-    registry, recognizer = select_provider(window, {'openai', 'elevenlabs', 'whisper.cpp'}, 'Speech recognition')
+    registry, recognizer = select_provider(
+        window, {'openai', 'elevenlabs', 'whisper.cpp'}, 'Speech recognition'
+    )
     if not recognizer:
         return
-    mode, ok = QInputDialog.getItem(window, 'Transcription mode', 'Processing', ['direct', 'cleanup', 'document_aware'], 0, False)
+    mode, ok = QInputDialog.getItem(
+        window, 'Transcription mode', 'Processing', ['direct', 'cleanup', 'document_aware'], 0, False
+    )
     if not ok:
         return
     editorial = None
     if mode != 'direct':
-        _, editorial = select_provider(window, {'openai', 'anthropic', 'gemini', 'ollama'}, 'Editorial processing')
+        _, editorial = select_provider(
+            window, {'openai', 'anthropic', 'gemini', 'ollama'}, 'Editorial processing'
+        )
         if not editorial:
             return
     targets = window.editor.selection_targets()
@@ -226,11 +309,23 @@ def import_audio(window, path=None):
     target, offset, _ = targets[0]
     try:
         session = DictationSession(window.doc, target, offset, mode)
-        context = {'revision': window.doc['revision'], 'text': model.text_of(window.doc), 'references': window.doc.get('references', {})} if mode == 'document_aware' else {}
+        context = (
+            {
+                'revision': window.doc['revision'],
+                'text': model.text_of(window.doc),
+                'references': window.doc.get('references', {}),
+            }
+            if mode == 'document_aware'
+            else {}
+        )
         preview = registry.preview(recognizer, kind='transcribe', audio_path=path)
         if editorial:
-            preview['editorial_processing'] = {'provider': editorial, 'destination': registry.get(editorial).endpoint,
-                'content': 'The recognized transcript will be sent for cleanup.', 'context': context}
+            preview['editorial_processing'] = {
+                'provider': editorial,
+                'destination': registry.get(editorial).endpoint,
+                'content': 'The recognized transcript will be sent for cleanup.',
+                'context': context,
+            }
         if not authorize_payload(window, 'Authorize transcription', preview):
             return
     except Exception as exc:
@@ -239,15 +334,25 @@ def import_audio(window, path=None):
     progress = QDialog(window)
     progress.setWindowTitle('Transcription job')
     layout = QVBoxLayout(progress)
-    layout.addWidget(QLabel('Transcribing audio. You can continue editing; changed insertion targets will require review.'))
+    layout.addWidget(
+        QLabel('Transcribing audio. You can continue editing; changed insertion targets will require review.')
+    )
     cancel = QPushButton('Cancel job')
     cancel.clicked.connect(lambda: cancel.setText('Cancellation requested; remote work may continue'))
     layout.addWidget(cancel)
     progress.show()
+
     def finished(result):
         progress.close()
         window.report('Compare recognized and processed transcript', result)
-        if QMessageBox.question(window, 'Insert transcript?', 'Insert the reviewed transcript at the original cursor position?') == QMessageBox.Yes:
+        if (
+            QMessageBox.question(
+                window,
+                'Insert transcript?',
+                'Insert the reviewed transcript at the original cursor position?',
+            )
+            == QMessageBox.Yes
+        ):
             try:
                 window.flush_edits()
                 envelope = session.proposal(window.doc)
@@ -259,9 +364,30 @@ def import_audio(window, path=None):
                 window.dirty = True
                 window.refresh()
             except Exception as exc:
-                window.error(str(exc) + '\nThe transcript remains available in the job result; it was not inserted.')
-    job = window.start_job('transcription', {'revision': session.revision, 'recognizer': recognizer, 'editor': editorial, 'audio_path': str(path), 'mode': mode},
-        lambda payload, cancel_event: session.process(registry, recognizer, path, editor=editorial, context=context, authorized=True, cancel_event=cancel_event), finished)
+                window.error(
+                    str(exc) + '\nThe transcript remains available in the job result; it was not inserted.'
+                )
+
+    job = window.start_job(
+        'transcription',
+        {
+            'revision': session.revision,
+            'recognizer': recognizer,
+            'editor': editorial,
+            'audio_path': str(path),
+            'mode': mode,
+        },
+        lambda payload, cancel_event: session.process(
+            registry,
+            recognizer,
+            path,
+            editor=editorial,
+            context=context,
+            authorized=True,
+            cancel_event=cancel_event,
+        ),
+        finished,
+    )
     cancel.clicked.connect(lambda: window.job_manager.cancel(job['id']))
 
 
@@ -274,7 +400,9 @@ class DictationDialog(QDialog):
         self.recorder = None
         self.audio_path = None
         layout = QVBoxLayout(self)
-        self.state = QLabel('Choose a microphone, then start recording. Audio is recorded locally until you explicitly authorize transcription.')
+        self.state = QLabel(
+            'Choose a microphone, then start recording. Audio is recorded locally until you explicitly authorize transcription.'
+        )
         self.state.setWordWrap(True)
         layout.addWidget(self.state)
         self.devices = QComboBox()
@@ -287,7 +415,12 @@ class DictationDialog(QDialog):
             self.state.setText('Microphone unavailable: ' + str(exc))
         layout.addWidget(self.devices)
         controls = QHBoxLayout()
-        for name, slot, key in [('Start', self.start, 'Alt+S'), ('Pause', self.pause, 'Alt+P'), ('Resume', self.resume, 'Alt+R'), ('Stop and transcribe', self.stop, 'Alt+T')]:
+        for name, slot, key in [
+            ('Start', self.start, 'Alt+S'),
+            ('Pause', self.pause, 'Alt+P'),
+            ('Resume', self.resume, 'Alt+R'),
+            ('Stop and transcribe', self.stop, 'Alt+T'),
+        ]:
             button = QPushButton(name)
             button.setShortcut(key)
             button.clicked.connect(slot)

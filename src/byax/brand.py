@@ -1,4 +1,5 @@
 """Shared identity tokens and native Qt presentation; document styles stay authored."""
+
 from __future__ import annotations
 
 import json
@@ -29,12 +30,18 @@ def configure_application(app: QApplication):
     app.setWindowIcon(app_icon())
     palette = QPalette()
     for role, color in (
-        (QPalette.Window, COLORS['paper']), (QPalette.WindowText, COLORS['ink']),
-        (QPalette.Base, COLORS['surface']), (QPalette.AlternateBase, COLORS['paper']),
-        (QPalette.Text, COLORS['ink']), (QPalette.Button, COLORS['surface']),
-        (QPalette.ButtonText, COLORS['ink']), (QPalette.Highlight, COLORS['greenText']),
-        (QPalette.HighlightedText, '#FFFFFF'), (QPalette.Link, COLORS['greenText']),
-        (QPalette.ToolTipBase, COLORS['surface']), (QPalette.ToolTipText, COLORS['ink']),
+        (QPalette.Window, COLORS['paper']),
+        (QPalette.WindowText, COLORS['ink']),
+        (QPalette.Base, COLORS['surface']),
+        (QPalette.AlternateBase, COLORS['paper']),
+        (QPalette.Text, COLORS['ink']),
+        (QPalette.Button, COLORS['surface']),
+        (QPalette.ButtonText, COLORS['ink']),
+        (QPalette.Highlight, COLORS['greenText']),
+        (QPalette.HighlightedText, '#FFFFFF'),
+        (QPalette.Link, COLORS['greenText']),
+        (QPalette.ToolTipBase, COLORS['surface']),
+        (QPalette.ToolTipText, COLORS['ink']),
     ):
         palette.setColor(role, QColor(color))
     for role in (QPalette.WindowText, QPalette.Text, QPalette.ButtonText):
@@ -46,7 +53,7 @@ def configure_application(app: QApplication):
 def stylesheet():
     c = COLORS
     control, panel = TOKENS['radius']['control'], TOKENS['radius']['panel']
-    return f'''
+    return f"""
         QMainWindow, QDialog {{ background: {c['paper']}; color: {c['ink']}; }}
         QMenuBar, QToolBar, QStatusBar {{ background: {c['surface']}; color: {c['ink']};
             border: 0; padding: 4px; }}
@@ -89,11 +96,12 @@ def stylesheet():
         QWidget#emptyPanel {{ background: {c['surface']}; }}
         QLabel#emptyHeading {{ font-weight: 600; font-size: 15px; color: {c['ink']}; }}
         QLabel#emptyDescription {{ color: {c['muted']}; font-size: 13px; }}
-    '''
+    """
 
 
 class BrandGraphic(QWidget):
     """Aspect-preserving, high-DPI drawing of approved exports, without SVG Tiny losses."""
+
     def __init__(self, filename, width, parent=None, clear_space=0):
         super().__init__(parent)
         self.pixmap = QPixmap(str(BRAND_ROOT / filename))

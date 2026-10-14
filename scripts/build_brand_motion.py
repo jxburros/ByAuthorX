@@ -3,6 +3,7 @@
 Run: uv run python scripts/build_brand_motion.py
 Install authoring tool: uv tool install https://github.com/jxburros/Vixl/archive/refs/tags/v0.26.0.tar.gz
 """
+
 import hashlib
 import json
 import shutil
@@ -45,11 +46,36 @@ def main():
         raise SystemExit('Vixl bounds/motion checks failed; inspect design/brand/motion/checks.json.')
     sheet = MOTION / 'contact-sheet.png'
     sheet.unlink(missing_ok=True)
-    run('-p', master, 'timeline-sheet', '--out', sheet, '--times', '0ms', '90ms', f'{duration}ms',
-        '--thumbnail', '360')
+    run(
+        '-p',
+        master,
+        'timeline-sheet',
+        '--out',
+        sheet,
+        '--times',
+        '0ms',
+        '90ms',
+        f'{duration}ms',
+        '--thumbnail',
+        '360',
+    )
     preview = ROOT / 'docs' / 'images' / 'pen-settle.gif'
-    run('-p', master, 'export-timeline', '--out', preview, '--fps', '60', '--scale', '0.53',
-        '--background', tokens['color']['paper'], '--dither', 'none', '--overwrite')
+    run(
+        '-p',
+        master,
+        'export-timeline',
+        '--out',
+        preview,
+        '--fps',
+        '60',
+        '--scale',
+        '0.53',
+        '--background',
+        tokens['color']['paper'],
+        '--dither',
+        'none',
+        '--overwrite',
+    )
     # Include the exact resting endpoint as well as the 60 Hz samples.
     times = sorted({*range(0, duration, 17), duration})
     with tempfile.TemporaryDirectory(prefix='byax-vixl-frames-') as directory:
@@ -66,10 +92,15 @@ def main():
         sprite.save(RUNTIME / 'pen-settle.png')
         frames[-1].save(RUNTIME / 'pen-settle-rest.png')
     manifest = {
-        'generator': f'Vixl {version}', 'source': 'design/brand/motion/pen-settle.vixl',
+        'generator': f'Vixl {version}',
+        'source': 'design/brand/motion/pen-settle.vixl',
         'source_sha256': hashlib.sha256(master.read_bytes()).hexdigest(),
-        'durationMs': duration, 'frameWidth': width, 'frameHeight': height,
-        'frameTimesMs': times, 'loop': False, 'reducedMotion': 'pen-settle-rest.png',
+        'durationMs': duration,
+        'frameWidth': width,
+        'frameHeight': height,
+        'frameTimesMs': times,
+        'loop': False,
+        'reducedMotion': 'pen-settle-rest.png',
     }
     (RUNTIME / 'pen-settle.json').write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     print(f'Vixl master, checked preview, and {len(times)} native frames written.')

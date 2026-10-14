@@ -13,8 +13,10 @@ from byax.table_io import export_csv, import_csv, template_rows
 
 
 def document_with_table():
-    doc, _ = apply(new_document('CSV fixture', 'Unrelated paragraph'), {'operations': [
-        {'type': 'insert_table', 'rows': 2, 'columns': 2}]})
+    doc, _ = apply(
+        new_document('CSV fixture', 'Unrelated paragraph'),
+        {'operations': [{'type': 'insert_table', 'rows': 2, 'columns': 2}]},
+    )
     table = next(block for block in doc['blocks'] if block['type'] == 'table')
     table['attrs'].update({'width': 400, 'header_rows': 1})
     table['rows'][0]['attrs'] = {'height': 24}
@@ -28,18 +30,26 @@ def test_csv_updates_values_preserving_ids_attributes_and_unrelated_content(tmp_
     doc, table = document_with_table()
     original = copy.deepcopy(doc)
     path = tmp_path / 'values.csv'
-    path.write_bytes('Name,Amount\n"Café, Inc.","Line one\nLine two"\n'.replace('\n', line_ending).encode('utf-8'))
-    updated, report = import_csv(doc, table['id'], path, expected_revision=doc['revision'], request_id='table-import-1')
+    path.write_bytes(
+        'Name,Amount\n"Café, Inc.","Line one\nLine two"\n'.replace('\n', line_ending).encode('utf-8')
+    )
+    updated, report = import_csv(
+        doc, table['id'], path, expected_revision=doc['revision'], request_id='table-import-1'
+    )
     target = next(block for block in updated['blocks'] if block['id'] == table['id'])
     assert target['attrs'] == table['attrs']
-    assert [[cell['id'] for cell in row['cells']] for row in target['rows']] == [[cell['id'] for cell in row['cells']] for row in table['rows']]
+    assert [[cell['id'] for cell in row['cells']] for row in target['rows']] == [
+        [cell['id'] for cell in row['cells']] for row in table['rows']
+    ]
     assert target['rows'][0]['attrs'] == table['rows'][0]['attrs']
     assert target['rows'][0]['cells'][0]['attrs'] == table['rows'][0]['cells'][0]['attrs']
     assert target['rows'][1]['cells'][0]['text'] == 'Café, Inc.'
     assert target['rows'][1]['cells'][1]['text'] == 'Line one\nLine two'
     assert updated['blocks'][0] == doc['blocks'][0]
     assert doc == original
-    replay, replay_report = import_csv(updated, table['id'], path, expected_revision=doc['revision'], request_id='table-import-1')
+    replay, replay_report = import_csv(
+        updated, table['id'], path, expected_revision=doc['revision'], request_id='table-import-1'
+    )
     assert replay['revision'] == updated['revision']
     assert replay_report['execution'] == 'already_committed'
     assert report['csv']['existing_identities_preserved']
@@ -53,7 +63,11 @@ def test_csv_growth_is_explicit_and_one_atomic_revision(tmp_path):
         import_csv(doc, table['id'], source)
     grown, result = import_csv(doc, table['id'], source, grow=True, request_id='grow-request')
     target = next(block for block in grown['blocks'] if block['id'] == table['id'])
-    assert [[cell['text'] for cell in row['cells']] for row in target['rows']] == [list('abc'), list('def'), list('ghi')]
+    assert [[cell['text'] for cell in row['cells']] for row in target['rows']] == [
+        list('abc'),
+        list('def'),
+        list('ghi'),
+    ]
     assert target['rows'][0]['cells'][0]['id'] == table['rows'][0]['cells'][0]['id']
     assert target['rows'][0]['cells'][0]['attrs'] == table['rows'][0]['cells'][0]['attrs']
     assert len(grown['history']['revisions']) == len(doc['history']['revisions']) + 1
@@ -90,7 +104,9 @@ def test_table_cli_json_dry_run_and_export(tmp_path, capsys):
     capsys.readouterr()
     execute('table', {'path': str(native), 'table': table['id'], 'csv': str(source)})
     output = str(tmp_path / 'output.csv')
-    exported = execute('table', {'path': str(native), 'table': table['id'], 'action': 'export', 'out': output})
+    exported = execute(
+        'table', {'path': str(native), 'table': table['id'], 'action': 'export', 'out': output}
+    )
     assert exported['outputs'] == [output]
     assert Path(output).read_text() == source.read_text()
 
@@ -111,7 +127,10 @@ def test_template_rows_render_values_and_preserve_template(tmp_path):
     assert template == original
     native = tmp_path / 'template.byax'
     save_document(template, native)
-    result = execute('template-batch', {'path': str(native), 'csv': str(source), 'out': str(tmp_path / 'letters'), 'format': 'txt'})
+    result = execute(
+        'template-batch',
+        {'path': str(native), 'csv': str(source), 'out': str(tmp_path / 'letters'), 'format': 'txt'},
+    )
     assert result['failed'] == 0
     assert (tmp_path / 'letters' / 'document-0001.txt').read_text() == rows[0][0]['blocks'][0]['text']
     assert load_document(native) == template
@@ -136,7 +155,17 @@ def test_affected_pages_return_explicit_incomplete_or_resolved_range(tmp_path):
         execute('render', {'path': path, 'pages': 'affected', 'out': str(tmp_path / 'before')})
     assert exc.value.code == 'incomplete_coverage'
     doc = load_document(path)
-    execute('apply', {'path': path, 'input': {'operations': [{'type': 'insert_text', 'target': doc['blocks'][0]['id'], 'offset': 11, 'text': '.'}]}})
+    execute(
+        'apply',
+        {
+            'path': path,
+            'input': {
+                'operations': [
+                    {'type': 'insert_text', 'target': doc['blocks'][0]['id'], 'offset': 11, 'text': '.'}
+                ]
+            },
+        },
+    )
     rendered = execute('render', {'path': path, 'pages': 'affected', 'out': str(tmp_path / 'after')})
     assert rendered['selection']['base_revision'] == doc['revision']
     assert rendered['selection']['pages'] == [1]
@@ -154,7 +183,10 @@ def test_template_csv_coerces_declared_types_and_locates_invalid_rows(tmp_path):
         'tier': {'type': 'enum', 'options': ['basic', 'pro'], 'required': True},
     }
     source = tmp_path / 'typed.csv'
-    source.write_text('count,price,enabled,date,tier\n42,3.50,false,2026-10-13,pro\ninvalid,3.50,true,2026-10-13,basic\n', encoding='utf-8')
+    source.write_text(
+        'count,price,enabled,date,tier\n42,3.50,false,2026-10-13,pro\ninvalid,3.50,true,2026-10-13,basic\n',
+        encoding='utf-8',
+    )
     rows = list(template_rows(template, source))
     assert rows[0][0]['fields']['count']['value'] == 42
     assert rows[0][0]['fields']['price']['value'] == 3.5
@@ -168,6 +200,7 @@ def test_template_csv_coerces_declared_types_and_locates_invalid_rows(tmp_path):
 
 def test_csv_tolerates_only_trailing_blank_lines(tmp_path):
     from byax.table_io import read_csv
+
     path = tmp_path / 'trailing.csv'
     path.write_bytes(b'a,b\r\n1,2\r\n\r\n')
     assert read_csv(path) == [['a', 'b'], ['1', '2']]

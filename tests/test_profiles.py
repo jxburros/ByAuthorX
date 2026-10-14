@@ -36,12 +36,19 @@ def test_presets_have_independent_controls_and_distinct_coverage():
     assert any(item['rule'] == 'word.repeated' for item in second['findings'])
 
 
-@pytest.mark.parametrize('changes', [
-    {'sensitivity': 2}, {'version': True}, {'rule_families': ['made_up']},
-    {'providers': {'review': 'https://provider.example'}}, {'api_key': 'secret'},
-    {'endpoint': 'https://provider.example'}, {'application_policy': 'blindly_apply'},
-    {'intentional_exceptions': [{'rule': '*'}]},
-])
+@pytest.mark.parametrize(
+    'changes',
+    [
+        {'sensitivity': 2},
+        {'version': True},
+        {'rule_families': ['made_up']},
+        {'providers': {'review': 'https://provider.example'}},
+        {'api_key': 'secret'},
+        {'endpoint': 'https://provider.example'},
+        {'application_policy': 'blindly_apply'},
+        {'intentional_exceptions': [{'rule': '*'}]},
+    ],
+)
 def test_invalid_profiles_and_secret_configuration_rejected(changes):
     profile = presets()['conservative_proofreading']
     profile.update(changes)
@@ -65,10 +72,26 @@ def test_profile_collection_roundtrip_and_no_credentials(tmp_path):
 def test_intentional_exception_remains_visible_and_cannot_hide_errors():
     profile = presets()['editorial_review']
     profile['intentional_exceptions'] = [{'rule': '*', 'target': 'p1', 'reason': 'Intentional dialect'}]
-    report = {'validation': 'failed', 'findings': [
-        {'rule': 'word.repeated', 'family': 'editorial', 'affected_ids': ['p1'], 'severity': 'advisory', 'status': 'open'},
-        {'rule': 'required.text', 'family': 'requirements', 'affected_ids': ['p1'], 'severity': 'error', 'status': 'open'},
-    ], 'summary': {'errors': 1, 'total': 2}}
+    report = {
+        'validation': 'failed',
+        'findings': [
+            {
+                'rule': 'word.repeated',
+                'family': 'editorial',
+                'affected_ids': ['p1'],
+                'severity': 'advisory',
+                'status': 'open',
+            },
+            {
+                'rule': 'required.text',
+                'family': 'requirements',
+                'affected_ids': ['p1'],
+                'severity': 'error',
+                'status': 'open',
+            },
+        ],
+        'summary': {'errors': 1, 'total': 2},
+    }
     result = filter_findings(report, profile)
     assert len(result['findings']) == 2
     assert result['findings'][0]['status'] == 'intentional exception'
@@ -79,8 +102,20 @@ def test_intentional_exception_remains_visible_and_cannot_hide_errors():
 
 def test_profile_commit_uses_engine_and_changes_revision():
     doc = new_document()
-    updated, _ = engine.apply(doc, {'expected_revision': doc['revision'], 'request_id': 'set-profile',
-        'operations': [{'type': 'set_profile', 'id': 'proofreading', 'values': presets()['conservative_proofreading']}]})
+    updated, _ = engine.apply(
+        doc,
+        {
+            'expected_revision': doc['revision'],
+            'request_id': 'set-profile',
+            'operations': [
+                {
+                    'type': 'set_profile',
+                    'id': 'proofreading',
+                    'values': presets()['conservative_proofreading'],
+                }
+            ],
+        },
+    )
     assert updated['revision'] != doc['revision']
     assert 'proofreading' in updated['profiles']
     assert 'proofreading' not in doc['profiles']
@@ -97,13 +132,22 @@ def test_native_profile_dialog_saves_canonical_profile(qtbot):
             self.doc = new_document()
             self.status_label = QLabel()
             self.operations = []
+
         def commit(self, operations):
             self.operations.extend(operations)
-            self.doc, _ = engine.apply(self.doc, {'expected_revision': self.doc['revision'],
-                'request_id': 'gui-profile', 'operations': operations})
+            self.doc, _ = engine.apply(
+                self.doc,
+                {
+                    'expected_revision': self.doc['revision'],
+                    'request_id': 'gui-profile',
+                    'operations': operations,
+                },
+            )
             return True
+
         def error(self, error):
             raise AssertionError(str(error))
+
     window = Window()
     qtbot.addWidget(window)
     dialog = ProfileDialog(window)

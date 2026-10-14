@@ -3,6 +3,7 @@
 JSON input uses UTF-8; ``--input -`` reads stdin. Mutation files are locked for
 read/validate/write and never join an editor's outstanding session transaction.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -47,44 +48,181 @@ COMMANDS = {
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
-    'version': {}, 'capabilities': {'topic': 'string'},
+    'version': {},
+    'capabilities': {'topic': 'string'},
     'schema': {'topic': 'string'},
     'new': {'out': 'string', 'title': 'string', 'text': 'string', 'overwrite': 'boolean'},
-    'inspect': {'path': 'string', 'section': 'string', 'target': 'string', 'limit': 'integer', 'outline': 'boolean'},
-    'find': {'path': 'string', 'query': 'string', 'case_sensitive': 'boolean', 'whole_word': 'boolean', 'regex': 'boolean'},
+    'inspect': {
+        'path': 'string',
+        'section': 'string',
+        'target': 'string',
+        'limit': 'integer',
+        'outline': 'boolean',
+    },
+    'find': {
+        'path': 'string',
+        'query': 'string',
+        'case_sensitive': 'boolean',
+        'whole_word': 'boolean',
+        'regex': 'boolean',
+    },
     'context': {'path': 'string', 'target': 'string', 'limit': 'integer', 'profile': 'string'},
-    'apply': {'path': 'string', 'input': 'object', 'expect_revision': 'string', 'request_id': 'string', 'dry_run': 'boolean', 'require_suite': 'array'},
-    'fill': {'path': 'string', 'input': 'object', 'expect_revision': 'string', 'request_id': 'string', 'dry_run': 'boolean', 'require_suite': 'array'},
-    'history': {'path': 'string', 'action': 'string', 'name': 'string', 'revision': 'string', 'expect_revision': 'string', 'limit': 'integer'},
+    'apply': {
+        'path': 'string',
+        'input': 'object',
+        'expect_revision': 'string',
+        'request_id': 'string',
+        'dry_run': 'boolean',
+        'require_suite': 'array',
+    },
+    'fill': {
+        'path': 'string',
+        'input': 'object',
+        'expect_revision': 'string',
+        'request_id': 'string',
+        'dry_run': 'boolean',
+        'require_suite': 'array',
+    },
+    'history': {
+        'path': 'string',
+        'action': 'string',
+        'name': 'string',
+        'revision': 'string',
+        'expect_revision': 'string',
+        'limit': 'integer',
+    },
     'diff': {'path': 'string', 'from_revision': 'string'},
-    'check': {'path': 'string', 'suite': 'array', 'profile': 'string', 'limit': 'integer', 'strict': 'boolean'},
-    'review': {'path': 'string', 'action': 'string', 'target': 'string', 'input': 'object', 'expect_revision': 'string', 'request_id': 'string', 'dry_run': 'boolean'},
+    'check': {
+        'path': 'string',
+        'suite': 'array',
+        'profile': 'string',
+        'limit': 'integer',
+        'strict': 'boolean',
+    },
+    'review': {
+        'path': 'string',
+        'action': 'string',
+        'target': 'string',
+        'input': 'object',
+        'expect_revision': 'string',
+        'request_id': 'string',
+        'dry_run': 'boolean',
+    },
     'import': {'path': 'string', 'out': 'string', 'overwrite': 'boolean'},
     'save-as': {'path': 'string', 'out': 'string', 'overwrite': 'boolean'},
-    'convert': {'path': 'string', 'out': 'string', 'format': 'string', 'profile': 'string', 'overwrite': 'boolean', 'require_suite': 'array', 'strict': 'boolean'},
-    'export': {'path': 'string', 'out': 'string', 'format': 'string', 'profile': 'string', 'overwrite': 'boolean', 'require_suite': 'array', 'strict': 'boolean'},
+    'convert': {
+        'path': 'string',
+        'out': 'string',
+        'format': 'string',
+        'profile': 'string',
+        'overwrite': 'boolean',
+        'require_suite': 'array',
+        'strict': 'boolean',
+    },
+    'export': {
+        'path': 'string',
+        'out': 'string',
+        'format': 'string',
+        'profile': 'string',
+        'overwrite': 'boolean',
+        'require_suite': 'array',
+        'strict': 'boolean',
+    },
     'render': {'path': 'string', 'out': 'string', 'pages': 'array', 'overwrite': 'boolean'},
     'pack': {'path': 'string', 'out': 'string', 'overwrite': 'boolean'},
     'unpack': {'path': 'string', 'out': 'string', 'include_history': 'boolean', 'overwrite': 'boolean'},
-    'providers': {'action': 'string', 'alias': 'string', 'input': 'object', 'text': 'string', 'config_dir': 'string', 'allow_remote': 'boolean'},
-    'transcribe': {'path': 'string', 'alias': 'string', 'language': 'string', 'mode': 'string', 'document': 'string', 'target': 'string', 'cleanup_alias': 'string', 'insert': 'boolean', 'expect_revision': 'string', 'config_dir': 'string', 'allow_remote': 'boolean', 'offset': 'integer', 'job_root': 'string'},
+    'providers': {
+        'action': 'string',
+        'alias': 'string',
+        'input': 'object',
+        'text': 'string',
+        'config_dir': 'string',
+        'allow_remote': 'boolean',
+    },
+    'transcribe': {
+        'path': 'string',
+        'alias': 'string',
+        'language': 'string',
+        'mode': 'string',
+        'document': 'string',
+        'target': 'string',
+        'cleanup_alias': 'string',
+        'insert': 'boolean',
+        'expect_revision': 'string',
+        'config_dir': 'string',
+        'allow_remote': 'boolean',
+        'offset': 'integer',
+        'job_root': 'string',
+    },
     'jobs': {'action': 'string', 'id': 'string', 'root': 'string', 'input': 'object'},
     'batch': {'input': 'object', 'workers': 'integer', 'overwrite': 'boolean'},
     'redact': {'path': 'string', 'out': 'string', 'input': 'object', 'overwrite': 'boolean'},
-    'proof': {'path': 'string', 'out': 'string', 'pages': 'array', 'input': 'object', 'columns': 'integer', 'thumbnail_width': 'integer', 'no_contact': 'boolean'},
-    'table': {'path': 'string', 'action': 'string', 'table': 'string', 'csv': 'string', 'out': 'string', 'grow': 'boolean', 'encoding': 'string', 'dialect': 'string', 'delimiter': 'string', 'newline': 'string', 'overwrite': 'boolean', 'expect_revision': 'string', 'request_id': 'string', 'dry_run': 'boolean'},
-    'template-batch': {'path': 'string', 'csv': 'string', 'out': 'string', 'encoding': 'string', 'dialect': 'string', 'delimiter': 'string', 'format': 'string', 'profile': 'string', 'overwrite': 'boolean'},
-    'reproduction': {'path': 'string', 'action': 'string', 'input': 'object', 'out': 'string', 'overwrite': 'boolean'},
+    'proof': {
+        'path': 'string',
+        'out': 'string',
+        'pages': 'array',
+        'input': 'object',
+        'columns': 'integer',
+        'thumbnail_width': 'integer',
+        'no_contact': 'boolean',
+    },
+    'table': {
+        'path': 'string',
+        'action': 'string',
+        'table': 'string',
+        'csv': 'string',
+        'out': 'string',
+        'grow': 'boolean',
+        'encoding': 'string',
+        'dialect': 'string',
+        'delimiter': 'string',
+        'newline': 'string',
+        'overwrite': 'boolean',
+        'expect_revision': 'string',
+        'request_id': 'string',
+        'dry_run': 'boolean',
+    },
+    'template-batch': {
+        'path': 'string',
+        'csv': 'string',
+        'out': 'string',
+        'encoding': 'string',
+        'dialect': 'string',
+        'delimiter': 'string',
+        'format': 'string',
+        'profile': 'string',
+        'overwrite': 'boolean',
+    },
+    'reproduction': {
+        'path': 'string',
+        'action': 'string',
+        'input': 'object',
+        'out': 'string',
+        'overwrite': 'boolean',
+    },
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
 REQUIRED = {
-    'proof': ['path', 'out'], 'table': ['path', 'table'], 'template-batch': ['path', 'csv', 'out'],
-    'new': ['out'], 'find': ['path', 'query'], 'apply': ['path', 'input'],
-    'transact': ['path', 'input'], 'fill': ['path', 'input'], 'diff': ['path', 'from_revision'],
-    'import': ['path', 'out'], 'save-as': ['path', 'out'], 'convert': ['path', 'out'],
-    'export': ['path', 'out'], 'render': ['path', 'out'], 'pack': ['path', 'out'],
-    'unpack': ['path', 'out'], 'transcribe': ['path', 'alias'], 'batch': ['input'],
-    'redact': ['path', 'out', 'input'], 'reproduction': ['path'],
+    'proof': ['path', 'out'],
+    'table': ['path', 'table'],
+    'template-batch': ['path', 'csv', 'out'],
+    'new': ['out'],
+    'find': ['path', 'query'],
+    'apply': ['path', 'input'],
+    'transact': ['path', 'input'],
+    'fill': ['path', 'input'],
+    'diff': ['path', 'from_revision'],
+    'import': ['path', 'out'],
+    'save-as': ['path', 'out'],
+    'convert': ['path', 'out'],
+    'export': ['path', 'out'],
+    'render': ['path', 'out'],
+    'pack': ['path', 'out'],
+    'unpack': ['path', 'out'],
+    'transcribe': ['path', 'alias'],
+    'batch': ['input'],
+    'redact': ['path', 'out', 'input'],
+    'reproduction': ['path'],
 }
 for _name in ('inspect', 'context', 'history', 'check', 'review'):
     REQUIRED[_name] = ['path']
@@ -96,12 +234,23 @@ def command_schema(command: str) -> dict:
         if prop['type'] == 'array':
             prop['items'] = {'type': 'string'}
     if 'pages' in props:
-        props['pages'] = {'oneOf': [{'type': 'array', 'items': {'type': 'integer', 'minimum': 1}}, {'type': 'string', 'enum': ['affected']}]}
-    return {'type': 'object', 'properties': props, 'required': REQUIRED.get(command, []), 'additionalProperties': False}
+        props['pages'] = {
+            'oneOf': [
+                {'type': 'array', 'items': {'type': 'integer', 'minimum': 1}},
+                {'type': 'string', 'enum': ['affected']},
+            ]
+        }
+    return {
+        'type': 'object',
+        'properties': props,
+        'required': REQUIRED.get(command, []),
+        'additionalProperties': False,
+    }
 
 
 def _error(code: str, message: str, **details):
     from .errors import ByaxError
+
     raise ByaxError(code, message, **details)
 
 
@@ -131,11 +280,19 @@ def _validate(command: str, args: dict):
 
 
 def envelope(data: Any = None, doc: dict | None = None, **overrides) -> dict:
-    result = {'schema_version': 1, 'execution': 'completed', 'validation': 'not_run',
-              'review': 'not_required', 'document_id': doc.get('id') if doc else None,
-              'base_revision': doc.get('revision') if doc else None,
-              'revision': doc.get('revision') if doc else None,
-              'changed_ids': [], 'findings': [], 'coverage': {}, 'outputs': []}
+    result = {
+        'schema_version': 1,
+        'execution': 'completed',
+        'validation': 'not_run',
+        'review': 'not_required',
+        'document_id': doc.get('id') if doc else None,
+        'base_revision': doc.get('revision') if doc else None,
+        'revision': doc.get('revision') if doc else None,
+        'changed_ids': [],
+        'findings': [],
+        'coverage': {},
+        'outputs': [],
+    }
     if isinstance(data, dict):
         result.update(data)
     elif data is not None:
@@ -147,7 +304,9 @@ def envelope(data: Any = None, doc: dict | None = None, **overrides) -> dict:
 def _destination(path: str, overwrite: bool = False, source: str | None = None):
     target = Path(path)
     if source and target.resolve() == Path(source).resolve():
-        _error('invalid_input', 'Output must differ from the source; use apply for in-place edits', field='out')
+        _error(
+            'invalid_input', 'Output must differ from the source; use apply for in-place edits', field='out'
+        )
     if target.exists() and not overwrite:
         _error('conflict', 'Output already exists; explicitly select overwrite', target=str(target))
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -155,21 +314,33 @@ def _destination(path: str, overwrite: bool = False, source: str | None = None):
 
 def _load(path):
     from .storage import load_document
+
     return load_document(path)
 
 
 def _gate(doc, suites, strict=False):
     from .checks import run_checks
+
     report = run_checks(doc, suites=suites)
     if report.get('validation') == 'failed':
-        _error('failed_requirement', 'Required validation failed', findings=report.get('findings'), coverage=report.get('coverage'))
+        _error(
+            'failed_requirement',
+            'Required validation failed',
+            findings=report.get('findings'),
+            coverage=report.get('coverage'),
+        )
     if (strict or suites) and report.get('validation') != 'passed':
-        _error('incomplete_coverage', 'Strict policy requires complete validation coverage', coverage=report.get('coverage'))
+        _error(
+            'incomplete_coverage',
+            'Strict policy requires complete validation coverage',
+            coverage=report.get('coverage'),
+        )
     return report
 
 
 def _mutate(path, operation):
     from .storage import DocumentLock, save_document
+
     lock = DocumentLock(path)
     with lock:
         doc = _load(path)
@@ -185,6 +356,7 @@ def execute(command: str, arguments: dict | None = None) -> dict:
     _validate(command, arguments)
     if arguments.get('out'):
         from .storage import DocumentLock
+
         with DocumentLock(arguments['out']) as lock:
             return _execute(command, arguments, output_owner=lock.owner)
     return _execute(command, arguments)
@@ -198,16 +370,36 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
     if command == 'transact':
         command = 'apply'
     from . import engine, model, storage
+
     if command == 'version':
         from . import __version__
-        return envelope({'engine_version': __version__, 'operation_schema_version': 1, 'offset_unit': 'unicode_scalar', 'range_end': 'exclusive'})
+
+        return envelope(
+            {
+                'engine_version': __version__,
+                'operation_schema_version': 1,
+                'offset_unit': 'unicode_scalar',
+                'range_end': 'exclusive',
+            }
+        )
     if command == 'capabilities':
         from .providers import list_capabilities
-        return envelope({'commands': COMMANDS, 'providers': list_capabilities(),
-                         'formats': ['byax', 'txt', 'md', 'html', 'docx', 'odt', 'rtf', 'doc', 'pdf'],
-                         'topic': a.get('topic'), 'transactions': 'atomic envelope under exclusive file lock',
-                         'network': 'only explicitly selected provider calls', 'offset_unit': 'unicode_scalar',
-                         'limitations': ['Format fidelity and provider availability are reported per operation.', 'Native OS print dialogs require the desktop application.']})
+
+        return envelope(
+            {
+                'commands': COMMANDS,
+                'providers': list_capabilities(),
+                'formats': ['byax', 'txt', 'md', 'html', 'docx', 'odt', 'rtf', 'doc', 'pdf'],
+                'topic': a.get('topic'),
+                'transactions': 'atomic envelope under exclusive file lock',
+                'network': 'only explicitly selected provider calls',
+                'offset_unit': 'unicode_scalar',
+                'limitations': [
+                    'Format fidelity and provider availability are reported per operation.',
+                    'Native OS print dialogs require the desktop application.',
+                ],
+            }
+        )
     if command == 'schema':
         topic = a.get('topic', 'commands')
         if topic in ('operations', 'operation', 'editing'):
@@ -223,16 +415,32 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
     if command in ('inspect', 'context', 'find', 'diff', 'check'):
         doc = _load(a['path'])
         if command == 'inspect':
-            result = engine.inspect(doc, section='outline' if a.get('outline') else a.get('section'), target=a.get('target'), limit=a.get('limit', 100))
+            result = engine.inspect(
+                doc,
+                section='outline' if a.get('outline') else a.get('section'),
+                target=a.get('target'),
+                limit=a.get('limit', 100),
+            )
         elif command == 'context':
-            result = engine.context(doc, target=a.get('target'), limit=a.get('limit', 10000), profile=a.get('profile'))
+            result = engine.context(
+                doc, target=a.get('target'), limit=a.get('limit', 10000), profile=a.get('profile')
+            )
         elif command == 'find':
-            result = engine.find(doc, a['query'], case_sensitive=a.get('case_sensitive', False), whole_word=a.get('whole_word', False), regex=a.get('regex', False))
+            result = engine.find(
+                doc,
+                a['query'],
+                case_sensitive=a.get('case_sensitive', False),
+                whole_word=a.get('whole_word', False),
+                regex=a.get('regex', False),
+            )
         elif command == 'diff':
             result = engine.diff(doc, a['from_revision'])
         else:
             from .checks import run_checks
-            result = run_checks(doc, suites=a.get('suite'), limit=a.get('limit', 100), profile=a.get('profile'))
+
+            result = run_checks(
+                doc, suites=a.get('suite'), limit=a.get('limit', 100), profile=a.get('profile')
+            )
             if a.get('strict'):
                 result = dict(result, strict=True)
         return envelope(result, doc)
@@ -240,12 +448,18 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         request = dict(a['input'])
         if command == 'fill':
             request = {'operations': [{'type': 'fill_fields', 'values': request}]}
-        for option, key in (('expect_revision', 'expected_revision'), ('request_id', 'request_id'), ('require_suite', 'required_suites')):
+        for option, key in (
+            ('expect_revision', 'expected_revision'),
+            ('request_id', 'request_id'),
+            ('require_suite', 'required_suites'),
+        ):
             if a.get(option) is not None:
                 request[key] = a[option]
+
         def apply(doc):
             candidate, result = engine.apply(doc, request, dry_run=a.get('dry_run', False))
             return candidate, result, not a.get('dry_run', False)
+
         return _mutate(a['path'], apply)
     if command == 'history':
         action = a.get('action', 'list')
@@ -255,9 +469,15 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
             result['branches'] = doc['history'].get('branches', {})
             result['current_branch'] = doc['history'].get('current_branch', 'main')
             return envelope(result, doc)
+
         def history(doc):
             if a.get('expect_revision') and doc['revision'] != a['expect_revision']:
-                _error('stale_revision', 'Document revision changed', expected=a['expect_revision'], actual=doc['revision'])
+                _error(
+                    'stale_revision',
+                    'Document revision changed',
+                    expected=a['expect_revision'],
+                    actual=doc['revision'],
+                )
             if action in ('checkpoint', 'branch'):
                 if not a.get('name'):
                     _error('invalid_input', 'History action requires --name')
@@ -269,15 +489,22 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
             else:
                 _error('invalid_input', f'Unknown history action: {action}')
             return updated, result, True
+
         return _mutate(a['path'], history)
     if command == 'review':
         action = a.get('action', 'list')
         if action == 'list':
             doc = _load(a['path'])
             return envelope({'items': doc.get('review', {})}, doc)
-        ops = {'propose': 'propose', 'accept': 'accept_proposal', 'reject': 'reject_proposal',
-               'comment': 'add_comment', 'resolve': 'resolve_comment',
-               'accept-change': 'accept_change', 'reject-change': 'reject_change'}
+        ops = {
+            'propose': 'propose',
+            'accept': 'accept_proposal',
+            'reject': 'reject_proposal',
+            'comment': 'add_comment',
+            'resolve': 'resolve_comment',
+            'accept-change': 'accept_change',
+            'reject-change': 'reject_change',
+        }
         if action not in ops:
             _error('invalid_input', f'Unknown review action: {action}')
         op = dict(a.get('input') or {})
@@ -286,23 +513,38 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         op['type'] = ops[action]
         if a.get('target'):
             op['target'] = a['target']
-        return execute('apply', {'path': a['path'], 'input': {'operations': [op]}, **{k: a[k] for k in ('expect_revision', 'request_id', 'dry_run') if k in a}})
+        return execute(
+            'apply',
+            {
+                'path': a['path'],
+                'input': {'operations': [op]},
+                **{k: a[k] for k in ('expect_revision', 'request_id', 'dry_run') if k in a},
+            },
+        )
     if command in ('import', 'convert', 'export', 'save-as'):
         from .exchange import export_document, import_document
+
         _destination(a['out'], a.get('overwrite', False), a['path'])
         if command in ('import', 'convert'):
             doc, imported = import_document(a['path'])
         else:
             doc, imported = _load(a['path']), None
-        gate = _gate(doc, a.get('require_suite'), a.get('strict', False)) if a.get('require_suite') or a.get('strict') else None
+        gate = (
+            _gate(doc, a.get('require_suite'), a.get('strict', False))
+            if a.get('require_suite') or a.get('strict')
+            else None
+        )
         if command in ('import', 'save-as'):
             storage.save_document(doc, a['out'], owner=output_owner)
             result = {'outputs': [a['out']]}
         elif a.get('profile') == 'clean':
             from .publication import export_clean
+
             result = export_clean(doc, a['out'], format=a.get('format'), profile=None, owner=output_owner)
         else:
-            result = export_document(doc, a['out'], format=a.get('format'), profile=a.get('profile'), owner=output_owner)
+            result = export_document(
+                doc, a['out'], format=a.get('format'), profile=a.get('profile'), owner=output_owner
+            )
         if imported:
             result['import_report'] = imported
         if gate:
@@ -311,6 +553,7 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         return envelope(result, doc)
     if command == 'render':
         from .layout import render
+
         _destination(a['out'], a.get('overwrite', False))
         doc = _load(a['path'])
         pages, selection = _affected_pages(doc) if a.get('pages') == 'affected' else (a.get('pages'), None)
@@ -322,6 +565,7 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         _destination(a['out'], a.get('overwrite', False), a['path'])
         if command == 'pack':
             import tempfile
+
             with tempfile.TemporaryDirectory(dir=Path(a['out']).parent) as temporary:
                 stage = Path(temporary) / 'packed.byax'
                 storage.pack(a['path'], stage)
@@ -331,6 +575,7 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         return envelope(outputs=[a['out']])
     if command == 'providers':
         from .providers import ProviderConfig, ProviderRegistry
+
         registry = ProviderRegistry(config_dir=a.get('config_dir'))
         action = a.get('action', 'list')
         if action == 'list':
@@ -354,12 +599,17 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
         if action == 'review':
             if not a.get('text'):
                 _error('invalid_input', 'Review requires --text')
-            return envelope(registry.review(a['alias'], a['text'], context=a.get('input'), authorized=a.get('allow_remote', False)))
+            return envelope(
+                registry.review(
+                    a['alias'], a['text'], context=a.get('input'), authorized=a.get('allow_remote', False)
+                )
+            )
         _error('invalid_input', f'Unknown provider action: {action}')
     if command == 'transcribe':
         return _transcribe(a)
     if command == 'jobs':
         from .jobs import JobManager
+
         manager = JobManager(root=a.get('root'))
         try:
             action = a.get('action', 'list')
@@ -369,7 +619,10 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                 spec = a.get('input', {})
                 allowed = ('batch', 'convert', 'check', 'render', 'providers')
                 if spec.get('command') not in allowed or not isinstance(spec.get('arguments'), dict):
-                    _error('invalid_input', 'Job input requires command (batch/convert/check/render/providers) and arguments')
+                    _error(
+                        'invalid_input',
+                        'Job input requires command (batch/convert/check/render/providers) and arguments',
+                    )
                 frozen = dict(spec)
                 path = spec['arguments'].get('path')
                 if path and spec['command'] in ('check', 'render'):
@@ -377,7 +630,9 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                     frozen['revision'] = frozen['document_snapshot']['revision']
                 if spec['command'] == 'render':
                     from .layout import ensure_app
+
                     ensure_app()
+
                 def worker(payload, cancel):
                     if cancel.is_set():
                         _error('cancelled', 'Job cancelled')
@@ -385,11 +640,16 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                         import tempfile
 
                         from .storage import save_document
+
                         with tempfile.TemporaryDirectory(prefix='byax-job-input-') as temporary:
                             snapshot_path = str(Path(temporary) / 'frozen.byax')
                             save_document(payload['document_snapshot'], snapshot_path)
-                            result = execute(payload['command'], dict(payload['arguments'], path=snapshot_path))
-                        result['stale'] = _load(payload['arguments']['path'])['revision'] != payload['revision']
+                            result = execute(
+                                payload['command'], dict(payload['arguments'], path=snapshot_path)
+                            )
+                        result['stale'] = (
+                            _load(payload['arguments']['path'])['revision'] != payload['revision']
+                        )
                         if result['stale']:
                             result['review'] = 'required'
                     else:
@@ -397,17 +657,24 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
                     child_code = result_exit_code(result)
                     if child_code:
                         # Keep the child's error class so the job exits like a direct call.
-                        code = (result.get('error') or {}).get('code') or _EXIT_ERRORS.get(child_code, 'execution_failure')
+                        code = (result.get('error') or {}).get('code') or _EXIT_ERRORS.get(
+                            child_code, 'execution_failure'
+                        )
                         _error(code, 'Job did not satisfy policy', result=result)
                     return result
+
                 job = manager.submit(spec['command'], frozen, worker)
                 result = manager.wait(job['id'])
             else:
                 if action not in ('status', 'result', 'cancel', 'recover') or not a.get('id'):
-                    _error('invalid_input', 'Use submit/list/status/result/cancel/recover; supply --id where required')
+                    _error(
+                        'invalid_input',
+                        'Use submit/list/status/result/cancel/recover; supply --id where required',
+                    )
                 result = getattr(manager, action)(a['id'])
             if result.get('state') == 'failed' and isinstance(result.get('error'), dict):
                 from .errors import ByaxError
+
                 code = result['error'].get('code', 'execution_failure')
                 if ByaxError(code, '').exit_code != 1:
                     raise ByaxError(code, 'Job ended with an error', job=result)
@@ -416,46 +683,82 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
             manager.close(wait=True)
     if command == 'proof':
         from .proof import create_proof
+
         doc = _load(a['path'])
         selections = a.get('input', {})
         if set(selections) - {'crops', 'overlays'}:
             _error('invalid_input', 'Proof JSON accepts crops and overlays arrays')
         pages, selection = _affected_pages(doc) if a.get('pages') == 'affected' else (a.get('pages'), None)
-        result = create_proof(doc, a['out'], pages=pages, crops=selections.get('crops'),
-            overlays=selections.get('overlays'), contact=not a.get('no_contact', False),
-            columns=a.get('columns', 3), thumbnail_width=a.get('thumbnail_width', 320), owner=output_owner)
+        result = create_proof(
+            doc,
+            a['out'],
+            pages=pages,
+            crops=selections.get('crops'),
+            overlays=selections.get('overlays'),
+            contact=not a.get('no_contact', False),
+            columns=a.get('columns', 3),
+            thumbnail_width=a.get('thumbnail_width', 320),
+            owner=output_owner,
+        )
         if selection:
             result['selection'] = selection
         return envelope(result, doc)
     if command == 'table':
         from .table_io import export_csv, import_csv
+
         common = {key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
         if a.get('action', 'import') == 'import':
             if not a.get('csv'):
                 _error('invalid_input', 'Table import requires --csv')
             if a.get('out'):
                 _error('invalid_input', 'Table import edits the native document; --out is for CSV export')
+
             def import_table(doc):
-                updated, result = import_csv(doc, a['table'], a['csv'], expected_revision=a.get('expect_revision'),
-                    grow=a.get('grow', False), dry_run=a.get('dry_run', False), request_id=a.get('request_id'), **common)
+                updated, result = import_csv(
+                    doc,
+                    a['table'],
+                    a['csv'],
+                    expected_revision=a.get('expect_revision'),
+                    grow=a.get('grow', False),
+                    dry_run=a.get('dry_run', False),
+                    request_id=a.get('request_id'),
+                    **common,
+                )
                 return updated, result, not a.get('dry_run', False)
+
             return _mutate(a['path'], import_table)
         if a.get('action') != 'export' or not a.get('out'):
-            _error('invalid_input', 'Use table --action import --csv input.csv or --action export --out output.csv')
+            _error(
+                'invalid_input',
+                'Use table --action import --csv input.csv or --action export --out output.csv',
+            )
         _destination(a['out'], a.get('overwrite', False), a['path'])
         doc = _load(a['path'])
-        return envelope(export_csv(doc, a['table'], a['out'], newline=a.get('newline'),
-            overwrite=a.get('overwrite', False), owner=output_owner, **common), doc)
+        return envelope(
+            export_csv(
+                doc,
+                a['table'],
+                a['out'],
+                newline=a.get('newline'),
+                overwrite=a.get('overwrite', False),
+                owner=output_owner,
+                **common,
+            ),
+            doc,
+        )
     if command == 'template-batch':
         from .exchange import export_document
         from .table_io import template_rows
+
         _destination(a['out'], a.get('overwrite', False))
         output_dir = Path(a['out'])
         if output_dir.exists() and not output_dir.is_dir():
             _error('invalid_input', 'Template batch output must be a directory')
         template = _load(a['path'])
         # Parse and validate before creating deliverables, then retain every row outcome.
-        rows = template_rows(template, a['csv'], **{key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a})
+        rows = template_rows(
+            template, a['csv'], **{key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
+        )
         fmt = a.get('format', 'byax')
         if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf'):
             _error('invalid_input', 'Unsupported template batch output format')
@@ -465,30 +768,47 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
             if doc is not None:
                 try:
                     from .storage import DocumentLock
+
                     with DocumentLock(output) as lock:
                         _destination(str(output), a.get('overwrite', False))
-                        exported = export_document(doc, output, format=fmt, profile=a.get('profile'), owner=lock.owner)
+                        exported = export_document(
+                            doc, output, format=fmt, profile=a.get('profile'), owner=lock.owner
+                        )
                     result = envelope(exported, doc, csv_row=result['csv_row'])
                 except Exception as exc:  # noqa: BLE001 - preserve every batch row outcome
                     result, _ = error_result(exc)
                     result['csv_row'] = index + 1
             outcomes.append(result)
         failed = sum(bool(result_exit_code(item)) for item in outcomes)
-        return envelope({'items': outcomes, 'total': len(outcomes), 'failed': failed,
-                         'template_revision': template['revision']}, execution='failed' if failed else 'completed')
+        return envelope(
+            {
+                'items': outcomes,
+                'total': len(outcomes),
+                'failed': failed,
+                'template_revision': template['revision'],
+            },
+            execution='failed' if failed else 'completed',
+        )
     if command == 'batch':
         return _batch(a)
     if command == 'redact':
         from .publication import save_sanitized
+
         _destination(a['out'], False, a['path'])
         doc = _load(a['path'])
         if set(a['input']) - {'targets', 'terms', 'preserve'}:
             _error('invalid_input', 'Redaction input supports targets, terms and preserve', field='input')
-        result = save_sanitized(doc, a['out'], a['input'].get('targets', []), terms=a['input'].get('terms'),
-                                preserve=a['input'].get('preserve'))
+        result = save_sanitized(
+            doc,
+            a['out'],
+            a['input'].get('targets', []),
+            terms=a['input'].get('terms'),
+            preserve=a['input'].get('preserve'),
+        )
         return envelope(result, doc)
     if command == 'reproduction':
         from .publication import reproduce, reproduction_record
+
         doc = _load(a['path'])
         if a.get('action', 'record') == 'record':
             result = reproduction_record(doc, settings=a.get('input'))
@@ -507,9 +827,14 @@ def _affected_pages(doc):
     """Conservative reflow range derived from retained before/after target layout."""
     from .engine import diff, revision_document
     from .layout import build_document, resolve_layout
+
     history = doc.get('history', {}).get('revisions', [])
     if not history:
-        _error('incomplete_coverage', 'Affected pages need a retained previous revision; choose explicit pages or render all pages', field='pages')
+        _error(
+            'incomplete_coverage',
+            'Affected pages need a retained previous revision; choose explicit pages or render all pages',
+            field='pages',
+        )
     base_revision = history[-1]['revision']
     before = revision_document(doc, base_revision)
     changes = diff(doc, base_revision)['changes']
@@ -524,12 +849,14 @@ def _affected_pages(doc):
         # Page-count fields or numbering in any repeated region can affect earlier pages.
         global_change = True
     positions = []
+
     def add(resolved, target):
         page = resolved['positions'].get(target)
         if page is None:
             return False
         positions.append(page)
         return True
+
     for item in changes['modified']:
         global_change |= not add(current_resolved, item['id'])
         global_change |= not add(old_resolved, item['id'])
@@ -539,10 +866,16 @@ def _affected_pages(doc):
         global_change |= not add(old_resolved, item['id'])
     first = 1 if global_change or not positions else min(max(1, min(positions)), total)
     pages = list(range(first, total + 1))
-    return pages, {'kind': 'affected', 'base_revision': base_revision, 'revision': doc['revision'],
-                   'pages': pages, 'method': 'conservative before/after target page mapping plus downstream reflow',
-                   'global_reflow': global_change, 'previous_page_count': old_total,
-                   'coverage': 'All potentially changed current pages; renderer findings still apply.'}
+    return pages, {
+        'kind': 'affected',
+        'base_revision': base_revision,
+        'revision': doc['revision'],
+        'pages': pages,
+        'method': 'conservative before/after target page mapping plus downstream reflow',
+        'global_reflow': global_change,
+        'previous_page_count': old_total,
+        'coverage': 'All potentially changed current pages; renderer findings still apply.',
+    }
 
 
 def _transcribe(a):
@@ -550,7 +883,10 @@ def _transcribe(a):
     from .model import new_document
     from .providers import ProviderRegistry
     from .transcription import DictationSession
-    mode = {'cleaned': 'cleanup', 'document-aware': 'document_aware'}.get(a.get('mode'), a.get('mode', 'direct'))
+
+    mode = {'cleaned': 'cleanup', 'document-aware': 'document_aware'}.get(
+        a.get('mode'), a.get('mode', 'direct')
+    )
     if mode not in ('direct', 'cleanup', 'document_aware'):
         _error('invalid_input', 'Mode must be direct, cleaned, or document-aware')
     if a.get('insert') and (not a.get('document') or not a.get('target') or not a.get('expect_revision')):
@@ -566,27 +902,48 @@ def _transcribe(a):
     context = None
     if mode == 'document_aware':
         from .engine import context as build_context
+
         context = build_context(doc, target=target)
     remote = registry.preview(a['alias'], kind='transcription')['remote']
     if mode != 'direct' and a.get('cleanup_alias'):
         remote = remote or registry.preview(a['cleanup_alias'], kind='review')['remote']
     manager = JobManager(root=a.get('job_root'))
     try:
+
         def worker(payload, cancel):
-            return session.process(registry, payload['alias'], payload['audio_path'],
-                editor=a.get('cleanup_alias'), context=context, language=a.get('language', 'en'),
-                authorized=a.get('allow_remote', False), cancel_event=cancel)
-        job = manager.submit('transcription', {'revision': doc['revision'], 'alias': a['alias'],
-            'audio_path': str(Path(a['path']).resolve()), 'mode': mode, 'remote': remote,
-            'source_versions': (context or {}).get('source_versions', {}),
-            'profile_version': (context or {}).get('profile_version')}, worker)
+            return session.process(
+                registry,
+                payload['alias'],
+                payload['audio_path'],
+                editor=a.get('cleanup_alias'),
+                context=context,
+                language=a.get('language', 'en'),
+                authorized=a.get('allow_remote', False),
+                cancel_event=cancel,
+            )
+
+        job = manager.submit(
+            'transcription',
+            {
+                'revision': doc['revision'],
+                'alias': a['alias'],
+                'audio_path': str(Path(a['path']).resolve()),
+                'mode': mode,
+                'remote': remote,
+                'source_versions': (context or {}).get('source_versions', {}),
+                'profile_version': (context or {}).get('profile_version'),
+            },
+            worker,
+        )
         result = manager.wait(job['id'])
         if result['state'] != 'completed':
             return envelope({'job': result}, doc, execution=result['state'], review='required')
         if a.get('insert'):
+
             def insert(current):
                 updated, change = session.apply(current)
                 return updated, change, True
+
             inserted = _mutate(a['document'], insert)
             inserted['transcription'] = result
             return inserted
@@ -597,34 +954,60 @@ def _transcribe(a):
 
 def _batch(a):
     from concurrent.futures import ThreadPoolExecutor
+
     spec = a['input']
     if set(spec) - {'items'} or not isinstance(spec.get('items'), list):
         _error('invalid_input', 'Batch input must contain an items array')
     items = spec['items']
     if len(items) > 1000 or a.get('workers', 1) > 16:
         _error('limit_exceeded', 'Batch limit is 1000 inputs and 16 workers')
-    destinations = [str(Path(item['out']).resolve()) for item in items if isinstance(item, dict) and 'out' in item]
+    destinations = [
+        str(Path(item['out']).resolve()) for item in items if isinstance(item, dict) and 'out' in item
+    ]
     if len(set(destinations)) != len(destinations):
         _error('invalid_input', 'Batch outputs must be distinct')
+
     def run(item):
         try:
             if not isinstance(item, dict):
                 _error('invalid_input', 'Every batch item must be an object')
-            result = execute('convert', dict(item, overwrite=item.get('overwrite', a.get('overwrite', False))))
+            result = execute(
+                'convert', dict(item, overwrite=item.get('overwrite', a.get('overwrite', False)))
+            )
             return {'input': item.get('path'), 'result': result, 'exit_code': result_exit_code(result)}
         except Exception as exc:  # noqa: BLE001 - transport boundary must return structured failures
             result, code = error_result(exc)
-            return {'input': item.get('path') if isinstance(item, dict) else None, 'result': result, 'exit_code': code}
-    if any(isinstance(item, dict) and (item.get('format') == 'pdf' or str(item.get('out', '')).lower().endswith('.pdf')) for item in items):
+            return {
+                'input': item.get('path') if isinstance(item, dict) else None,
+                'result': result,
+                'exit_code': code,
+            }
+
+    if any(
+        isinstance(item, dict)
+        and (item.get('format') == 'pdf' or str(item.get('out', '')).lower().endswith('.pdf'))
+        for item in items
+    ):
         from .layout import ensure_app
+
         ensure_app()
     with ThreadPoolExecutor(max_workers=a.get('workers', 1)) as executor:
         results = list(executor.map(run, items))
     failed = sum(bool(item['exit_code']) for item in results)
-    return envelope({'items': results, 'total': len(items), 'failed': failed}, execution='failed' if failed else 'completed')
+    return envelope(
+        {'items': results, 'total': len(items), 'failed': failed},
+        execution='failed' if failed else 'completed',
+    )
 
 
-_EXIT_ERRORS = {2: 'invalid_input', 3: 'conflict', 4: 'failed_requirement', 5: 'incomplete_coverage', 6: 'cancelled', 7: 'pending'}
+_EXIT_ERRORS = {
+    2: 'invalid_input',
+    3: 'conflict',
+    4: 'failed_requirement',
+    5: 'incomplete_coverage',
+    6: 'cancelled',
+    7: 'pending',
+}
 
 
 def result_exit_code(result: dict) -> int:
@@ -644,6 +1027,7 @@ def result_exit_code(result: dict) -> int:
 
 def error_result(exc: Exception) -> tuple[dict, int]:
     from .errors import ByaxError
+
     if isinstance(exc, ByaxError):
         data = exc.to_dict()
         code = exc.exit_code
@@ -664,7 +1048,11 @@ class Parser(argparse.ArgumentParser):
 
 
 def build_parser() -> argparse.ArgumentParser:
-    parser = Parser(prog='byax', description='ByAuthorX shared document engine. UTF-8 JSON stdout; diagnostics use stderr. No GUI or provider call is implicit.', epilog='Exit codes: 0 completed, 1 execution/dependency, 2 input, 3 conflict, 4 required validation, 5 strict coverage/review, 6 cancelled, 7 pending/uncertain.')
+    parser = Parser(
+        prog='byax',
+        description='ByAuthorX shared document engine. UTF-8 JSON stdout; diagnostics use stderr. No GUI or provider call is implicit.',
+        epilog='Exit codes: 0 completed, 1 execution/dependency, 2 input, 3 conflict, 4 required validation, 5 strict coverage/review, 6 cancelled, 7 pending/uncertain.',
+    )
     parser.add_argument('--json', action='store_true', help='Emit versioned JSON (the default)')
     parser.add_argument('--human', action='store_true', help='Emit indented human-readable JSON')
     sub = parser.add_subparsers(dest='command', required=True)
@@ -692,9 +1080,13 @@ def build_parser() -> argparse.ArgumentParser:
                 options['help'] = '1-based pages/ranges (1,3-5), or affected for the last committed edit'
             p.add_argument(flag, **options)
     service = sub.add_parser('serve', help='Explicitly start an authenticated, scoped loopback REST service')
-    service.add_argument('--root', action='append', required=True, help='Authorized filesystem root; repeat as needed')
+    service.add_argument(
+        '--root', action='append', required=True, help='Authorized filesystem root; repeat as needed'
+    )
     service.add_argument('--port', type=int, default=8765)
-    service.add_argument('--token-env', default='BYAX_SERVICE_TOKEN', help='Environment variable containing access token')
+    service.add_argument(
+        '--token-env', default='BYAX_SERVICE_TOKEN', help='Environment variable containing access token'
+    )
     sub.add_parser('mcp', help='Start newline-delimited stdio MCP server')
     return parser
 
@@ -707,9 +1099,11 @@ def main(argv=None) -> int:
         ns.pop('json', None)
         if command == 'mcp':
             from .mcp import main as mcp_main
+
             return mcp_main()
         if command == 'serve':
             from .service import serve
+
             token = os.environ.get(ns['token_env'], '')
             serve(ns['root'], token=token, port=ns['port'])
             return 0

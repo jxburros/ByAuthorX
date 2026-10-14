@@ -4,7 +4,10 @@ from byax.model import new_document
 
 def test_truncation_does_not_hide_failure():
     doc = new_document(text='hello')
-    doc['settings']['requirements'] = {'a': {'kind': 'required_text', 'value': 'missing'}, 'b': {'kind': 'max_words', 'value': 0}}
+    doc['settings']['requirements'] = {
+        'a': {'kind': 'required_text', 'value': 'missing'},
+        'b': {'kind': 'max_words', 'value': 0},
+    }
     report = run_checks(doc, ['requirements'], limit=0)
     assert report['validation'] == 'failed'
     assert report['findings'] == []
@@ -20,7 +23,11 @@ def test_publication_reports_unmeasurable_checks():
 
 def test_typed_required_fields_and_false_zero():
     doc = new_document()
-    doc['fields'] = {'missing': {'type': 'text', 'required': True}, 'n': {'type': 'number', 'required': True, 'value': 0}, 'b': {'type': 'boolean', 'required': True, 'value': False}}
+    doc['fields'] = {
+        'missing': {'type': 'text', 'required': True},
+        'n': {'type': 'number', 'required': True, 'value': 0},
+        'b': {'type': 'boolean', 'required': True, 'value': False},
+    }
     report = run_checks(doc, ['requirements'])
     assert report['summary']['errors'] == 1
     assert report['findings'][0]['measured']['field'] == 'missing'

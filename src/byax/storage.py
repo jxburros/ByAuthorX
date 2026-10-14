@@ -1,4 +1,5 @@
 """Atomic, validated ZIP persistence and advisory cross-process document locks."""
+
 import base64
 import copy
 import hashlib
@@ -21,23 +22,40 @@ MAX_MEMBER_BYTES = 64 * 1024 * 1024
 MAX_MEMBERS = 10000
 _LOCKS = {}
 _MUTEX = threading.RLock()
-_SECRET_KEYS = {'api_key', 'apikey', 'access_token', 'refresh_token', 'password', 'client_secret', 'provider_credentials', 'executable_provider_config'}
+_SECRET_KEYS = {
+    'api_key',
+    'apikey',
+    'access_token',
+    'refresh_token',
+    'password',
+    'client_secret',
+    'provider_credentials',
+    'executable_provider_config',
+}
+
 
 def _check_secrets(value, path='$'):
     pending = [(value, path, 0)]
     while pending:
         current, current_path, depth = pending.pop()
         if depth > 100:
-            raise ByaxError('limit_exceeded', 'Structured data exceeds the 100-level nesting limit.', field=current_path)
+            raise ByaxError(
+                'limit_exceeded', 'Structured data exceeds the 100-level nesting limit.', field=current_path
+            )
         if isinstance(current, dict):
             for key, child in current.items():
                 if not isinstance(key, str):
                     raise ByaxError('invalid_input', 'JSON object keys must be strings.', field=current_path)
                 if key.lower() in _SECRET_KEYS:
-                    raise ByaxError('invalid_input', 'Credentials cannot be embedded in document packages.', field=current_path + '.' + key)
+                    raise ByaxError(
+                        'invalid_input',
+                        'Credentials cannot be embedded in document packages.',
+                        field=current_path + '.' + key,
+                    )
                 pending.append((child, current_path + '.' + key, depth + 1))
         elif isinstance(current, list):
             pending.extend((child, current_path, depth + 1) for child in current)
+
 
 class DocumentLock:
     def __init__(self, path, owner=None):
@@ -52,7 +70,12 @@ class DocumentLock:
             held = _LOCKS.get(self.path)
             if held:
                 if held['owner'] != self.owner:
-                    raise ByaxError('locked', 'Document is open in another editing session.', target=self.path, retry='Close the other editor before retrying.')
+                    raise ByaxError(
+                        'locked',
+                        'Document is open in another editing session.',
+                        target=self.path,
+                        retry='Close the other editor before retrying.',
+                    )
                 held['count'] += 1
             else:
                 # Keep a stable inode across contenders. Unlinking a sidecar on
@@ -64,6 +87,7 @@ class DocumentLock:
                 try:
                     if os.name == 'nt':
                         import msvcrt
+
                         handle.seek(0)
                         if not handle.read(1):
                             handle.write(b' ')
@@ -72,10 +96,13 @@ class DocumentLock:
                         msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
                     else:
                         import fcntl
+
                         fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
                 except OSError as exc:
                     handle.close()
-                    raise ByaxError('locked', 'Document is locked by another process.', target=self.path) from exc
+                    raise ByaxError(
+                        'locked', 'Document is locked by another process.', target=self.path
+                    ) from exc
                 _LOCKS[self.path] = {'owner': self.owner, 'count': 1, 'handle': handle}
             self.acquired = True
         return self
@@ -90,21 +117,27 @@ class DocumentLock:
                 handle = held['handle']
                 if os.name == 'nt':
                     import msvcrt
+
                     handle.seek(0)
                     msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
                 else:
                     import fcntl
+
                     fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
                 handle.close()
                 del _LOCKS[self.path]
             self.acquired = False
+
     def __enter__(self):
         return self.acquire()
+
     def __exit__(self, *_):
         self.release()
 
+
 def _json(data, name):
     try:
+
         def pairs(items):
             result = {}
             for key, value in items:
@@ -112,11 +145,17 @@ def _json(data, name):
                     raise ValueError('Duplicate JSON key: ' + key)
                 result[key] = value
             return result
-        return json.loads(data.decode('utf-8'), object_pairs_hook=pairs, parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)))
+
+        return json.loads(
+            data.decode('utf-8'),
+            object_pairs_hook=pairs,
+            parse_constant=lambda x: (_ for _ in ()).throw(ValueError(x)),
+        )
     except RecursionError as exc:
         raise ByaxError('limit_exceeded', 'JSON nesting exceeds parser limits.', target=name) from exc
     except (ValueError, UnicodeError) as exc:
         raise ByaxError('invalid_input', 'Invalid UTF-8 JSON resource.', target=name) from exc
+
 
 def _members(doc):
     _check_secrets(doc)
@@ -132,39 +171,81 @@ def _members(doc):
             raise ByaxError('invalid_input', 'Asset content hash does not match its identity.', target=digest)
         members[f'assets/{digest}'] = data
         asset['resource'] = f'assets/{digest}'
-    members['document.json'] = (json.dumps(stored, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n').encode()
-    manifest = {'format': 'ByAuthorX', 'format_version': 1, 'schema_versions': {'document': 1},
-                'document_id': doc['id'], 'revision': doc['revision'],
-                'resources': {k: {'sha256': hashlib.sha256(v).hexdigest(), 'bytes': len(v)} for k, v in sorted(members.items())}}
+    members['document.json'] = (
+        json.dumps(stored, ensure_ascii=False, sort_keys=True, indent=2, allow_nan=False) + '\n'
+    ).encode()
+    manifest = {
+        'format': 'ByAuthorX',
+        'format_version': 1,
+        'schema_versions': {'document': 1},
+        'document_id': doc['id'],
+        'revision': doc['revision'],
+        'resources': {
+            k: {'sha256': hashlib.sha256(v).hexdigest(), 'bytes': len(v)} for k, v in sorted(members.items())
+        },
+    }
     members['manifest.json'] = (json.dumps(manifest, sort_keys=True, indent=2) + '\n').encode()
     _validate_sizes(members)
     return members
 
+
 def _validate_sizes(members):
-    if len(members) > MAX_MEMBERS or sum(len(v) for v in members.values()) > MAX_PACKAGE_BYTES or any(len(v) > MAX_MEMBER_BYTES for v in members.values()):
+    if (
+        len(members) > MAX_MEMBERS
+        or sum(len(v) for v in members.values()) > MAX_PACKAGE_BYTES
+        or any(len(v) > MAX_MEMBER_BYTES for v in members.values())
+    ):
         raise ByaxError('limit_exceeded', 'Package exceeds configured storage limits.')
+
 
 def _safe_name(name):
     p = PurePosixPath(name)
-    return bool(name) and not p.is_absolute() and '..' not in p.parts and '\\' not in name and ':' not in name and str(p) == name
+    return (
+        bool(name)
+        and not p.is_absolute()
+        and '..' not in p.parts
+        and '\\' not in name
+        and ':' not in name
+        and str(p) == name
+    )
+
 
 def _decode(members):
     _validate_sizes(members)
     if 'manifest.json' not in members or 'document.json' not in members:
         raise ByaxError('invalid_input', 'Package is missing required manifest or document resource.')
     manifest = _json(members['manifest.json'], 'manifest.json')
-    if not isinstance(manifest, dict) or manifest.get('format') != 'ByAuthorX' or manifest.get('format_version') != 1:
+    if (
+        not isinstance(manifest, dict)
+        or manifest.get('format') != 'ByAuthorX'
+        or manifest.get('format_version') != 1
+    ):
         raise ByaxError('unsupported_version', 'Unsupported ByAuthorX package format.')
-    unknown = set(manifest) - {'format', 'format_version', 'schema_versions', 'document_id', 'revision', 'resources'}
+    unknown = set(manifest) - {
+        'format',
+        'format_version',
+        'schema_versions',
+        'document_id',
+        'revision',
+        'resources',
+    }
     if unknown:
-        raise ByaxError('unsupported_feature', 'Unknown manifest fields cannot be safely rewritten.', fields=sorted(unknown))
+        raise ByaxError(
+            'unsupported_feature',
+            'Unknown manifest fields cannot be safely rewritten.',
+            fields=sorted(unknown),
+        )
     if manifest.get('schema_versions') != {'document': 1}:
         raise ByaxError('unsupported_version', 'Unsupported package resource schema versions.')
     resources = manifest.get('resources', {})
     if not isinstance(resources, dict) or set(resources) != set(members) - {'manifest.json'}:
         raise ByaxError('invalid_input', 'Manifest does not account for every resource.')
     for name, entry in resources.items():
-        if not isinstance(entry, dict) or entry.get('sha256') != hashlib.sha256(members[name]).hexdigest() or entry.get('bytes') != len(members[name]):
+        if (
+            not isinstance(entry, dict)
+            or entry.get('sha256') != hashlib.sha256(members[name]).hexdigest()
+            or entry.get('bytes') != len(members[name])
+        ):
             raise ByaxError('invalid_input', 'Resource integrity check failed.', target=name)
     doc = _json(members['document.json'], 'document.json')
     _check_secrets(doc)
@@ -174,14 +255,23 @@ def _decode(members):
     used = {'document.json', 'manifest.json'}
     for digest, asset in doc['assets'].items():
         resource = asset.pop('resource', None)
-        if resource != f'assets/{digest}' or resource not in members or hashlib.sha256(members[resource]).hexdigest() != digest:
+        if (
+            resource != f'assets/{digest}'
+            or resource not in members
+            or hashlib.sha256(members[resource]).hexdigest() != digest
+        ):
             raise ByaxError('invalid_input', 'Missing or invalid asset resource.', target=digest)
         asset['data'] = base64.b64encode(members[resource]).decode('ascii')
         used.add(resource)
     if used != set(members):
-        raise ByaxError('unsupported_feature', 'Unknown package resources cannot be safely rewritten.', resources=sorted(set(members) - used))
+        raise ByaxError(
+            'unsupported_feature',
+            'Unknown package resources cannot be safely rewritten.',
+            resources=sorted(set(members) - used),
+        )
     _check_secrets(doc)
     return doc
+
 
 def load_document(path):
     try:
@@ -193,7 +283,12 @@ def load_document(path):
             if len(set(names)) != len(names):
                 raise ByaxError('invalid_input', 'Duplicate archive members are forbidden.')
             for i in infos:
-                if not _safe_name(i.filename) or i.is_dir() or stat.S_ISLNK(i.external_attr >> 16) or i.flag_bits & 1:
+                if (
+                    not _safe_name(i.filename)
+                    or i.is_dir()
+                    or stat.S_ISLNK(i.external_attr >> 16)
+                    or i.flag_bits & 1
+                ):
                     raise ByaxError('invalid_input', 'Unsafe or encrypted archive member.', target=i.filename)
                 if i.file_size > MAX_MEMBER_BYTES:
                     raise ByaxError('limit_exceeded', 'Archive member exceeds size limit.', target=i.filename)
@@ -202,6 +297,7 @@ def load_document(path):
         raise
     except (OSError, zipfile.BadZipFile, RuntimeError, zlib.error, EOFError) as exc:
         raise ByaxError('invalid_input', f'Cannot read native package: {exc}', target=str(path)) from exc
+
 
 def save_document(doc, path, *, owner=None):
     members = _members(doc)
@@ -234,6 +330,7 @@ def save_document(doc, path, *, owner=None):
             if os.path.exists(tmp):
                 os.unlink(tmp)
 
+
 def unpack(path, out_dir, include_history=False):
     doc = load_document(path)
     if not include_history:
@@ -250,6 +347,7 @@ def unpack(path, out_dir, include_history=False):
         dest.write_bytes(data)
     return {'path': str(target), 'history_included': include_history}
 
+
 def pack(source_dir, out_path):
     source = Path(source_dir)
     members = {}
@@ -263,12 +361,16 @@ def pack(source_dir, out_path):
                 raise ByaxError('invalid_input', 'Invalid source resource.', target=name)
             size = entry.stat().st_size
             if size > MAX_MEMBER_BYTES or total + size > MAX_PACKAGE_BYTES or len(members) >= MAX_MEMBERS:
-                raise ByaxError('limit_exceeded', 'Source folder exceeds configured storage limits.', target=name)
+                raise ByaxError(
+                    'limit_exceeded', 'Source folder exceeds configured storage limits.', target=name
+                )
             with entry.open('rb') as stream:
                 data = stream.read(min(MAX_MEMBER_BYTES, MAX_PACKAGE_BYTES - total) + 1)
             total += len(data)
             if len(data) > MAX_MEMBER_BYTES or total > MAX_PACKAGE_BYTES:
-                raise ByaxError('limit_exceeded', 'Source resource grew beyond configured storage limits.', target=name)
+                raise ByaxError(
+                    'limit_exceeded', 'Source resource grew beyond configured storage limits.', target=name
+                )
             members[name] = data
     if 'manifest.json' not in members or 'document.json' not in members:
         raise ByaxError('invalid_input', 'Source folder requires manifest.json and document.json.')
@@ -283,8 +385,11 @@ def pack(source_dir, out_path):
     changed = original_document.get('sha256') != document_hash
     # Source folders are editable working copies. Rebuild integrity metadata while
     # _decode still enforces identities, schemas and SHA-named asset contents.
-    manifest['resources'] = {name: {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
-                             for name, data in sorted(members.items()) if name != 'manifest.json'}
+    manifest['resources'] = {
+        name: {'sha256': hashlib.sha256(data).hexdigest(), 'bytes': len(data)}
+        for name, data in sorted(members.items())
+        if name != 'manifest.json'
+    }
     changed = changed or set(original_resources) != set(manifest['resources'])
     members['manifest.json'] = (json.dumps(manifest, sort_keys=True, indent=2) + '\n').encode()
     doc = _decode(members)
@@ -294,12 +399,20 @@ def pack(source_dir, out_path):
         # or random identity is introduced by a reproducible pack operation.
         revision_hash = hashlib.sha256((doc['id'] + base_revision + document_hash).encode()).hexdigest()
         doc['revision'] = 'rev_' + revision_hash[:32]
-        doc['metadata']['source_pack'] = {'origin': 'edited_source_folder', 'base_revision': base_revision,
-                                        'source_document_sha256': document_hash}
+        doc['metadata']['source_pack'] = {
+            'origin': 'edited_source_folder',
+            'base_revision': base_revision,
+            'source_document_sha256': document_hash,
+        }
         doc['history']['branches'][doc['history']['current_branch']] = doc['revision']
         doc['requests'] = {}
         for finding in doc['review']['findings']:
             finding['status'] = 'stale'
     save_document(doc, out_path)
-    return {'path': str(out_path), 'document_id': doc['id'], 'base_revision': base_revision,
-            'revision': doc['revision'], 'source_modified': changed}
+    return {
+        'path': str(out_path),
+        'document_id': doc['id'],
+        'base_revision': base_revision,
+        'revision': doc['revision'],
+        'source_modified': changed,
+    }

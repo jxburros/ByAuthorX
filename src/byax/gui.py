@@ -1,6 +1,7 @@
 # ruff: noqa: BLE001
 # GUI event boundaries report errors rather than terminating the application.
 """ByAuthorX native desktop application (Windows 11 / Ubuntu 24.04)."""
+
 from __future__ import annotations
 
 import base64
@@ -128,12 +129,33 @@ class MainWindow(QMainWindow):
         return action
 
     def _build_ui(self):
-        menus = {name: self.menuBar().addMenu(name) for name in ('&File', '&Edit', 'F&ormat', '&Insert', '&Table', '&Review', '&View', '&Tools', '&Help')}
-        file_actions = [('New', self.new_file, QKeySequence.New), ('New from template…', self.templates, None),
-                        ('Open…', self.open_file, QKeySequence.Open), ('Save', self.save, QKeySequence.Save),
-                        ('Save as…', self.save_as, QKeySequence.SaveAs), ('Export…', self.export, 'Ctrl+Shift+E'), ('Redact a sanitized copy…', self.redact_copy, None),
-                        ('Page setup…', self.page_setup, None), ('Print preview…', self.print_preview, None),
-                        ('Print…', self.print_document, QKeySequence.Print), ('Recover autosave…', self.recover, None)]
+        menus = {
+            name: self.menuBar().addMenu(name)
+            for name in (
+                '&File',
+                '&Edit',
+                'F&ormat',
+                '&Insert',
+                '&Table',
+                '&Review',
+                '&View',
+                '&Tools',
+                '&Help',
+            )
+        }
+        file_actions = [
+            ('New', self.new_file, QKeySequence.New),
+            ('New from template…', self.templates, None),
+            ('Open…', self.open_file, QKeySequence.Open),
+            ('Save', self.save, QKeySequence.Save),
+            ('Save as…', self.save_as, QKeySequence.SaveAs),
+            ('Export…', self.export, 'Ctrl+Shift+E'),
+            ('Redact a sanitized copy…', self.redact_copy, None),
+            ('Page setup…', self.page_setup, None),
+            ('Print preview…', self.print_preview, None),
+            ('Print…', self.print_document, QKeySequence.Print),
+            ('Recover autosave…', self.recover, None),
+        ]
         for title, slot, shortcut in file_actions:
             menus['&File'].addAction(self.action(title, slot, shortcut))
         self.recent_menu = menus['&File'].addMenu('Recent documents')
@@ -171,10 +193,15 @@ class MainWindow(QMainWindow):
         workspace_layout.addLayout(document_bar)
         workspace_layout.addWidget(self.stack, 1)
         self.setCentralWidget(workspace)
-        for title, slot, key in [('Undo', self.undo, QKeySequence.Undo), ('Redo', self.redo, QKeySequence.Redo),
-                                 ('Cut', self.editor.cut, QKeySequence.Cut), ('Copy', self.editor.copy, QKeySequence.Copy),
-                                 ('Paste', self.editor.paste, QKeySequence.Paste), ('Select all', self.editor.selectAll, QKeySequence.SelectAll),
-                                 ('Find and replace…', self.find_replace, QKeySequence.Find)]:
+        for title, slot, key in [
+            ('Undo', self.undo, QKeySequence.Undo),
+            ('Redo', self.redo, QKeySequence.Redo),
+            ('Cut', self.editor.cut, QKeySequence.Cut),
+            ('Copy', self.editor.copy, QKeySequence.Copy),
+            ('Paste', self.editor.paste, QKeySequence.Paste),
+            ('Select all', self.editor.selectAll, QKeySequence.SelectAll),
+            ('Find and replace…', self.find_replace, QKeySequence.Find),
+        ]:
             menus['&Edit'].addAction(self.action(title, slot, key))
         toolbar = QToolBar('Writing tools')
         toolbar.setMovable(False)
@@ -185,19 +212,41 @@ class MainWindow(QMainWindow):
         toolbar.addSeparator()
         self.style_box = QComboBox()
         self.style_box.setAccessibleName('Paragraph style')
-        for key, label in [('body', 'Body'), ('title', 'Title'), ('subtitle', 'Subtitle'),
-                           ('heading1', 'Heading 1'), ('heading2', 'Heading 2'), ('heading3', 'Heading 3'),
-                           ('quotation', 'Quotation'), ('caption', 'Caption'), ('code', 'Code')]:
+        for key, label in [
+            ('body', 'Body'),
+            ('title', 'Title'),
+            ('subtitle', 'Subtitle'),
+            ('heading1', 'Heading 1'),
+            ('heading2', 'Heading 2'),
+            ('heading3', 'Heading 3'),
+            ('quotation', 'Quotation'),
+            ('caption', 'Caption'),
+            ('code', 'Code'),
+        ]:
             self.style_box.addItem(label, key)
-        self.style_box.activated.connect(lambda: self.apply_style(self.style_box.currentData() or self.style_box.currentText()))
+        self.style_box.activated.connect(
+            lambda: self.apply_style(self.style_box.currentData() or self.style_box.currentText())
+        )
         toolbar.addWidget(self.style_box)
         toolbar.addSeparator()
-        for label, mark, shortcut in [('Bold', 'bold', 'Ctrl+B'), ('Italic', 'italic', 'Ctrl+I'), ('Underline', 'underline', 'Ctrl+U')]:
-            action = self.action(label, lambda checked=False, m=mark: self.format_selection(m, True), shortcut)
+        for label, mark, shortcut in [
+            ('Bold', 'bold', 'Ctrl+B'),
+            ('Italic', 'italic', 'Ctrl+I'),
+            ('Underline', 'underline', 'Ctrl+U'),
+        ]:
+            action = self.action(
+                label, lambda checked=False, m=mark: self.format_selection(m, True), shortcut
+            )
             toolbar.addAction(action)
             menus['F&ormat'].addAction(action)
-        for title, mark in [('Strikethrough', 'strike'), ('Superscript', 'superscript'), ('Subscript', 'subscript')]:
-            menus['F&ormat'].addAction(self.action(title, lambda checked=False, m=mark: self.format_selection(m, True)))
+        for title, mark in [
+            ('Strikethrough', 'strike'),
+            ('Superscript', 'superscript'),
+            ('Subscript', 'subscript'),
+        ]:
+            menus['F&ormat'].addAction(
+                self.action(title, lambda checked=False, m=mark: self.format_selection(m, True))
+            )
         menus['F&ormat'].addAction(self.action('Font and paragraph…', self.paragraph_format))
         menus['F&ormat'].addAction(self.action('Define named style…', self.define_style))
         menus['F&ormat'].addAction(self.action('Text color…', lambda: self.choose_color('color')))
@@ -205,26 +254,59 @@ class MainWindow(QMainWindow):
         menus['F&ormat'].addAction(self.action('Hyperlink…', self.hyperlink))
         menus['F&ormat'].addAction(self.action('Clear text formatting', self.clear_formatting))
         for alignment in ('left', 'center', 'right', 'justify'):
-            menus['F&ormat'].addAction(self.action('Align ' + alignment, lambda checked=False, a=alignment: self.attributes({'alignment': a})))
-        menus['F&ormat'].addAction(self.action('Bulleted list', lambda: self.attributes({'list': {'kind': 'bullet', 'level': 1}})))
-        menus['F&ormat'].addAction(self.action('Numbered list', lambda: self.attributes({'list': {'kind': 'ordered', 'level': 1}})))
-        menus['F&ormat'].addAction(self.action('Increase list level', lambda: self.list_indent(1), 'Alt+Shift+Right'))
-        menus['F&ormat'].addAction(self.action('Decrease list level', lambda: self.list_indent(-1), 'Alt+Shift+Left'))
-        menus['F&ormat'].addAction(self.action('Restart list numbering', lambda: self.attributes({'restart': True, 'start': 1})))
-        menus['F&ormat'].addAction(self.action('Continue list numbering', lambda: self.attributes({'restart': False})))
+            menus['F&ormat'].addAction(
+                self.action(
+                    'Align ' + alignment, lambda checked=False, a=alignment: self.attributes({'alignment': a})
+                )
+            )
+        menus['F&ormat'].addAction(
+            self.action('Bulleted list', lambda: self.attributes({'list': {'kind': 'bullet', 'level': 1}}))
+        )
+        menus['F&ormat'].addAction(
+            self.action('Numbered list', lambda: self.attributes({'list': {'kind': 'ordered', 'level': 1}}))
+        )
+        menus['F&ormat'].addAction(
+            self.action('Increase list level', lambda: self.list_indent(1), 'Alt+Shift+Right')
+        )
+        menus['F&ormat'].addAction(
+            self.action('Decrease list level', lambda: self.list_indent(-1), 'Alt+Shift+Left')
+        )
+        menus['F&ormat'].addAction(
+            self.action('Restart list numbering', lambda: self.attributes({'restart': True, 'start': 1}))
+        )
+        menus['F&ormat'].addAction(
+            self.action('Continue list numbering', lambda: self.attributes({'restart': False}))
+        )
         menus['F&ormat'].addAction(self.action('Remove list', lambda: self.attributes({'list': None})))
         toolbar.addSeparator()
         toolbar.addAction(self.action('Comment', self.add_comment, 'Ctrl+Alt+M'))
         toolbar.addAction(self.action('Check', self.run_checks, 'F7'))
         toolbar.addAction(self.action('Pages', self.toggle_pages, 'Ctrl+Alt+P'))
-        for title, slot in [('Table…', self.insert_table), ('Image…', self.insert_image), ('Page break', self.insert_page_break),
-                            ('Section / columns…', self.insert_section), ('Table of contents', lambda: self.insert_structure('toc')),
-                            ('Footnote…', self.insert_footnote), ('Bookmark…', self.add_bookmark), ('Cross reference…', self.cross_reference),
-                            ('Watermark / layer…', self.add_layer), ('Source reference…', self.add_reference),
-                            ('Define template field…', self.define_field), ('Template fields…', self.fill_fields), ('Delete selected object', self.delete_object)]:
+        for title, slot in [
+            ('Table…', self.insert_table),
+            ('Image…', self.insert_image),
+            ('Page break', self.insert_page_break),
+            ('Section / columns…', self.insert_section),
+            ('Table of contents', lambda: self.insert_structure('toc')),
+            ('Footnote…', self.insert_footnote),
+            ('Bookmark…', self.add_bookmark),
+            ('Cross reference…', self.cross_reference),
+            ('Watermark / layer…', self.add_layer),
+            ('Source reference…', self.add_reference),
+            ('Define template field…', self.define_field),
+            ('Template fields…', self.fill_fields),
+            ('Delete selected object', self.delete_object),
+        ]:
             menus['&Insert'].addAction(self.action(title, slot))
-        for title, kind in [('Add row', 'add_row'), ('Remove row…', 'remove_row'), ('Add column', 'add_column'), ('Remove column…', 'remove_column')]:
-            menus['&Table'].addAction(self.action(title, lambda checked=False, k=kind: self.table_operation(k)))
+        for title, kind in [
+            ('Add row', 'add_row'),
+            ('Remove row…', 'remove_row'),
+            ('Add column', 'add_column'),
+            ('Remove column…', 'remove_column'),
+        ]:
+            menus['&Table'].addAction(
+                self.action(title, lambda checked=False, k=kind: self.table_operation(k))
+            )
         menus['&Table'].addAction(self.action('Move row…', lambda: self.reorder_table('row')))
         menus['&Table'].addAction(self.action('Move column…', lambda: self.reorder_table('column')))
         menus['&Table'].addAction(self.action('Table properties…', self.table_properties))
@@ -234,9 +316,19 @@ class MainWindow(QMainWindow):
         menus['&Table'].addAction(self.action('Update selected table from CSV…', self.update_table_csv))
         menus['&Table'].addAction(self.action('Export selected table as CSV…', self.export_csv))
         menus['&Table'].addAction(self.action('Delete selected table', self.delete_table))
-        for title, slot in [('Run document checks', self.run_checks), ('Checking and voice profiles…', self.edit_profiles), ('Review with a model…', self.model_review),
-                            ('Add comment…', self.add_comment), ('Protect selected paragraph', self.protect), ('Remove selected protection…', self.unprotect),
-                            ('Move section…', self.move_section), ('Reply to selected comment…', self.reply_comment), ('Checkpoint…', self.checkpoint), ('Create branch…', self.branch), ('Revision history…', self.history)]:
+        for title, slot in [
+            ('Run document checks', self.run_checks),
+            ('Checking and voice profiles…', self.edit_profiles),
+            ('Review with a model…', self.model_review),
+            ('Add comment…', self.add_comment),
+            ('Protect selected paragraph', self.protect),
+            ('Remove selected protection…', self.unprotect),
+            ('Move section…', self.move_section),
+            ('Reply to selected comment…', self.reply_comment),
+            ('Checkpoint…', self.checkpoint),
+            ('Create branch…', self.branch),
+            ('Revision history…', self.history),
+        ]:
             menus['&Review'].addAction(self.action(title, slot))
         self.track_action = self.action('Track changes', self.toggle_tracking, checkable=True)
         menus['&Review'].addAction(self.track_action)
@@ -246,20 +338,28 @@ class MainWindow(QMainWindow):
         self.reduce_motion_action.setChecked(self.motion.reduced)
         self.motion.reducedChanged.connect(self.reduce_motion_action.setChecked)
         menus['&View'].addAction(self.reduce_motion_action)
-        for title, slot in [('Provider settings…', self.provider_settings), ('Import audio…', self.import_audio),
-                            ('Dictation…', self.dictation), ('Background jobs…', self.jobs_dialog), ('Document properties…', self.document_properties),
-                            ('Document statistics', self.statistics)]:
+        for title, slot in [
+            ('Provider settings…', self.provider_settings),
+            ('Import audio…', self.import_audio),
+            ('Dictation…', self.dictation),
+            ('Background jobs…', self.jobs_dialog),
+            ('Document properties…', self.document_properties),
+            ('Document statistics', self.statistics),
+        ]:
             menus['&Tools'].addAction(self.action(title, slot))
         menus['&Help'].addAction(self.action('About ByAuthorX', self.about))
         self.outline = QTreeWidget()
         self.outline.setHeaderHidden(True)
         self.outline.setAccessibleName('Document outline')
-        self.outline.itemActivated.connect(lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole)))
+        self.outline.itemActivated.connect(
+            lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole))
+        )
         self.outline.itemClicked.connect(lambda item, column: self.editor.navigate(item.data(0, Qt.UserRole)))
         self.outline_stack = QStackedWidget()
         self.outline_stack.addWidget(self.outline)
-        self.outline_stack.addWidget(EmptyPanel('Your document outline',
-                                              'Headings, tables, images, and bookmarks appear here.'))
+        self.outline_stack.addWidget(
+            EmptyPanel('Your document outline', 'Headings, tables, images, and bookmarks appear here.')
+        )
         outline_dock = QDockWidget('Outline', self)
         outline_dock.setWidget(self.outline_stack)
         outline_dock.setMinimumWidth(195)
@@ -275,12 +375,22 @@ class MainWindow(QMainWindow):
         rv.setSpacing(8)
         self.review_stack = QStackedWidget()
         self.review_stack.addWidget(self.review_list)
-        self.review_stack.addWidget(EmptyPanel('No open review items',
-            'Comments, suggested edits, and check results appear here.',
-            graphic='ui/review-empty.png', action=('Run document checks', self.run_checks)))
+        self.review_stack.addWidget(
+            EmptyPanel(
+                'No open review items',
+                'Comments, suggested edits, and check results appear here.',
+                graphic='ui/review-empty.png',
+                action=('Run document checks', self.run_checks),
+            )
+        )
         rv.addWidget(self.review_stack)
         self.review_buttons = []
-        for label, slot in [('Open selected item', self.review_item), ('Reply to comment…', self.reply_comment), ('Resolve / accept…', self.accept_item), ('Reject proposal', self.reject_item)]:
+        for label, slot in [
+            ('Open selected item', self.review_item),
+            ('Reply to comment…', self.reply_comment),
+            ('Resolve / accept…', self.accept_item),
+            ('Reject proposal', self.reject_item),
+        ]:
             btn = QPushButton(label)
             if label == 'Resolve / accept…':
                 btn.setProperty('primary', True)
@@ -297,10 +407,15 @@ class MainWindow(QMainWindow):
         ll.setSpacing(8)
         self.layer_stack = QStackedWidget()
         self.layer_stack.addWidget(self.layer_list)
-        self.layer_stack.addWidget(EmptyPanel('No document layers',
-                                            'Add a watermark or a layer from the Insert menu.'))
+        self.layer_stack.addWidget(
+            EmptyPanel('No document layers', 'Add a watermark or a layer from the Insert menu.')
+        )
         ll.addWidget(self.layer_stack)
-        for label, slot in [('Add layer…', self.add_layer), ('Show / hide', self.toggle_layer), ('Lock / unlock', self.lock_layer)]:
+        for label, slot in [
+            ('Add layer…', self.add_layer),
+            ('Show / hide', self.toggle_layer),
+            ('Lock / unlock', self.lock_layer),
+        ]:
             button = QPushButton(label)
             button.clicked.connect(slot)
             ll.addWidget(button)
@@ -315,7 +430,10 @@ class MainWindow(QMainWindow):
         for dock in (outline_dock, inspector_dock):
             widget = dock.widget()
             dock.visibilityChanged.connect(
-                lambda visible, widget=widget: self.motion.fade(widget) if visible else self.motion.finish(widget))
+                lambda visible, widget=widget: (
+                    self.motion.fade(widget) if visible else self.motion.finish(widget)
+                )
+            )
         self.inspector.currentChanged.connect(lambda index: self.motion.fade(self.inspector.widget(index)))
         self.status_label = QLabel('Ready')
         self.activity_graphic = ActivityGraphic(self.motion, self)
@@ -343,10 +461,12 @@ class MainWindow(QMainWindow):
         tagline.setObjectName('brandTagline')
         layout.addWidget(tagline)
         layout.addWidget(PenLineAnimation(self.motion))
-        description = QLabel('A native, local-first writing workspace.\n\n'
-                             'Write. Review. Keep what works.\n'
-                             'Provider workflows run only when requested.\n'
-                             'Version 0.1.0 · MIT license')
+        description = QLabel(
+            'A native, local-first writing workspace.\n\n'
+            'Write. Review. Keep what works.\n'
+            'Provider workflows run only when requested.\n'
+            'Version 0.1.0 · MIT license'
+        )
         description.setWordWrap(True)
         layout.addWidget(description)
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
@@ -391,20 +511,46 @@ class MainWindow(QMainWindow):
     def readable_report(self, result):
         if isinstance(result, str):
             return result
-        labels = {b['id']: (b.get('text') or b.get('attrs', {}).get('alt') or b['type'].replace('_', ' ').title())[:85] for b in self.doc['blocks']}
+        labels = {
+            b['id']: (b.get('text') or b.get('attrs', {}).get('alt') or b['type'].replace('_', ' ').title())[
+                :85
+            ]
+            for b in self.doc['blocks']
+        }
         lines = []
+
         def describe(record):
             if isinstance(record, str):
                 return record
             if not isinstance(record, dict):
                 return str(record)
-            message = record.get('explanation') or record.get('message') or record.get('text') or record.get('title') or record.get('reason') or record.get('path') or record.get('file')
+            message = (
+                record.get('explanation')
+                or record.get('message')
+                or record.get('text')
+                or record.get('title')
+                or record.get('reason')
+                or record.get('path')
+                or record.get('file')
+            )
             if not message:
-                message = str(record.get('rule') or record.get('name') or record.get('family') or record.get('type') or record.get('status') or 'Recorded item').replace('_', ' ')
+                message = str(
+                    record.get('rule')
+                    or record.get('name')
+                    or record.get('family')
+                    or record.get('type')
+                    or record.get('status')
+                    or 'Recorded item'
+                ).replace('_', ' ')
             severity = record.get('severity', record.get('status', ''))
             location = record.get('target')
             suffix = ('\n  At: ' + labels.get(location, 'Document')) if location else ''
-            return ((str(severity).replace('_', ' ').capitalize() + ': ') if severity else '') + str(message) + suffix
+            return (
+                ((str(severity).replace('_', ' ').capitalize() + ': ') if severity else '')
+                + str(message)
+                + suffix
+            )
+
         if isinstance(result, list):
             return '\n\n'.join(describe(item) for item in result) or 'No items.'
         for key in ('execution', 'validation', 'review'):
@@ -412,13 +558,30 @@ class MainWindow(QMainWindow):
                 lines.append(key.title() + ': ' + str(result[key]).replace('_', ' ').capitalize())
         if result.get('stale'):
             lines.append('This result was produced for an earlier document revision and needs review.')
-        for key, label in [('summary', 'Summary'), ('explanation', 'Explanation'), ('message', 'Result'), ('raw_transcript', 'Recognized transcript'), ('proposed_text', 'Proposed text'), ('text_diff', 'Exact text comparison')]:
+        for key, label in [
+            ('summary', 'Summary'),
+            ('explanation', 'Explanation'),
+            ('message', 'Result'),
+            ('raw_transcript', 'Recognized transcript'),
+            ('proposed_text', 'Proposed text'),
+            ('text_diff', 'Exact text comparison'),
+        ]:
             if result.get(key):
                 value = result[key]
                 if isinstance(value, dict):
-                    value = ' · '.join(str(k).replace('_', ' ').title() + ': ' + str(v) for k, v in value.items() if not isinstance(v, (dict, list)))
+                    value = ' · '.join(
+                        str(k).replace('_', ' ').title() + ': ' + str(v)
+                        for k, v in value.items()
+                        if not isinstance(v, (dict, list))
+                    )
                 lines += ['', label, str(value)]
-        for key, label in [('findings', 'Findings'), ('losses', 'Compatibility notes'), ('outputs', 'Saved outputs'), ('changes', 'Changes'), ('operations', 'Exact edits')]:
+        for key, label in [
+            ('findings', 'Findings'),
+            ('losses', 'Compatibility notes'),
+            ('outputs', 'Saved outputs'),
+            ('changes', 'Changes'),
+            ('operations', 'Exact edits'),
+        ]:
             values = result.get(key)
             if not values:
                 continue
@@ -426,23 +589,35 @@ class MainWindow(QMainWindow):
             if key == 'changes' and isinstance(values, dict):
                 for change_kind in ('added', 'removed'):
                     for block in values.get(change_kind, []):
-                        lines.append(change_kind.capitalize() + ': ' + (block.get('text') or block.get('type', 'Object')))
+                        lines.append(
+                            change_kind.capitalize()
+                            + ': '
+                            + (block.get('text') or block.get('type', 'Object'))
+                        )
                 for change in values.get('modified', []):
                     before, after = change.get('before', {}), change.get('after', {})
                     if before.get('text') != after.get('text'):
                         lines.extend(['Before: ' + before.get('text', ''), 'After: ' + after.get('text', '')])
                     else:
-                        lines.append('Formatting or structure changed: ' + labels.get(change.get('id'), before.get('type', 'Object')))
+                        lines.append(
+                            'Formatting or structure changed: '
+                            + labels.get(change.get('id'), before.get('type', 'Object'))
+                        )
                 if values.get('order_changed'):
                     lines.append('Document reading order changed.')
                 if values.get('properties'):
-                    lines.append('Updated document properties: ' + ', '.join(key.replace('_', ' ') for key in values['properties']))
+                    lines.append(
+                        'Updated document properties: '
+                        + ', '.join(key.replace('_', ' ') for key in values['properties'])
+                    )
             elif isinstance(values, dict):
                 lines.extend(str(k).replace('_', ' ').title() + ': ' + describe(v) for k, v in values.items())
             elif key == 'operations':
                 for op in values:
                     target = labels.get(op.get('target'), 'Document')
-                    lines.append(op.get('type', op.get('op', 'Edit')).replace('_', ' ').capitalize() + ' — ' + target)
+                    lines.append(
+                        op.get('type', op.get('op', 'Edit')).replace('_', ' ').capitalize() + ' — ' + target
+                    )
                     for field in ('text', 'match', 'replacement', 'expected_text'):
                         if field in op:
                             lines.append('  ' + field.replace('_', ' ').title() + ': ' + str(op[field]))
@@ -469,14 +644,17 @@ class MainWindow(QMainWindow):
         worker = Worker(fn)
         self._workers.add(worker)
         self._begin_activity(worker, label)
+
         def finish(result):
             self._workers.discard(worker)
             self._end_activity(worker)
             done(result)
+
         def fail(error):
             self._workers.discard(worker)
             self._end_activity(worker, 'Task failed')
             self.error(error)
+
         worker.signals.done.connect(finish)
         worker.signals.failed.connect(fail)
         QThreadPool.globalInstance().start(worker)
@@ -507,12 +685,14 @@ class MainWindow(QMainWindow):
 
     def start_job(self, kind, payload, worker, done):
         from .jobs import JobManager
+
         if not hasattr(self, 'job_manager'):
             self.job_manager = JobManager()
         job = self.job_manager.submit(kind, payload, worker)
         self._begin_activity(job['id'], kind.replace('_', ' ').title() + ' in progress…')
         timer = QTimer(self)
         timer.setInterval(350)
+
         def poll():
             try:
                 status = self.job_manager.status(job['id'], current_revision=self.doc['revision'])
@@ -520,7 +700,10 @@ class MainWindow(QMainWindow):
                     return
                 timer.stop()
                 timer.deleteLater()
-                self._end_activity(job['id'], kind.title() + ': ' + status['state'] + ' · Results available in Tools → Background jobs')
+                self._end_activity(
+                    job['id'],
+                    kind.title() + ': ' + status['state'] + ' · Results available in Tools → Background jobs',
+                )
                 recorded = self.job_manager.result(job['id'], current_revision=self.doc['revision'])
                 if status['state'] == 'completed':
                     done(recorded['result'])
@@ -531,12 +714,14 @@ class MainWindow(QMainWindow):
                 timer.deleteLater()
                 self._end_activity(job['id'], 'Task failed')
                 self.error(str(exc))
+
         timer.timeout.connect(poll)
         timer.start()
         return job
 
     def refresh(self, position=None):
         from .layout import build_document
+
         self._refreshing = True
         try:
             position = self.editor.textCursor().position() if position is None else position
@@ -559,7 +744,9 @@ class MainWindow(QMainWindow):
     def update_sidebar(self):
         self.outline.clear()
         for block in self.doc['blocks']:
-            if block['type'] in ('heading', 'table', 'image', 'footnote', 'section_break') or block.get('style', '').startswith('heading'):
+            if block['type'] in ('heading', 'table', 'image', 'footnote', 'section_break') or block.get(
+                'style', ''
+            ).startswith('heading'):
                 label = block.get('text') or block.get('attrs', {}).get('alt') or block['type'].title()
                 item = QTreeWidgetItem([label[:65]])
                 item.setData(0, Qt.UserRole, block['id'])
@@ -573,25 +760,47 @@ class MainWindow(QMainWindow):
             for record in self.doc['review'].get(kind, []):
                 if record.get('status') in ('resolved', 'accepted', 'rejected'):
                     continue
-                self.review_list.addItem(record.get('text') or record.get('explanation') or record.get('message') or record.get('title') or kind.replace('_', ' ').title())
+                self.review_list.addItem(
+                    record.get('text')
+                    or record.get('explanation')
+                    or record.get('message')
+                    or record.get('title')
+                    or kind.replace('_', ' ').title()
+                )
                 self.review_list.item(self.review_list.count() - 1).setData(Qt.UserRole, (kind, record))
                 if kind == 'comments':
+
                     def show_replies(comment, depth=1):
                         for reply in comment.get('replies', []):
                             if reply.get('status') != 'resolved':
-                                self.review_list.addItem('    ' * min(depth, 4) + '↳ ' + reply.get('text', 'Reply'))
-                                self.review_list.item(self.review_list.count() - 1).setData(Qt.UserRole, ('comments', reply))
+                                self.review_list.addItem(
+                                    '    ' * min(depth, 4) + '↳ ' + reply.get('text', 'Reply')
+                                )
+                                self.review_list.item(self.review_list.count() - 1).setData(
+                                    Qt.UserRole, ('comments', reply)
+                                )
                             show_replies(reply, depth + 1)
+
                     show_replies(record)
         if self._last_report:
             for finding in self._last_report.get('findings', []):
                 if finding in self.doc['review'].get('findings', []):
                     continue
-                self.review_list.addItem(finding.get('message') or finding.get('explanation') or str(finding.get('rule', 'Finding')))
-                self.review_list.item(self.review_list.count() - 1).setData(Qt.UserRole, ('findings', finding))
+                self.review_list.addItem(
+                    finding.get('message')
+                    or finding.get('explanation')
+                    or str(finding.get('rule', 'Finding'))
+                )
+                self.review_list.item(self.review_list.count() - 1).setData(
+                    Qt.UserRole, ('findings', finding)
+                )
         self.layer_list.clear()
         for layer in self.doc.get('layers', []):
-            self.layer_list.addItem(('● ' if layer.get('visible', True) else '○ ') + layer.get('name', 'Layer') + ('  🔒' if layer.get('locked') else ''))
+            self.layer_list.addItem(
+                ('● ' if layer.get('visible', True) else '○ ')
+                + layer.get('name', 'Layer')
+                + ('  🔒' if layer.get('locked') else '')
+            )
             self.layer_list.item(self.layer_list.count() - 1).setData(Qt.UserRole, layer)
         self.outline_stack.setCurrentIndex(0 if self.outline.topLevelItemCount() else 1)
         self.review_stack.setCurrentIndex(0 if self.review_list.count() else 1)
@@ -601,8 +810,12 @@ class MainWindow(QMainWindow):
     def _sync_review_actions(self, *_):
         item = self.review_list.currentItem()
         kind = item.data(Qt.UserRole)[0] if item else None
-        enabled = (bool(item), kind == 'comments', kind in ('comments', 'proposals', 'tracked_changes'),
-                   kind in ('proposals', 'tracked_changes'))
+        enabled = (
+            bool(item),
+            kind == 'comments',
+            kind in ('comments', 'proposals', 'tracked_changes'),
+            kind in ('proposals', 'tracked_changes'),
+        )
         for button, available in zip(self.review_buttons, enabled):
             button.setVisible(bool(self.review_list.count()))
             button.setEnabled(available)
@@ -610,12 +823,18 @@ class MainWindow(QMainWindow):
     def update_status(self):
         text = model.text_of(self.doc)
         words = len(text.split())
-        self.word_label.setText(f'{words:,} words   ·   {len(text):,} characters   ·   {max(1, round(words / 225))} min read')
-        self.setWindowTitle(f'{self.doc["metadata"].get("title", "Untitled")}{" •" if self.dirty else ""} — ByAuthorX')
+        self.word_label.setText(
+            f'{words:,} words   ·   {len(text):,} characters   ·   {max(1, round(words / 225))} min read'
+        )
+        self.setWindowTitle(
+            f'{self.doc["metadata"].get("title", "Untitled")}{" •" if self.dirty else ""} — ByAuthorX'
+        )
         title = self.doc['metadata'].get('title', 'Untitled')
         self.document_title.setText(title)
         self.document_title.setToolTip(title)
-        self.document_state.setText('Unsaved changes' if self.dirty else 'Saved locally' if self.path else 'New document')
+        self.document_state.setText(
+            'Unsaved changes' if self.dirty else 'Saved locally' if self.path else 'New document'
+        )
 
     def selection_changed(self):
         if not hasattr(self, 'word_label'):
@@ -629,7 +848,9 @@ class MainWindow(QMainWindow):
             return
         selection = self.editor.textCursor().selectedText()
         if selection:
-            self.status_label.setText(f'Selection: {len(selection.split())} words · {len(selection)} characters')
+            self.status_label.setText(
+                f'Selection: {len(selection.split())} words · {len(selection)} characters'
+            )
 
     def _text_changed(self):
         if not self._refreshing:
@@ -660,9 +881,17 @@ class MainWindow(QMainWindow):
         if not operations:
             return None
         old_revision = self.doc['revision']
-        candidate, result = engine.apply(self.doc, {'schema_version': 1, 'expected_revision': old_revision,
-                                                   'origin': 'gui', 'operations': operations},
-                                         allow_policy_changes=True, auto_compact_history=True)
+        candidate, result = engine.apply(
+            self.doc,
+            {
+                'schema_version': 1,
+                'expected_revision': old_revision,
+                'origin': 'gui',
+                'operations': operations,
+            },
+            allow_policy_changes=True,
+            auto_compact_history=True,
+        )
         self._undo.append(old_revision)
         self._redo.clear()
         self.doc = candidate
@@ -680,16 +909,46 @@ class MainWindow(QMainWindow):
 
     def commit(self, operations):
         if self.path and self.path.suffix.lower() in ('.md', '.markdown'):
-            simple = {'insert_text', 'replace_text', 'delete_text', 'set_text', 'insert_paragraph', 'delete_block',
-                      'move_block', 'split_block', 'join_blocks', 'insert_table', 'update_cell', 'add_row',
-                      'remove_row', 'add_column', 'remove_column', 'move_section', 'reorder_row', 'reorder_column'}
-            compatible = all(op['type'] in simple or
-                (op['type'] == 'replace_content' and 'import_provenance' in op) or
-                (op['type'] == 'format_text' and set(op['marks']) <= {'bold', 'italic', 'code', 'link'}) or
-                (op['type'] == 'apply_style' and op['style'] in {'body', 'heading1', 'heading2', 'heading3', 'code', 'quotation'}) or
-                (op['type'] == 'set_attributes' and set(op['values']) <= {'list', 'level'})
-                for op in operations)
-            if not compatible and (QMessageBox.question(self, 'Convert to ByAuthorX?', 'This feature cannot be represented in standard Markdown. Save a native .byax copy before applying it? Your Markdown original is preserved.') != QMessageBox.Yes or not self.save_as()):
+            simple = {
+                'insert_text',
+                'replace_text',
+                'delete_text',
+                'set_text',
+                'insert_paragraph',
+                'delete_block',
+                'move_block',
+                'split_block',
+                'join_blocks',
+                'insert_table',
+                'update_cell',
+                'add_row',
+                'remove_row',
+                'add_column',
+                'remove_column',
+                'move_section',
+                'reorder_row',
+                'reorder_column',
+            }
+            compatible = all(
+                op['type'] in simple
+                or (op['type'] == 'replace_content' and 'import_provenance' in op)
+                or (op['type'] == 'format_text' and set(op['marks']) <= {'bold', 'italic', 'code', 'link'})
+                or (
+                    op['type'] == 'apply_style'
+                    and op['style'] in {'body', 'heading1', 'heading2', 'heading3', 'code', 'quotation'}
+                )
+                or (op['type'] == 'set_attributes' and set(op['values']) <= {'list', 'level'})
+                for op in operations
+            )
+            if not compatible and (
+                QMessageBox.question(
+                    self,
+                    'Convert to ByAuthorX?',
+                    'This feature cannot be represented in standard Markdown. Save a native .byax copy before applying it? Your Markdown original is preserved.',
+                )
+                != QMessageBox.Yes
+                or not self.save_as()
+            ):
                 return False
         if not self.flush_edits():
             return False
@@ -704,8 +963,13 @@ class MainWindow(QMainWindow):
         self.flush_edits()
         if not self.dirty:
             return True
-        answer = QMessageBox.question(self, 'Save changes?', 'Save your changes before closing this document?',
-                                      QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, QMessageBox.Save)
+        answer = QMessageBox.question(
+            self,
+            'Save changes?',
+            'Save your changes before closing this document?',
+            QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel,
+            QMessageBox.Save,
+        )
         if answer == QMessageBox.Save:
             return self.save()
         return answer == QMessageBox.Discard
@@ -730,6 +994,7 @@ class MainWindow(QMainWindow):
 
     def open_path(self, path):
         from .exchange import import_document
+
         if not self.confirm_discard():
             return False
         selected = Path(path).resolve()
@@ -782,11 +1047,24 @@ class MainWindow(QMainWindow):
         try:
             if self.path.suffix.lower() in ('.md', '.markdown'):
                 from .exchange import export_document
+
                 with tempfile.TemporaryDirectory(prefix='.byax-save-', dir=self.path.parent) as temporary:
                     stage = Path(temporary) / 'document.md'
                     result = export_document(self.doc, stage)
-                    normalized = [loss for loss in result.get('losses', []) if loss.get('code', loss.get('type')) == 'markdown_normalized']
-                    if normalized and QMessageBox.question(self, 'Normalize Markdown source?', 'The structural changes require regenerating Markdown whitespace and syntax. Save these changes?') != QMessageBox.Yes:
+                    normalized = [
+                        loss
+                        for loss in result.get('losses', [])
+                        if loss.get('code', loss.get('type')) == 'markdown_normalized'
+                    ]
+                    if (
+                        normalized
+                        and QMessageBox.question(
+                            self,
+                            'Normalize Markdown source?',
+                            'The structural changes require regenerating Markdown whitespace and syntax. Save these changes?',
+                        )
+                        != QMessageBox.Yes
+                    ):
                         return False
                     os.replace(stage, self.path)
             else:
@@ -804,7 +1082,12 @@ class MainWindow(QMainWindow):
     def save_as(self):
         if not self.flush_edits():
             return False
-        path, _ = QFileDialog.getSaveFileName(self, 'Save editable master', str(self.path or self.doc['metadata'].get('title', 'Untitled') + '.byax'), 'ByAuthorX (*.byax)')
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            'Save editable master',
+            str(self.path or self.doc['metadata'].get('title', 'Untitled') + '.byax'),
+            'ByAuthorX (*.byax)',
+        )
         if not path:
             return False
         target = Path(path)
@@ -861,7 +1144,9 @@ class MainWindow(QMainWindow):
 
     def check_external_change(self):
         if self.path and self.file_stamp(self.path) != self._disk_stamp:
-            self.status_label.setText('File changed outside ByAuthorX. Save as a new file to preserve both versions.')
+            self.status_label.setText(
+                'File changed outside ByAuthorX. Save as a new file to preserve both versions.'
+            )
 
     def add_recent(self, path):
         recents = self.settings.value('recent', [], type=list)
@@ -925,15 +1210,23 @@ class MainWindow(QMainWindow):
     def apply_style(self, style):
         operations = []
         if style not in self.doc['styles']:
-            defaults = {'title': {'font_size': 32, 'bold': True}, 'subtitle': {'font_size': 15, 'color': '#677b76'},
-                        'quotation': {'italic': True, 'indent': 24}, 'caption': {'font_size': 9},
-                        'code': {'font_family': 'DejaVu Sans Mono', 'font_size': 10}}
+            defaults = {
+                'title': {'font_size': 32, 'bold': True},
+                'subtitle': {'font_size': 15, 'color': '#677b76'},
+                'quotation': {'italic': True, 'indent': 24},
+                'caption': {'font_size': 9},
+                'code': {'font_family': 'DejaVu Sans Mono', 'font_size': 10},
+            }
             operations.append({'type': 'define_style', 'name': style, 'values': defaults.get(style, {})})
-        operations.extend({'type': 'apply_style', 'target': target, 'style': style} for target in self.target_ids())
+        operations.extend(
+            {'type': 'apply_style', 'target': target, 'style': style} for target in self.target_ids()
+        )
         self.commit(operations)
 
     def attributes(self, values):
-        self.commit([{'type': 'set_attributes', 'target': target, 'values': values} for target in self.target_ids()])
+        self.commit(
+            [{'type': 'set_attributes', 'target': target, 'values': values} for target in self.target_ids()]
+        )
 
     def format_selection(self, mark, value):
         self.flush_edits()
@@ -941,13 +1234,44 @@ class MainWindow(QMainWindow):
         if not self.editor.textCursor().hasSelection():
             self.status_label.setText('Select the text you want to format.')
             return
-        self.commit([{'type': 'format_text', 'target': target, 'start': start, 'end': end,
-                      'marks': {mark: value}} for target, start, end in targets if end > start])
+        self.commit(
+            [
+                {'type': 'format_text', 'target': target, 'start': start, 'end': end, 'marks': {mark: value}}
+                for target, start, end in targets
+                if end > start
+            ]
+        )
 
     def clear_formatting(self):
         self.flush_edits()
-        self.commit([{'type': 'format_text', 'target': target, 'start': start, 'end': end, 'marks': {key: False for key in ('bold', 'italic', 'underline', 'strike', 'superscript', 'subscript', 'color', 'highlight', 'link', 'font_family', 'font_size')}}
-                     for target, start, end in self.editor.selection_targets() if end > start])
+        self.commit(
+            [
+                {
+                    'type': 'format_text',
+                    'target': target,
+                    'start': start,
+                    'end': end,
+                    'marks': {
+                        key: False
+                        for key in (
+                            'bold',
+                            'italic',
+                            'underline',
+                            'strike',
+                            'superscript',
+                            'subscript',
+                            'color',
+                            'highlight',
+                            'link',
+                            'font_family',
+                            'font_size',
+                        )
+                    },
+                }
+                for target, start, end in self.editor.selection_targets()
+                if end > start
+            ]
+        )
 
     def choose_color(self, mark):
         color = QColorDialog.getColor(QColor(COLORS['ink']), self)
@@ -971,7 +1295,7 @@ class MainWindow(QMainWindow):
         size.setValue(11)
         spacing = QDoubleSpinBox()
         spacing.setRange(0.5, 4)
-        spacing.setSingleStep(.1)
+        spacing.setSingleStep(0.1)
         spacing.setValue(1.15)
         indent = QDoubleSpinBox()
         indent.setRange(-144, 432)
@@ -984,7 +1308,16 @@ class MainWindow(QMainWindow):
         before, after = QDoubleSpinBox(), QDoubleSpinBox()
         before.setRange(0, 144)
         after.setRange(0, 144)
-        for label, control in [('Font', font), ('Size (pt)', size), ('Line spacing', spacing), ('First line indent (negative = hanging, pt)', indent), ('Left indent (pt)', left_indent), ('Tab stops (pt, comma separated)', tabs), ('Space before (pt)', before), ('Space after (pt)', after)]:
+        for label, control in [
+            ('Font', font),
+            ('Size (pt)', size),
+            ('Line spacing', spacing),
+            ('First line indent (negative = hanging, pt)', indent),
+            ('Left indent (pt)', left_indent),
+            ('Tab stops (pt, comma separated)', tabs),
+            ('Space before (pt)', before),
+            ('Space after (pt)', after),
+        ]:
             form.addRow(label, control)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(dialog.accept)
@@ -992,16 +1325,26 @@ class MainWindow(QMainWindow):
         form.addRow(buttons)
         if dialog.exec():
             try:
-                tab_values = sorted({float(value.strip()) for value in tabs.text().split(',') if value.strip()})
+                tab_values = sorted(
+                    {float(value.strip()) for value in tabs.text().split(',') if value.strip()}
+                )
                 if any(value <= 0 or value > 2000 for value in tab_values):
                     raise ValueError('Tab stops must be greater than 0 and at most 2,000 points.')
             except ValueError as exc:
                 self.error(exc)
                 return
-            self.attributes({'font_family': font.currentFont().family(), 'font_size': size.value(),
-                             'indent': left_indent.value(), 'tabs': tab_values,
-                             'line_spacing': spacing.value(), 'first_line_indent': indent.value(),
-                             'space_before': before.value(), 'space_after': after.value()})
+            self.attributes(
+                {
+                    'font_family': font.currentFont().family(),
+                    'font_size': size.value(),
+                    'indent': left_indent.value(),
+                    'tabs': tab_values,
+                    'line_spacing': spacing.value(),
+                    'first_line_indent': indent.value(),
+                    'space_before': before.value(),
+                    'space_after': after.value(),
+                }
+            )
 
     def list_indent(self, delta):
         operations = []
@@ -1011,14 +1354,26 @@ class MainWindow(QMainWindow):
                 continue
             attrs = block.get('attrs', {})
             listing = attrs.get('list', {'kind': 'bullet', 'level': 1})
-            listing = dict(listing) if isinstance(listing, dict) else {'kind': listing, 'level': max(1, attrs.get('level', 1))}
+            listing = (
+                dict(listing)
+                if isinstance(listing, dict)
+                else {'kind': listing, 'level': max(1, attrs.get('level', 1))}
+            )
             listing['level'] = max(1, min(9, listing.get('level', 1) + delta))
             operations.append({'type': 'set_attributes', 'target': target, 'values': {'list': listing}})
         self.commit(operations)
 
     def section_targets(self, target):
         blocks = self.doc['blocks']
-        index = next((i for i, block in enumerate(blocks) if block['id'] == target or any(cell['id'] == target for row in block.get('rows', []) for cell in row['cells'])), 0)
+        index = next(
+            (
+                i
+                for i, block in enumerate(blocks)
+                if block['id'] == target
+                or any(cell['id'] == target for row in block.get('rows', []) for cell in row['cells'])
+            ),
+            0,
+        )
         section_id = blocks[index].get('section_id') if blocks else None
         if section_id:
             return {b['id'] for b in blocks if b.get('section_id') == section_id}
@@ -1037,7 +1392,11 @@ class MainWindow(QMainWindow):
         dialog.resize(540, 240)
         form = QFormLayout(dialog)
         query, replacement = QLineEdit(), QLineEdit()
-        case, whole, regex = QCheckBox('Match case'), QCheckBox('Whole words'), QCheckBox('Regular expression')
+        case, whole, regex = (
+            QCheckBox('Match case'),
+            QCheckBox('Whole words'),
+            QCheckBox('Regular expression'),
+        )
         selected_ranges = {target: (start, end) for target, start, end in self.editor.selection_targets()}
         current_target = self.editor.current_id()
         scope = QComboBox()
@@ -1053,11 +1412,13 @@ class MainWindow(QMainWindow):
         form.addRow(count)
         matches = []
         match_index = 0
+
         def navigate_match():
             if matches:
                 from PySide6.QtGui import QTextCursor
 
                 from .gui_editor import qt_offset
+
                 match = matches[match_index]
                 if self.editor.navigate(match['target']):
                     cursor = self.editor.textCursor()
@@ -1067,6 +1428,7 @@ class MainWindow(QMainWindow):
                     cursor.setPosition(base + qt_offset(text, match['end']), QTextCursor.KeepAnchor)
                     self.editor.setTextCursor(cursor)
                 count.setText(f'Match {match_index + 1} of {len(matches)}')
+
         def next_match():
             nonlocal match_index
             if matches:
@@ -1074,11 +1436,18 @@ class MainWindow(QMainWindow):
                 navigate_match()
             else:
                 search()
+
         def search():
             nonlocal matches, match_index
             match_index = 0
             try:
-                result = engine.find(self.doc, query.text(), case_sensitive=case.isChecked(), whole_word=whole.isChecked(), regex=regex.isChecked())
+                result = engine.find(
+                    self.doc,
+                    query.text(),
+                    case_sensitive=case.isChecked(),
+                    whole_word=whole.isChecked(),
+                    regex=regex.isChecked(),
+                )
                 matches = result.get('matches', result.get('results', []))
                 if scope.currentText() == 'Current paragraph':
                     matches = [match for match in matches if match['target'] == current_target]
@@ -1086,31 +1455,48 @@ class MainWindow(QMainWindow):
                     selected_blocks = self.section_targets(current_target)
                     matches = [match for match in matches if match['block'] in selected_blocks]
                 elif scope.currentText() == 'Selection':
-                    matches = [match for match in matches if match['target'] in selected_ranges and selected_ranges[match['target']][0] <= match['start'] and match['end'] <= selected_ranges[match['target']][1]]
+                    matches = [
+                        match
+                        for match in matches
+                        if match['target'] in selected_ranges
+                        and selected_ranges[match['target']][0] <= match['start']
+                        and match['end'] <= selected_ranges[match['target']][1]
+                    ]
                 count.setText(f'{len(matches)} matches')
                 navigate_match()
             except Exception as exc:
                 count.setText(str(exc))
+
         def replace_all():
             search()
             if not matches:
                 return
             try:
-                replacements = self.replacement_preview(matches, query.text(), replacement.text(), case.isChecked(), regex.isChecked())
+                replacements = self.replacement_preview(
+                    matches, query.text(), replacement.text(), case.isChecked(), regex.isChecked()
+                )
             except Exception as exc:
                 self.error(exc)
                 return
             self.report('Replacement preview', replacements)
-            if QMessageBox.question(dialog, 'Replace matches?', f'Replace {len(matches)} matches with {replacement.text()!r}?') != QMessageBox.Yes:
+            if (
+                QMessageBox.question(
+                    dialog, 'Replace matches?', f'Replace {len(matches)} matches with {replacement.text()!r}?'
+                )
+                != QMessageBox.Yes
+            ):
                 return
             operations = []
             for match in reversed(replacements):
                 target = match.get('target') or match.get('id')
                 start, end = match['start'], match['end']
-                operations += [{'type': 'delete_text', 'target': target, 'start': start, 'end': end},
-                               {'type': 'insert_text', 'target': target, 'offset': start, 'text': match['replacement']}]
+                operations += [
+                    {'type': 'delete_text', 'target': target, 'start': start, 'end': end},
+                    {'type': 'insert_text', 'target': target, 'offset': start, 'text': match['replacement']},
+                ]
             if self.commit(operations):
                 dialog.accept()
+
         find_btn, replace_btn = QPushButton('Find'), QPushButton('Preview replace all…')
         next_btn = QPushButton('Next match')
         next_btn.clicked.connect(next_match)
@@ -1124,14 +1510,22 @@ class MainWindow(QMainWindow):
         expanded = {}
         if regex:
             import regex as regex_engine
+
             compiled = regex_engine.compile(query, 0 if case_sensitive else regex_engine.IGNORECASE)
             for target in {match['target'] for match in matches}:
                 obj = model.find_object(self.doc, target)
                 for match in compiled.finditer(obj.get('text', ''), timeout=0.1):
                     expanded[(target, match.start(), match.end())] = match.expand(replacement)
-        return [{**match, 'replacement': expanded.get((match['target'], match['start'], match['end']), replacement),
-                 'explanation': repr(match['text']) + ' → ' + repr(expanded.get((match['target'], match['start'], match['end']), replacement))}
-                for match in matches]
+        return [
+            {
+                **match,
+                'replacement': expanded.get((match['target'], match['start'], match['end']), replacement),
+                'explanation': repr(match['text'])
+                + ' → '
+                + repr(expanded.get((match['target'], match['start'], match['end']), replacement)),
+            }
+            for match in matches
+        ]
 
     def insert_table(self):
         rows, ok = QInputDialog.getInt(self, 'Insert table', 'Rows', 3, 1, 1000)
@@ -1139,12 +1533,16 @@ class MainWindow(QMainWindow):
             return
         columns, ok = QInputDialog.getInt(self, 'Insert table', 'Columns', 3, 1, 100)
         if ok:
-            self.commit([{'type': 'insert_table', 'after': self.block_target(), 'rows': rows, 'columns': columns}])
+            self.commit(
+                [{'type': 'insert_table', 'after': self.block_target(), 'rows': rows, 'columns': columns}]
+            )
 
     def block_target(self):
         target = self.editor.current_id()
         for block in self.doc['blocks']:
-            if block['id'] == target or any(c['id'] == target for r in block.get('rows', []) for c in r['cells']):
+            if block['id'] == target or any(
+                c['id'] == target for r in block.get('rows', []) for c in r['cells']
+            ):
                 return block['id']
         return self.doc['blocks'][-1]['id'] if self.doc['blocks'] else None
 
@@ -1157,7 +1555,9 @@ class MainWindow(QMainWindow):
         op = {'type': kind, 'target': target}
         if kind.startswith('remove'):
             limit = len(block['rows']) if kind.endswith('row') else len(block['rows'][0]['cells'])
-            index, ok = QInputDialog.getInt(self, kind.replace('_', ' ').title(), 'Number (starting at 1)', 1, 1, limit)
+            index, ok = QInputDialog.getInt(
+                self, kind.replace('_', ' ').title(), 'Number (starting at 1)', 1, 1, limit
+            )
             if not ok:
                 return
             op['index'] = index - 1
@@ -1172,13 +1572,30 @@ class MainWindow(QMainWindow):
         table, row, column, _ = selected
         index = row if dimension == 'row' else column
         count = len(table['rows']) if dimension == 'row' else len(table['rows'][0]['cells'])
-        destination, ok = QInputDialog.getInt(self, 'Move ' + dimension,
-            f'Move {dimension} {index + 1} to position (1–{count})', index + 1, 1, count)
+        destination, ok = QInputDialog.getInt(
+            self,
+            'Move ' + dimension,
+            f'Move {dimension} {index + 1} to position (1–{count})',
+            index + 1,
+            1,
+            count,
+        )
         if ok and destination - 1 != index:
-            self.commit([{'type': 'reorder_' + dimension, 'target': table['id'], 'index': index, 'to_index': destination - 1}])
+            self.commit(
+                [
+                    {
+                        'type': 'reorder_' + dimension,
+                        'target': table['id'],
+                        'index': index,
+                        'to_index': destination - 1,
+                    }
+                ]
+            )
 
     def table_properties(self):
-        block = next((b for b in self.doc['blocks'] if b['id'] == self.block_target() and b['type'] == 'table'), None)
+        block = next(
+            (b for b in self.doc['blocks'] if b['id'] == self.block_target() and b['type'] == 'table'), None
+        )
         if block is None:
             self.error('Place the cursor in a table first.')
             return
@@ -1193,23 +1610,35 @@ class MainWindow(QMainWindow):
         attrs = block.get('attrs', {})
         width = QDoubleSpinBox()
         width.setRange(36, 2000)
-        width.setValue(attrs.get('width', self.doc['layout']['width'] - self.doc['layout']['margins']['left'] - self.doc['layout']['margins']['right']))
+        width.setValue(
+            attrs.get(
+                'width',
+                self.doc['layout']['width']
+                - self.doc['layout']['margins']['left']
+                - self.doc['layout']['margins']['right'],
+            )
+        )
         columns = QLineEdit(', '.join(str(value) for value in attrs.get('column_widths', [])))
         columns.setPlaceholderText('Blank = automatic; otherwise one width per column')
         border = QDoubleSpinBox()
         border.setRange(0, 12)
-        border.setValue(attrs.get('border_width', .5))
+        border.setValue(attrs.get('border_width', 0.5))
         alignment = QComboBox()
         alignment.addItems(['left', 'center', 'right'])
         alignment.setCurrentText(attrs.get('alignment', 'left'))
-        colors = {'background': attrs.get('background', '#ffffff'), 'border_color': attrs.get('border_color', '#606060')}
+        colors = {
+            'background': attrs.get('background', '#ffffff'),
+            'border_color': attrs.get('border_color', '#606060'),
+        }
         for key, label in [('background', 'Table shading'), ('border_color', 'Border color')]:
             button = QPushButton(colors[key])
+
             def choose(checked=False, field=key, control=button):
                 color = QColorDialog.getColor(QColor(colors[field]), dialog)
                 if color.isValid():
                     colors[field] = color.name()
                     control.setText(color.name())
+
             button.clicked.connect(choose)
             form.addRow(label, button)
         form.addRow(header)
@@ -1225,9 +1654,28 @@ class MainWindow(QMainWindow):
         if dialog.exec():
             try:
                 column_widths = [float(value.strip()) for value in columns.text().split(',') if value.strip()]
-                if column_widths and (len(column_widths) != len(block['rows'][0]['cells']) or any(value <= 0 for value in column_widths)):
+                if column_widths and (
+                    len(column_widths) != len(block['rows'][0]['cells'])
+                    or any(value <= 0 for value in column_widths)
+                ):
                     raise ValueError('Specify one positive width per column, or leave the field blank.')
-                self.commit([{'type': 'set_attributes', 'target': block['id'], 'values': {'header_rows': int(header.isChecked()), 'padding': padding.value(), 'width': width.value(), 'column_widths': column_widths, 'border_width': border.value(), 'alignment': alignment.currentText(), **colors}}])
+                self.commit(
+                    [
+                        {
+                            'type': 'set_attributes',
+                            'target': block['id'],
+                            'values': {
+                                'header_rows': int(header.isChecked()),
+                                'padding': padding.value(),
+                                'width': width.value(),
+                                'column_widths': column_widths,
+                                'border_width': border.value(),
+                                'alignment': alignment.currentText(),
+                                **colors,
+                            },
+                        }
+                    ]
+                )
             except ValueError as exc:
                 self.error(exc)
 
@@ -1250,28 +1698,55 @@ class MainWindow(QMainWindow):
         rows, ok = QInputDialog.getInt(self, 'Merge cells', 'Rows to merge', 1, 1, len(table['rows']) - row)
         if not ok:
             return
-        columns, ok = QInputDialog.getInt(self, 'Merge cells', 'Columns to merge', 1, 1, len(table['rows'][row]['cells']) - column)
+        columns, ok = QInputDialog.getInt(
+            self, 'Merge cells', 'Columns to merge', 1, 1, len(table['rows'][row]['cells']) - column
+        )
         if not ok or rows * columns == 1:
             return
-        selected_cells = [table['rows'][r]['cells'][c] for r in range(row, row + rows) for c in range(column, column + columns)]
-        if any(c.get('attrs', {}).get('rowspan', 1) > 1 or c.get('attrs', {}).get('colspan', 1) > 1 for c in selected_cells):
+        selected_cells = [
+            table['rows'][r]['cells'][c]
+            for r in range(row, row + rows)
+            for c in range(column, column + columns)
+        ]
+        if any(
+            c.get('attrs', {}).get('rowspan', 1) > 1 or c.get('attrs', {}).get('colspan', 1) > 1
+            for c in selected_cells
+        ):
             self.error('Unmerge existing spans before creating a new merged range.')
             return
         text = '\n'.join(c['text'] for c in selected_cells if c['text'])
-        if QMessageBox.question(self, 'Merge selected range?', 'Merge these cells and combine their text into the top-left cell? Unmerging later keeps the combined text in that cell.') != QMessageBox.Yes:
+        if (
+            QMessageBox.question(
+                self,
+                'Merge selected range?',
+                'Merge these cells and combine their text into the top-left cell? Unmerging later keeps the combined text in that cell.',
+            )
+            != QMessageBox.Yes
+        ):
             return
         operations = [{'type': 'update_cell', 'target': cell['id'], 'text': text}]
         operations.extend({'type': 'update_cell', 'target': c['id'], 'text': ''} for c in selected_cells[1:])
-        operations.append({'type': 'set_attributes', 'target': cell['id'], 'values': {'rowspan': rows, 'colspan': columns}})
+        operations.append(
+            {'type': 'set_attributes', 'target': cell['id'], 'values': {'rowspan': rows, 'colspan': columns}}
+        )
         self.commit(operations)
 
     def unmerge_cell(self):
         selected = self.selected_cell()
         if selected:
-            self.commit([{'type': 'set_attributes', 'target': selected[3]['id'], 'values': {'rowspan': 1, 'colspan': 1}}])
+            self.commit(
+                [
+                    {
+                        'type': 'set_attributes',
+                        'target': selected[3]['id'],
+                        'values': {'rowspan': 1, 'colspan': 1},
+                    }
+                ]
+            )
 
     def import_csv(self):
         from .table_io import read_csv
+
         path, _ = QFileDialog.getOpenFileName(self, 'Import CSV table', '', 'CSV (*.csv)')
         if not path:
             return
@@ -1280,11 +1755,29 @@ class MainWindow(QMainWindow):
             columns = max((len(row) for row in rows), default=0)
             if not columns or len(rows) > 1000 or columns > 100:
                 raise ValueError('A CSV table must contain 1–1,000 rows and 1–100 columns.')
-            block = {'id': 'table_' + uuid.uuid4().hex, 'type': 'table', 'text': '', 'style': 'body', 'marks': [], 'attrs': {'header_rows': 1}, 'rows': []}
+            block = {
+                'id': 'table_' + uuid.uuid4().hex,
+                'type': 'table',
+                'text': '',
+                'style': 'body',
+                'marks': [],
+                'attrs': {'header_rows': 1},
+                'rows': [],
+            }
             for row in rows:
-                block['rows'].append({'id': 'row_' + uuid.uuid4().hex, 'cells': [{'id': 'cell_' + uuid.uuid4().hex, 'text': value, 'attrs': {}} for value in row + [''] * (columns - len(row))]})
+                block['rows'].append(
+                    {
+                        'id': 'row_' + uuid.uuid4().hex,
+                        'cells': [
+                            {'id': 'cell_' + uuid.uuid4().hex, 'text': value, 'attrs': {}}
+                            for value in row + [''] * (columns - len(row))
+                        ],
+                    }
+                )
             blocks = copy.deepcopy(self.doc['blocks'])
-            index = next((i + 1 for i, old in enumerate(blocks) if old['id'] == self.block_target()), len(blocks))
+            index = next(
+                (i + 1 for i, old in enumerate(blocks) if old['id'] == self.block_target()), len(blocks)
+            )
             blocks.insert(index, block)
             self.commit([{'type': 'replace_content', 'blocks': blocks}])
         except Exception as exc:
@@ -1292,8 +1785,11 @@ class MainWindow(QMainWindow):
 
     def update_table_csv(self):
         from .table_io import import_csv
+
         self.flush_edits()
-        block = next((b for b in self.doc['blocks'] if b['id'] == self.block_target() and b['type'] == 'table'), None)
+        block = next(
+            (b for b in self.doc['blocks'] if b['id'] == self.block_target() and b['type'] == 'table'), None
+        )
         if not block:
             self.error('Place the cursor in a table first.')
             return
@@ -1303,7 +1799,14 @@ class MainWindow(QMainWindow):
         try:
             _, preview = import_csv(self.doc, block['id'], path, grow=True, dry_run=True)
             self.report('Preview CSV table update', preview)
-            if QMessageBox.question(self, 'Update table?', 'Apply these CSV values? Existing cell identities and formatting are preserved; larger inputs add rows or columns.') != QMessageBox.Yes:
+            if (
+                QMessageBox.question(
+                    self,
+                    'Update table?',
+                    'Apply these CSV values? Existing cell identities and formatting are preserved; larger inputs add rows or columns.',
+                )
+                != QMessageBox.Yes
+            ):
                 return
             revision = self.doc['revision']
             self.doc, _ = import_csv(self.doc, block['id'], path, expected_revision=revision, grow=True)
@@ -1316,8 +1819,11 @@ class MainWindow(QMainWindow):
 
     def export_csv(self):
         from .table_io import export_csv
+
         self.flush_edits()
-        block = next((b for b in self.doc['blocks'] if b['id'] == self.block_target() and b['type'] == 'table'), None)
+        block = next(
+            (b for b in self.doc['blocks'] if b['id'] == self.block_target() and b['type'] == 'table'), None
+        )
         if not block:
             self.error('Place the cursor in a table first.')
             return
@@ -1342,24 +1848,46 @@ class MainWindow(QMainWindow):
             self.status_label.setText('Place the cursor on the object you want to delete.')
 
     def insert_image(self):
-        path, _ = QFileDialog.getOpenFileName(self, 'Insert embedded image', '', 'Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)')
+        path, _ = QFileDialog.getOpenFileName(
+            self, 'Insert embedded image', '', 'Images (*.png *.jpg *.jpeg *.webp *.gif *.bmp)'
+        )
         if not path:
             return
-        alt, ok = QInputDialog.getText(self, 'Image description', 'Describe the image for readers using assistive technology')
+        alt, ok = QInputDialog.getText(
+            self, 'Image description', 'Describe the image for readers using assistive technology'
+        )
         if not ok:
             return
         import mimetypes
+
         data = Path(path).read_bytes()
         digest = hashlib.sha256(data).hexdigest()
         from PySide6.QtGui import QImage
+
         image = QImage(path)
         if image.isNull():
             self.error('This image could not be decoded.')
             return
         width = min(288, image.width())
         height = width * image.height() / max(1, image.width())
-        self.commit([{'type': 'add_asset', 'data': base64.b64encode(data).decode(), 'mime': mimetypes.guess_type(path)[0] or 'image/png', 'name': Path(path).name},
-                     {'type': 'place_image', 'after': self.block_target(), 'asset': digest, 'alt': alt, 'width': width, 'height': height}])
+        self.commit(
+            [
+                {
+                    'type': 'add_asset',
+                    'data': base64.b64encode(data).decode(),
+                    'mime': mimetypes.guess_type(path)[0] or 'image/png',
+                    'name': Path(path).name,
+                },
+                {
+                    'type': 'place_image',
+                    'after': self.block_target(),
+                    'asset': digest,
+                    'alt': alt,
+                    'width': width,
+                    'height': height,
+                },
+            ]
+        )
 
     def insert_page_break(self):
         self.attributes({'page_break_before': True})
@@ -1370,7 +1898,10 @@ class MainWindow(QMainWindow):
         target = self.block_target()
         index = next((i + 1 for i, b in enumerate(blocks) if b['id'] == target), len(blocks))
         ident = 'obj_' + uuid.uuid4().hex
-        blocks.insert(index, {'id': ident, 'type': kind, 'text': text, 'style': 'body', 'marks': [], 'attrs': attrs or {}})
+        blocks.insert(
+            index,
+            {'id': ident, 'type': kind, 'text': text, 'style': 'body', 'marks': [], 'attrs': attrs or {}},
+        )
         return self.commit([{'type': 'replace_content', 'blocks': blocks}])
 
     def insert_section(self):
@@ -1390,12 +1921,16 @@ class MainWindow(QMainWindow):
             return
         name, ok = QInputDialog.getText(self, 'Bookmark', 'Bookmark name')
         if ok and name:
-            self.commit([{'type': 'set_bookmark', 'name': name, 'target': targets[0][0], 'offset': targets[0][1]}])
+            self.commit(
+                [{'type': 'set_bookmark', 'name': name, 'target': targets[0][0], 'offset': targets[0][1]}]
+            )
 
     def cross_reference(self):
         names = list(self.doc.get('settings', {}).get('bookmarks', {}))
         if not names:
-            self.message('Cross reference', 'Create a bookmark first, then select the text that should refer to it.')
+            self.message(
+                'Cross reference', 'Create a bookmark first, then select the text that should refer to it.'
+            )
             return
         name, ok = QInputDialog.getItem(self, 'Cross reference', 'Bookmark', names, 0, False)
         if ok:
@@ -1413,15 +1948,39 @@ class MainWindow(QMainWindow):
         size.setRange(6, 144)
         size.setValue(11)
         bold, italic = QCheckBox('Bold'), QCheckBox('Italic')
-        for label, control in [('Style name', name), ('Inherit from', based_on), ('Font', font), ('Size (pt)', size), ('Weight', bold), ('Emphasis', italic)]:
+        for label, control in [
+            ('Style name', name),
+            ('Inherit from', based_on),
+            ('Font', font),
+            ('Size (pt)', size),
+            ('Weight', bold),
+            ('Emphasis', italic),
+        ]:
             form.addRow(label, control)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         form.addRow(buttons)
         if dialog.exec() and name.text().strip():
-            self.commit([{'type': 'define_style', 'name': name.text().strip(), 'values': {'based_on': based_on.currentText(), 'font_family': font.currentFont().family(), 'font_size': size.value(), 'bold': bold.isChecked(), 'italic': italic.isChecked()}}])
-            if name.text().strip() in self.doc['styles'] and self.style_box.findData(name.text().strip()) == -1:
+            self.commit(
+                [
+                    {
+                        'type': 'define_style',
+                        'name': name.text().strip(),
+                        'values': {
+                            'based_on': based_on.currentText(),
+                            'font_family': font.currentFont().family(),
+                            'font_size': size.value(),
+                            'bold': bold.isChecked(),
+                            'italic': italic.isChecked(),
+                        },
+                    }
+                ]
+            )
+            if (
+                name.text().strip() in self.doc['styles']
+                and self.style_box.findData(name.text().strip()) == -1
+            ):
                 self.style_box.addItem(name.text().strip(), name.text().strip())
 
     def add_comment(self):
@@ -1437,9 +1996,20 @@ class MainWindow(QMainWindow):
             self.status_label.setText('Select a comment in the Review panel before replying.')
             return
         _, comment = item.data(Qt.UserRole)
-        text, ok = QInputDialog.getMultiLineText(self, 'Reply to comment', comment.get('text', 'Comment') + '\n\nYour reply')
+        text, ok = QInputDialog.getMultiLineText(
+            self, 'Reply to comment', comment.get('text', 'Comment') + '\n\nYour reply'
+        )
         if ok and text.strip():
-            self.commit([{'type': 'reply_comment', 'target': comment['id'], 'text': text.strip(), 'author': self.doc['metadata'].get('author', '')}])
+            self.commit(
+                [
+                    {
+                        'type': 'reply_comment',
+                        'target': comment['id'],
+                        'text': text.strip(),
+                        'author': self.doc['metadata'].get('author', ''),
+                    }
+                ]
+            )
 
     def move_section(self):
         self.flush_edits()
@@ -1454,8 +2024,18 @@ class MainWindow(QMainWindow):
                 current = next(i for i, heading in enumerate(headings) if heading['id'] == block['id'])
             if block['id'] == target:
                 break
-        labels = [f'{index + 1}. {heading.get("text") or "Untitled heading"}' for index, heading in enumerate(headings)]
-        source_label, ok = QInputDialog.getItem(self, 'Move section', 'Section to move, including its nested headings and anchored objects', labels, current, False)
+        labels = [
+            f'{index + 1}. {heading.get("text") or "Untitled heading"}'
+            for index, heading in enumerate(headings)
+        ]
+        source_label, ok = QInputDialog.getItem(
+            self,
+            'Move section',
+            'Section to move, including its nested headings and anchored objects',
+            labels,
+            current,
+            False,
+        )
         if not ok:
             return
         source = headings[labels.index(source_label)]
@@ -1463,12 +2043,15 @@ class MainWindow(QMainWindow):
         source_index = self.doc['blocks'].index(source)
         source_level = int(source.get('attrs', {}).get('level', 1))
         descendants = {source['id']}
-        for block in self.doc['blocks'][source_index + 1:]:
+        for block in self.doc['blocks'][source_index + 1 :]:
             if block['type'] == 'heading' and int(block.get('attrs', {}).get('level', 1)) <= source_level:
                 break
             descendants.add(block['id'])
         destinations = [heading for heading in headings if heading['id'] not in descendants]
-        options = ['End of document'] + [f'After section: {heading.get("text") or "Untitled heading"} ({index + 1})' for index, heading in enumerate(destinations)]
+        options = ['End of document'] + [
+            f'After section: {heading.get("text") or "Untitled heading"} ({index + 1})'
+            for index, heading in enumerate(destinations)
+        ]
         destination, ok = QInputDialog.getItem(self, 'Move section', 'New location', options, 0, False)
         if ok:
             index = options.index(destination)
@@ -1484,7 +2067,15 @@ class MainWindow(QMainWindow):
     def unprotect(self):
         targets = self.target_ids()
         rules = [rule for rule in self.doc['settings'].get('protections', []) if rule['target'] in targets]
-        if rules and QMessageBox.question(self, 'Remove protection?', 'Allow future edits to the selected protected content? This policy change is recorded in history.') == QMessageBox.Yes:
+        if (
+            rules
+            and QMessageBox.question(
+                self,
+                'Remove protection?',
+                'Allow future edits to the selected protected content? This policy change is recorded in history.',
+            )
+            == QMessageBox.Yes
+        ):
             self.commit([{'type': 'unprotect', **rule} for rule in rules])
 
     def review_item(self, item=None):
@@ -1505,7 +2096,12 @@ class MainWindow(QMainWindow):
             self.commit([{'type': 'resolve_comment', 'target': record['id']}])
         elif kind in ('proposals', 'tracked_changes'):
             self.report('Review exact changes before accepting', record)
-            if QMessageBox.question(self, 'Apply changes?', 'Apply these exact proposed changes to the document?') == QMessageBox.Yes:
+            if (
+                QMessageBox.question(
+                    self, 'Apply changes?', 'Apply these exact proposed changes to the document?'
+                )
+                == QMessageBox.Yes
+            ):
                 operation = 'accept_proposal' if kind == 'proposals' else 'accept_change'
                 self.commit([{'type': operation, 'target': record['id']}])
         else:
@@ -1516,24 +2112,37 @@ class MainWindow(QMainWindow):
         if item:
             kind, record = item.data(Qt.UserRole)
             if kind in ('proposals', 'tracked_changes'):
-                self.commit([{'type': 'reject_proposal' if kind == 'proposals' else 'reject_change', 'target': record['id']}])
+                self.commit(
+                    [
+                        {
+                            'type': 'reject_proposal' if kind == 'proposals' else 'reject_change',
+                            'target': record['id'],
+                        }
+                    ]
+                )
 
     def edit_profiles(self):
         from .gui_profiles import ProfileDialog
+
         ProfileDialog(self).exec()
 
     def run_checks(self):
         from .checks import run_checks
+
         self.flush_edits()
         frozen = copy.deepcopy(self.doc)
+
         def finished(result):
             if frozen['revision'] != self.doc['revision']:
                 self.report('Checks completed against an earlier revision', result)
                 return
             self._last_report = result
             self.update_sidebar()
-            self.status_label.setText('Checks: ' + str(result.get('validation', 'complete')) + ' · See Review for findings')
+            self.status_label.setText(
+                'Checks: ' + str(result.get('validation', 'complete')) + ' · See Review for findings'
+            )
             self.report('Document health and actual coverage', result)
+
         profile = getattr(self, 'active_profile', None)
         profile = profile if profile in frozen.get('profiles', {}) else None
         self.background('Checking document…', lambda: run_checks(frozen, profile=profile), finished)
@@ -1544,31 +2153,84 @@ class MainWindow(QMainWindow):
             return
         text, ok = QInputDialog.getText(self, 'Layer text', 'Text', text='DRAFT')
         if ok:
-            self.commit([{'type': 'add_layer', 'values': {'name': name, 'type': 'text', 'text': text, 'visible': True, 'locked': False,
-                                                        'x': 160, 'y': 360, 'width': 300, 'height': 100, 'opacity': .15, 'font_size': 52, 'z': -1}}])
+            self.commit(
+                [
+                    {
+                        'type': 'add_layer',
+                        'values': {
+                            'name': name,
+                            'type': 'text',
+                            'text': text,
+                            'visible': True,
+                            'locked': False,
+                            'x': 160,
+                            'y': 360,
+                            'width': 300,
+                            'height': 100,
+                            'opacity': 0.15,
+                            'font_size': 52,
+                            'z': -1,
+                        },
+                    }
+                ]
+            )
 
     def toggle_layer(self):
         item = self.layer_list.currentItem()
         if item:
             layer = item.data(Qt.UserRole)
-            self.commit([{'type': 'update_layer', 'target': layer['id'], 'values': {'visible': not layer.get('visible', True)}}])
+            self.commit(
+                [
+                    {
+                        'type': 'update_layer',
+                        'target': layer['id'],
+                        'values': {'visible': not layer.get('visible', True)},
+                    }
+                ]
+            )
 
     def lock_layer(self):
         item = self.layer_list.currentItem()
         if item:
             layer = item.data(Qt.UserRole)
-            self.commit([{'type': 'update_layer', 'target': layer['id'], 'values': {'locked': not layer.get('locked', False)}}])
+            self.commit(
+                [
+                    {
+                        'type': 'update_layer',
+                        'target': layer['id'],
+                        'values': {'locked': not layer.get('locked', False)},
+                    }
+                ]
+            )
 
     def add_reference(self):
         title, ok = QInputDialog.getText(self, 'Attach reference', 'Source title')
         if not ok:
             return
-        excerpt, ok = QInputDialog.getMultiLineText(self, 'Reference excerpt', 'Approved evidence excerpt (stored in this document)')
+        excerpt, ok = QInputDialog.getMultiLineText(
+            self, 'Reference excerpt', 'Approved evidence excerpt (stored in this document)'
+        )
         if ok:
-            self.commit([{'type': 'add_reference', 'id': 'ref_' + uuid.uuid4().hex, 'values': {'title': title, 'excerpt': excerpt, 'target': self.editor.current_id()}}])
+            self.commit(
+                [
+                    {
+                        'type': 'add_reference',
+                        'id': 'ref_' + uuid.uuid4().hex,
+                        'values': {'title': title, 'excerpt': excerpt, 'target': self.editor.current_id()},
+                    }
+                ]
+            )
 
     def toggle_tracking(self, enabled):
-        if enabled or QMessageBox.question(self, 'Disable tracking?', 'Stop recording tracked changes for future edits? Existing tracked changes are retained.') == QMessageBox.Yes:
+        if (
+            enabled
+            or QMessageBox.question(
+                self,
+                'Disable tracking?',
+                'Stop recording tracked changes for future edits? Existing tracked changes are retained.',
+            )
+            == QMessageBox.Yes
+        ):
             self.commit([{'type': 'set_tracking', 'enabled': enabled}])
         self.track_action.setChecked(bool(self.doc['settings'].get('track_changes')))
 
@@ -1580,7 +2242,13 @@ class MainWindow(QMainWindow):
         kind = QComboBox()
         kind.addItems(['text', 'number', 'date'])
         required = QCheckBox('Required before publication')
-        for label, control in [('Field name', name), ('Type', kind), ('Description', description), ('Default', default), ('Requirement', required)]:
+        for label, control in [
+            ('Field name', name),
+            ('Type', kind),
+            ('Description', description),
+            ('Default', default),
+            ('Requirement', required),
+        ]:
             form.addRow(label, control)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(dialog.accept)
@@ -1602,12 +2270,23 @@ class MainWindow(QMainWindow):
                 except ValueError:
                     self.error('The default must be a number.')
                     return
-            field = {'type': kind.currentText(), 'description': description.text(), 'required': required.isChecked()}
+            field = {
+                'type': kind.currentText(),
+                'description': description.text(),
+                'required': required.isChecked(),
+            }
             if value != '':
                 field['default'] = value
                 field['value'] = value
-            operations = [{'type': 'insert_text', 'target': targets[0][0], 'offset': targets[0][1], 'text': '{{' + key + '}}'},
-                          {'type': 'fill_fields', 'values': {key: field}}]
+            operations = [
+                {
+                    'type': 'insert_text',
+                    'target': targets[0][0],
+                    'offset': targets[0][1],
+                    'text': '{{' + key + '}}',
+                },
+                {'type': 'fill_fields', 'values': {key: field}},
+            ]
             if value == '':
                 operations.reverse()
             self.commit(operations)
@@ -1619,12 +2298,19 @@ class MainWindow(QMainWindow):
             label = field.get('description') or key
             initial = field.get('value', field.get('default', ''))
             if field.get('type') == 'number':
-                value, ok = QInputDialog.getDouble(self, 'Fill template fields', label, float(initial or 0), -1e12, 1e12, 6)
+                value, ok = QInputDialog.getDouble(
+                    self, 'Fill template fields', label, float(initial or 0), -1e12, 1e12, 6
+                )
             elif field.get('type') in ('enum', 'enumerated'):
                 choices = [str(v) for v in field.get('options', field.get('choices', []))]
                 value, ok = QInputDialog.getItem(self, 'Fill template fields', label, choices, 0, False)
             else:
-                value, ok = QInputDialog.getText(self, 'Fill template fields', label + (' (YYYY-MM-DD)' if field.get('type') == 'date' else ''), text=str(initial))
+                value, ok = QInputDialog.getText(
+                    self,
+                    'Fill template fields',
+                    label + (' (YYYY-MM-DD)' if field.get('type') == 'date' else ''),
+                    text=str(initial),
+                )
             if not ok:
                 return
             values[key] = value
@@ -1667,22 +2353,36 @@ class MainWindow(QMainWindow):
             revisions.addItem(str(record.get('name') or record.get('timestamp') or '') + '  ' + str(revision))
             revisions.item(revisions.count() - 1).setData(Qt.UserRole, revision)
         layout.addWidget(revisions)
+
         def compare():
             if revisions.currentItem():
                 try:
-                    self.report('Semantic revision comparison', engine.diff(self.doc, revisions.currentItem().data(Qt.UserRole)))
+                    self.report(
+                        'Semantic revision comparison',
+                        engine.diff(self.doc, revisions.currentItem().data(Qt.UserRole)),
+                    )
                 except Exception as exc:
                     self.error(exc)
+
         def restore():
-            if revisions.currentItem() and QMessageBox.question(dialog, 'Restore revision?', 'Restore this revision as the current document?') == QMessageBox.Yes:
+            if (
+                revisions.currentItem()
+                and QMessageBox.question(
+                    dialog, 'Restore revision?', 'Restore this revision as the current document?'
+                )
+                == QMessageBox.Yes
+            ):
                 try:
-                    self.doc, _ = engine.restore(self.doc, revisions.currentItem().data(Qt.UserRole), auto_compact_history=True)
+                    self.doc, _ = engine.restore(
+                        self.doc, revisions.currentItem().data(Qt.UserRole), auto_compact_history=True
+                    )
                     self._prune_history_stacks()
                     self.dirty = True
                     self.refresh()
                     dialog.accept()
                 except Exception as exc:
                     self.error(exc)
+
         for label, slot in [('Compare with current', compare), ('Restore selected', restore)]:
             button = QPushButton(label)
             button.clicked.connect(slot)
@@ -1712,7 +2412,10 @@ class MainWindow(QMainWindow):
             spin.setValue(self.doc['layout'].get('margins', {}).get(side, 72))
             margins[side] = spin
             form.addRow(side.title() + ' margin (pt)', spin)
-        header, footer = QLineEdit(str(self.doc['layout'].get('header', ''))), QLineEdit(str(self.doc['layout'].get('footer', '')))
+        header, footer = (
+            QLineEdit(str(self.doc['layout'].get('header', ''))),
+            QLineEdit(str(self.doc['layout'].get('footer', ''))),
+        )
         form.addRow('Header', header)
         form.addRow('Footer ({page} / {pages})', footer)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
@@ -1720,12 +2423,26 @@ class MainWindow(QMainWindow):
         buttons.rejected.connect(dialog.reject)
         form.addRow(buttons)
         if dialog.exec():
-            w, h = {'Letter': (612, 792), 'A4': (595.276, 841.89)}.get(paper.currentText(), (width.value(), height.value()))
+            w, h = {'Letter': (612, 792), 'A4': (595.276, 841.89)}.get(
+                paper.currentText(), (width.value(), height.value())
+            )
             if landscape.isChecked():
                 w, h = max(w, h), min(w, h)
-            self.commit([{'type': 'set_layout', 'values': {'paper': paper.currentText(), 'width': w, 'height': h,
-                                                         'margins': {k: v.value() for k, v in margins.items()},
-                                                         'header': header.text(), 'footer': footer.text()}}])
+            self.commit(
+                [
+                    {
+                        'type': 'set_layout',
+                        'values': {
+                            'paper': paper.currentText(),
+                            'width': w,
+                            'height': h,
+                            'margins': {k: v.value() for k, v in margins.items()},
+                            'header': header.text(),
+                            'footer': footer.text(),
+                        },
+                    }
+                ]
+            )
 
     def toggle_pages(self):
         self.flush_edits()
@@ -1759,10 +2476,13 @@ class MainWindow(QMainWindow):
 
     def paint_printer(self, printer):
         from .layout import draw_page, resolved_page_count, resolved_page_size
+
         qdoc = self.editor.document()
         total_pages = resolved_page_count(qdoc, self.doc)
         printer.setFullPage(True)
-        printer.setPageSize(QPageSize(QSizeF(self.doc['layout']['width'], self.doc['layout']['height']), QPageSize.Point))
+        printer.setPageSize(
+            QPageSize(QSizeF(self.doc['layout']['width'], self.doc['layout']['height']), QPageSize.Point)
+        )
         painter = QPainter(printer)
         if not painter.isActive():
             self.error('The printer could not start the print job.')
@@ -1784,13 +2504,23 @@ class MainWindow(QMainWindow):
 
     def redact_copy(self):
         from .publication import save_sanitized
+
         self.flush_edits()
         targets = self.target_ids()
         if not targets:
             return
-        if QMessageBox.question(self, 'Redact selected paragraphs?', 'Create a sanitized text-only copy that removes the selected paragraphs, history, review material, and assets? The private master remains unchanged.') != QMessageBox.Yes:
+        if (
+            QMessageBox.question(
+                self,
+                'Redact selected paragraphs?',
+                'Create a sanitized text-only copy that removes the selected paragraphs, history, review material, and assets? The private master remains unchanged.',
+            )
+            != QMessageBox.Yes
+        ):
             return
-        path, _ = QFileDialog.getSaveFileName(self, 'Save sanitized copy', 'Sanitized.byax', 'ByAuthorX (*.byax)')
+        path, _ = QFileDialog.getSaveFileName(
+            self, 'Save sanitized copy', 'Sanitized.byax', 'ByAuthorX (*.byax)'
+        )
         if path:
             try:
                 self.report('Verified sanitization report', save_sanitized(self.doc, path, targets))
@@ -1799,6 +2529,7 @@ class MainWindow(QMainWindow):
 
     def jobs_dialog(self):
         from .jobs import JobManager
+
         manager = getattr(self, 'job_manager', None) or JobManager()
         self.job_manager = manager
         dialog = QDialog(self)
@@ -1806,22 +2537,29 @@ class MainWindow(QMainWindow):
         dialog.resize(720, 440)
         layout = QVBoxLayout(dialog)
         listing = QListWidget()
+
         def update():
             listing.clear()
             for job in manager.list():
                 listing.addItem(job['kind'] + ' · ' + job['state'] + ' · ' + job['id'])
                 listing.item(listing.count() - 1).setData(Qt.UserRole, job['id'])
+
         layout.addWidget(listing)
+
         def result():
             if listing.currentItem():
                 try:
-                    self.report('Recorded job result', manager.result(listing.currentItem().data(Qt.UserRole)))
+                    self.report(
+                        'Recorded job result', manager.result(listing.currentItem().data(Qt.UserRole))
+                    )
                 except Exception as exc:
                     self.error(exc)
+
         def cancel():
             if listing.currentItem():
                 manager.cancel(listing.currentItem().data(Qt.UserRole))
                 update()
+
         for label, slot in [('Refresh', update), ('View result', result), ('Request cancellation', cancel)]:
             button = QPushButton(label)
             button.clicked.connect(slot)
@@ -1831,8 +2569,14 @@ class MainWindow(QMainWindow):
 
     def export(self):
         from .publication import export_clean
+
         self.flush_edits()
-        path, _ = QFileDialog.getSaveFileName(self, 'Export publication copy', '', 'PDF (*.pdf);;Word (*.docx);;OpenDocument (*.odt);;Markdown (*.md);;HTML (*.html);;Rich text (*.rtf);;Plain text (*.txt)')
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            'Export publication copy',
+            '',
+            'PDF (*.pdf);;Word (*.docx);;OpenDocument (*.odt);;Markdown (*.md);;HTML (*.html);;Rich text (*.rtf);;Plain text (*.txt)',
+        )
         if not path:
             return
         try:
@@ -1843,13 +2587,18 @@ class MainWindow(QMainWindow):
 
     def source_view(self):
         from .exchange import export_document, import_document
+
         self.flush_edits()
         dialog = QDialog(self)
         dialog.setWindowTitle('Markdown source')
         dialog.resize(850, 680)
         layout = QVBoxLayout(dialog)
         markdown_session = bool(self.path and self.path.suffix.lower() in ('.md', '.markdown'))
-        note = QLabel('CommonMark source with tables. Source edits update this Markdown document and preserve unchanged block identities.' if markdown_session else 'CommonMark source with tables. Applying source creates a new document; save it separately to preserve the rich master.')
+        note = QLabel(
+            'CommonMark source with tables. Source edits update this Markdown document and preserve unchanged block identities.'
+            if markdown_session
+            else 'CommonMark source with tables. Applying source creates a new document; save it separately to preserve the rich master.'
+        )
         note.setWordWrap(True)
         layout.addWidget(note)
         editor = QPlainTextEdit()
@@ -1861,7 +2610,11 @@ class MainWindow(QMainWindow):
         layout.addWidget(editor)
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
         initial_source = editor.toPlainText()
-        apply = buttons.addButton('Apply source edits' if markdown_session else 'Create document from source', QDialogButtonBox.ActionRole)
+        apply = buttons.addButton(
+            'Apply source edits' if markdown_session else 'Create document from source',
+            QDialogButtonBox.ActionRole,
+        )
+
         def convert():
             if markdown_session and editor.toPlainText() == initial_source:
                 dialog.accept()
@@ -1881,6 +2634,7 @@ class MainWindow(QMainWindow):
                 dialog.accept()
                 if report.get('losses'):
                     self.report('Markdown conversion', report)
+
         apply.clicked.connect(convert)
         buttons.rejected.connect(dialog.reject)
         layout.addWidget(buttons)
@@ -1889,10 +2643,13 @@ class MainWindow(QMainWindow):
     def apply_markdown_source(self, imported):
         """Reconcile parsed source with stable IDs before one canonical transaction."""
         import difflib
+
         original = self.doc['blocks']
         incoming = imported['blocks']
         signature = lambda b: (b['type'], b.get('text', ''), json.dumps(b.get('rows', []), sort_keys=True))
-        matcher = difflib.SequenceMatcher(a=[signature(b) for b in original], b=[signature(b) for b in incoming], autojunk=False)
+        matcher = difflib.SequenceMatcher(
+            a=[signature(b) for b in original], b=[signature(b) for b in incoming], autojunk=False
+        )
         remapped = {}
         for tag, a, b, c, d in matcher.get_opcodes():
             if tag in ('equal', 'replace'):
@@ -1906,10 +2663,27 @@ class MainWindow(QMainWindow):
                                 for old_cell, new_cell in zip(old_row['cells'], new_row['cells']):
                                     new_cell['id'] = old_cell['id']
         provenance = imported['metadata']['import']
-        provenance.update(original_path=str(self.path), filename=self.path.name,
+        provenance.update(
+            original_path=str(self.path),
+            filename=self.path.name,
             block_order=[b['id'] for b in incoming],
-            fingerprints={b['id']: hashlib.sha256(json.dumps(b, sort_keys=True, ensure_ascii=False).encode()).hexdigest() for b in incoming})
-        return self.commit([{'type': 'replace_content', 'blocks': incoming, 'assets': imported['assets'], 'import_provenance': provenance}])
+            fingerprints={
+                b['id']: hashlib.sha256(
+                    json.dumps(b, sort_keys=True, ensure_ascii=False).encode()
+                ).hexdigest()
+                for b in incoming
+            },
+        )
+        return self.commit(
+            [
+                {
+                    'type': 'replace_content',
+                    'blocks': incoming,
+                    'assets': imported['assets'],
+                    'import_provenance': provenance,
+                }
+            ]
+        )
 
     def document_properties(self):
         dialog = QDialog(self)
@@ -1929,10 +2703,20 @@ class MainWindow(QMainWindow):
     def statistics(self):
         self.flush_edits()
         text = model.text_of(self.doc)
-        self.message('Document statistics', f'Authored content\n{len(text.split()):,} words\n{len(text):,} Unicode characters\n{len(self.doc["blocks"]):,} blocks\n{self.editor.document().pageCount():,} laid-out pages\n\nPublication profiles may exclude selected content.')
+        self.message(
+            'Document statistics',
+            f'Authored content\n{len(text.split()):,} words\n{len(text):,} Unicode characters\n{len(self.doc["blocks"]):,} blocks\n{self.editor.document().pageCount():,} laid-out pages\n\nPublication profiles may exclude selected content.',
+        )
 
     def templates(self):
-        kind, ok = QInputDialog.getItem(self, 'New from template', 'Template', ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…'], 0, False)
+        kind, ok = QInputDialog.getItem(
+            self,
+            'New from template',
+            'Template',
+            ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…'],
+            0,
+            False,
+        )
         if not ok:
             return
         if kind == 'Open template file…':
@@ -1945,16 +2729,68 @@ class MainWindow(QMainWindow):
         if not self.confirm_discard():
             return
         examples = {
-            'Letter': [('title', 'Your name'), ('body', 'Your address · City, State'), ('body', 'October 13, 2026'), ('body', 'Dear recipient,'), ('body', 'Write your letter here.'), ('body', 'Sincerely,\nYour name')],
-            'Resume': [('title', 'Your name'), ('subtitle', 'Your profession · email@example.com'), ('heading1', 'Profile'), ('body', 'A concise introduction to your experience and strengths.'), ('heading1', 'Experience'), ('heading2', 'Position · Organization'), ('body', 'Describe the impact of your work.'), ('heading1', 'Education'), ('body', 'Qualification · Institution')],
-            'Report': [('title', 'Report title'), ('subtitle', 'Prepared by your name'), ('heading1', 'Executive summary'), ('body', 'Summarize the purpose and findings.'), ('heading1', 'Background'), ('body', 'Explain the context.'), ('heading1', 'Findings'), ('body', 'Present the evidence.'), ('heading1', 'Recommendations'), ('body', 'Set out the next steps.')],
-            'Music press kit': [('title', 'ARTIST NAME'), ('subtitle', 'PRESS KIT · New release'), ('heading1', 'Biography'), ('body', 'Introduce the artist, their sound, and the story behind the music.'), ('heading1', 'The release'), ('body', 'Album title · Release date · Genre'), ('heading1', 'Press & booking'), ('body', 'Contact name · email@example.com')],
+            'Letter': [
+                ('title', 'Your name'),
+                ('body', 'Your address · City, State'),
+                ('body', 'October 13, 2026'),
+                ('body', 'Dear recipient,'),
+                ('body', 'Write your letter here.'),
+                ('body', 'Sincerely,\nYour name'),
+            ],
+            'Resume': [
+                ('title', 'Your name'),
+                ('subtitle', 'Your profession · email@example.com'),
+                ('heading1', 'Profile'),
+                ('body', 'A concise introduction to your experience and strengths.'),
+                ('heading1', 'Experience'),
+                ('heading2', 'Position · Organization'),
+                ('body', 'Describe the impact of your work.'),
+                ('heading1', 'Education'),
+                ('body', 'Qualification · Institution'),
+            ],
+            'Report': [
+                ('title', 'Report title'),
+                ('subtitle', 'Prepared by your name'),
+                ('heading1', 'Executive summary'),
+                ('body', 'Summarize the purpose and findings.'),
+                ('heading1', 'Background'),
+                ('body', 'Explain the context.'),
+                ('heading1', 'Findings'),
+                ('body', 'Present the evidence.'),
+                ('heading1', 'Recommendations'),
+                ('body', 'Set out the next steps.'),
+            ],
+            'Music press kit': [
+                ('title', 'ARTIST NAME'),
+                ('subtitle', 'PRESS KIT · New release'),
+                ('heading1', 'Biography'),
+                ('body', 'Introduce the artist, their sound, and the story behind the music.'),
+                ('heading1', 'The release'),
+                ('body', 'Album title · Release date · Genre'),
+                ('heading1', 'Press & booking'),
+                ('body', 'Contact name · email@example.com'),
+            ],
         }
         document = model.new_document(kind)
-        document['styles'].update({'title': {'font_size': 32, 'bold': True}, 'subtitle': {'font_size': 15, 'color': '#677b76'}, 'quotation': {'italic': True, 'indent': 24}, 'caption': {'font_size': 9}, 'code': {'font_family': 'DejaVu Sans Mono', 'font_size': 10}})
+        document['styles'].update(
+            {
+                'title': {'font_size': 32, 'bold': True},
+                'subtitle': {'font_size': 15, 'color': '#677b76'},
+                'quotation': {'italic': True, 'indent': 24},
+                'caption': {'font_size': 9},
+                'code': {'font_family': 'DejaVu Sans Mono', 'font_size': 10},
+            }
+        )
         document['blocks'] = []
         for style, text in examples[kind]:
-            block = {'id': 'p_' + uuid.uuid4().hex, 'type': 'heading' if style.startswith('heading') else 'paragraph', 'text': text, 'style': style, 'attrs': {}, 'marks': []}
+            block = {
+                'id': 'p_' + uuid.uuid4().hex,
+                'type': 'heading' if style.startswith('heading') else 'paragraph',
+                'text': text,
+                'style': style,
+                'attrs': {},
+                'marks': [],
+            }
             if style.startswith('heading'):
                 block['attrs']['level'] = int(style[-1])
             document['blocks'].append(block)
@@ -1966,18 +2802,22 @@ class MainWindow(QMainWindow):
 
     def provider_settings(self):
         from .gui_providers import ProviderDialog
+
         ProviderDialog(self).exec()
 
     def model_review(self):
         from .gui_providers import review_document
+
         review_document(self)
 
     def import_audio(self):
         from .gui_providers import import_audio
+
         import_audio(self)
 
     def dictation(self):
         from .gui_providers import DictationDialog
+
         existing = getattr(self, '_dictation_dialog', None)
         if existing is not None and existing.isVisible():
             existing.raise_()

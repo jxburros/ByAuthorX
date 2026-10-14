@@ -12,7 +12,7 @@ license = "MIT"
 dependencies = ["PySide6-Essentials>=6.8,<7", "PySide6-Addons>=6.8,<7", "regex>=2024.11", "httpx>=0.28,<1", "keyring>=25,<26", "markdown-it-py>=3,<5", "python-docx>=1.1,<2", "odfpy>=1.4,<2", "Pillow>=11,<13", "platformdirs>=4,<5", "striprtf>=0.0.28", "defusedxml>=0.7", "pyspellchecker>=0.8"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-qt>=4", "ruff>=0.9", "pyinstaller>=6"]
+dev = ["pytest>=8", "pytest-qt>=4", "pytest-cov>=5", "ruff>=0.9", "mypy>=1.11", "pyinstaller>=6"]
 
 [project.scripts]
 byax = "byax.cli:main"
@@ -27,3 +27,6 @@ testpaths = ["tests"]
 
 [tool.ruff]
 line-length = 110
+
+[tool.ruff.format]
+quote-style = "single"

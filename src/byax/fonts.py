@@ -1,4 +1,5 @@
 """Permitted, bundled baseline fonts; other installed fonts remain selectable."""
+
 from pathlib import Path
 
 FONT_ROOT = Path(__file__).parent / 'resources' / 'fonts'
@@ -10,6 +11,7 @@ def register_bundled_fonts():
     if _REGISTERED:
         return
     from PySide6.QtGui import QFontDatabase, QGuiApplication
+
     if QGuiApplication.instance() is None:
         raise RuntimeError('Create the Qt application before registering fonts.')
     for path in sorted(FONT_ROOT.glob('*.ttf')):
@@ -29,8 +31,11 @@ def bundled_font_path(family, bold=False, italic=False):
         if italic or (bold and family.casefold() != 'manrope'):
             return None
         return FONT_ROOT / brand_fonts[family.casefold()]
-    families = {'DejaVu Sans': ('DejaVuSans', 'Oblique'), 'DejaVu Sans Mono': ('DejaVuSansMono', 'Oblique'),
-                'DejaVu Serif': ('DejaVuSerif', 'Italic')}
+    families = {
+        'DejaVu Sans': ('DejaVuSans', 'Oblique'),
+        'DejaVu Sans Mono': ('DejaVuSansMono', 'Oblique'),
+        'DejaVu Serif': ('DejaVuSerif', 'Italic'),
+    }
     if family not in families:
         return None
     name, italic_name = families[family]

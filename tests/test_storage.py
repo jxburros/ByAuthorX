@@ -18,7 +18,11 @@ def test_roundtrip_history_unknown_fields_and_determinism(tmp_path):
     doc, _ = apply(doc, {'operations': [{'type': 'set_metadata', 'values': {'title': 'Saved'}}]})
     asset = b'image data'
     digest = hashlib.sha256(asset).hexdigest()
-    doc['assets'][digest] = {'data': base64.b64encode(asset).decode(), 'mime': 'image/png', 'name': 'test.png'}
+    doc['assets'][digest] = {
+        'data': base64.b64encode(asset).decode(),
+        'mime': 'image/png',
+        'name': 'test.png',
+    }
     path, other = tmp_path / 'Doc.BYAX', tmp_path / 'Other.byax'
     save_document(doc, path)
     save_document(doc, other)
@@ -54,11 +58,19 @@ def test_lock_owner_and_other_client(tmp_path):
 
 def test_cli_outputs_do_not_leave_lock_sidecars(tmp_path):
     from byax.cli import execute
+
     path = str(tmp_path / 'document.byax')
     execute('new', {'out': path, 'text': 'Hello'})
     doc = load_document(path)
-    execute('apply', {'path': path, 'input': {'operations': [
-        {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Updated'}]}})
+    execute(
+        'apply',
+        {
+            'path': path,
+            'input': {
+                'operations': [{'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Updated'}]
+            },
+        },
+    )
     for suffix in ('pdf', 'docx'):
         execute('export', {'path': path, 'out': str(tmp_path / ('output.' + suffix))})
     execute('render', {'path': path, 'out': str(tmp_path / 'pages')})
@@ -91,11 +103,16 @@ def test_credentials_never_embedded(tmp_path):
 
 def test_edited_source_packs_with_fresh_deterministic_revision_and_keeps_asset_hashes(tmp_path):
     import json
+
     source, original = tmp_path / 'source', tmp_path / 'original.byax'
     doc = new_document(text='Before')
     payload = b'asset bytes'
     digest = hashlib.sha256(payload).hexdigest()
-    doc['assets'][digest] = {'data': base64.b64encode(payload).decode(), 'mime': 'application/octet-stream', 'name': 'example'}
+    doc['assets'][digest] = {
+        'data': base64.b64encode(payload).decode(),
+        'mime': 'application/octet-stream',
+        'name': 'example',
+    }
     save_document(doc, original)
     unpack(original, source)
     editable = json.loads((source / 'document.json').read_text())
@@ -137,6 +154,8 @@ def test_save_preserves_existing_file_mode(tmp_path):
     doc = new_document(text='Shared')
     save_document(doc, path)
     path.chmod(0o644)
-    changed, _ = apply(doc, {'operations': [{'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Edited'}]})
+    changed, _ = apply(
+        doc, {'operations': [{'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Edited'}]}
+    )
     save_document(changed, path)
     assert stat.S_IMODE(path.stat().st_mode) == 0o644
