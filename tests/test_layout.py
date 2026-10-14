@@ -173,8 +173,10 @@ def test_resolved_columns_and_section_geometry_preserve_flow(tmp_path):
     assert resolved_page_size(qdoc, resolved_page_count(qdoc) - 1) == (595, 842)
     # Every virtual flow page is drawn once and only once, in column order.
     fragments = [f for p in resolved['pages'] for f in p['fragments']]
-    keys = [(id(f['document']), f['page']) for f in fragments]
+    keys = [(id(f['document']), f['source'].top(), f['source'].bottom()) for f in fragments]
     assert len(keys) == len(set(keys))
+    ids = [i for f in fragments for i in f['ids']]
+    assert len(ids) == len(set(ids))
     assert not any(f['code'] in ('columns', 'section_geometry') for f in qdoc.byax_findings)
     report = export_pdf(doc, tmp_path / 'columns.pdf')
     assert report['page_count'] == resolved_page_count(qdoc)
