@@ -235,7 +235,7 @@ class MainWindow(QMainWindow):
         menus['&Table'].addAction(self.action('Export selected table as CSV…', self.export_csv))
         menus['&Table'].addAction(self.action('Delete selected table', self.delete_table))
         for title, slot in [('Run document checks', self.run_checks), ('Checking and voice profiles…', self.edit_profiles), ('Review with a model…', self.model_review),
-                            ('Add comment…', self.add_comment), ('Protect selected paragraph', self.protect),
+                            ('Add comment…', self.add_comment), ('Protect selected paragraph', self.protect), ('Remove selected protection…', self.unprotect),
                             ('Move section…', self.move_section), ('Reply to selected comment…', self.reply_comment), ('Checkpoint…', self.checkpoint), ('Create branch…', self.branch), ('Revision history…', self.history)]:
             menus['&Review'].addAction(self.action(title, slot))
         self.track_action = self.action('Track changes', self.toggle_tracking, checkable=True)
@@ -652,7 +652,8 @@ class MainWindow(QMainWindow):
         except Exception as exc:
             self._refreshing = False
             self.error(exc)
-            self.refresh()
+            # Keep pending text and the baseline so the user can correct or
+            # retry an edit after a conflict or a resource-limit failure.
             return False
 
     def _commit(self, operations, refresh=True):
@@ -660,10 +661,12 @@ class MainWindow(QMainWindow):
             return None
         old_revision = self.doc['revision']
         candidate, result = engine.apply(self.doc, {'schema_version': 1, 'expected_revision': old_revision,
-                                                   'request_id': 'gui_' + uuid.uuid4().hex, 'origin': 'gui', 'operations': operations})
+                                                   'origin': 'gui', 'operations': operations},
+                                         allow_policy_changes=True, auto_compact_history=True)
         self._undo.append(old_revision)
         self._redo.clear()
         self.doc = candidate
+        self._prune_history_stacks()
         self.dirty = True
         self._last_report = None
         if refresh:
@@ -878,24 +881,38 @@ class MainWindow(QMainWindow):
         else:
             event.ignore()
 
+    def _prune_history_stacks(self):
+        retained = {r['revision'] for r in self.doc['history']['revisions']} | {self.doc['revision']}
+        self._undo = [r for r in self._undo if r in retained]
+        self._redo = [r for r in self._redo if r in retained]
+
     def undo(self):
-        self.flush_edits()
+        if not self.flush_edits():
+            return
         if self._undo:
-            revision = self._undo.pop()
-            self._redo.append(self.doc['revision'])
+            revision = self._undo[-1]
             try:
-                self.doc, _ = engine.restore(self.doc, revision)
+                candidate, _ = engine.restore(self.doc, revision, auto_compact_history=True)
+                self._undo.pop()
+                self._redo.append(self.doc['revision'])
+                self.doc = candidate
+                self._prune_history_stacks()
                 self.dirty = True
                 self.refresh()
             except Exception as exc:
                 self.error(exc)
 
     def redo(self):
+        if not self.flush_edits():
+            return
         if self._redo:
-            revision = self._redo.pop()
-            self._undo.append(self.doc['revision'])
+            revision = self._redo[-1]
             try:
-                self.doc, _ = engine.restore(self.doc, revision)
+                candidate, _ = engine.restore(self.doc, revision, auto_compact_history=True)
+                self._redo.pop()
+                self._undo.append(self.doc['revision'])
+                self.doc = candidate
+                self._prune_history_stacks()
                 self.dirty = True
                 self.refresh()
             except Exception as exc:
@@ -1464,6 +1481,12 @@ class MainWindow(QMainWindow):
     def protect(self):
         self.commit([{'type': 'protect', 'target': target, 'kind': 'text'} for target in self.target_ids()])
 
+    def unprotect(self):
+        targets = self.target_ids()
+        rules = [rule for rule in self.doc['settings'].get('protections', []) if rule['target'] in targets]
+        if rules and QMessageBox.question(self, 'Remove protection?', 'Allow future edits to the selected protected content? This policy change is recorded in history.') == QMessageBox.Yes:
+            self.commit([{'type': 'unprotect', **rule} for rule in rules])
+
     def review_item(self, item=None):
         item = item if hasattr(item, 'data') else self.review_list.currentItem()
         if item:
@@ -1545,7 +1568,8 @@ class MainWindow(QMainWindow):
             self.commit([{'type': 'add_reference', 'id': 'ref_' + uuid.uuid4().hex, 'values': {'title': title, 'excerpt': excerpt, 'target': self.editor.current_id()}}])
 
     def toggle_tracking(self, enabled):
-        self.commit([{'type': 'set_settings', 'values': {'track_changes': enabled}}])
+        if enabled or QMessageBox.question(self, 'Disable tracking?', 'Stop recording tracked changes for future edits? Existing tracked changes are retained.') == QMessageBox.Yes:
+            self.commit([{'type': 'set_tracking', 'enabled': enabled}])
         self.track_action.setChecked(bool(self.doc['settings'].get('track_changes')))
 
     def define_field(self):
@@ -1652,7 +1676,8 @@ class MainWindow(QMainWindow):
         def restore():
             if revisions.currentItem() and QMessageBox.question(dialog, 'Restore revision?', 'Restore this revision as the current document?') == QMessageBox.Yes:
                 try:
-                    self.doc, _ = engine.restore(self.doc, revisions.currentItem().data(Qt.UserRole))
+                    self.doc, _ = engine.restore(self.doc, revisions.currentItem().data(Qt.UserRole), auto_compact_history=True)
+                    self._prune_history_stacks()
                     self.dirty = True
                     self.refresh()
                     dialog.accept()

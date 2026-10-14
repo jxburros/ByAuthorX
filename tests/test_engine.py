@@ -403,3 +403,65 @@ def test_second_checkpoint_name_on_same_revision_is_rejected():
         engine.checkpoint(named, 'B')
     assert error.value.code == 'conflict'
     assert [r.get('name') for r in named['history']['revisions'] if r.get('name')] == ['A']
+
+
+def test_policy_cannot_be_disabled_by_settings_origin_or_restore():
+    doc = new_document(text='Protected text')
+    target = doc['blocks'][0]['id']
+    initial = doc['revision']
+    doc, _ = edit(doc, {'type': 'protect', 'target': target, 'kind': 'text'},
+                  {'type': 'set_settings', 'values': {'track_changes': True}})
+    for op in ({'type': 'set_settings', 'values': {'protections': []}},
+               {'type': 'set_settings', 'values': {'requirements': {}}},
+               {'type': 'set_settings', 'values': {'track_changes': False}},
+               {'type': 'unprotect', 'target': target, 'kind': 'text'},
+               {'type': 'set_tracking', 'enabled': False}):
+        with pytest.raises(ByaxError) as error:
+            engine.apply(doc, {'operations': [op], 'origin': 'gui'})
+        assert error.value.code == 'protected_edit'
+    with pytest.raises(ByaxError, match='protection'):
+        engine.restore(doc, initial)
+    with pytest.raises(ByaxError) as error:
+        edit(doc, {'type': 'set_text', 'target': target, 'text': 'Hacked'})
+    assert error.value.code == 'protected_edit'
+    changed, _ = engine.apply(doc, {'origin': 'gui', 'operations': [
+        {'type': 'unprotect', 'target': target, 'kind': 'text'},
+        {'type': 'set_tracking', 'enabled': False}]}, allow_policy_changes=True)
+    assert changed['settings']['protections'] == []
+    assert not changed['settings']['track_changes']
+    assert changed['history']['revisions'][-1]['origin'] == 'gui'
+    assert changed['history']['revisions'][-1]['operations'][0]['type'] == 'unprotect'
+    changed, _ = edit(changed, {'type': 'set_text', 'target': target, 'text': 'Authorized'})
+    assert changed['blocks'][0]['text'] == 'Authorized'
+
+
+def test_history_delta_omits_unchanged_order_and_reads_legacy_order():
+    before = new_document(text='\n'.join('Paragraph' for _ in range(300)))
+    after = copy.deepcopy(before)
+    after['blocks'][0]['text'] += '!'
+    delta = engine._delta(before, after)
+    assert 'block_order' not in delta
+    assert list(delta['blocks']) == [before['blocks'][0]['id']]
+    assert engine._patch(copy.deepcopy(before), delta) == after
+    legacy = dict(delta, block_order=[b['id'] for b in after['blocks']])
+    assert engine._patch(copy.deepcopy(before), legacy) == after
+    after['blocks'].reverse()
+    structural = engine._delta(before, after)
+    assert 'block_order' in structural
+    assert engine._patch(copy.deepcopy(before), structural) == after
+
+
+def test_api_history_cap_stays_hard_and_desktop_compaction_keeps_branch_heads():
+    doc = new_document(text='0')
+    target = doc['blocks'][0]['id']
+    doc['settings']['history_limit'] = 2
+    doc, _ = engine.branch(doc, 'retained branch')
+    doc, _ = edit(doc, {'type': 'set_text', 'target': target, 'text': '1'})
+    doc, _ = engine.branch(doc, 'active branch')
+    for i in range(2, 4):
+        doc, _ = engine.apply(doc, {'operations': [{'type': 'set_text', 'target': target, 'text': str(i)}]}, auto_compact_history=True)
+    assert engine._revision(doc, 'retained branch')['blocks'][0]['text'] == '1'
+    assert engine._revision(doc, 'active branch')['blocks'][0]['text'] == '3'
+    with pytest.raises(ByaxError) as error:
+        edit(doc, {'type': 'set_text', 'target': target, 'text': '4'})
+    assert error.value.code == 'limit_exceeded'

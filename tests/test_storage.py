@@ -52,6 +52,19 @@ def test_lock_owner_and_other_client(tmp_path):
     save_document(new_document(), path)
 
 
+def test_cli_outputs_do_not_leave_lock_sidecars(tmp_path):
+    from byax.cli import execute
+    path = str(tmp_path / 'document.byax')
+    execute('new', {'out': path, 'text': 'Hello'})
+    doc = load_document(path)
+    execute('apply', {'path': path, 'input': {'operations': [
+        {'type': 'set_text', 'target': doc['blocks'][0]['id'], 'text': 'Updated'}]}})
+    for suffix in ('pdf', 'docx'):
+        execute('export', {'path': path, 'out': str(tmp_path / ('output.' + suffix))})
+    execute('render', {'path': path, 'out': str(tmp_path / 'pages')})
+    assert not list(tmp_path.rglob('*.lock'))
+
+
 def test_tampered_hash_and_unsafe_paths(tmp_path):
     path = tmp_path / 'original.byax'
     save_document(new_document(), path)

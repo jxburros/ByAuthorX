@@ -49,6 +49,51 @@ def test_protocol_errors_notifications_and_framing():
     assert json.loads(output.getvalue())['error']['code'] == -32700
 
 
+@pytest.mark.parametrize('nested', [False, True])
+def test_mcp_and_rest_refuse_provider_administration_without_writes(tmp_path, nested):
+    command = 'providers'
+    args = {'action': 'configure', 'config_dir': str(tmp_path / 'config'),
+            'input': {'alias': 'w', 'kind': 'whisper.cpp', 'model': '/tmp/model', 'executable': '/usr/bin/touch'}}
+    if nested:
+        command, args = 'jobs', {'action': 'submit', 'root': str(tmp_path / 'jobs'),
+                                'input': {'command': command, 'arguments': args}}
+    result = call('tools/call', {'name': 'byax_' + command, 'arguments': args})['result']
+    assert result['isError']
+    assert json.loads(result['content'][0]['text'])['error']['code'] == 'unsupported_feature'
+    with pytest.raises(ByaxError) as error:
+        AccessPolicy([tmp_path]).check(command, args)
+    assert error.value.code == 'unsupported_feature'
+    assert list(tmp_path.iterdir()) == []
+
+
+@pytest.mark.parametrize('transport', ['cli', 'mcp', 'rest'])
+def test_transport_settings_cannot_remove_protection_in_a_separate_call(tmp_path, transport):
+    from byax import engine, model, storage
+    from byax.cli import execute
+    doc = model.new_document(text='Protected')
+    target = doc['blocks'][0]['id']
+    doc, _ = engine.apply(doc, {'operations': [{'type': 'protect', 'target': target, 'kind': 'text'},
+                                              {'type': 'set_settings', 'values': {'track_changes': True}}]})
+    path = tmp_path / 'protected.byax'
+    storage.save_document(doc, path)
+    for op in ({'type': 'set_settings', 'values': {'protections': []}},
+               {'type': 'set_settings', 'values': {'track_changes': False}},
+               {'type': 'unprotect', 'target': target, 'kind': 'text'},
+               {'type': 'set_text', 'target': target, 'text': 'Hacked'}):
+        args = {'path': str(path), 'input': {'origin': 'gui', 'operations': [op]}}
+        if transport == 'mcp':
+            result = call('tools/call', {'name': 'byax_apply', 'arguments': args})['result']
+            assert result['isError']
+            assert json.loads(result['content'][0]['text'])['error']['code'] == 'protected_edit'
+        else:
+            if transport == 'rest':
+                AccessPolicy([tmp_path]).check('apply', args)
+            with pytest.raises(ByaxError) as error:
+                execute('apply', args)
+            assert error.value.code == 'protected_edit'
+        assert storage.load_document(path) == doc
+
+
 def test_service_policy_rejects_escaping_symlink_and_nested_paths(tmp_path):
     root = tmp_path / 'authorized'
     root.mkdir()

@@ -275,7 +275,8 @@ def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
             columns = max((len(row.get("cells", [])) for row in rows), default=0)
             if rows and columns:
                 tf = QTextTableFormat()
-                tf.setBorder(float(attrs.get("border_width", 0.5)))
+                tf.setBorder(float(attrs.get("border_width", 1)))
+                tf.setBorderStyle(QTextFrameFormat.BorderStyle.BorderStyle_Solid)
                 tf.setBorderBrush(QColor(attrs.get("border_color", "#808080")))
                 if attrs.get("background"):
                     tf.setBackground(QColor(attrs["background"]))
@@ -295,7 +296,11 @@ def build_document(doc: dict, _toc_pages=None) -> QTextDocument:
                         cbf.setProperty(BLOCK_ID_PROPERTY, cell.get("id"))
                         cc.setBlockFormat(cbf)
                         result.byax_positions[cell.get("id")] = cc.position()
-                        _insert_marked(cc, cell.get("text", ""), cell.get("marks", []), _char_format({"bold": r < attrs.get("header_rows", 0), **cell.get("attrs", {})}))
+                        cell_values = {**values, **_style(doc, cell["style"])} if cell.get("style") else dict(values)
+                        if r < attrs.get("header_rows", 0):
+                            cell_values["bold"] = True
+                        cell_values.update(cell.get("attrs", {}))
+                        _insert_marked(cc, cell.get("text", ""), cell.get("marks", []), _char_format(cell_values))
                         cell_attrs = cell.get("attrs", {})
                         if cell_attrs.get("background"):
                             cf = table.cellAt(r, c).format()

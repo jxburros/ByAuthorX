@@ -1551,7 +1551,7 @@ def _import_rtf(doc, source, losses):
                 pass
             position += 3
             continue
-        if not char.isalpha():
+        if not (char.isascii() and char.isalpha()):
             if char == "*":
                 state["star"] = True
             elif char == "~":
@@ -1563,6 +1563,8 @@ def _import_rtf(doc, source, losses):
             position += 1
             continue
         match = control_pattern.match(source, position)
+        if match is None:
+            raise ByaxError('invalid_input', 'Invalid RTF control word', target=f'offset:{position}')
         word, number = match.group(1), match.group(2)
         argument = int(number) if number is not None else 1
         position = match.end()

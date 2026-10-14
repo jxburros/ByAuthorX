@@ -36,6 +36,52 @@ def test_table_and_page_render_same_engine(tmp_path):
     assert Path(pictures['outputs'][0]).read_bytes().startswith(b'\x89PNG')
 
 
+def test_default_table_gridlines_and_inherited_cell_style(tmp_path):
+    from PIL import Image
+
+    from byax import engine
+    doc = new_document(text='Body')
+    doc, _ = engine.apply(doc, {'operations': [{'type': 'insert_table', 'rows': 3, 'columns': 3}]})
+    table = doc['blocks'][-1]
+    for r, row in enumerate(table['rows']):
+        for c, cell in enumerate(row['cells']):
+            cell['text'] = f'R{r}C{c}'
+    qdoc = build_document(doc)
+    cursor = QTextCursor(qdoc)
+    cursor.setPosition(qdoc.byax_positions[table['rows'][0]['cells'][0]['id']] + 1)
+    assert cursor.currentTable().format().border() == 1
+    assert cursor.charFormat().fontFamilies() == ['DejaVu Sans']
+    assert cursor.charFormat().fontPointSize() == 11
+    pages = render(doc, tmp_path / 'pages')
+    image = Image.open(pages['outputs'][0]).convert('RGB')
+    # Text in this fixture is shorter than 60 pixels; long dark horizontal
+    # runs are table borders. Group adjacent scanlines into distinct rules.
+    rules, previous = [], -2
+    pixels = image.load()
+    for y in range(image.height):
+        run = 0
+        for x in range(image.width):
+            red, green, blue = pixels[x, y]
+            run = run + 1 if max(red, green, blue) < 200 else 0
+            if run >= 60:
+                if y > previous + 1:
+                    rules.append(y)
+                previous = y
+                break
+    assert len(rules) >= 4
+    pdf = export_pdf(doc, tmp_path / 'table.pdf')
+    assert pdf['page_count'] == pages['page_count']
+    doc['styles']['body']['font_size'] = 13
+    table['rows'][0]['cells'][0]['attrs'] = {'font_family': 'DejaVu Sans Mono', 'font_size': 9}
+    qdoc = build_document(doc)
+    cursor = QTextCursor(qdoc)
+    for cell, family, size in [(table['rows'][0]['cells'][0], 'DejaVu Sans Mono', 9),
+                               (table['rows'][1]['cells'][0], 'DejaVu Sans', 13)]:
+        cursor.setPosition(qdoc.byax_positions[cell['id']] + 1)
+        assert cursor.charFormat().fontFamilies() == [family]
+        assert cursor.charFormat().fontPointSize() == size
+
+
 def test_unresolved_layout_has_located_losses():
     doc = new_document('Report', 'Text')
     doc['blocks'][0]['attrs']['font_family'] = 'Definitely Not Installed Font'

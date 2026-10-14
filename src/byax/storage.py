@@ -11,6 +11,8 @@ import zipfile
 import zlib
 from pathlib import Path, PurePosixPath
 
+from platformdirs import user_cache_path
+
 from .errors import ByaxError
 from .model import new_id, validate_document
 
@@ -53,7 +55,10 @@ class DocumentLock:
                     raise ByaxError('locked', 'Document is open in another editing session.', target=self.path, retry='Close the other editor before retrying.')
                 held['count'] += 1
             else:
-                lock_path = Path(self.path + '.lock')
+                # Keep a stable inode across contenders. Unlinking a sidecar on
+                # release can let two processes lock different inodes for one file.
+                lock_key = hashlib.sha256(os.path.normcase(self.path).encode('utf-8')).hexdigest()
+                lock_path = user_cache_path('ByAuthorX') / 'locks' / (lock_key + '.lock')
                 lock_path.parent.mkdir(parents=True, exist_ok=True)
                 handle = open(lock_path, 'a+b')  # noqa: SIM115 -- held until DocumentLock.release across calls
                 try:

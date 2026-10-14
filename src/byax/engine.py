@@ -31,6 +31,7 @@ OP_SCHEMAS = {
     'add_layer': ('values', ''), 'update_layer': ('target values', ''), 'delete_layer': ('target', ''),
     'add_asset': ('data mime', 'name'), 'place_image': ('asset alt', 'after width height'),
     'set_attributes': ('target values', ''), 'protect': ('target kind', ''),
+    'unprotect': ('target kind', ''), 'set_tracking': ('enabled', ''),
     'propose': ('values', ''), 'accept_proposal': ('target', ''), 'reject_proposal': ('target', ''),
     'set_requirement': ('id values', ''), 'set_profile': ('id values', ''),
     'accept_change': ('target', ''), 'reject_change': ('target', ''),
@@ -71,6 +72,8 @@ def _validate_op(op, index):
             _error('Expected a positive number.', f'operations[{index}].{key}')
     if 'values' in op and not isinstance(op['values'], list if kind in ('add_row', 'add_column') else dict):
         _error('Expected an object.', f'operations[{index}].values')
+    if 'enabled' in op and type(op['enabled']) is not bool:
+        _error('Expected a boolean.', f'operations[{index}].enabled')
     return kind
 
 def grapheme_boundaries(text):
@@ -309,7 +312,7 @@ def _move_section(doc, op):
     doc['blocks'] = retained[:insertion] + moving + retained[insertion:]
     return [b['id'] for b in moving]
 
-def _operation(doc, op, base_revision):
+def _operation(doc, op, base_revision, *, allow_policy_changes=False):
     kind = op.get('type', op.get('op'))
     changed = []
     if kind in ('insert_text', 'delete_text', 'replace_text', 'set_text', 'update_cell'):
@@ -449,6 +452,10 @@ def _operation(doc, op, base_revision):
         changed.append('fields')
     elif kind in ('set_metadata', 'set_layout', 'set_settings'):
         key = {'set_metadata': 'metadata', 'set_layout': 'layout', 'set_settings': 'settings'}[kind]
+        if kind == 'set_settings':
+            forbidden = set(op['values']) & {'protections', 'requirements'}
+            if forbidden or (doc['settings'].get('track_changes') and op['values'].get('track_changes') is False):
+                raise ByaxError('protected_edit', 'Use explicit policy operations; disabling protection or tracking requires local confirmation.', fields=sorted(forbidden))
         if kind == 'set_layout' and 'margins' in op['values']:
             if not isinstance(op['values']['margins'], dict):
                 _error('Margins must be an object.', 'values.margins')
@@ -611,6 +618,19 @@ def _operation(doc, op, base_revision):
         if rule not in rules:
             rules.append(rule)
         changed.append(op['target'])
+    elif kind in ('unprotect', 'set_tracking'):
+        if not allow_policy_changes:
+            raise ByaxError('protected_edit', 'This policy change requires confirmation in the local desktop.')
+        if kind == 'unprotect':
+            rule = {'target': op['target'], 'kind': op['kind']}
+            rules = doc['settings'].get('protections', [])
+            if rule not in rules:
+                raise ByaxError('missing_target', 'Protection rule does not exist.', target=op['target'])
+            rules.remove(rule)
+            changed.append(op['target'])
+        else:
+            doc['settings']['track_changes'] = op['enabled']
+            changed.append('settings')
     elif kind == 'propose':
         values = copy.deepcopy(op['values'])
         if not isinstance(values.get('operations'), list) or not values['operations']:
@@ -701,17 +721,7 @@ def _operation(doc, op, base_revision):
         _orphan_review(doc, removed)
         changed.extend(sorted(old_ids | {x for x in new_ids if x}))
     elif kind == 'compact_history':
-        records = doc['history']['revisions']
-        protected = set(doc['history'].get('branches', {}).values())
-        keep = {r['revision'] for r in records[-op['keep_last']:]} if op['keep_last'] else set()
-        keep.update(r['revision'] for r in records if r.get('name') or r['revision'] in protected)
-        rebuilt = []
-        for record in records:
-            if record['revision'] in keep:
-                rebuilt.append({**{k: v for k, v in record.items() if k != 'delta'}, 'snapshot': _revision(doc, record['revision'])})
-        removed = [r['revision'] for r in records if r['revision'] not in keep]
-        doc['history']['revisions'] = rebuilt
-        doc['history']['last_compaction'] = {'removed_revisions': removed, 'removed_assets': [], 'recovery_removed': ['Restore and compare removed unnamed revisions'], 'timestamp': datetime.now(UTC).isoformat()}
+        _compact_history(doc, op['keep_last'])
         changed.append('history')
     return changed
 
@@ -744,7 +754,13 @@ def _measure(doc, rule):
         raise ByaxError('incomplete_coverage', 'Visual preservation requires rendered comparison and cannot be guaranteed by semantic edits.', target=rule['target'])
     _error('Unknown protection kind.', 'protect.kind')
 
-def _preserve(before, after, rules):
+def _preserve(before, after, rules, *, allow_policy_changes=False):
+    if not allow_policy_changes:
+        old_rules = before['settings'].get('protections', [])
+        if any(rule not in after['settings'].get('protections', []) for rule in old_rules):
+            raise ByaxError('protected_edit', 'Retained protection rules cannot be removed without local confirmation.')
+        if before['settings'].get('track_changes') and not after['settings'].get('track_changes'):
+            raise ByaxError('protected_edit', 'Tracking cannot be disabled without local confirmation.')
     for rule in rules:
         measured = _measure(before, rule)
         try:
@@ -772,10 +788,12 @@ def _candidate(doc):
 
 def _delta(before, after):
     old, new = {b['id']: b for b in before['blocks']}, {b['id']: b for b in after['blocks']}
-    return {'set': {k: copy.deepcopy(v) for k, v in after.items() if k != 'blocks' and before.get(k) != v},
+    delta = {'set': {k: copy.deepcopy(v) for k, v in after.items() if k != 'blocks' and before.get(k) != v},
             'delete': [k for k in before if k not in after],
-            'blocks': {k: copy.deepcopy(v) for k, v in new.items() if old.get(k) != v},
-            'block_order': [b['id'] for b in after['blocks']]}
+            'blocks': {k: copy.deepcopy(v) for k, v in new.items() if old.get(k) != v}}
+    if list(old) != list(new):
+        delta['block_order'] = list(new)
+    return delta
 
 def _patch(state, delta):
     result = state
@@ -784,10 +802,33 @@ def _patch(state, delta):
         result.pop(key, None)
     blocks = {b['id']: b for b in result['blocks']}
     blocks.update(copy.deepcopy(delta['blocks']))
-    result['blocks'] = [blocks[key] for key in delta['block_order']]
+    order = delta.get('block_order', [b['id'] for b in result['blocks']])
+    result['blocks'] = [blocks[key] for key in order]
     return result
 
-def _commit(before, candidate, operations, request_id=None, origin='api'):
+def _compact_history(doc, keep_last):
+    history = doc['history']
+    records = history['revisions']
+    protected = set(history.get('branches', {}).values())
+    keep = {r['revision'] for r in records[-keep_last:]} if keep_last else set()
+    keep.update(r['revision'] for r in records if r.get('name') or r['revision'] in protected)
+    rebuilt, state, previous = [], None, None
+    for record in records:
+        state = copy.deepcopy(record['snapshot']) if 'snapshot' in record else _patch(state, record['delta'])
+        if record['revision'] in keep:
+            retained = {k: v for k, v in record.items() if k not in ('snapshot', 'delta')}
+            if previous is None:
+                retained['snapshot'] = copy.deepcopy(state)
+            else:
+                retained['delta'] = _delta(previous, state)
+            rebuilt.append(retained)
+            previous = copy.deepcopy(state)
+    removed = [r['revision'] for r in records if r['revision'] not in keep]
+    history['revisions'] = rebuilt
+    history['last_compaction'] = {'removed_revisions': removed, 'removed_assets': [], 'recovery_removed': ['Restore and compare removed unnamed revisions'], 'timestamp': datetime.now(UTC).isoformat()}
+
+
+def _commit(before, candidate, operations, request_id=None, origin='api', *, auto_compact_history=False):
     history = candidate['history']
     history.setdefault('revisions', [])
     history.setdefault('branches', {})
@@ -807,13 +848,17 @@ def _commit(before, candidate, operations, request_id=None, origin='api'):
     if type(limit) is not int or limit < 1:
         _error('history_limit must be a positive integer.', 'settings.history_limit')
     if len(history['revisions']) > limit:
-        # Never silently discard referenced recovery states.
-        raise ByaxError('limit_exceeded', 'History limit reached. Increase history_limit or explicitly compact a copy before further edits.', limit=limit)
+        if auto_compact_history:
+            # Named checkpoints and all branch heads are retained even when
+            # their count exceeds the desktop's soft history cap.
+            _compact_history(candidate, max(1, limit // 2))
+        else:
+            raise ByaxError('limit_exceeded', 'History limit reached. Increase history_limit or explicitly compact a copy before further edits.', limit=limit)
     for finding in candidate['review']['findings']:
         finding['status'] = 'stale'
     return candidate
 
-def apply(doc, envelope, *, dry_run=False):
+def apply(doc, envelope, *, dry_run=False, allow_policy_changes=False, auto_compact_history=False):
     validate_document(doc, include_history=False)
     if not isinstance(envelope, dict):
         _error('Edit envelope must be an object.', '$')
@@ -854,14 +899,14 @@ def apply(doc, envelope, *, dry_run=False):
     changed = []
     for i, operation in enumerate(operations):
         try:
-            changed.extend(_operation(candidate, operation, doc['revision']))
+            changed.extend(_operation(candidate, operation, doc['revision'], allow_policy_changes=allow_policy_changes))
         except ByaxError as exc:
             exc.details.setdefault('operation_index', i)
             raise
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             raise ByaxError('schema_error', f'Invalid operation value: {exc}', operation_index=i) from exc
     validate_document(candidate, include_history=False)
-    _preserve(doc, candidate, doc['settings'].get('protections', []) + rules)
+    _preserve(doc, candidate, doc['settings'].get('protections', []) + rules, allow_policy_changes=allow_policy_changes)
     structure = run_checks(candidate, ['structure'], limit=100)
     if structure['validation'] == 'failed':
         raise ByaxError('schema_error', 'Candidate contains invalid structure.', findings=structure['findings'])
@@ -883,7 +928,7 @@ def apply(doc, envelope, *, dry_run=False):
     if snapshot(candidate) == snapshot(doc) and candidate['history'] == doc['history']:
         result = _result(candidate, doc['revision'], [], 'unchanged', report)
     else:
-        _commit(doc, candidate, operations, request_id, envelope.get('origin', 'api'))
+        _commit(doc, candidate, operations, request_id, envelope.get('origin', 'api'), auto_compact_history=auto_compact_history)
         result = _result(candidate, doc['revision'], changed, report=report)
     if request_id:
         candidate['requests'][request_id] = {'fingerprint': fingerprint, 'result': copy.deepcopy(result)}
@@ -924,12 +969,12 @@ def diff(doc, from_revision):
             'changes': _compare(before, doc),
             'text_diff': '\n'.join(difflib.unified_diff(text_of(before).splitlines(), text_of(doc).splitlines(), fromfile=before['revision'], tofile=doc['revision'], lineterm=''))}
 
-def restore(doc, revision):
+def restore(doc, revision, *, auto_compact_history=False):
     state = _revision(doc, revision)
     candidate = {**copy.deepcopy(state), 'history': copy.deepcopy(doc['history']), 'requests': copy.deepcopy(doc['requests'])}
     _preserve(doc, candidate, doc['settings'].get('protections', []))
     validate_document(candidate, include_history=False)
-    _commit(doc, candidate, [{'type': 'restore', 'revision': revision}])
+    _commit(doc, candidate, [{'type': 'restore', 'revision': revision}], auto_compact_history=auto_compact_history)
     return candidate, _result(candidate, doc['revision'], [b['id'] for b in candidate['blocks']])
 
 def checkpoint(doc, name):
