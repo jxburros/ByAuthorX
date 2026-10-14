@@ -1,0 +1,257 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "provider keys"
+    },
+    {
+      "type": "shape",
+      "name": "settings",
+      "shape": "path",
+      "x": 130,
+      "y": 74,
+      "width": 220,
+      "height": 290,
+      "fill": "#303735",
+      "path": "M4 1 L215 0 L220 5 L218 287 L212 290 L0 289 L2 8 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 2.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "settings-line-0",
+      "shape": "path",
+      "x": 149,
+      "y": 114,
+      "width": 182,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q81.9 0 182 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "settings-line-1",
+      "shape": "path",
+      "x": 149,
+      "y": 142,
+      "width": 182,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q81.9 3 182 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "settings-line-2",
+      "shape": "path",
+      "x": 149,
+      "y": 170,
+      "width": 131.04,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q58.967999999999996 0 131.04 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "settings-line-3",
+      "shape": "path",
+      "x": 149,
+      "y": 198,
+      "width": 182,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q81.9 3 182 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "settings-line-4",
+      "shape": "path",
+      "x": 149,
+      "y": 226,
+      "width": 182,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q81.9 0 182 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "settings-line-5",
+      "shape": "path",
+      "x": 149,
+      "y": 254,
+      "width": 131.04,
+      "height": 4,
+      "fill": "none",
+      "path": "M0 1 Q58.967999999999996 3 131.04 2",
+      "stroke": "#BFB9AE",
+      "stroke_width": 2,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bow",
+      "shape": "path",
+      "x": 375,
+      "y": 184,
+      "width": 97,
+      "height": 96,
+      "fill": "none",
+      "path": "M49 0.63 C60.59 1.16 55.14 1.95 66.06 6.82 C76.97 11.7 73.09 7.47 81.74 15.26 C90.39 23.04 87.86 19.27 92 30.19 C96.14 41.1 94.37 36.21 94.17 48 C93.97 59.79 95.47 54.58 91.4 65.56 C87.32 76.54 90.16 72.52 81.94 80.94 C73.72 89.36 77.72 86.3 66.74 90.82 C55.76 95.35 60.61 95.03 49 94.52 C37.39 94 42.83 93.85 31.91 89.27 C20.98 84.69 25.12 88.49 16.22 80.78 C7.31 73.07 9.97 77.07 5.19 66.15 C0.41 55.22 1.48 59.93 1.87 48 C2.27 36.07 1.75 41.42 6.38 30.34 C11.01 19.26 7.46 23.13 15.76 14.76 C24.06 6.39 20.2 9.94 31.28 5.23 C42.36 0.52 37.41 0.1 49 0.63 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 7,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "shaft",
+      "shape": "path",
+      "x": 470,
+      "y": 231,
+      "width": 125,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.17 0.89 Q62.17 1.18 124.17 0.78",
+      "stroke": "#F4EEE3",
+      "stroke_width": 8,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "tooth-near",
+      "shape": "path",
+      "x": 556,
+      "y": 231,
+      "width": 1,
+      "height": 35,
+      "fill": "none",
+      "path": "M0.04 0.64 Q0.9 17.65 0.48 34.67",
+      "stroke": "#F4EEE3",
+      "stroke_width": 7,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "tooth-far",
+      "shape": "path",
+      "x": 581,
+      "y": 232,
+      "width": 1,
+      "height": 27,
+      "fill": "none",
+      "path": "M0.74 0.09 Q0.29 13.28 0.61 26.47",
+      "stroke": "#F4EEE3",
+      "stroke_width": 7,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "key-ink-body",
+      "shape": "path",
+      "x": 413,
+      "y": 221,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "key-ink-body",
+      "width": 20.832653061224487,
+      "height": 22.0
+    },
+    {
+      "type": "shape",
+      "name": "key-ink-fleck",
+      "shape": "path",
+      "x": 412.46122502857145,
+      "y": 236.71428571428572,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "key-ink-fleck",
+      "width": 3.7714285714285714,
+      "height": 5.0285714285714285
+    },
+    {
+      "type": "group",
+      "name": "key-ink",
+      "targets": [
+        "key-ink-body",
+        "key-ink-fleck"
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "desk",
+      "shape": "path",
+      "x": 111,
+      "y": 390,
+      "width": 428,
+      "height": 8,
+      "fill": "none",
+      "path": "M0.27 4.59 C69.87 3.57 66.61 0.43 209.08 1.53 C351.55 2.62 354.82 5.77 427.69 7.89",
+      "stroke": "#52615B",
+      "stroke_width": 2.8,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

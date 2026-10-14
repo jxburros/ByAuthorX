@@ -1,0 +1,92 @@
+{
+  "generator": "Vixl 0.27.0 (delivered APNG frames, unpacked without resampling)",
+  "source": "assets/logo-ui-library/animations/checking-page-dark.apng",
+  "source_sha256": "1551cd4baa5059994a0e546d1615985533c20dadeba833516928a0eab691c452",
+  "poster_source": "assets/logo-ui-library/animations/checking-page-dark.png",
+  "poster_source_sha256": "8dab7402c032872b4be4cd7b6204fc43a089e08765cda3a398619dc42e693474",
+  "durationMs": 2400,
+  "frameWidth": 168,
+  "frameHeight": 194,
+  "frameTimesMs": [
+    0,
+    125,
+    167,
+    208,
+    250,
+    292,
+    333,
+    375,
+    417,
+    458,
+    500,
+    542,
+    583,
+    625,
+    667,
+    708,
+    750,
+    792,
+    833,
+    875,
+    917,
+    958,
+    1000,
+    1042,
+    1083,
+    1458,
+    1500,
+    1542,
+    1583,
+    1625,
+    1667,
+    1708,
+    1750,
+    1792,
+    1833,
+    1875,
+    1917,
+    1958,
+    2400
+  ],
+  "loop": true,
+  "posterTimeMs": 1200,
+  "crop": [
+    76,
+    14,
+    244,
+    208
+  ],
+  "theme": "dark",
+  "checks": {
+    "passed": true,
+    "errors": 0,
+    "warnings": 0,
+    "info": 0,
+    "by_action": {
+      "fix": [],
+      "review": [],
+      "informational": []
+    },
+    "outcome": {
+      "state": "validated",
+      "execution": "completed",
+      "validation": "passed",
+      "review": "not_required",
+      "review_reasons": [],
+      "validated_by": [
+        "design checks"
+      ]
+    },
+    "issues": [],
+    "checked": {
+      "checks": [
+        "bounds",
+        "motion",
+        "composition"
+      ],
+      "layers_checked": 12,
+      "layers_total": 12,
+      "text_layers": 0
+    }
+  }
+}

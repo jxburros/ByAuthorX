@@ -1,0 +1,233 @@
+{
+  "canvas": {
+    "width": 320,
+    "height": 224,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "listening wave"
+    },
+    {
+      "type": "timeline-set",
+      "duration": 2400,
+      "fps": 24,
+      "loop": 0,
+      "loop_mode": "seamless"
+    },
+    {
+      "type": "shape",
+      "name": "mic-capsule",
+      "shape": "path",
+      "x": 54,
+      "y": 61,
+      "width": 33,
+      "height": 62,
+      "fill": "none",
+      "path": "M14.69 0.78 Q16.23 0.81 17.76 0.85 Q31.58 1.16 31.86 17.16 Q32.87 30.92 32.35 44.71 Q32.64 60.71 18.34 61.22 Q16.75 61.28 15.16 61.34 Q0.85 61.85 0.86 45.85 Q1.07 31.16 0.87 16.46 Q0.88 0.46 14.69 0.78 Z",
+      "stroke": "#252927",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "mic-cradle",
+      "shape": "path",
+      "x": 43,
+      "y": 119,
+      "width": 54,
+      "height": 25,
+      "fill": "none",
+      "path": "M53.96 0.79 C50.82 6.25 53.52 9.54 44.54 17.18 C35.55 24.81 38.7 23.69 27 23.7 C15.3 23.7 18.32 24.84 9.45 17.19 C0.58 9.53 3.41 6.22 0.4 0.74",
+      "stroke": "#252927",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "mic-stand",
+      "shape": "path",
+      "x": 69,
+      "y": 141,
+      "width": 1,
+      "height": 28,
+      "fill": "none",
+      "path": "M0.59 0.93 Q0.96 14 0.98 27.07",
+      "stroke": "#252927",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "mic-base",
+      "shape": "path",
+      "x": 53,
+      "y": 170,
+      "width": 33,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.64 0.51 Q16.71 1.64 32.81 1.36",
+      "stroke": "#252927",
+      "stroke_width": 4,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "listening-wave",
+      "shape": "path",
+      "x": 136,
+      "y": 53,
+      "width": 160,
+      "height": 95,
+      "fill": "none",
+      "path": "M0.56 47.18 C5.57 47.31 7.23 54.81 15.59 47.57 C23.94 40.33 18.7 17.65 25.62 25.45 C32.55 33.25 28.61 77.43 36.36 70.97 C44.11 64.5 40.83 0.88 48.87 6.06 C56.91 11.24 52.55 78.64 60.49 86.51 C68.42 94.39 65.13 37.38 72.68 29.68 C80.23 21.99 75.13 59.88 83.14 63.44 C91.14 67 88.18 43.74 96.68 40.37 C105.19 37 100.83 50.96 108.66 53.32 C116.49 55.68 103.31 49.24 120.17 47.46 C137.03 45.68 146.21 47.81 159.23 47.99",
+      "stroke": "#367B6C",
+      "stroke_width": 4.5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "keyframes",
+      "target": "listening-wave",
+      "property": "trim_end",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 120,
+          "value": 0,
+          "easing": "linear"
+        },
+        {
+          "time": 1080,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2280,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2281,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 2400,
+          "value": 0,
+          "easing": "hold"
+        }
+      ]
+    },
+    {
+      "type": "keyframes",
+      "target": "listening-wave",
+      "property": "trim_start",
+      "keys": [
+        {
+          "time": 0,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 1440,
+          "value": 0,
+          "easing": "linear"
+        },
+        {
+          "time": 2160,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2280,
+          "value": 100,
+          "easing": "hold"
+        },
+        {
+          "time": 2281,
+          "value": 0,
+          "easing": "hold"
+        },
+        {
+          "time": 2400,
+          "value": 0,
+          "easing": "hold"
+        }
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "listening-ink-body",
+      "shape": "path",
+      "x": 112,
+      "y": 90,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "listening-ink-body",
+      "width": 16.097959183673467,
+      "height": 17.0
+    },
+    {
+      "type": "shape",
+      "name": "listening-ink-fleck",
+      "shape": "path",
+      "x": 111.58367388571429,
+      "y": 102.14285714285714,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "listening-ink-fleck",
+      "width": 2.914285714285714,
+      "height": 3.8857142857142857
+    },
+    {
+      "type": "group",
+      "name": "listening-ink",
+      "targets": [
+        "listening-ink-body",
+        "listening-ink-fleck"
+      ]
+    }
+  ]
+}

@@ -13,6 +13,7 @@ from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 LIBRARY = ROOT / 'assets/logo-companion-library'
+UI_LIBRARY = ROOT / 'assets/logo-ui-library'
 OUTPUT = ROOT / 'src/byax/resources/brand/ui'
 
 
@@ -26,6 +27,17 @@ ILLUSTRATIONS = {
 }
 LOOPS = {'ai-thinking': 'ink-blot-loader', 'spelling-review': 'margin-review'}
 THEMES = ('light', 'dark')
+# The logo UI library: dialog illustrations, task-owned loops, hand-inked chrome rules and the icon atlas.
+UI_ILLUSTRATIONS = (
+    'checks-clear',
+    'proofread-marks',
+    'jobs-empty',
+    'dictation-ready',
+    'export-ready',
+    'provider-keys',
+)
+UI_LOOPS = ('listening-wave', 'checking-page')
+UI_RULES = ('rule-h', 'rule-v', 'tab-underline')
 
 
 def _sha(path):
@@ -87,16 +99,14 @@ def bake(name, design, *, loop=False, isolate=()):
     print(f'{name}: {len(frames)} transparent native frames, {width} × {height}')
 
 
-def bake_companion_loop(name, design, theme):
+def bake_companion_loop(name, design, theme, library=LIBRARY):
     """Unpack the delivered transparent APNG exactly; no Vixl runtime is required."""
     variant = f'{design}-{theme}'
-    entry = next(
-        item
-        for item in json.loads((LIBRARY / 'manifest.json').read_text(encoding='utf-8'))['assets']
-        if item['id'] == variant
-    )
-    source = LIBRARY / entry['apng']
-    poster_source = LIBRARY / entry['reduced_motion']
+    shelf = json.loads((library / 'manifest.json').read_text(encoding='utf-8'))
+    entry = next(item for item in shelf['assets'] if item['id'] == variant)
+    engine = shelf['engine']
+    source = library / entry['apng']
+    poster_source = library / entry['reduced_motion']
     frames, times, elapsed = [], [], 0
     with Image.open(source) as animation:
         for index in range(animation.n_frames):
@@ -129,7 +139,7 @@ def bake_companion_loop(name, design, theme):
     sprite.save(OUTPUT / f'{stem}-sprite.png', optimize=True)
     poster.crop(crop).save(OUTPUT / f'{stem}-poster.png', optimize=True)
     manifest = {
-        'generator': 'Vixl 0.26.0 (delivered APNG frames, unpacked without resampling)',
+        'generator': f'{engine["name"]} {engine["version"]} (delivered APNG frames, unpacked without resampling)',
         'source': str(source.relative_to(ROOT)),
         'source_sha256': _sha(source),
         'poster_source': str(poster_source.relative_to(ROOT)),
@@ -148,6 +158,42 @@ def bake_companion_loop(name, design, theme):
     print(f'{stem}: {len(frames)} transparent native frames, {width} × {height}')
 
 
+def _copy(source, target, provenance):
+    shutil.copy2(source, target)
+    provenance[target.name] = {'source': str(source.relative_to(ROOT)), 'source_sha256': _sha(source)}
+
+
+def ui_library(provenance):
+    """Copy the logo UI library's runtime pieces; pure file operations, no Vixl needed."""
+    for theme in THEMES:
+        for name in UI_ILLUSTRATIONS:
+            _copy(
+                UI_LIBRARY / 'illustrations' / f'{name}-{theme}.png',
+                OUTPUT / f'{name}-{theme}.png',
+                provenance,
+            )
+        for name in UI_LOOPS:
+            bake_companion_loop(name, name, theme, UI_LIBRARY)
+        for name in UI_RULES:
+            for suffix in ('', '@2x'):
+                _copy(
+                    UI_LIBRARY / 'rules' / f'{name}-{theme}{suffix}.png',
+                    OUTPUT / f'{name}-{theme}{suffix}.png',
+                    provenance,
+                )
+    atlas = json.loads((UI_LIBRARY / 'icons/atlas.json').read_text(encoding='utf-8'))
+    for key, filename in atlas['files'].items():
+        theme, size = key.split('-')
+        _copy(UI_LIBRARY / 'icons' / filename, OUTPUT / f'icons-{theme}-{size}.png', provenance)
+    atlas['files'] = {key: f'icons-{key}.png' for key in atlas['files']}
+    atlas['source'] = 'assets/logo-ui-library/icons/atlas.json'
+    (OUTPUT / 'icons.json').write_text(json.dumps(atlas, indent=2) + '\n', encoding='utf-8')
+    provenance['icons.json'] = {
+        'source': 'assets/logo-ui-library/icons/atlas.json',
+        'source_sha256': _sha(UI_LIBRARY / 'icons/atlas.json'),
+    }
+
+
 def companions():
     OUTPUT.mkdir(parents=True, exist_ok=True)
     provenance = json.loads((OUTPUT / 'provenance.json').read_text(encoding='utf-8'))
@@ -162,6 +208,7 @@ def companions():
                 'source': str(source.relative_to(ROOT)),
                 'source_sha256': _sha(source),
             }
+    ui_library(provenance)
     (OUTPUT / 'provenance.json').write_text(json.dumps(provenance, indent=2) + '\n', encoding='utf-8')
 
 

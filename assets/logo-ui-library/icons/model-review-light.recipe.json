@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Review with a model"
+    },
+    {
+      "type": "shape",
+      "name": "nib",
+      "shape": "path",
+      "x": 19,
+      "y": 14,
+      "width": 38,
+      "height": 64,
+      "fill": "none",
+      "path": "M20.11 2.69 Q27.83 14.29 35.42 25.97 Q37.07 28.48 36.13 31.33 Q32.35 40.7 29.82 50.48 Q28.89 53.33 26.76 55.45 Q23.61 58.61 20.45 61.76 Q18.33 63.88 16.37 61.6 Q14.03 58.88 11.69 56.16 Q9.73 53.89 8.66 51.09 Q5.61 41 1.18 31.44 Q0.11 28.64 1.74 26.12 Q8.66 14.01 16.84 2.7 Q18.47 0.18 20.11 2.69 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "slit",
+      "shape": "path",
+      "x": 37,
+      "y": 46,
+      "width": 2,
+      "height": 26,
+      "fill": "none",
+      "path": "M1.28 0.24 Q0.74 12.95 1.19 25.66",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "spark",
+      "shape": "path",
+      "x": 58,
+      "y": 10,
+      "width": 29,
+      "height": 29,
+      "fill": "none",
+      "path": "M13.65 1.36 Q15.32 4.74 16.98 8.12 Q17.51 9.2 18.62 9.67 Q23.1 11.59 27.57 13.5 Q28.68 13.98 27.58 14.47 Q23.53 16.31 19.48 18.14 Q18.39 18.64 17.83 19.7 Q15.85 23.42 13.87 27.14 Q13.31 28.2 13.01 27.04 Q12 22.99 10.99 18.94 Q10.69 17.77 9.59 17.3 Q5.44 15.55 1.29 13.79 Q0.19 13.33 1.32 12.91 Q4.66 11.69 8 10.47 Q9.13 10.06 9.58 8.95 Q11.12 5.17 12.67 1.39 Q13.12 0.28 13.65 1.36 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "spark-small",
+      "shape": "path",
+      "x": 63,
+      "y": 54,
+      "width": 17,
+      "height": 16,
+      "fill": "none",
+      "path": "M10.14 1.41 Q10.59 2.55 11.04 3.69 Q11.48 4.81 12.56 5.34 Q14.24 6.16 15.91 6.98 Q16.99 7.5 15.93 8.06 Q14.5 8.81 13.06 9.56 Q12 10.12 11.43 11.18 Q10.65 12.62 9.87 14.07 Q9.3 15.12 8.68 14.1 Q8.08 13.1 7.48 12.11 Q6.86 11.09 5.79 10.55 Q3.72 9.52 1.65 8.49 Q0.58 7.95 1.64 7.4 Q3.6 6.38 5.55 5.36 Q6.62 4.81 7.29 3.82 Q8.16 2.55 9.03 1.29 Q9.7 0.29 10.14 1.41 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 4.2,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

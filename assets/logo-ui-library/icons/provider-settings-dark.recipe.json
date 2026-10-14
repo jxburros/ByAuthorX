@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Provider settings"
+    },
+    {
+      "type": "shape",
+      "name": "bow",
+      "shape": "path",
+      "x": 12,
+      "y": 18,
+      "width": 33,
+      "height": 32,
+      "fill": "none",
+      "path": "M16 1.4 C20.29 1.48 18.41 1.05 22.38 2.75 C26.36 4.44 25.01 3.22 27.93 6.49 C30.84 9.76 30.1 8.24 31.13 12.55 C32.15 16.86 32.09 15.12 31.01 19.43 C29.93 23.73 30.66 22.01 27.87 25.47 C25.09 28.93 26.61 27.82 22.65 29.81 C18.69 31.79 20.35 31.58 16 31.41 C11.65 31.25 13.48 31.35 9.59 29.31 C5.71 27.27 7.13 28.61 4.35 25.29 C1.56 21.98 2.34 23.61 1.23 19.37 C0.12 15.13 0.03 16.84 1.03 12.58 C2.02 8.33 1.39 9.96 4.22 6.6 C7.04 3.24 5.57 4.24 9.5 2.51 C13.43 0.77 11.71 1.32 16 1.4 Z",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "shaft",
+      "shape": "path",
+      "x": 39,
+      "y": 44,
+      "width": 43,
+      "height": 40,
+      "fill": "none",
+      "path": "M0.46 0.85 Q20.84 21.07 42.55 39.87",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "tooth-a",
+      "shape": "path",
+      "x": 63,
+      "y": 58,
+      "width": 9,
+      "height": 9,
+      "fill": "none",
+      "path": "M0.68 8.45 Q4.73 4.31 8.77 0.17",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "tooth-b",
+      "shape": "path",
+      "x": 76,
+      "y": 69,
+      "width": 9,
+      "height": 9,
+      "fill": "none",
+      "path": "M0.15 8.78 Q4.31 4.77 8.48 0.76",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

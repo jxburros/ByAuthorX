@@ -1,0 +1,167 @@
+{
+  "canvas": {
+    "width": 640,
+    "height": 480,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "dictation ready"
+    },
+    {
+      "type": "shape",
+      "name": "capsule",
+      "shape": "path",
+      "x": 227,
+      "y": 64,
+      "width": 86,
+      "height": 161,
+      "fill": "none",
+      "path": "M39.29 0.19 Q43.53 0.19 47.76 0.2 Q85.9 0.27 85.66 42.27 Q84.89 79.65 85.23 117.03 Q85 159.03 47.07 159.57 Q42.86 159.63 38.65 159.69 Q0.72 160.23 0.84 118.23 Q0.49 80.17 1.04 42.11 Q1.15 0.11 39.29 0.19 Z",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "cradle",
+      "shape": "path",
+      "x": 202,
+      "y": 219,
+      "width": 137,
+      "height": 64,
+      "fill": "none",
+      "path": "M136.16 0.58 C128.67 14.91 136.42 24.02 113.7 43.57 C90.98 63.13 98.47 59.24 68 59.24 C37.53 59.24 44.26 63.24 22.29 43.58 C0.33 23.92 8.84 14.7 2.11 0.26",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "stand",
+      "shape": "path",
+      "x": 269,
+      "y": 277,
+      "width": 2,
+      "height": 68,
+      "fill": "none",
+      "path": "M0.7 0.87 Q1.26 34.18 1.41 67.5",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "base",
+      "shape": "path",
+      "x": 220,
+      "y": 347,
+      "width": 101,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.34 1.01 Q50.41 0.73 100.48 0.91",
+      "stroke": "#F4EEE3",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "voice",
+      "shape": "path",
+      "x": 358,
+      "y": 77,
+      "width": 216,
+      "height": 144,
+      "fill": "none",
+      "path": "M0.54 73.17 C8.81 73.4 12.54 86.17 25.37 73.87 C38.2 61.58 29.14 24.23 39.03 36.29 C48.92 48.35 44.76 119.64 55.03 110.05 C65.29 100.46 59.74 0.04 69.83 7.53 C79.91 15.02 74.06 121.23 85.29 132.53 C96.52 143.83 93.02 53.83 103.51 41.44 C114 29.05 108.42 88.33 116.76 95.35 C125.11 102.37 119.27 67.68 128.54 62.51 C137.8 57.33 132.95 75.94 144.56 79.83 C156.17 83.71 139.86 76.83 163.36 74.17 C186.86 71.51 197.84 72.62 215.07 71.84",
+      "stroke": "#367B6C",
+      "stroke_width": 6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "voice-ink-body",
+      "shape": "path",
+      "x": 336,
+      "y": 140,
+      "width": 16.57142857142857,
+      "height": 17.5,
+      "fill": "#AD283E",
+      "path": "M0.5714285714285712 6.5 2.571428571428571 1.5Q7.571428571428571 -1.5 12.571428571428571 1.5L16.57142857142857 3.5L15.571428571428571 8.5Q18.57142857142857 13.5 12.571428571428571 15.5L8.571428571428571 17.5L3.571428571428571 14.5Q-1.4285714285714288 12.5 0.5714285714285712 6.5Z"
+    },
+    {
+      "type": "resize",
+      "target": "voice-ink-body",
+      "width": 18.938775510204078,
+      "height": 20.0
+    },
+    {
+      "type": "shape",
+      "name": "voice-ink-fleck",
+      "shape": "path",
+      "x": 335.5102045714286,
+      "y": 154.28571428571428,
+      "width": 3.0,
+      "height": 4.0,
+      "fill": "#AD283E",
+      "path": "M0.0 1.0 2.0 0.0 3.0 3.0 1.0 4.0 0.0 1.0Z"
+    },
+    {
+      "type": "resize",
+      "target": "voice-ink-fleck",
+      "width": 3.4285714285714284,
+      "height": 4.571428571428571
+    },
+    {
+      "type": "group",
+      "name": "voice-ink",
+      "targets": [
+        "voice-ink-body",
+        "voice-ink-fleck"
+      ]
+    },
+    {
+      "type": "shape",
+      "name": "desk",
+      "shape": "path",
+      "x": 149,
+      "y": 390,
+      "width": 351,
+      "height": 8,
+      "fill": "none",
+      "path": "M0.95 6.57 C57.44 4.64 53.76 0.44 170.41 0.79 C287.07 1.14 290.74 5.35 350.9 7.62",
+      "stroke": "#52615B",
+      "stroke_width": 2.8,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

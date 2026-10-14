@@ -12,3 +12,5 @@ dist/
 .coverage
 htmlcov/
 artifacts/
+# Icons ship as editable .vixl masters and PNGs; strict SVG is ~76 KB each and regenerates on demand.
+assets/logo-ui-library/icons/*.svg

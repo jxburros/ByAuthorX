@@ -1,0 +1,124 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Bulleted list"
+    },
+    {
+      "type": "shape",
+      "name": "bullet-0",
+      "shape": "path",
+      "x": 15,
+      "y": 19,
+      "width": 10,
+      "height": 10,
+      "fill": "#252927",
+      "path": "M5 0.69 C7.19 0.64 7.03 0.56 8.38 2.3 C9.73 4.05 9.57 3.76 9.06 5.93 C8.55 8.1 8.81 7.84 6.84 8.82 C4.87 9.79 5.13 9.81 3.15 8.85 C1.16 7.89 1.34 8.07 0.89 5.94 C0.43 3.81 0.42 4.2 1.8 2.45 C3.17 0.69 2.81 0.73 5 0.69 Z"
+    },
+    {
+      "type": "shape",
+      "name": "line-0",
+      "shape": "path",
+      "x": 36,
+      "y": 22,
+      "width": 44,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.58 2.24 C7.8 1.6 8.03 0.36 22.23 0.34 C36.43 0.32 36.2 1.57 43.18 2.18",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bullet-1",
+      "shape": "path",
+      "x": 15,
+      "y": 43,
+      "width": 10,
+      "height": 10,
+      "fill": "#252927",
+      "path": "M5 0.87 C7.23 0.86 6.99 0.61 8.38 2.3 C9.77 4 9.68 3.78 9.16 5.95 C8.65 8.12 8.85 7.82 6.83 8.81 C4.82 9.79 5.08 9.86 3.12 8.9 C1.16 7.94 1.44 8.11 0.96 5.92 C0.48 3.74 0.33 4.03 1.68 2.35 C3.02 0.67 2.77 0.89 5 0.87 Z"
+    },
+    {
+      "type": "shape",
+      "name": "line-1",
+      "shape": "path",
+      "x": 36,
+      "y": 47,
+      "width": 36,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 0.58 Q18 1.35 36 1.08",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "bullet-2",
+      "shape": "path",
+      "x": 15,
+      "y": 67,
+      "width": 10,
+      "height": 10,
+      "fill": "#252927",
+      "path": "M5 0.86 C7.25 0.86 7.05 0.63 8.37 2.31 C9.7 3.99 9.51 3.77 8.98 5.91 C8.45 8.04 8.74 7.73 6.79 8.71 C4.84 9.7 5.07 9.8 3.14 8.87 C1.2 7.94 1.48 8.11 0.98 5.92 C0.47 3.73 0.27 3.98 1.61 2.3 C2.95 0.61 2.75 0.85 5 0.86 Z"
+    },
+    {
+      "type": "shape",
+      "name": "line-2",
+      "shape": "path",
+      "x": 36,
+      "y": 71,
+      "width": 44,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.23 Q22 0.19 44 0.89",
+      "stroke": "#252927",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}
