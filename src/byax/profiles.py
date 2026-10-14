@@ -64,11 +64,30 @@ def validate_profile(profile, *, strict=True):
 
     _check_secrets(profile)
     defaults = presets()['conservative_proofreading']
-    allowed = set(defaults) | {'minimum_dpi'}
+    from .publication import PUBLICATION_CATEGORIES
+
+    allowed = (
+        set(defaults) | {'minimum_dpi', 'format', 'clean', 'required_suites'} | set(PUBLICATION_CATEGORIES)
+    )
     unknown = set(profile) - allowed
     if strict and unknown:
         _fail('Unknown profile fields: ' + ', '.join(sorted(unknown)), '')
     result = {**defaults, **copy.deepcopy(profile)}
+    for field in set(PUBLICATION_CATEGORIES) | {'clean'}:
+        if field in result and type(result[field]) is not bool:
+            _fail('Publication inclusion settings must be booleans', field)
+    if 'format' in result:
+        from .formats import canonical_format
+
+        if not isinstance(result['format'], str):
+            _fail('Output format must be a supported format name', 'format')
+        result['format'] = canonical_format(result['format'])
+    if 'required_suites' in result:
+        from .checks import SUITES
+
+        suites = result['required_suites']
+        if not isinstance(suites, list) or any(not isinstance(s, str) or s not in SUITES for s in suites):
+            _fail('Required checks must name supported check suites', 'required_suites')
     if type(result['schema_version']) is not int or result['schema_version'] != 1:
         _fail('Unsupported profile schema version', 'schema_version')
     if type(result['version']) is not int or result['version'] < 1:

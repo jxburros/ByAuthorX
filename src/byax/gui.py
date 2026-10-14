@@ -527,6 +527,7 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         self.review_list.currentRowChanged.connect(self._sync_review_actions)
         self.inspector.addTab(review, self.tr('Review'))
         self.layer_list = QListWidget()
+        self.layer_list.setSelectionMode(QListWidget.ExtendedSelection)
         self.layer_list.setAccessibleName(self.tr('Document layers'))
         layers = QWidget()
         ll = QVBoxLayout(layers)
@@ -591,9 +592,20 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         ):
             menus['F&ormat'].addAction(self.action(self.tr(label), slot))
         menus['&View'].addAction(self.action(self.tr('Layer inspector…'), self.layer_inspector))
+        for label, slot in (
+            ('Edit selected layer…', self.edit_layer_properties),
+            ('Group selected layers…', self.group_selected_layers),
+            ('Ungroup selected layers', self.ungroup_selected_layers),
+            ('Move layer up', lambda: self.reorder_selected_layer(-1)),
+            ('Move layer down', lambda: self.reorder_selected_layer(1)),
+        ):
+            menus['F&ormat'].addAction(self.action(self.tr(label), slot))
         menus['&Review'].addAction(self.action(self.tr('Switch draft branch…'), self.switch_draft))
         menus['&Review'].addAction(self.action(self.tr('Compare and merge draft…'), self.merge_draft))
         menus['&File'].addAction(self.action(self.tr('Export with saved profile…'), self.export_profiles))
+        menus['&File'].addAction(self.action(self.tr('Edit export policies…'), self.edit_export_policies))
+        menus['F&ormat'].addAction(self.action(self.tr('Page masters…'), self.edit_page_masters))
+        menus['&Review'].addAction(self.action(self.tr('Section profiles…'), self.edit_section_profiles))
         menus['&Review'].addAction(
             self.action(self.tr('Resolve selected merge conflicts…'), self.resolve_merge_conflicts)
         )
@@ -3172,7 +3184,14 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         path, _ = QFileDialog.getSaveFileName(
             self,
             self.tr('Export publication copy'),
-            self.export_suggestion(),
+            str(
+                Path(self.export_suggestion()).with_suffix(
+                    '.' + self.doc['profiles'][self._selected_export_profile]['format']
+                )
+            )
+            if getattr(self, '_selected_export_profile', None) in self.doc['profiles']
+            and self.doc['profiles'][self._selected_export_profile].get('format')
+            else self.export_suggestion(),
             self.tr(
                 'PDF (*.pdf);;Word (*.docx);;OpenDocument (*.odt);;Markdown (*.md);;HTML (*.html);;Rich text (*.rtf);;Plain text (*.txt)'
             ),
@@ -3182,7 +3201,10 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
         doc = copy.copy(self.doc)
         profile = copy.deepcopy(doc.get('profiles', {}).get(getattr(self, '_selected_export_profile', None)))
         writer = (
-            export_clean if self.file_view == 'byax' and self.export_offer.isHidden() else export_document
+            export_clean
+            if (profile and profile.get('clean'))
+            or (self.file_view == 'byax' and self.export_offer.isHidden())
+            else export_document
         )
         if writer is export_document:
             profile = {**(profile or {}), 'allow_markdown_losses': True}

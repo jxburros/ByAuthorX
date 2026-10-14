@@ -146,19 +146,24 @@ def test_hidden_gap_blocks_backspace_and_delete(window):
     assert window.doc == before
 
 
-def test_seeded_text_edits_keep_hidden_blocks_and_unoverlapped_marks(window):
+@pytest.mark.parametrize('fmt', [f for f in FORMATS if f != 'byax'])
+def test_seeded_text_edits_keep_hidden_blocks_and_unoverlapped_marks(window, fmt):
     rng = random.Random(427)
     window.doc = example()
+    window.doc['blocks'][1]['attrs']['exclude_outputs'] = [fmt]
     window.refresh()
     hidden = copy.deepcopy(window.doc['blocks'][1])
     mark = copy.deepcopy(window.doc['blocks'][0]['marks'])
-    window.set_file_view('txt')
+    window.set_file_view(fmt)
     for _ in range(25):
         window.editor.navigate(window.doc['blocks'][0]['id'])
         cursor = window.editor.textCursor()
         cursor.movePosition(QTextCursor.EndOfBlock)
         window.editor.setTextCursor(cursor)
-        window.editor.insertPlainText(rng.choice(['x', 'é', '😀']))
+        if rng.randrange(3) == 0 and len(window.doc['blocks'][0]['text']) > 10:
+            cursor.deletePreviousChar()
+        else:
+            window.editor.insertPlainText(rng.choice(['x', 'é', '😀']))
         assert window.flush_edits()
         assert window.doc['blocks'][1] == hidden
         assert window.doc['blocks'][0]['marks'] == mark
@@ -384,3 +389,89 @@ def test_literal_markdown_paste_and_source_preference(window, tmp_path):
     window.set_file_view('md')
     assert window.stack.currentIndex() == 2
     assert window.source_editor.toPlainText() == target.read_text()
+
+
+@pytest.mark.parametrize('fmt', ['txt', 'md', 'html', 'docx', 'odt', 'rtf'])
+def test_registered_inline_capabilities_match_real_exporters(fmt, tmp_path):
+    values = {
+        'bold': True,
+        'italic': True,
+        'underline': True,
+        'strikethrough': True,
+        'superscript': True,
+        'subscript': True,
+        'font_family': 'DejaVu Serif',
+        'font_size': 18,
+        'color': '#bb2200',
+        'highlight': '#ffff00',
+        'code': True,
+        'link': 'https://example.com',
+        'font': 'DejaVu Serif',
+        'size': 18,
+    }
+
+    def normalized(mark):
+        value = mark['value']
+        if mark['type'] in ('color', 'highlight'):
+            value = value.lower()
+        return (
+            {'font': 'font_family', 'size': 'font_size'}.get(mark['type'], mark['type']),
+            value,
+            mark['start'],
+            mark['end'],
+        )
+
+    for kind, value in values.items():
+        doc = model.new_document(text='ABC def')
+        doc['blocks'][0]['marks'] = [{'type': kind, 'value': value, 'start': 0, 'end': 3}]
+        candidate, _ = project(doc, fmt)
+        path = tmp_path / ('out.' + fmt)
+        export_document(doc, path, profile={'allow_markdown_losses': True})
+        restored, _ = import_document(path)
+        expected = [normalized(m) for m in candidate['blocks'][0]['marks']]
+        actual = [normalized(m) for m in restored['blocks'][0]['marks']]
+        assert all(m in actual for m in expected), (fmt, kind, expected, actual)
+        # Inherited font marks may be materialized by ODT, but an unsupported
+        # authored mark must not appear on precisely the authored range.
+        if not expected:
+            assert normalized(doc['blocks'][0]['marks'][0]) not in actual, (fmt, kind)
+
+
+def test_odt_direct_spacing_survives_inherited_paragraph_style(tmp_path):
+    from byax.formatting import style_values
+
+    doc = model.new_document(text='Spaced paragraph')
+    attrs = {'space_before': 12, 'space_after': 8, 'indent': 18, 'first_line_indent': 6}
+    doc['blocks'][0]['attrs'].update(attrs)
+    path = tmp_path / 'spacing.odt'
+    export_document(doc, path)
+    restored, _ = import_document(path)
+    block = restored['blocks'][0]
+    resolved = {**style_values(restored, block['style']), **block['attrs']}
+    assert {key: resolved[key] for key in attrs} == attrs
+    assert project(doc, 'odt')[0]['blocks'][0]['attrs'] == attrs
+
+
+def test_approximate_view_drops_unexported_master_and_variants():
+    doc = model.new_document(text='Page')
+    doc['layout'].update(
+        master='cover', masters={'cover': {'width': 1000}}, header={'first': 'Cover', 'text': 'Default'}
+    )
+    for fmt in ('docx', 'odt', 'rtf'):
+        projected, _ = project(doc, fmt)
+        assert 'masters' not in projected['layout'] and 'master' not in projected['layout']
+        assert projected['layout']['header'] == 'Default'
+    assert project(doc, 'pdf')[0]['layout'] == doc['layout']
+
+
+def test_multiline_paste_across_hidden_block_preserves_hidden_and_paragraph_structure(window):
+    window.doc = example()
+    hidden = copy.deepcopy(window.doc['blocks'][1])
+    window.refresh()
+    window.set_file_view('txt')
+    window.editor.selectAll()
+    window.editor.insertPlainText('First\nSecond\nThird')
+    assert window.flush_edits()
+    assert window.doc['blocks'][3] == hidden
+    assert [b['text'] for b in window.doc['blocks'][:3]] == ['First', 'Second', 'Third']
+    assert all(b['style'] == 'body' for b in window.doc['blocks'][:3])

@@ -22,6 +22,66 @@ from . import engine, profiles
 
 
 class WorkflowPanels:
+    def edit_layer_properties(self):
+        from .gui_document_settings import LayerDialog
+
+        item = self.layer_list.currentItem()
+        if item and self.flush_edits():
+            layer = item.data(Qt.UserRole)
+            if layer.get('kind') == 'group':
+                self.message(
+                    self.tr('Layer group'), self.tr('Select a member to edit its geometry and output policy.')
+                )
+                return
+            LayerDialog(self, layer).exec()
+
+    def group_selected_layers(self):
+        targets = [item.data(Qt.UserRole)['id'] for item in self.layer_list.selectedItems()]
+        if not targets:
+            return
+        name, ok = QInputDialog.getText(self, self.tr('Group layers'), self.tr('Group name'))
+        if ok and name.strip():
+            self.commit([{'type': 'group_layers', 'name': name.strip(), 'targets': targets}])
+
+    def ungroup_selected_layers(self):
+        item = self.layer_list.currentItem()
+        if item:
+            layer = item.data(Qt.UserRole)
+            target = layer.get('group') or (layer['id'] if layer.get('kind') == 'group' else None)
+            if target:
+                self.commit([{'type': 'ungroup_layers', 'target': target}])
+
+    def reorder_selected_layer(self, direction):
+        item = self.layer_list.currentItem()
+        if item:
+            index = self.layer_list.row(item) + direction
+            if 0 <= index < self.layer_list.count():
+                self.commit(
+                    [{'type': 'reorder_layer', 'target': item.data(Qt.UserRole)['id'], 'to_index': index}]
+                )
+
+    def edit_export_policies(self):
+        from .gui_document_settings import ExportPolicyDialog
+
+        if self.flush_edits():
+            ExportPolicyDialog(self).exec()
+
+    def edit_page_masters(self):
+        from .gui_document_settings import MasterDialog
+
+        if self.flush_edits():
+            MasterDialog(self).exec()
+
+    def edit_section_profiles(self):
+        from .gui_document_settings import SectionProfileDialog
+
+        if not self.flush_edits():
+            return
+        if not any(b['type'] == 'heading' for b in self.doc['blocks']):
+            self.message(self.tr('Section profiles'), self.tr('Add a heading to define a section first.'))
+            return
+        SectionProfileDialog(self).exec()
+
     def linked_assets(self):
         from .dependencies import refresh_operations
 

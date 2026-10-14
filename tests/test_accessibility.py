@@ -151,6 +151,9 @@ def test_focus_chain_reaches_core_workspace_controls(window):
 
 
 DIALOG_METHODS = [
+    'edit_export_policies',
+    'edit_page_masters',
+    'edit_section_profiles',
     'linked_assets',
     'formatting_inspector',
     'layer_inspector',
@@ -205,6 +208,7 @@ def test_every_dialog_names_its_controls(window, dialogs):
     from byax.gui_providers import authorize_payload
 
     window.doc = model.new_document(text='First\nSecond')
+    window.doc['blocks'][0].update(type='heading', style='heading1', attrs={'level': 1})
     window.refresh(0)
     window.commit([{'type': 'insert_table', 'after': window.doc['blocks'][0]['id'], 'rows': 2, 'columns': 2}])
     table = next(b for b in window.doc['blocks'] if b['type'] == 'table')

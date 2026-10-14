@@ -66,7 +66,7 @@ class FileViews:
         row.addWidget(self.export_offer_text, 1)
         for title, callback in (
             ('Export…', self.export),
-            ('Details', self.show_view_losses),
+            ('Details', lambda: self.show_view_losses(self._offered_format)),
             ('Not now', self.export_offer.hide),
             ("Don't ask for this document", lambda: self.suppress_export_offer(False)),
             ("Don't ask again", lambda: self.suppress_export_offer(True)),
@@ -271,13 +271,16 @@ class FileViews:
             return self.editor.navigate(target)
         return False
 
-    def show_view_losses(self):
+    def show_view_losses(self, format=None):
+        from .exchange import conversion_preview
+
+        report = conversion_preview(self.doc, format) if isinstance(format, str) else self._view_report
         dialog = QDialog(self)
         dialog.setWindowTitle(self.tr('Hidden and simplified features'))
         layout = QVBoxLayout(dialog)
         items = QListWidget()
         items.setAccessibleName(self.tr('Located format limitations; activate to show in Full view'))
-        for loss in self._view_report.get('losses', []):
+        for loss in report.get('losses', []):
             items.addItem(str(loss.get('target', 'document')) + ': ' + loss['message'])
             items.item(items.count() - 1).setData(Qt.UserRole, loss.get('target'))
 

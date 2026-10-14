@@ -187,3 +187,118 @@ def test_gui_selective_proposal_preserves_unselected_edit(window, monkeypatch):
     assert window.review_proposal_edits(record)
     assert [b['text'] for b in window.doc['blocks']] == ['Changed first', 'Second']
     assert window.doc['review']['proposals'][0]['status'] == 'pending'
+
+
+def test_export_policy_gui_roundtrip_and_staged_export(window, tmp_path):
+    from byax.gui_document_settings import ExportPolicyDialog
+    from byax.publication import export_clean
+
+    window.doc = model.new_document(text='Publish this')
+    window.refresh()
+    dialog = ExportPolicyDialog(window)
+    dialog.name.setText('Public release')
+    dialog.format.setCurrentIndex(dialog.format.findData('docx'))
+    dialog.includes['include_comments'].setChecked(True)
+    dialog.suites['structure'].setChecked(True)
+    dialog.save()
+    key, saved = next(iter(window.doc['profiles'].items()))
+    assert saved['clean'] and saved['format'] == 'docx'
+    assert saved['include_comments'] and not saved['include_history']
+    path = tmp_path / 'master.byax'
+    storage.save_document(window.doc, path)
+    assert storage.load_document(path)['profiles'][key] == saved
+    collection = profiles.export_settings(window.doc, ['profiles'])
+    compiled = profiles.compile_collection(model.new_document(), collection)
+    imported, _ = engine.apply(model.new_document(), {'operations': compiled['operations']})
+    assert imported['profiles'][key] == saved
+    output = tmp_path / 'public.docx'
+    report = export_clean(window.doc, output, profile=saved)
+    assert output.exists() and report['validation'] == 'passed'
+    dialog.close()
+
+
+@pytest.mark.parametrize('values', [{'include_audio': 'yes'}, {'required_suites': ['unknown']}, {'clean': 1}])
+def test_export_policy_rejects_invalid_values(values):
+    with pytest.raises(ByaxError):
+        profiles.validate_profile(values)
+
+
+def test_master_gui_preserves_artwork_and_assigns_regions(window):
+    from byax.gui_document_settings import MasterDialog
+
+    window.doc = model.new_document(text='Body')
+    artwork = [{'fill': '#ff0000', 'x': 10, 'y': 10, 'width': 40, 'height': 40}]
+    window.doc['layout']['masters'] = {'letterhead': {'artwork': artwork, 'columns': 2}}
+    window.refresh()
+    dialog = MasterDialog(window)
+    dialog.saved.setCurrentIndex(dialog.saved.findData('letterhead'))
+    dialog.geometry['top'].setValue(120)
+    dialog.regions[('header', 'first', 'left')].setText('First-page letterhead')
+    dialog.regions[('footer', 'even', 'right')].setText('{page}')
+    dialog.assignment.setCurrentIndex(dialog.assignment.findData('document'))
+    dialog.save()
+    master = window.doc['layout']['masters']['letterhead']
+    assert master['artwork'] == artwork and master['columns'] == 2
+    assert master['margins']['top'] == 120
+    assert master['header']['first']['left'] == 'First-page letterhead'
+    assert master['footer']['even']['right'] == '{page}'
+    assert window.doc['layout']['master'] == 'letterhead'
+    window.undo()
+    assert 'master' not in window.doc['layout']
+    dialog.close()
+
+
+def test_section_profile_gui_preserves_dictionary_and_resolves_settings(window):
+    from byax.gui_document_settings import SectionProfileDialog
+
+    window.doc = model.new_document(text='Lyrics\nIntentional writing')
+    heading = window.doc['blocks'][0]
+    heading.update(type='heading', style='heading1', attrs={'level': 1})
+    window.doc['settings']['section_profiles'] = {
+        heading['id']: {'inherit': True, 'overrides': {'dictionary': ['unusualword']}}
+    }
+    window.refresh()
+    dialog = SectionProfileDialog(window)
+    dialog.overrides['sensitivity'].setCurrentIndex(dialog.overrides['sensitivity'].findData('broad'))
+    dialog.save()
+    result = profiles.effective_profile(window.doc, window.doc['blocks'][1]['id'])
+    assert result['profile']['dictionary'] == ['unusualword']
+    assert result['profile']['sensitivity'] == 'broad'
+    dialog.close()
+    remove = SectionProfileDialog(window)
+    remove.remove.setChecked(True)
+    remove.save()
+    assert heading['id'] not in window.doc['settings']['section_profiles']
+    remove.close()
+
+
+def test_layer_gui_edit_group_and_ungroup_preserves_output_policy(window, monkeypatch):
+    from byax.gui_document_settings import LayerDialog
+
+    window.doc = model.new_document(text='Body')
+    window.doc['layers'] = [
+        {'id': 'one', 'type': 'text', 'name': 'One', 'text': 'First', 'visible': True, 'locked': False},
+        {'id': 'two', 'type': 'text', 'name': 'Two', 'text': 'Second', 'visible': True, 'locked': False},
+    ]
+    window.refresh()
+    editor = LayerDialog(window, window.doc['layers'][0])
+    editor.values['x'].setValue(120)
+    editor.outputs['exclude_outputs'].setText('md, txt')
+    editor.save()
+    assert window.doc['layers'][0]['x'] == 120
+    assert window.doc['layers'][0]['exclude_outputs'] == ['md', 'txt']
+    for index in range(window.layer_list.count()):
+        window.layer_list.item(index).setSelected(True)
+    monkeypatch.setattr(QInputDialog, 'getText', lambda *args, **kwargs: ('Letterhead', True))
+    window.group_selected_layers()
+    group = next(layer for layer in window.doc['layers'] if layer.get('kind') == 'group')
+    assert all(
+        layer.get('group') == group['id'] for layer in window.doc['layers'] if layer['id'] != group['id']
+    )
+    window.layer_list.setCurrentRow(
+        next(i for i, layer in enumerate(window.doc['layers']) if layer['id'] == group['id'])
+    )
+    window.ungroup_selected_layers()
+    assert len(window.doc['layers']) == 2 and not any('group' in layer for layer in window.doc['layers'])
+    assert window.doc['layers'][0]['exclude_outputs'] == ['md', 'txt']
+    editor.close()

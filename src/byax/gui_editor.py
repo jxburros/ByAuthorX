@@ -345,9 +345,25 @@ class SemanticEditor(QTextEdit):
                 if end > start
             ]
             if text and targets:
+                parts = text.replace('\r\n', '\n').replace('\r', '\n').split('\n')
+                target, offset = targets[0][0], targets[0][1]
                 operations.append(
-                    {'type': 'insert_text', 'target': targets[0][0], 'offset': targets[0][1], 'text': text}
+                    {'type': 'insert_text', 'target': target, 'offset': offset, 'text': parts[0]}
                 )
+                for previous, part in pairwise(parts):
+                    fresh = 'p_' + uuid.uuid4().hex
+                    operations.append(
+                        {
+                            'type': 'split_block',
+                            'target': target,
+                            'offset': offset + len(previous),
+                            'id': fresh,
+                        }
+                    )
+                    operations.append({'type': 'insert_text', 'target': fresh, 'offset': 0, 'text': part})
+                    if getattr(self, 'view_format', 'byax') == 'txt':
+                        operations.append({'type': 'apply_style', 'target': fresh, 'style': 'body'})
+                    target, offset = fresh, 0
             self.viewEditRequested.emit(operations)
             return
         super().insertPlainText(text)

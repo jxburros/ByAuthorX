@@ -79,7 +79,7 @@ FORMATS = {
         _entry(
             'rtf',
             'Rich Text (.rtf)',
-            BASIC_MARKS,
+            BASIC_MARKS | {'font_size'},
             styles=True,
             attrs={'alignment'},
             extra=('page_break', 'footnote'),
@@ -232,7 +232,13 @@ def _project_content(candidate, view, report):
             listing = block['attrs']['list']
             block['attrs']['list'] = {
                 'kind': listing.get('kind', 'bullet') if isinstance(listing, dict) else listing,
-                'level': 1,
+                'level': (
+                    listing.get('level', attrs.get('level', 1))
+                    if isinstance(listing, dict)
+                    else attrs.get('level', 1)
+                )
+                if view == 'odt'
+                else 1,
             }
             if view == 'html':
                 block['attrs'].update(restart=True, start=1)
@@ -249,6 +255,16 @@ def _project_content(candidate, view, report):
             'height': 792,
             'margins': dict.fromkeys(('top', 'right', 'bottom', 'left'), 36),
         }
+    elif entry['layout'] == 'geometry':
+        candidate['layout'] = {
+            key: value
+            for key, value in candidate['layout'].items()
+            if key in ('width', 'height', 'margins', 'header', 'footer')
+        }
+        for key in ('header', 'footer'):
+            value = candidate['layout'].get(key)
+            if isinstance(value, dict):
+                candidate['layout'][key] = value.get('text', '')
     candidate['review'] = {
         key: value if key in entry['review'] else [] for key, value in candidate['review'].items()
     }

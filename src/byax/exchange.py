@@ -1278,6 +1278,9 @@ def _import_odt(doc, raw, losses):
                         values['underline'] = True
                     if attr(properties, 'style', 'text-line-through-style', 'none') != 'none':
                         values['strikethrough'] = True
+                    position = attr(properties, 'style', 'text-position', '').split()
+                    if position and position[0] in ('super', 'sub'):
+                        values['superscript' if position[0] == 'super' else 'subscript'] = True
                 paragraph = style.find('style:paragraph-properties', ns)
                 if paragraph is not None:
                     alignment = attr(paragraph, 'fo', 'text-align')
@@ -2630,6 +2633,23 @@ def _export_odt(doc, path):
         element = H(outlinelevel=attrs.get('level', 1)) if kind == 'heading' else P()
         if block.get('style') in style_map:
             element.setAttribute('stylename', style_map[block['style']])
+        direct = {
+            target: f'{attrs[key]}pt'
+            for key, target in (
+                ('space_before', 'margintop'),
+                ('space_after', 'marginbottom'),
+                ('indent', 'marginleft'),
+                ('first_line_indent', 'textindent'),
+            )
+            if key in attrs
+        }
+        if direct:
+            direct_style = Style(name='ByaxParagraph' + block['id'], family='paragraph')
+            if block.get('style') in style_map:
+                direct_style.setAttribute('parentstylename', style_map[block['style']])
+            direct_style.addElement(ParagraphProperties(**direct))
+            output.automaticstyles.addElement(direct_style)
+            element.setAttribute('stylename', direct_style)
         add_text(element, block)
         for number, note in notes.get(block.get('id'), []):
             note_element = Note(id=note['id'], noteclass='footnote')
