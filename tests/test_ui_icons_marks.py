@@ -280,7 +280,9 @@ def test_checking_loop_stops_when_the_checks_fail(qtbot, monkeypatch, tmp_path):
 
 def test_dictation_voice_loop_is_task_owned(qtbot, monkeypatch, tmp_path):
     from byax.gui_providers import DictationDialog
+    from byax.transcription import QtMicrophoneRecorder
 
+    monkeypatch.setattr(QtMicrophoneRecorder, 'devices', staticmethod(list))
     window = make_window(qtbot, monkeypatch, tmp_path)
     dialog = DictationDialog(window, journal_root=tmp_path / 'journal')
     qtbot.addWidget(dialog)

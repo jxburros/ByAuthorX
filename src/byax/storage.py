@@ -393,7 +393,7 @@ def save_document(
                 # mkstemp creates 0600 files; keep the document's existing mode.
                 os.chmod(tmp, stat.S_IMODE(target.stat().st_mode))
             os.replace(tmp, target)
-            if os.name != 'nt':
+            if sys.platform != 'win32':
                 dirfd = os.open(target.parent, os.O_DIRECTORY)
                 try:
                     os.fsync(dirfd)
