@@ -19,6 +19,7 @@ from pathlib import Path
 
 from PySide6.QtCore import QBuffer, QByteArray, QIODevice, QPointF, QRectF, QSizeF, Qt, QUrl
 from PySide6.QtGui import (
+    QAbstractTextDocumentLayout,
     QColor,
     QFont,
     QFontDatabase,
@@ -28,6 +29,7 @@ from PySide6.QtGui import (
     QPageLayout,
     QPageSize,
     QPainter,
+    QPalette,
     QPdfWriter,
     QTextBlockFormat,
     QTextCharFormat,
@@ -2775,7 +2777,12 @@ def draw_page(painter, qdoc, doc, page_index, output=None):
         painter.setClipRect(rect)
         painter.translate(rect.x() - source.x(), rect.y() - source.y())
         # Shrinking the paint clip keeps boundary lines out of the neighbouring fragment's PDF text.
-        part.drawContents(painter, source.adjusted(0, EPSILON, 0, -EPSILON))
+        # Publication colors belong to the document, independently of the desktop theme.
+        context = QAbstractTextDocumentLayout.PaintContext()
+        context.clip = source.adjusted(0, EPSILON, 0, -EPSILON)
+        context.palette.setColor(QPalette.Text, QColor('black'))
+        context.palette.setColor(QPalette.Base, QColor('white'))
+        part.documentLayout().draw(painter, context)
         painter.restore()
         for edge, left, right, color, pen_width in fragment.get('edges', []):
             painter.save()

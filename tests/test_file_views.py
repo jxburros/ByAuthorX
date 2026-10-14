@@ -478,3 +478,36 @@ def test_multiline_paste_across_hidden_block_preserves_hidden_and_paragraph_stru
     assert window.doc['blocks'][3] == hidden
     assert [b['text'] for b in window.doc['blocks'][:3]] == ['First', 'Second', 'Third']
     assert all(b['style'] == 'body' for b in window.doc['blocks'][:3])
+
+
+def test_publication_pixels_ignore_application_theme_and_keep_authored_colors(app, monkeypatch, tmp_path):
+    from PIL import Image
+    from PySide6.QtGui import QFont, QPalette
+
+    from byax import brand
+    from byax.layout import render
+
+    settings = QSettings(str(tmp_path / 'theme.ini'), QSettings.IniFormat)
+    monkeypatch.setattr(brand, 'QSettings', lambda *args: settings)
+    old_palette, old_font = QPalette(app.palette()), QFont(app.font())
+    old_style, old_theme = app.styleSheet(), app.property('byaxTheme')
+    doc = model.new_document(text='Publication colors\nPlain black text must stay readable.')
+    doc['blocks'][0].update(type='heading', style='heading1', attrs={'level': 1})
+    doc['blocks'][0]['marks'] = [{'type': 'color', 'value': '#bb2200', 'start': 0, 'end': 18}]
+    results = []
+    try:
+        for theme in ('light', 'dark'):
+            settings.setValue('appearance/theme', theme)
+            brand.configure_application(app)
+            report = render(doc, tmp_path / theme)
+            pixels = Image.open(report['outputs'][0]).convert('RGB')
+            results.append(pixels.tobytes())
+            colors = [color for _, color in pixels.getcolors(pixels.width * pixels.height)]
+            assert any(max(color) < 50 for color in colors)
+            assert any(color[0] > 150 and color[1] < 60 and color[2] < 30 for color in colors)
+        assert results[0] == results[1]
+    finally:
+        app.setPalette(old_palette)
+        app.setFont(old_font)
+        app.setStyleSheet(old_style)
+        app.setProperty('byaxTheme', old_theme)
