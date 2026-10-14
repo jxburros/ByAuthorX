@@ -464,561 +464,670 @@ def _move_section(doc, op):
     return [b['id'] for b in moving]
 
 
+def _op_text_edit(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if 'text' not in obj or obj.get('type') in ('table', 'image', 'page_break', 'section_break', 'toc'):
+        _error('Target is not editable text.', 'target')
+    original = obj['text']
+    if kind == 'replace_text':
+        match = op['match']
+        if not match:
+            _error('Match must not be empty.', 'match')
+        locations = [m.start() for m in re.finditer(re.escape(match), original)]
+        if not locations:
+            raise ByaxError('precondition_failed', 'Quoted text is absent from target.', target=obj['id'])
+        if len(locations) > 1 and 'occurrence' not in op:
+            raise ByaxError(
+                'ambiguous_selection',
+                'Quoted text has multiple matches; supply a one-based occurrence.',
+                target=obj['id'],
+                candidates=[
+                    {'occurrence': i + 1, 'start': p, 'end': p + len(match)} for i, p in enumerate(locations)
+                ],
+            )
+        occurrence = op.get('occurrence', 1)
+        if not 1 <= occurrence <= len(locations):
+            _error('Occurrence is outside the match list.', 'occurrence')
+        start, replacement = locations[occurrence - 1], op['replacement']
+        end = start + len(match)
+    elif kind == 'insert_text':
+        start = end = op['offset']
+        replacement = op['text']
+    elif kind == 'delete_text':
+        start, end, replacement = op['start'], op['end'], ''
+    else:
+        start, end, replacement = 0, len(original), op['text']
+    _boundaries(original, start, end)
+    if 'expected_text' in op and original[start:end] != op['expected_text']:
+        raise ByaxError(
+            'precondition_failed',
+            'Expected text does not match selected text.',
+            target=obj['id'],
+            actual=original[start:end],
+        )
+    before_marks = copy.deepcopy(obj.get('marks', []))
+    _splice(obj, start, end, replacement)
+    _adjust_anchors(doc, obj['id'], start, end, len(replacement))
+    changed.append(obj['id'])
+    if doc['settings'].get('track_changes') and original != obj['text']:
+        doc['review']['tracked_changes'].append(
+            {
+                'id': new_id('change'),
+                'target': obj['id'],
+                'before': original,
+                'after': obj['text'],
+                'before_marks': before_marks,
+                'after_marks': copy.deepcopy(obj.get('marks', [])),
+                'status': 'pending',
+                'base_revision': base_revision,
+            }
+        )
+
+
+def _op_insert_paragraph(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _paragraph(op['text'], op.get('style', 'body'), op.get('id'))
+    if obj['style'] not in doc['styles']:
+        _error('Unknown named style.', 'style')
+    _insert(doc, obj, op.get('after'))
+    changed.append(obj['id'])
+
+
+def _op_delete_or_move_block(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if obj not in doc['blocks']:
+        _error('Target must be a top-level block.', 'target')
+    if op.get('after') == obj['id']:
+        _error('Block cannot be moved after itself.', 'after')
+    doc['blocks'].remove(obj)
+    if kind == 'move_block':
+        _insert(doc, obj, op.get('after'))
+    else:
+        removed = (
+            {obj['id']}
+            | {r['id'] for r in obj.get('rows', [])}
+            | {c['id'] for r in obj.get('rows', []) for c in r['cells']}
+        )
+        _orphan_review(doc, removed)
+    changed.append(obj['id'])
+
+
+def _op_move_section(doc, op, base_revision, kind, changed, allow_policy_changes):
+    changed.extend(_move_section(doc, op))
+
+
+def _op_split_block(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if obj.get('type') not in ('paragraph', 'heading', 'footnote'):
+        _error('Only text blocks can be split.', 'target')
+    offset = op['offset']
+    _boundaries(obj['text'], offset, offset)
+    new = copy.deepcopy(obj)
+    new['id'] = op.get('id') or new_id('p')
+    new['text'], obj['text'] = obj['text'][offset:], obj['text'][:offset]
+    new['marks'] = [
+        dict(m, start=max(0, m['start'] - offset), end=m['end'] - offset)
+        for m in new['marks']
+        if m['end'] > offset
+    ]
+    obj['marks'] = [dict(m, end=min(m['end'], offset)) for m in obj['marks'] if m['start'] < offset]
+    _insert(doc, new, obj['id'])
+    for bookmark in doc['settings'].get('bookmarks', {}).values():
+        if bookmark.get('target') == obj['id'] and bookmark.get('offset', 0) > offset:
+            bookmark['target'], bookmark['offset'] = new['id'], bookmark['offset'] - offset
+    for comment in doc['review']['comments']:
+        if comment.get('target') == obj['id'] and comment.get('start', -1) >= offset:
+            comment['target'], comment['start'], comment['end'] = (
+                new['id'],
+                comment['start'] - offset,
+                comment['end'] - offset,
+            )
+        elif comment.get('target') == obj['id'] and comment.get('end', 0) > offset:
+            comment['end'], comment['anchor_status'] = offset, 'needs_review'
+    changed.extend((obj['id'], new['id']))
+
+
+def _op_join_blocks(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    other = _target(doc, {'target': op['next']})
+    if (
+        obj.get('type') not in ('paragraph', 'heading', 'footnote')
+        or other.get('type') not in ('paragraph', 'heading', 'footnote')
+        or doc['blocks'].index(other) != doc['blocks'].index(obj) + 1
+    ):
+        _error('Join requires consecutive text blocks.', 'next')
+    offset = len(obj['text'])
+    obj['text'] += other['text']
+    obj['marks'].extend(dict(m, start=m['start'] + offset, end=m['end'] + offset) for m in other['marks'])
+    doc['blocks'].remove(other)
+    for bookmark in doc['settings'].get('bookmarks', {}).values():
+        if bookmark.get('target') == other['id']:
+            bookmark['target'], bookmark['offset'] = obj['id'], bookmark.get('offset', 0) + offset
+    for item in doc['review']['comments']:
+        if item.get('target') == other['id']:
+            item['target'] = obj['id']
+            if item.get('start') is not None:
+                item['start'] += offset
+                item['end'] += offset
+    changed.extend((obj['id'], other['id']))
+
+
+def _op_apply_style(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    before_format = _format_state(obj)
+    if op['style'] not in doc['styles']:
+        _error('Unknown named style.', 'style')
+    obj['style'] = op['style']
+    _track_format(doc, obj, before_format, base_revision)
+    changed.append(obj['id'])
+
+
+def _op_format_text(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    before_format = _format_state(obj)
+    _boundaries(obj.get('text', ''), op['start'], op['end'])
+    marks = op['marks']
+    if isinstance(marks, dict):
+        marks = [{'type': k, 'value': v} for k, v in marks.items()]
+    if not isinstance(marks, list) or any(
+        not isinstance(m, dict) or set(m) - {'type', 'value'} or not isinstance(m.get('type'), str)
+        for m in marks
+    ):
+        _error('Marks must map mark types to values or be an array of {type,value}.', 'marks')
+    for mark in marks:
+        # Split existing marks of this type around the formatted range.
+        kept = []
+        for old in obj.get('marks', []):
+            if old['type'] != mark['type'] or old['end'] <= op['start'] or old['start'] >= op['end']:
+                kept.append(old)
+            else:
+                if old['start'] < op['start']:
+                    kept.append(dict(old, end=op['start']))
+                if old['end'] > op['end']:
+                    kept.append(dict(old, start=op['end']))
+        obj['marks'] = kept
+        if mark.get('value') is not False and mark.get('value') is not None and op['end'] > op['start']:
+            obj['marks'].append({'start': op['start'], 'end': op['end'], **mark})
+    _track_format(doc, obj, before_format, base_revision)
+    changed.append(obj['id'])
+
+
+def _op_fill_fields(doc, op, base_revision, kind, changed, allow_policy_changes):
+    for name, supplied in op['values'].items():
+        old = doc['fields'].get(name)
+        doc['fields'][name] = (
+            {**copy.deepcopy(old), 'value': supplied}
+            if isinstance(old, dict) and not isinstance(supplied, dict)
+            else copy.deepcopy(supplied)
+        )
+    changed.extend(_fill_fields(doc, set(op['values']), base_revision))
+    changed.append('fields')
+
+
+def _op_set_properties(doc, op, base_revision, kind, changed, allow_policy_changes):
+    key = {'set_metadata': 'metadata', 'set_layout': 'layout', 'set_settings': 'settings'}[kind]
+    if kind == 'set_settings':
+        forbidden = set(op['values']) & {'protections', 'requirements'}
+        if forbidden or (doc['settings'].get('track_changes') and op['values'].get('track_changes') is False):
+            raise ByaxError(
+                'protected_edit',
+                'Use explicit policy operations; disabling protection or tracking requires local confirmation.',
+                fields=sorted(forbidden),
+            )
+    if kind == 'set_layout' and 'margins' in op['values']:
+        if not isinstance(op['values']['margins'], dict):
+            _error('Margins must be an object.', 'values.margins')
+        doc[key]['margins'].update(op['values']['margins'])
+        doc[key].update({k: v for k, v in op['values'].items() if k != 'margins'})
+    else:
+        doc[key].update(op['values'])
+    changed.append(key)
+
+
+def _op_define_style(doc, op, base_revision, kind, changed, allow_policy_changes):
+    doc['styles'][op['name']] = copy.deepcopy(op['values'])
+    changed.append('styles')
+
+
+def _op_insert_table(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if not 1 <= op['rows'] <= 10000 or not 1 <= op['columns'] <= 1000 or op['rows'] * op['columns'] > 100000:
+        _error('Table dimensions exceed limits.', 'rows')
+    obj = {
+        'id': new_id('table'),
+        'type': 'table',
+        'text': '',
+        'style': 'body',
+        'marks': [],
+        'attrs': {'header_rows': 1},
+        'rows': [_row(op['columns']) for _ in range(op['rows'])],
+    }
+    _insert(doc, obj, op.get('after'))
+    changed.append(obj['id'])
+
+
+def _op_table_dimension(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    if obj.get('type') != 'table':
+        _error('Target must be a table.', 'target')
+    rows, columns = obj['rows'], len(obj['rows'][0]['cells'])
+    size = len(rows) if kind.endswith('row') else columns
+    index = op.get('index', size)
+    adding = kind.startswith('add')
+    if (index < 0 or index > size) if adding else (index < 0 or index >= size):
+        _error('Table index is out of bounds.', 'index')
+    if not adding and size == 1:
+        _error('Cannot remove the final table row or column.', 'index')
+    if adding:
+        new_rows, new_columns = (len(rows) + 1, columns) if kind == 'add_row' else (len(rows), columns + 1)
+        if new_rows > 10000 or new_columns > 1000 or new_rows * new_columns > 100000:
+            raise ByaxError('limit_exceeded', 'Table dimensions exceed limits.')
+        if 'values' in op and (
+            len(op['values']) != (columns if kind == 'add_row' else len(rows))
+            or any(not isinstance(v, str) for v in op['values'])
+        ):
+            _error('Values must contain one string for every cell in the new row or column.', 'values')
+    if kind == 'add_row':
+        row = _row(columns)
+        for cell, value in zip(row['cells'], op.get('values', [])):
+            cell['text'] = value
+        rows.insert(index, row)
+    elif kind == 'remove_row':
+        if _is_locked(rows[index]) or any(_is_locked(c) for c in rows[index]['cells']):
+            raise ByaxError('protected_edit', 'Row contains locked content.', target=rows[index]['id'])
+        removed_row = rows.pop(index)
+        removed_ids = {removed_row['id']} | {c['id'] for c in removed_row['cells']}
+        _orphan_review(doc, removed_ids)
+    else:
+        if not adding and any(_is_locked(row['cells'][index]) for row in rows):
+            raise ByaxError('protected_edit', 'Column contains locked content.', target=obj['id'])
+        widths = obj.get('attrs', {}).get('column_widths')
+        if isinstance(widths, list) and len(widths) == columns:
+            if adding:
+                # A new column takes the mean width so existing columns keep their widths.
+                widths.insert(index, sum(widths) / len(widths))
+            else:
+                widths.pop(index)
+        for ri, row in enumerate(rows):
+            if adding:
+                row['cells'].insert(index, _cell(op['values'][ri] if 'values' in op else ''))
+            else:
+                removed_cell = row['cells'].pop(index)
+                _orphan_review(doc, {removed_cell['id']})
+    changed.append(obj['id'])
+
+
+def _op_table_reorder(doc, op, base_revision, kind, changed, allow_policy_changes):
+    table = _target(doc, op)
+    if table.get('type') != 'table':
+        _error('Reorder target must be a table.', 'target')
+    size = len(table['rows']) if kind == 'reorder_row' else len(table['rows'][0]['cells'])
+    source, destination = op['index'], op['to_index']
+    if not 0 <= source < size or not 0 <= destination < size:
+        _error('Source and destination indices must identify existing rows or columns.', 'index')
+    if any(
+        c.get('attrs', {}).get('rowspan', 1) > 1 or c.get('attrs', {}).get('colspan', 1) > 1
+        for r in table['rows']
+        for c in r['cells']
+    ):
+        raise ByaxError(
+            'unsupported_feature',
+            'Reordering merged table cells requires an explicit unmerge first.',
+            target=table['id'],
+        )
+    if kind == 'reorder_row':
+        moved = table['rows'].pop(source)
+        table['rows'].insert(destination, moved)
+        changed.extend([moved['id']] + [c['id'] for c in moved['cells']])
+    else:
+        for row in table['rows']:
+            cell = row['cells'].pop(source)
+            row['cells'].insert(destination, cell)
+            changed.append(cell['id'])
+        widths = table.get('attrs', {}).get('column_widths')
+        if isinstance(widths, list) and len(widths) == size:
+            widths.insert(destination, widths.pop(source))
+    changed.append(table['id'])
+
+
+def _op_add_comment(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = find_object(doc, op['target'])
+    if 'start' in op or 'end' in op:
+        if not {'start', 'end'} <= op.keys():
+            _error('Comment ranges require both start and end.', 'range')
+        _boundaries(obj.get('text', ''), op['start'], op['end'])
+    comment = {k: v for k, v in op.items() if k not in ('type', 'op')}
+    comment.update(id=new_id('comment'), status='open', revision=base_revision)
+    doc['review']['comments'].append(comment)
+    changed.append(comment['id'])
+
+
+def _op_reply_comment(doc, op, base_revision, kind, changed, allow_policy_changes):
+    parent = _find_review(doc, 'comments', op['target'])
+    reply = {
+        'id': new_id('comment'),
+        'parent_id': parent['id'],
+        'target': parent['target'],
+        'text': op['text'],
+        'author': op.get('author', ''),
+        'status': 'orphaned' if parent.get('status') == 'orphaned' else 'open',
+        'revision': base_revision,
+        'replies': [],
+    }
+    parent.setdefault('replies', []).append(reply)
+    changed.extend((parent['id'], reply['id']))
+
+
+def _op_resolve_comment(doc, op, base_revision, kind, changed, allow_policy_changes):
+    _find_review(doc, 'comments', op['target'])['status'] = 'resolved'
+    changed.append(op['target'])
+
+
+def _op_document_record(doc, op, base_revision, kind, changed, allow_policy_changes):
+    collection = (
+        doc['references']
+        if kind == 'add_reference'
+        else doc['profiles']
+        if kind == 'set_profile'
+        else doc['settings'].setdefault('requirements', {})
+    )
+    if kind == 'set_profile':
+        from .profiles import validate_profile
+
+        collection[op['id']] = validate_profile(op['values'])
+    else:
+        collection[op['id']] = copy.deepcopy(op['values'])
+    changed.append(op['id'])
+
+
+def _op_add_layer(doc, op, base_revision, kind, changed, allow_policy_changes):
+    layer = {'id': new_id('layer'), 'name': 'Layer', 'visible': True, 'locked': False, **op['values']}
+    doc['layers'].append(layer)
+    changed.append(layer['id'])
+
+
+def _op_layer_change(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = (
+        find_object(doc, op['target'])
+        if kind == 'update_layer' and op['values'] == {'locked': False}
+        else _target(doc, op)
+    )
+    if obj not in doc['layers']:
+        _error('Target must be a layer.', 'target')
+    if kind == 'delete_layer':
+        doc['layers'].remove(obj)
+    else:
+        if 'id' in op['values']:
+            _error('Stable object identities cannot be changed.', 'values.id')
+        obj.update(op['values'])
+    changed.append(obj['id'])
+
+
+def _op_add_asset(doc, op, base_revision, kind, changed, allow_policy_changes):
+    try:
+        data = base64.b64decode(op['data'], validate=True)
+    except ValueError as exc:
+        raise ByaxError('schema_error', 'Asset must be base64 encoded.', field='data') from exc
+    if len(data) > 64 * 1024 * 1024:
+        raise ByaxError('limit_exceeded', 'Asset exceeds 64 MiB.')
+    digest = hashlib.sha256(data).hexdigest()
+    doc['assets'][digest] = {'data': op['data'], 'mime': op['mime'], 'name': op.get('name', '')}
+    changed.append(digest)
+
+
+def _op_place_image(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if op['asset'] not in doc['assets']:
+        _error('Image asset has not been added to the document.', 'asset')
+    obj = {
+        'id': new_id('image'),
+        'type': 'image',
+        'text': '',
+        'style': 'body',
+        'marks': [],
+        'attrs': {k: op[k] for k in ('asset', 'alt', 'width', 'height') if k in op},
+    }
+    _insert(doc, obj, op.get('after'))
+    changed.append(obj['id'])
+
+
+def _op_set_attributes(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = _target(doc, op)
+    before_format = _format_state(obj)
+    obj.setdefault('attrs', {}).update(op['values'])
+    if obj.get('type') in ('paragraph', 'heading') and 'level' in op['values']:
+        obj['type'] = 'heading' if op['values']['level'] else 'paragraph'
+    _track_format(doc, obj, before_format, base_revision)
+    changed.append(obj['id'])
+
+
+def _op_protect(doc, op, base_revision, kind, changed, allow_policy_changes):
+    find_object(doc, op['target'])
+    rule = {'target': op['target'], 'kind': op['kind']}
+    _measure(doc, rule)
+    rules = doc['settings'].setdefault('protections', [])
+    if rule not in rules:
+        rules.append(rule)
+    changed.append(op['target'])
+
+
+def _op_policy_change(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if not allow_policy_changes:
+        raise ByaxError('protected_edit', 'This policy change requires confirmation in the local desktop.')
+    if kind == 'unprotect':
+        rule = {'target': op['target'], 'kind': op['kind']}
+        rules = doc['settings'].get('protections', [])
+        if rule not in rules:
+            raise ByaxError('missing_target', 'Protection rule does not exist.', target=op['target'])
+        rules.remove(rule)
+        changed.append(op['target'])
+    else:
+        doc['settings']['track_changes'] = op['enabled']
+        changed.append('settings')
+
+
+def _op_propose(doc, op, base_revision, kind, changed, allow_policy_changes):
+    values = copy.deepcopy(op['values'])
+    if not isinstance(values.get('operations'), list) or not values['operations']:
+        _error('Proposal requires exact operations.', 'values.operations')
+    for i, operation in enumerate(values['operations']):
+        proposed_kind = _validate_op(operation, i)
+        if proposed_kind in ('propose', 'accept_proposal', 'reject_proposal'):
+            _error('Proposals cannot contain review-management operations.', 'values.operations')
+    if values.get('expected_revision', base_revision) != base_revision:
+        raise ByaxError(
+            'stale_revision',
+            'Proposal expected revision does not match its starting document.',
+            expected=values['expected_revision'],
+            actual=base_revision,
+        )
+    target_ids = {o[k] for o in values['operations'] for k in ('target', 'after', 'next') if o.get(k)}
+    proposal = {
+        **values,
+        'id': new_id('proposal'),
+        'status': 'pending',
+        'expected_revision': values.get('expected_revision', base_revision),
+        'preconditions': {target: object_hash(find_object(doc, target)) for target in target_ids},
+    }
+    doc['review']['proposals'].append(proposal)
+    changed.append(proposal['id'])
+
+
+def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_changes):
+    proposal = _find_review(doc, 'proposals', op['target'])
+    if proposal['status'] != 'pending':
+        raise ByaxError('conflict', 'Proposal is not pending.', target=op['target'])
+    if kind == 'accept_proposal':
+        proposal_before = _candidate(doc)
+        for target, digest in proposal.get('preconditions', {}).items():
+            if object_hash(find_object(doc, target)) != digest:
+                raise ByaxError(
+                    'stale_revision', 'Proposal target changed since it was reviewed.', target=target
+                )
+        for operation in proposal['operations']:
+            changed.extend(_operation(doc, operation, base_revision))
+        _preserve(proposal_before, doc, proposal.get('protect', []))
+        required = proposal.get('required_suites', [])
+        if required:
+            frozen = _candidate(doc)
+            frozen['settings']['requirements'] = copy.deepcopy(
+                proposal_before['settings'].get('requirements', {})
+            )
+            frozen['profiles'] = copy.deepcopy(proposal_before['profiles'])
+            report = run_checks(frozen, required)
+            if report['validation'] != 'passed':
+                raise ByaxError(
+                    'failed_requirement' if report['validation'] == 'failed' else 'incomplete_coverage',
+                    'Proposal required policy was not satisfied.',
+                    findings=report['findings'],
+                    coverage=report['coverage'],
+                )
+        proposal['status'] = 'accepted'
+    else:
+        proposal['status'] = 'rejected'
+    changed.append(proposal['id'])
+
+
+def _op_resolve_change(doc, op, base_revision, kind, changed, allow_policy_changes):
+    change = _find_review(doc, 'tracked_changes', op['target'])
+    if change['status'] != 'pending':
+        raise ByaxError('conflict', 'Tracked change is not pending.', target=op['target'])
+    if kind == 'reject_change':
+        obj = _target(doc, {'target': change['target']})
+        if change.get('kind') == 'formatting':
+            if _format_state(obj) != change['after']:
+                raise ByaxError(
+                    'conflict',
+                    'Formatting has changed again; rejection needs reconciliation.',
+                    target=obj['id'],
+                )
+            obj.update(copy.deepcopy(change['before']))
+        else:
+            if obj['text'] != change['after']:
+                raise ByaxError(
+                    'conflict',
+                    'Tracked text has changed again; rejection needs reconciliation.',
+                    target=obj['id'],
+                )
+            _splice(obj, 0, len(obj['text']), change['before'])
+            obj['marks'] = copy.deepcopy(change.get('before_marks', []))
+            _adjust_anchors(doc, obj['id'], 0, len(change['after']), len(change['before']))
+        changed.append(obj['id'])
+    change['status'] = 'accepted' if kind == 'accept_change' else 'rejected'
+    changed.append(change['id'])
+
+
+def _op_set_bookmark(doc, op, base_revision, kind, changed, allow_policy_changes):
+    obj = find_object(doc, op['target'])
+    if 'offset' in op:
+        _boundaries(obj.get('text', ''), op['offset'], op['offset'])
+    doc['settings'].setdefault('bookmarks', {})[op['name']] = {
+        'target': op['target'],
+        'offset': op.get('offset', 0),
+    }
+    changed.append(op['target'])
+
+
+def _op_remove_bookmark(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if op['name'] not in doc['settings'].get('bookmarks', {}):
+        raise ByaxError('missing_target', 'Bookmark does not exist.', target=op['name'])
+    del doc['settings']['bookmarks'][op['name']]
+    changed.append('bookmarks')
+
+
+def _op_replace_content(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if not isinstance(op['blocks'], list) or any(not isinstance(b, dict) for b in op['blocks']):
+        _error('Replacement blocks must be an array of block objects.', 'blocks')
+    for key in ('assets', 'import_provenance'):
+        if key in op and not isinstance(op[key], dict):
+            _error('Expected an object.', key)
+    old_ids = {b['id'] for b in doc['blocks']} | {
+        c['id'] for b in doc['blocks'] for r in b.get('rows', []) for c in r['cells']
+    }
+    incoming = {b.get('id'): b for b in op['blocks']}
+    for block in doc['blocks']:
+        locked = _is_locked(block) or any(
+            _is_locked(r) or any(_is_locked(c) for c in r['cells']) for r in block.get('rows', [])
+        )
+        if locked and incoming.get(block['id']) != block:
+            raise ByaxError(
+                'protected_edit',
+                'Replacement content must keep locked blocks unchanged.',
+                target=block['id'],
+            )
+    doc['blocks'] = copy.deepcopy(op['blocks'])
+    doc['assets'].update(copy.deepcopy(op.get('assets', {})))
+    if 'import_provenance' in op:
+        doc['metadata']['import'] = copy.deepcopy(op['import_provenance'])
+    new_ids = {b.get('id') for b in doc['blocks']} | {
+        c['id'] for b in doc['blocks'] for r in b.get('rows', []) for c in r['cells']
+    }
+    removed = old_ids - new_ids
+    _orphan_review(doc, removed)
+    changed.extend(sorted(old_ids | {x for x in new_ids if x}))
+
+
+def _op_compact_history(doc, op, base_revision, kind, changed, allow_policy_changes):
+    _compact_history(doc, op['keep_last'])
+    changed.append('history')
+
+
+_HANDLERS = {
+    'insert_text': _op_text_edit,
+    'delete_text': _op_text_edit,
+    'replace_text': _op_text_edit,
+    'set_text': _op_text_edit,
+    'update_cell': _op_text_edit,
+    'insert_paragraph': _op_insert_paragraph,
+    'delete_block': _op_delete_or_move_block,
+    'move_block': _op_delete_or_move_block,
+    'move_section': _op_move_section,
+    'split_block': _op_split_block,
+    'join_blocks': _op_join_blocks,
+    'apply_style': _op_apply_style,
+    'format_text': _op_format_text,
+    'fill_fields': _op_fill_fields,
+    'set_metadata': _op_set_properties,
+    'set_layout': _op_set_properties,
+    'set_settings': _op_set_properties,
+    'define_style': _op_define_style,
+    'insert_table': _op_insert_table,
+    'add_row': _op_table_dimension,
+    'remove_row': _op_table_dimension,
+    'add_column': _op_table_dimension,
+    'remove_column': _op_table_dimension,
+    'reorder_row': _op_table_reorder,
+    'reorder_column': _op_table_reorder,
+    'add_comment': _op_add_comment,
+    'reply_comment': _op_reply_comment,
+    'resolve_comment': _op_resolve_comment,
+    'add_reference': _op_document_record,
+    'set_profile': _op_document_record,
+    'set_requirement': _op_document_record,
+    'add_layer': _op_add_layer,
+    'update_layer': _op_layer_change,
+    'delete_layer': _op_layer_change,
+    'add_asset': _op_add_asset,
+    'place_image': _op_place_image,
+    'set_attributes': _op_set_attributes,
+    'protect': _op_protect,
+    'unprotect': _op_policy_change,
+    'set_tracking': _op_policy_change,
+    'propose': _op_propose,
+    'accept_proposal': _op_resolve_proposal,
+    'reject_proposal': _op_resolve_proposal,
+    'accept_change': _op_resolve_change,
+    'reject_change': _op_resolve_change,
+    'set_bookmark': _op_set_bookmark,
+    'remove_bookmark': _op_remove_bookmark,
+    'replace_content': _op_replace_content,
+    'compact_history': _op_compact_history,
+}
+
+
 def _operation(doc, op, base_revision, *, allow_policy_changes=False):
     kind = op.get('type', op.get('op'))
     changed = []
-    if kind in ('insert_text', 'delete_text', 'replace_text', 'set_text', 'update_cell'):
-        obj = _target(doc, op)
-        if 'text' not in obj or obj.get('type') in ('table', 'image', 'page_break', 'section_break', 'toc'):
-            _error('Target is not editable text.', 'target')
-        original = obj['text']
-        if kind == 'replace_text':
-            match = op['match']
-            if not match:
-                _error('Match must not be empty.', 'match')
-            locations = [m.start() for m in re.finditer(re.escape(match), original)]
-            if not locations:
-                raise ByaxError('precondition_failed', 'Quoted text is absent from target.', target=obj['id'])
-            if len(locations) > 1 and 'occurrence' not in op:
-                raise ByaxError(
-                    'ambiguous_selection',
-                    'Quoted text has multiple matches; supply a one-based occurrence.',
-                    target=obj['id'],
-                    candidates=[
-                        {'occurrence': i + 1, 'start': p, 'end': p + len(match)}
-                        for i, p in enumerate(locations)
-                    ],
-                )
-            occurrence = op.get('occurrence', 1)
-            if not 1 <= occurrence <= len(locations):
-                _error('Occurrence is outside the match list.', 'occurrence')
-            start, replacement = locations[occurrence - 1], op['replacement']
-            end = start + len(match)
-        elif kind == 'insert_text':
-            start = end = op['offset']
-            replacement = op['text']
-        elif kind == 'delete_text':
-            start, end, replacement = op['start'], op['end'], ''
-        else:
-            start, end, replacement = 0, len(original), op['text']
-        _boundaries(original, start, end)
-        if 'expected_text' in op and original[start:end] != op['expected_text']:
-            raise ByaxError(
-                'precondition_failed',
-                'Expected text does not match selected text.',
-                target=obj['id'],
-                actual=original[start:end],
-            )
-        before_marks = copy.deepcopy(obj.get('marks', []))
-        _splice(obj, start, end, replacement)
-        _adjust_anchors(doc, obj['id'], start, end, len(replacement))
-        changed.append(obj['id'])
-        if doc['settings'].get('track_changes') and original != obj['text']:
-            doc['review']['tracked_changes'].append(
-                {
-                    'id': new_id('change'),
-                    'target': obj['id'],
-                    'before': original,
-                    'after': obj['text'],
-                    'before_marks': before_marks,
-                    'after_marks': copy.deepcopy(obj.get('marks', [])),
-                    'status': 'pending',
-                    'base_revision': base_revision,
-                }
-            )
-    elif kind == 'insert_paragraph':
-        obj = _paragraph(op['text'], op.get('style', 'body'), op.get('id'))
-        if obj['style'] not in doc['styles']:
-            _error('Unknown named style.', 'style')
-        _insert(doc, obj, op.get('after'))
-        changed.append(obj['id'])
-    elif kind in ('delete_block', 'move_block'):
-        obj = _target(doc, op)
-        if obj not in doc['blocks']:
-            _error('Target must be a top-level block.', 'target')
-        if op.get('after') == obj['id']:
-            _error('Block cannot be moved after itself.', 'after')
-        doc['blocks'].remove(obj)
-        if kind == 'move_block':
-            _insert(doc, obj, op.get('after'))
-        else:
-            removed = (
-                {obj['id']}
-                | {r['id'] for r in obj.get('rows', [])}
-                | {c['id'] for r in obj.get('rows', []) for c in r['cells']}
-            )
-            _orphan_review(doc, removed)
-        changed.append(obj['id'])
-    elif kind == 'move_section':
-        changed.extend(_move_section(doc, op))
-    elif kind == 'split_block':
-        obj = _target(doc, op)
-        if obj.get('type') not in ('paragraph', 'heading', 'footnote'):
-            _error('Only text blocks can be split.', 'target')
-        offset = op['offset']
-        _boundaries(obj['text'], offset, offset)
-        new = copy.deepcopy(obj)
-        new['id'] = op.get('id') or new_id('p')
-        new['text'], obj['text'] = obj['text'][offset:], obj['text'][:offset]
-        new['marks'] = [
-            dict(m, start=max(0, m['start'] - offset), end=m['end'] - offset)
-            for m in new['marks']
-            if m['end'] > offset
-        ]
-        obj['marks'] = [dict(m, end=min(m['end'], offset)) for m in obj['marks'] if m['start'] < offset]
-        _insert(doc, new, obj['id'])
-        for bookmark in doc['settings'].get('bookmarks', {}).values():
-            if bookmark.get('target') == obj['id'] and bookmark.get('offset', 0) > offset:
-                bookmark['target'], bookmark['offset'] = new['id'], bookmark['offset'] - offset
-        for comment in doc['review']['comments']:
-            if comment.get('target') == obj['id'] and comment.get('start', -1) >= offset:
-                comment['target'], comment['start'], comment['end'] = (
-                    new['id'],
-                    comment['start'] - offset,
-                    comment['end'] - offset,
-                )
-            elif comment.get('target') == obj['id'] and comment.get('end', 0) > offset:
-                comment['end'], comment['anchor_status'] = offset, 'needs_review'
-        changed.extend((obj['id'], new['id']))
-    elif kind == 'join_blocks':
-        obj = _target(doc, op)
-        other = _target(doc, {'target': op['next']})
-        if (
-            obj.get('type') not in ('paragraph', 'heading', 'footnote')
-            or other.get('type') not in ('paragraph', 'heading', 'footnote')
-            or doc['blocks'].index(other) != doc['blocks'].index(obj) + 1
-        ):
-            _error('Join requires consecutive text blocks.', 'next')
-        offset = len(obj['text'])
-        obj['text'] += other['text']
-        obj['marks'].extend(dict(m, start=m['start'] + offset, end=m['end'] + offset) for m in other['marks'])
-        doc['blocks'].remove(other)
-        for bookmark in doc['settings'].get('bookmarks', {}).values():
-            if bookmark.get('target') == other['id']:
-                bookmark['target'], bookmark['offset'] = obj['id'], bookmark.get('offset', 0) + offset
-        for item in doc['review']['comments']:
-            if item.get('target') == other['id']:
-                item['target'] = obj['id']
-                if item.get('start') is not None:
-                    item['start'] += offset
-                    item['end'] += offset
-        changed.extend((obj['id'], other['id']))
-    elif kind == 'apply_style':
-        obj = _target(doc, op)
-        before_format = _format_state(obj)
-        if op['style'] not in doc['styles']:
-            _error('Unknown named style.', 'style')
-        obj['style'] = op['style']
-        _track_format(doc, obj, before_format, base_revision)
-        changed.append(obj['id'])
-    elif kind == 'format_text':
-        obj = _target(doc, op)
-        before_format = _format_state(obj)
-        _boundaries(obj.get('text', ''), op['start'], op['end'])
-        marks = op['marks']
-        if isinstance(marks, dict):
-            marks = [{'type': k, 'value': v} for k, v in marks.items()]
-        if not isinstance(marks, list) or any(
-            not isinstance(m, dict) or set(m) - {'type', 'value'} or not isinstance(m.get('type'), str)
-            for m in marks
-        ):
-            _error('Marks must map mark types to values or be an array of {type,value}.', 'marks')
-        for mark in marks:
-            # Split existing marks of this type around the formatted range.
-            kept = []
-            for old in obj.get('marks', []):
-                if old['type'] != mark['type'] or old['end'] <= op['start'] or old['start'] >= op['end']:
-                    kept.append(old)
-                else:
-                    if old['start'] < op['start']:
-                        kept.append(dict(old, end=op['start']))
-                    if old['end'] > op['end']:
-                        kept.append(dict(old, start=op['end']))
-            obj['marks'] = kept
-            if mark.get('value') is not False and mark.get('value') is not None and op['end'] > op['start']:
-                obj['marks'].append({'start': op['start'], 'end': op['end'], **mark})
-        _track_format(doc, obj, before_format, base_revision)
-        changed.append(obj['id'])
-    elif kind == 'fill_fields':
-        for name, supplied in op['values'].items():
-            old = doc['fields'].get(name)
-            doc['fields'][name] = (
-                {**copy.deepcopy(old), 'value': supplied}
-                if isinstance(old, dict) and not isinstance(supplied, dict)
-                else copy.deepcopy(supplied)
-            )
-        changed.extend(_fill_fields(doc, set(op['values']), base_revision))
-        changed.append('fields')
-    elif kind in ('set_metadata', 'set_layout', 'set_settings'):
-        key = {'set_metadata': 'metadata', 'set_layout': 'layout', 'set_settings': 'settings'}[kind]
-        if kind == 'set_settings':
-            forbidden = set(op['values']) & {'protections', 'requirements'}
-            if forbidden or (
-                doc['settings'].get('track_changes') and op['values'].get('track_changes') is False
-            ):
-                raise ByaxError(
-                    'protected_edit',
-                    'Use explicit policy operations; disabling protection or tracking requires local confirmation.',
-                    fields=sorted(forbidden),
-                )
-        if kind == 'set_layout' and 'margins' in op['values']:
-            if not isinstance(op['values']['margins'], dict):
-                _error('Margins must be an object.', 'values.margins')
-            doc[key]['margins'].update(op['values']['margins'])
-            doc[key].update({k: v for k, v in op['values'].items() if k != 'margins'})
-        else:
-            doc[key].update(op['values'])
-        changed.append(key)
-    elif kind == 'define_style':
-        doc['styles'][op['name']] = copy.deepcopy(op['values'])
-        changed.append('styles')
-    elif kind == 'insert_table':
-        if (
-            not 1 <= op['rows'] <= 10000
-            or not 1 <= op['columns'] <= 1000
-            or op['rows'] * op['columns'] > 100000
-        ):
-            _error('Table dimensions exceed limits.', 'rows')
-        obj = {
-            'id': new_id('table'),
-            'type': 'table',
-            'text': '',
-            'style': 'body',
-            'marks': [],
-            'attrs': {'header_rows': 1},
-            'rows': [_row(op['columns']) for _ in range(op['rows'])],
-        }
-        _insert(doc, obj, op.get('after'))
-        changed.append(obj['id'])
-    elif kind in ('add_row', 'remove_row', 'add_column', 'remove_column'):
-        obj = _target(doc, op)
-        if obj.get('type') != 'table':
-            _error('Target must be a table.', 'target')
-        rows, columns = obj['rows'], len(obj['rows'][0]['cells'])
-        size = len(rows) if kind.endswith('row') else columns
-        index = op.get('index', size)
-        adding = kind.startswith('add')
-        if (index < 0 or index > size) if adding else (index < 0 or index >= size):
-            _error('Table index is out of bounds.', 'index')
-        if not adding and size == 1:
-            _error('Cannot remove the final table row or column.', 'index')
-        if adding:
-            new_rows, new_columns = (
-                (len(rows) + 1, columns) if kind == 'add_row' else (len(rows), columns + 1)
-            )
-            if new_rows > 10000 or new_columns > 1000 or new_rows * new_columns > 100000:
-                raise ByaxError('limit_exceeded', 'Table dimensions exceed limits.')
-            if 'values' in op and (
-                len(op['values']) != (columns if kind == 'add_row' else len(rows))
-                or any(not isinstance(v, str) for v in op['values'])
-            ):
-                _error('Values must contain one string for every cell in the new row or column.', 'values')
-        if kind == 'add_row':
-            row = _row(columns)
-            for cell, value in zip(row['cells'], op.get('values', [])):
-                cell['text'] = value
-            rows.insert(index, row)
-        elif kind == 'remove_row':
-            if _is_locked(rows[index]) or any(_is_locked(c) for c in rows[index]['cells']):
-                raise ByaxError('protected_edit', 'Row contains locked content.', target=rows[index]['id'])
-            removed_row = rows.pop(index)
-            removed_ids = {removed_row['id']} | {c['id'] for c in removed_row['cells']}
-            _orphan_review(doc, removed_ids)
-        else:
-            if not adding and any(_is_locked(row['cells'][index]) for row in rows):
-                raise ByaxError('protected_edit', 'Column contains locked content.', target=obj['id'])
-            widths = obj.get('attrs', {}).get('column_widths')
-            if isinstance(widths, list) and len(widths) == columns:
-                if adding:
-                    # A new column takes the mean width so existing columns keep their widths.
-                    widths.insert(index, sum(widths) / len(widths))
-                else:
-                    widths.pop(index)
-            for ri, row in enumerate(rows):
-                if adding:
-                    row['cells'].insert(index, _cell(op['values'][ri] if 'values' in op else ''))
-                else:
-                    removed_cell = row['cells'].pop(index)
-                    _orphan_review(doc, {removed_cell['id']})
-        changed.append(obj['id'])
-    elif kind in ('reorder_row', 'reorder_column'):
-        table = _target(doc, op)
-        if table.get('type') != 'table':
-            _error('Reorder target must be a table.', 'target')
-        size = len(table['rows']) if kind == 'reorder_row' else len(table['rows'][0]['cells'])
-        source, destination = op['index'], op['to_index']
-        if not 0 <= source < size or not 0 <= destination < size:
-            _error('Source and destination indices must identify existing rows or columns.', 'index')
-        if any(
-            c.get('attrs', {}).get('rowspan', 1) > 1 or c.get('attrs', {}).get('colspan', 1) > 1
-            for r in table['rows']
-            for c in r['cells']
-        ):
-            raise ByaxError(
-                'unsupported_feature',
-                'Reordering merged table cells requires an explicit unmerge first.',
-                target=table['id'],
-            )
-        if kind == 'reorder_row':
-            moved = table['rows'].pop(source)
-            table['rows'].insert(destination, moved)
-            changed.extend([moved['id']] + [c['id'] for c in moved['cells']])
-        else:
-            for row in table['rows']:
-                cell = row['cells'].pop(source)
-                row['cells'].insert(destination, cell)
-                changed.append(cell['id'])
-            widths = table.get('attrs', {}).get('column_widths')
-            if isinstance(widths, list) and len(widths) == size:
-                widths.insert(destination, widths.pop(source))
-        changed.append(table['id'])
-    elif kind == 'add_comment':
-        obj = find_object(doc, op['target'])
-        if 'start' in op or 'end' in op:
-            if not {'start', 'end'} <= op.keys():
-                _error('Comment ranges require both start and end.', 'range')
-            _boundaries(obj.get('text', ''), op['start'], op['end'])
-        comment = {k: v for k, v in op.items() if k not in ('type', 'op')}
-        comment.update(id=new_id('comment'), status='open', revision=base_revision)
-        doc['review']['comments'].append(comment)
-        changed.append(comment['id'])
-    elif kind == 'reply_comment':
-        parent = _find_review(doc, 'comments', op['target'])
-        reply = {
-            'id': new_id('comment'),
-            'parent_id': parent['id'],
-            'target': parent['target'],
-            'text': op['text'],
-            'author': op.get('author', ''),
-            'status': 'orphaned' if parent.get('status') == 'orphaned' else 'open',
-            'revision': base_revision,
-            'replies': [],
-        }
-        parent.setdefault('replies', []).append(reply)
-        changed.extend((parent['id'], reply['id']))
-    elif kind == 'resolve_comment':
-        _find_review(doc, 'comments', op['target'])['status'] = 'resolved'
-        changed.append(op['target'])
-    elif kind in ('add_reference', 'set_profile', 'set_requirement'):
-        collection = (
-            doc['references']
-            if kind == 'add_reference'
-            else doc['profiles']
-            if kind == 'set_profile'
-            else doc['settings'].setdefault('requirements', {})
-        )
-        if kind == 'set_profile':
-            from .profiles import validate_profile
-
-            collection[op['id']] = validate_profile(op['values'])
-        else:
-            collection[op['id']] = copy.deepcopy(op['values'])
-        changed.append(op['id'])
-    elif kind == 'add_layer':
-        layer = {'id': new_id('layer'), 'name': 'Layer', 'visible': True, 'locked': False, **op['values']}
-        doc['layers'].append(layer)
-        changed.append(layer['id'])
-    elif kind in ('update_layer', 'delete_layer'):
-        obj = (
-            find_object(doc, op['target'])
-            if kind == 'update_layer' and op['values'] == {'locked': False}
-            else _target(doc, op)
-        )
-        if obj not in doc['layers']:
-            _error('Target must be a layer.', 'target')
-        if kind == 'delete_layer':
-            doc['layers'].remove(obj)
-        else:
-            if 'id' in op['values']:
-                _error('Stable object identities cannot be changed.', 'values.id')
-            obj.update(op['values'])
-        changed.append(obj['id'])
-    elif kind == 'add_asset':
-        try:
-            data = base64.b64decode(op['data'], validate=True)
-        except ValueError as exc:
-            raise ByaxError('schema_error', 'Asset must be base64 encoded.', field='data') from exc
-        if len(data) > 64 * 1024 * 1024:
-            raise ByaxError('limit_exceeded', 'Asset exceeds 64 MiB.')
-        digest = hashlib.sha256(data).hexdigest()
-        doc['assets'][digest] = {'data': op['data'], 'mime': op['mime'], 'name': op.get('name', '')}
-        changed.append(digest)
-    elif kind == 'place_image':
-        if op['asset'] not in doc['assets']:
-            _error('Image asset has not been added to the document.', 'asset')
-        obj = {
-            'id': new_id('image'),
-            'type': 'image',
-            'text': '',
-            'style': 'body',
-            'marks': [],
-            'attrs': {k: op[k] for k in ('asset', 'alt', 'width', 'height') if k in op},
-        }
-        _insert(doc, obj, op.get('after'))
-        changed.append(obj['id'])
-    elif kind == 'set_attributes':
-        obj = _target(doc, op)
-        before_format = _format_state(obj)
-        obj.setdefault('attrs', {}).update(op['values'])
-        if obj.get('type') in ('paragraph', 'heading') and 'level' in op['values']:
-            obj['type'] = 'heading' if op['values']['level'] else 'paragraph'
-        _track_format(doc, obj, before_format, base_revision)
-        changed.append(obj['id'])
-    elif kind == 'protect':
-        find_object(doc, op['target'])
-        rule = {'target': op['target'], 'kind': op['kind']}
-        _measure(doc, rule)
-        rules = doc['settings'].setdefault('protections', [])
-        if rule not in rules:
-            rules.append(rule)
-        changed.append(op['target'])
-    elif kind in ('unprotect', 'set_tracking'):
-        if not allow_policy_changes:
-            raise ByaxError(
-                'protected_edit', 'This policy change requires confirmation in the local desktop.'
-            )
-        if kind == 'unprotect':
-            rule = {'target': op['target'], 'kind': op['kind']}
-            rules = doc['settings'].get('protections', [])
-            if rule not in rules:
-                raise ByaxError('missing_target', 'Protection rule does not exist.', target=op['target'])
-            rules.remove(rule)
-            changed.append(op['target'])
-        else:
-            doc['settings']['track_changes'] = op['enabled']
-            changed.append('settings')
-    elif kind == 'propose':
-        values = copy.deepcopy(op['values'])
-        if not isinstance(values.get('operations'), list) or not values['operations']:
-            _error('Proposal requires exact operations.', 'values.operations')
-        for i, operation in enumerate(values['operations']):
-            proposed_kind = _validate_op(operation, i)
-            if proposed_kind in ('propose', 'accept_proposal', 'reject_proposal'):
-                _error('Proposals cannot contain review-management operations.', 'values.operations')
-        if values.get('expected_revision', base_revision) != base_revision:
-            raise ByaxError(
-                'stale_revision',
-                'Proposal expected revision does not match its starting document.',
-                expected=values['expected_revision'],
-                actual=base_revision,
-            )
-        target_ids = {o[k] for o in values['operations'] for k in ('target', 'after', 'next') if o.get(k)}
-        proposal = {
-            **values,
-            'id': new_id('proposal'),
-            'status': 'pending',
-            'expected_revision': values.get('expected_revision', base_revision),
-            'preconditions': {target: object_hash(find_object(doc, target)) for target in target_ids},
-        }
-        doc['review']['proposals'].append(proposal)
-        changed.append(proposal['id'])
-    elif kind in ('accept_proposal', 'reject_proposal'):
-        proposal = _find_review(doc, 'proposals', op['target'])
-        if proposal['status'] != 'pending':
-            raise ByaxError('conflict', 'Proposal is not pending.', target=op['target'])
-        if kind == 'accept_proposal':
-            proposal_before = _candidate(doc)
-            for target, digest in proposal.get('preconditions', {}).items():
-                if object_hash(find_object(doc, target)) != digest:
-                    raise ByaxError(
-                        'stale_revision', 'Proposal target changed since it was reviewed.', target=target
-                    )
-            for operation in proposal['operations']:
-                changed.extend(_operation(doc, operation, base_revision))
-            _preserve(proposal_before, doc, proposal.get('protect', []))
-            required = proposal.get('required_suites', [])
-            if required:
-                frozen = _candidate(doc)
-                frozen['settings']['requirements'] = copy.deepcopy(
-                    proposal_before['settings'].get('requirements', {})
-                )
-                frozen['profiles'] = copy.deepcopy(proposal_before['profiles'])
-                report = run_checks(frozen, required)
-                if report['validation'] != 'passed':
-                    raise ByaxError(
-                        'failed_requirement' if report['validation'] == 'failed' else 'incomplete_coverage',
-                        'Proposal required policy was not satisfied.',
-                        findings=report['findings'],
-                        coverage=report['coverage'],
-                    )
-            proposal['status'] = 'accepted'
-        else:
-            proposal['status'] = 'rejected'
-        changed.append(proposal['id'])
-    elif kind in ('accept_change', 'reject_change'):
-        change = _find_review(doc, 'tracked_changes', op['target'])
-        if change['status'] != 'pending':
-            raise ByaxError('conflict', 'Tracked change is not pending.', target=op['target'])
-        if kind == 'reject_change':
-            obj = _target(doc, {'target': change['target']})
-            if change.get('kind') == 'formatting':
-                if _format_state(obj) != change['after']:
-                    raise ByaxError(
-                        'conflict',
-                        'Formatting has changed again; rejection needs reconciliation.',
-                        target=obj['id'],
-                    )
-                obj.update(copy.deepcopy(change['before']))
-            else:
-                if obj['text'] != change['after']:
-                    raise ByaxError(
-                        'conflict',
-                        'Tracked text has changed again; rejection needs reconciliation.',
-                        target=obj['id'],
-                    )
-                _splice(obj, 0, len(obj['text']), change['before'])
-                obj['marks'] = copy.deepcopy(change.get('before_marks', []))
-                _adjust_anchors(doc, obj['id'], 0, len(change['after']), len(change['before']))
-            changed.append(obj['id'])
-        change['status'] = 'accepted' if kind == 'accept_change' else 'rejected'
-        changed.append(change['id'])
-    elif kind == 'set_bookmark':
-        obj = find_object(doc, op['target'])
-        if 'offset' in op:
-            _boundaries(obj.get('text', ''), op['offset'], op['offset'])
-        doc['settings'].setdefault('bookmarks', {})[op['name']] = {
-            'target': op['target'],
-            'offset': op.get('offset', 0),
-        }
-        changed.append(op['target'])
-    elif kind == 'remove_bookmark':
-        if op['name'] not in doc['settings'].get('bookmarks', {}):
-            raise ByaxError('missing_target', 'Bookmark does not exist.', target=op['name'])
-        del doc['settings']['bookmarks'][op['name']]
-        changed.append('bookmarks')
-    elif kind == 'replace_content':
-        if not isinstance(op['blocks'], list) or any(not isinstance(b, dict) for b in op['blocks']):
-            _error('Replacement blocks must be an array of block objects.', 'blocks')
-        for key in ('assets', 'import_provenance'):
-            if key in op and not isinstance(op[key], dict):
-                _error('Expected an object.', key)
-        old_ids = {b['id'] for b in doc['blocks']} | {
-            c['id'] for b in doc['blocks'] for r in b.get('rows', []) for c in r['cells']
-        }
-        incoming = {b.get('id'): b for b in op['blocks']}
-        for block in doc['blocks']:
-            locked = _is_locked(block) or any(
-                _is_locked(r) or any(_is_locked(c) for c in r['cells']) for r in block.get('rows', [])
-            )
-            if locked and incoming.get(block['id']) != block:
-                raise ByaxError(
-                    'protected_edit',
-                    'Replacement content must keep locked blocks unchanged.',
-                    target=block['id'],
-                )
-        doc['blocks'] = copy.deepcopy(op['blocks'])
-        doc['assets'].update(copy.deepcopy(op.get('assets', {})))
-        if 'import_provenance' in op:
-            doc['metadata']['import'] = copy.deepcopy(op['import_provenance'])
-        new_ids = {b.get('id') for b in doc['blocks']} | {
-            c['id'] for b in doc['blocks'] for r in b.get('rows', []) for c in r['cells']
-        }
-        removed = old_ids - new_ids
-        _orphan_review(doc, removed)
-        changed.extend(sorted(old_ids | {x for x in new_ids if x}))
-    elif kind == 'compact_history':
-        _compact_history(doc, op['keep_last'])
-        changed.append('history')
+    handler = _HANDLERS.get(kind)
+    if handler is not None:
+        handler(doc, op, base_revision, kind, changed, allow_policy_changes)
     return changed
 
 
