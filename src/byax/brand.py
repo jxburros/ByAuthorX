@@ -14,6 +14,30 @@ from .fonts import register_bundled_fonts
 BRAND_ROOT = Path(__file__).parent / 'resources' / 'brand'
 TOKENS = json.loads((BRAND_ROOT / 'tokens.json').read_text(encoding='utf-8'))
 COLORS = TOKENS['color']
+# Input and button outlines identify controls, so they need 3:1 against the
+# surfaces they sit on (WCAG 1.4.11); the decorative rule colour is lighter.
+COLORS.setdefault('control', '#857C6D')
+
+
+def contrast_ratio(first, second):
+    def luminance(value):
+        channels = [QColor(value).redF(), QColor(value).greenF(), QColor(value).blueF()]
+        r, g, b = [c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in channels]
+        return 0.2126 * r + 0.7152 * g + 0.0722 * b
+
+    high, low = sorted((luminance(first), luminance(second)), reverse=True)
+    return (high + 0.05) / (low + 0.05)
+
+
+def prefers_high_contrast(app):
+    # Keep each wrapper referenced: a discarded temporary invalidates the hints object.
+    hints = app.styleHints()
+    accessibility = getattr(hints, 'accessibility', None)
+    if accessibility is None:
+        return False
+    accessibility = accessibility()
+    preference = accessibility.contrastPreference()
+    return preference == Qt.ContrastPreference.HighContrast
 
 
 def app_icon():
@@ -28,6 +52,10 @@ def configure_application(app: QApplication):
     register_bundled_fonts()
     app.setFont(QFont(TOKENS['font']['body'], 11))
     app.setWindowIcon(app_icon())
+    if prefers_high_contrast(app):
+        # The platform high-contrast theme outranks brand colours.
+        app.setStyleSheet('')
+        return
     palette = QPalette()
     for role, color in (
         (QPalette.Window, COLORS['paper']),
@@ -63,7 +91,7 @@ def stylesheet():
         QMenu::item {{ padding: 8px 24px; }}
         QMenu::item:selected, QMenuBar::item:selected {{ background: {c['paper']}; color: {c['greenText']}; }}
         QToolButton, QPushButton {{ background: {c['surface']}; color: {c['ink']};
-            border: 1px solid {c['rule']}; border-radius: {control}px; padding: 8px 12px; }}
+            border: 1px solid {c['control']}; border-radius: {control}px; padding: 8px 12px; }}
         QToolButton:hover, QPushButton:hover {{ background: {c['paper']}; border-color: {c['green']}; }}
         QToolBar QToolButton {{ border-color: transparent; padding: 8px 10px; }}
         QToolBar QToolButton:hover {{ background: {c['paper']}; border-color: {c['rule']}; }}
@@ -82,7 +110,7 @@ def stylesheet():
         QTabBar::tab:selected {{ color: {c['greenText']}; background: {c['surface']};
             border-bottom: 2px solid {c['greenText']}; }}
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox, QPlainTextEdit {{
-            background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['rule']};
+            background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['control']};
             border-radius: {control}px; padding: 4px 8px; selection-background-color: {c['greenText']};
             selection-color: white; }}
         QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {{ min-height: 28px; }}

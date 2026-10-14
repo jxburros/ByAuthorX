@@ -8,6 +8,7 @@ import copy
 import json
 import tempfile
 
+from PySide6.QtCore import QCoreApplication
 from PySide6.QtWidgets import (
     QCheckBox,
     QComboBox,
@@ -36,20 +37,22 @@ class ProviderDialog(QDialog):
         super().__init__(window)
         self.window = window
         self.registry = ProviderRegistry()
-        self.setWindowTitle('Providers and credentials')
+        self.setWindowTitle(self.tr('Providers and credentials'))
         self.resize(650, 590)
         form = QFormLayout(self)
         intro = QLabel(
-            'Choose your own hosted or local providers. Credentials stay in your operating system keyring or environment; documents never contain API keys.'
+            self.tr(
+                'Choose your own hosted or local providers. Credentials stay in your operating system keyring or environment; documents never contain API keys.'
+            )
         )
         intro.setWordWrap(True)
         form.addRow(intro)
         self.saved = QComboBox()
-        self.saved.addItem('New provider…')
+        self.saved.addItem(self.tr('New provider…'), None)
         for config in self.registry.list():
-            self.saved.addItem(config['alias'])
-        self.saved.currentTextChanged.connect(self.load_config)
-        form.addRow('Saved providers', self.saved)
+            self.saved.addItem(config['alias'], config['alias'])
+        self.saved.currentIndexChanged.connect(lambda index: self.load_config(self.saved.itemData(index)))
+        form.addRow(self.tr('Saved providers'), self.saved)
         self.alias, self.model, self.endpoint, self.credential = (
             QLineEdit(),
             QLineEdit(),
@@ -58,38 +61,38 @@ class ProviderDialog(QDialog):
         )
         self.key = QLineEdit()
         self.key.setEchoMode(QLineEdit.Password)
-        self.key.setPlaceholderText('Optional: securely store a new API key')
+        self.key.setPlaceholderText(self.tr('Optional: securely store a new API key'))
         self.kind = QComboBox()
         self.kind.addItems(['openai', 'anthropic', 'gemini', 'ollama', 'elevenlabs', 'whisper.cpp'])
         self.executable = QLineEdit()
-        self.executable.setPlaceholderText('Absolute path to whisper-cli')
+        self.executable.setPlaceholderText(self.tr('Absolute path to whisper-cli'))
         self.timeout = QSpinBox()
         self.timeout.setRange(1, 3600)
         self.timeout.setValue(60)
-        self.policy = QCheckBox('Allow remote calls without repeated authorization')
+        self.policy = QCheckBox(self.tr('Allow remote calls without repeated authorization'))
         for label, control in [
-            ('Alias', self.alias),
-            ('Provider', self.kind),
-            ('Model (or local model path)', self.model),
-            ('Endpoint (blank = provider default)', self.endpoint),
-            ('Credential reference (env:NAME)', self.credential),
-            ('API key', self.key),
-            ('Local executable', self.executable),
-            ('Timeout (seconds)', self.timeout),
+            (self.tr('Alias'), self.alias),
+            (self.tr('Provider'), self.kind),
+            (self.tr('Model (or local model path)'), self.model),
+            (self.tr('Endpoint (blank = provider default)'), self.endpoint),
+            (self.tr('Credential reference (env:NAME)'), self.credential),
+            (self.tr('API key'), self.key),
+            (self.tr('Local executable'), self.executable),
+            (self.tr('Timeout (seconds)'), self.timeout),
         ]:
             control.setAccessibleName(label)
             form.addRow(label, control)
         form.addRow(self.policy)
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
-        save = buttons.addButton('Save provider', QDialogButtonBox.ActionRole)
-        test = buttons.addButton('Test connection…', QDialogButtonBox.ActionRole)
+        save = buttons.addButton(self.tr('Save provider'), QDialogButtonBox.ActionRole)
+        test = buttons.addButton(self.tr('Test connection…'), QDialogButtonBox.ActionRole)
         save.clicked.connect(self.save_config)
         test.clicked.connect(self.test_config)
         buttons.rejected.connect(self.reject)
         form.addRow(buttons)
 
     def load_config(self, alias):
-        if alias == 'New provider…':
+        if alias is None:
             return
         config = self.registry.get(alias)
         for control, value in [
@@ -121,7 +124,7 @@ class ProviderDialog(QDialog):
             if self.key.text():
                 self.registry.set_credential(self.alias.text().strip(), self.key.text())
                 self.key.clear()
-            self.window.status_label.setText('Provider configuration saved locally')
+            self.window.status_label.setText(self.tr('Provider configuration saved locally'))
             return True
         except Exception as exc:
             self.window.error(exc)
@@ -134,15 +137,17 @@ class ProviderDialog(QDialog):
         if (
             QMessageBox.question(
                 self,
-                'Test provider connection?',
-                'Contact this provider to check its connection and capabilities? No document content will be sent.',
+                self.tr('Test provider connection?'),
+                self.tr(
+                    'Contact this provider to check its connection and capabilities? No document content will be sent.'
+                ),
             )
             == QMessageBox.Yes
         ):
             self.window.background(
-                'Testing provider…',
+                self.tr('Testing provider…'),
                 lambda: self.registry.test(alias, authorized=True),
-                lambda result: self.window.report('Provider capability test', result),
+                lambda result: self.window.report(self.tr('Provider capability test'), result),
             )
 
 
@@ -151,10 +156,15 @@ def select_provider(window, kinds, label):
     aliases = [config['alias'] for config in registry.list() if config['kind'] in kinds]
     if not aliases:
         window.message(
-            'Provider setup needed', 'Add a compatible provider in Tools → Provider settings first.'
+            QCoreApplication.translate('Providers', 'Provider setup needed'),
+            QCoreApplication.translate(
+                'Providers', 'Add a compatible provider in Tools → Provider settings first.'
+            ),
         )
         return None, None
-    alias, ok = QInputDialog.getItem(window, label, 'Provider', aliases, 0, False)
+    alias, ok = QInputDialog.getItem(
+        window, label, QCoreApplication.translate('Providers', 'Provider'), aliases, 0, False
+    )
     return (registry, alias) if ok else (None, None)
 
 
@@ -163,7 +173,11 @@ def authorize_payload(window, title, preview):
     dialog.setWindowTitle(title)
     dialog.resize(700, 510)
     layout = QVBoxLayout(dialog)
-    label = QLabel('Review the destination and exact selected content before starting this operation.')
+    label = QLabel(
+        QCoreApplication.translate(
+            'Providers', 'Review the destination and exact selected content before starting this operation.'
+        )
+    )
     label.setWordWrap(True)
     layout.addWidget(label)
     editor = QPlainTextEdit()
@@ -171,7 +185,9 @@ def authorize_payload(window, title, preview):
     editor.setPlainText(json.dumps(preview, ensure_ascii=False, indent=2))
     layout.addWidget(editor)
     buttons = QDialogButtonBox(QDialogButtonBox.Cancel)
-    start = buttons.addButton('Authorize and start', QDialogButtonBox.AcceptRole)
+    start = buttons.addButton(
+        QCoreApplication.translate('Providers', 'Authorize and start'), QDialogButtonBox.AcceptRole
+    )
     start.clicked.connect(dialog.accept)
     buttons.rejected.connect(dialog.reject)
     layout.addWidget(buttons)
@@ -199,7 +215,9 @@ def review_document(window):
             return
     else:
         registry, alias = select_provider(
-            window, {'openai', 'anthropic', 'gemini', 'ollama'}, 'Review with model'
+            window,
+            {'openai', 'anthropic', 'gemini', 'ollama'},
+            QCoreApplication.translate('Providers', 'Review with model'),
         )
     if not alias:
         return
@@ -215,7 +233,11 @@ def review_document(window):
             original = model.find_object(frozen, target)
             boundaries = engine.grapheme_boundaries(original.get('text', ''))
             if start not in boundaries or end not in boundaries:
-                window.error('Select complete characters before requesting a model edit.')
+                window.error(
+                    QCoreApplication.translate(
+                        'Providers', 'Select complete characters before requesting a model edit.'
+                    )
+                )
                 return
             blocks.append(
                 {
@@ -244,7 +266,9 @@ def review_document(window):
     except Exception as exc:
         window.error(exc)
         return
-    if not authorize_payload(window, 'Authorize model review', preview):
+    if not authorize_payload(
+        window, QCoreApplication.translate('Providers', 'Authorize model review'), preview
+    ):
         return
 
     def finished(result):
@@ -265,10 +289,13 @@ def review_document(window):
                 result['proposals_registered'] = bool(registered)
             window._last_report = result
             window.update_sidebar()
-        window.report('Model review · advisory findings and pending proposals', result)
+        window.report(
+            QCoreApplication.translate('Providers', 'Model review · advisory findings and pending proposals'),
+            result,
+        )
 
     window.background(
-        'Reviewing with ' + alias + '…',
+        QCoreApplication.translate('Providers', 'Reviewing with ') + alias + '…',
         lambda: registry.review(alias, text, context=context, authorized=True),
         finished,
     )
@@ -279,32 +306,53 @@ def import_audio(window, path=None):
     if path is None:
         path, _ = QFileDialog.getOpenFileName(
             window,
-            'Import audio for transcription',
+            QCoreApplication.translate('Providers', 'Import audio for transcription'),
             '',
-            'Audio (*.wav *.mp3 *.m4a *.ogg *.flac *.webm);;All files (*)',
+            QCoreApplication.translate(
+                'Providers', 'Audio (*.wav *.mp3 *.m4a *.ogg *.flac *.webm);;All files (*)'
+            ),
         )
     if not path:
         return
     registry, recognizer = select_provider(
-        window, {'openai', 'elevenlabs', 'whisper.cpp'}, 'Speech recognition'
+        window,
+        {'openai', 'elevenlabs', 'whisper.cpp'},
+        QCoreApplication.translate('Providers', 'Speech recognition'),
     )
     if not recognizer:
         return
+    modes = {
+        QCoreApplication.translate('Providers', 'Direct transcript'): 'direct',
+        QCoreApplication.translate('Providers', 'Cleaned up'): 'cleanup',
+        QCoreApplication.translate('Providers', 'Document-aware'): 'document_aware',
+    }
     mode, ok = QInputDialog.getItem(
-        window, 'Transcription mode', 'Processing', ['direct', 'cleanup', 'document_aware'], 0, False
+        window,
+        QCoreApplication.translate('Providers', 'Transcription mode'),
+        QCoreApplication.translate('Providers', 'Processing'),
+        list(modes),
+        0,
+        False,
     )
     if not ok:
         return
+    mode = modes[mode]
     editorial = None
     if mode != 'direct':
         _, editorial = select_provider(
-            window, {'openai', 'anthropic', 'gemini', 'ollama'}, 'Editorial processing'
+            window,
+            {'openai', 'anthropic', 'gemini', 'ollama'},
+            QCoreApplication.translate('Providers', 'Editorial processing'),
         )
         if not editorial:
             return
     targets = window.editor.selection_targets()
     if not targets:
-        window.error('Place the cursor in a text paragraph before transcribing.')
+        window.error(
+            QCoreApplication.translate(
+                'Providers', 'Place the cursor in a text paragraph before transcribing.'
+            )
+        )
         return
     target, offset, _ = targets[0]
     try:
@@ -326,30 +374,45 @@ def import_audio(window, path=None):
                 'content': 'The recognized transcript will be sent for cleanup.',
                 'context': context,
             }
-        if not authorize_payload(window, 'Authorize transcription', preview):
+        if not authorize_payload(
+            window, QCoreApplication.translate('Providers', 'Authorize transcription'), preview
+        ):
             return
     except Exception as exc:
         window.error(exc)
         return
     progress = QDialog(window)
-    progress.setWindowTitle('Transcription job')
+    progress.setWindowTitle(QCoreApplication.translate('Providers', 'Transcription job'))
     layout = QVBoxLayout(progress)
     layout.addWidget(
-        QLabel('Transcribing audio. You can continue editing; changed insertion targets will require review.')
+        QLabel(
+            QCoreApplication.translate(
+                'Providers',
+                'Transcribing audio. You can continue editing; changed insertion targets will require review.',
+            )
+        )
     )
-    cancel = QPushButton('Cancel job')
-    cancel.clicked.connect(lambda: cancel.setText('Cancellation requested; remote work may continue'))
+    cancel = QPushButton(QCoreApplication.translate('Providers', 'Cancel job'))
+    cancel.clicked.connect(
+        lambda: cancel.setText(
+            QCoreApplication.translate('Providers', 'Cancellation requested; remote work may continue')
+        )
+    )
     layout.addWidget(cancel)
     progress.show()
 
     def finished(result):
         progress.close()
-        window.report('Compare recognized and processed transcript', result)
+        window.report(
+            QCoreApplication.translate('Providers', 'Compare recognized and processed transcript'), result
+        )
         if (
             QMessageBox.question(
                 window,
-                'Insert transcript?',
-                'Insert the reviewed transcript at the original cursor position?',
+                QCoreApplication.translate('Providers', 'Insert transcript?'),
+                QCoreApplication.translate(
+                    'Providers', 'Insert the reviewed transcript at the original cursor position?'
+                ),
             )
             == QMessageBox.Yes
         ):
@@ -365,7 +428,11 @@ def import_audio(window, path=None):
                 window.refresh()
             except Exception as exc:
                 window.error(
-                    str(exc) + '\nThe transcript remains available in the job result; it was not inserted.'
+                    str(exc)
+                    + QCoreApplication.translate(
+                        'Providers',
+                        '\nThe transcript remains available in the job result; it was not inserted.',
+                    )
                 )
 
     job = window.start_job(
@@ -395,24 +462,26 @@ class DictationDialog(QDialog):
     def __init__(self, window):
         super().__init__(window)
         self.window = window
-        self.setWindowTitle('Microphone dictation')
+        self.setWindowTitle(self.tr('Microphone dictation'))
         self.resize(510, 240)
         self.recorder = None
         self.audio_path = None
         layout = QVBoxLayout(self)
         self.state = QLabel(
-            'Choose a microphone, then start recording. Audio is recorded locally until you explicitly authorize transcription.'
+            self.tr(
+                'Choose a microphone, then start recording. Audio is recorded locally until you explicitly authorize transcription.'
+            )
         )
         self.state.setWordWrap(True)
         layout.addWidget(self.state)
         self.devices = QComboBox()
-        self.devices.setAccessibleName('Microphone')
+        self.devices.setAccessibleName(self.tr('Microphone'))
         try:
             for device in QtMicrophoneRecorder.devices():
                 self.devices.addItem(device['name'], device['id'])
             self.recorder = QtMicrophoneRecorder()
         except Exception as exc:
-            self.state.setText('Microphone unavailable: ' + str(exc))
+            self.state.setText(self.tr('Microphone unavailable: ') + str(exc))
         layout.addWidget(self.devices)
         controls = QHBoxLayout()
         for name, slot, key in [
@@ -435,7 +504,7 @@ class DictationDialog(QDialog):
             with tempfile.NamedTemporaryFile(prefix='byax-recording-', suffix='.wav', delete=False) as handle:
                 self.audio_path = handle.name
             self.recorder.start(self.audio_path, self.devices.currentData())
-            self.state.setText('Recording ● · Alt+P to pause · Alt+T to stop')
+            self.state.setText(self.tr('Recording ● · Alt+P to pause · Alt+T to stop'))
         except Exception as exc:
             self.audio_path = None
             self.window.error(exc)
@@ -443,12 +512,12 @@ class DictationDialog(QDialog):
     def pause(self):
         if self.audio_path:
             self.recorder.pause()
-            self.state.setText('Recording paused · Alt+R to resume')
+            self.state.setText(self.tr('Recording paused · Alt+R to resume'))
 
     def resume(self):
         if self.audio_path:
             self.recorder.resume()
-            self.state.setText('Recording ●')
+            self.state.setText(self.tr('Recording ●'))
 
     def stop(self):
         if not self.audio_path:
@@ -456,11 +525,11 @@ class DictationDialog(QDialog):
         self.recorder.stop()
         path = self.audio_path
         self.audio_path = None
-        self.state.setText('Recording stopped. Audio is retained locally at ' + path)
+        self.state.setText(self.tr('Recording stopped. Audio is retained locally at ') + path)
         import_audio(self.window, path)
 
     def reject(self):
         if self.audio_path:
             self.recorder.stop()
-            self.window.status_label.setText('Unsubmitted recording retained at ' + self.audio_path)
+            self.window.status_label.setText(self.tr('Unsubmitted recording retained at ') + self.audio_path)
         super().reject()
