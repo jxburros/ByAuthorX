@@ -10,8 +10,18 @@ import argparse
 import json
 import os
 import sys
+import threading
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any, NoReturn
+
+if TYPE_CHECKING:
+    from .jobs import JobManager
+
+Args = dict[str, Any]
+Result = dict[str, Any]
+Document = dict[str, Any]
+Handler = Callable[[Args, str | None], Result]
 
 SCHEMA_VERSION = 1
 COMMANDS = {
@@ -45,6 +55,7 @@ COMMANDS = {
     'proof': 'Create contact sheets, focused crops, and semantic diagnostic overlays',
     'table': 'Import or export CSV table values while preserving native identities and formatting',
     'template-batch': 'Fill independent copies of a template from CSV field rows',
+    'fonts': 'Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts',
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
@@ -116,6 +127,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'format': 'string',
         'profile': 'string',
         'overwrite': 'boolean',
+        'dry_run': 'boolean',
         'require_suite': 'array',
         'strict': 'boolean',
     },
@@ -125,6 +137,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'format': 'string',
         'profile': 'string',
         'overwrite': 'boolean',
+        'dry_run': 'boolean',
         'require_suite': 'array',
         'strict': 'boolean',
     },
@@ -155,7 +168,20 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'job_root': 'string',
     },
     'jobs': {'action': 'string', 'id': 'string', 'root': 'string', 'input': 'object'},
-    'batch': {'input': 'object', 'workers': 'integer', 'overwrite': 'boolean'},
+    'batch': {
+        'input': 'object',
+        'workers': 'integer',
+        'overwrite': 'boolean',
+        'max_memory_mb': 'integer',
+        'staging': 'string',
+    },
+    'fonts': {
+        'path': 'string',
+        'action': 'string',
+        'family': 'string',
+        'bold': 'boolean',
+        'italic': 'boolean',
+    },
     'redact': {'path': 'string', 'out': 'string', 'input': 'object', 'overwrite': 'boolean'},
     'proof': {
         'path': 'string',
@@ -228,8 +254,8 @@ for _name in ('inspect', 'context', 'history', 'check', 'review'):
     REQUIRED[_name] = ['path']
 
 
-def command_schema(command: str) -> dict:
-    props = {key: {'type': kind} for key, kind in ARGUMENTS[command].items()}
+def command_schema(command: str) -> dict[str, Any]:
+    props: dict[str, dict[str, Any]] = {key: {'type': kind} for key, kind in ARGUMENTS[command].items()}
     for prop in props.values():
         if prop['type'] == 'array':
             prop['items'] = {'type': 'string'}
@@ -248,13 +274,13 @@ def command_schema(command: str) -> dict:
     }
 
 
-def _error(code: str, message: str, **details):
+def _error(code: str, message: str, **details: Any) -> NoReturn:
     from .errors import ByaxError
 
     raise ByaxError(code, message, **details)
 
 
-def _validate(command: str, args: dict):
+def _validate(command: str, args: Args) -> None:
     if command not in COMMANDS:
         _error('invalid_input', f'Unknown command: {command}')
     if not isinstance(args, dict):
@@ -264,7 +290,7 @@ def _validate(command: str, args: dict):
     for key in REQUIRED.get(command, []):
         if key not in args or args[key] is None:
             _error('invalid_input', f'Missing required argument: {key}', field=key)
-    types = {'string': str, 'object': dict, 'array': list, 'boolean': bool, 'integer': int}
+    types: dict[str, Any] = {'string': str, 'object': dict, 'array': list, 'boolean': bool, 'integer': int}
     for key, value in args.items():
         if value is None:
             continue
@@ -279,8 +305,8 @@ def _validate(command: str, args: dict):
             _error('invalid_input', f'Invalid elements in {key}', field=key)
 
 
-def envelope(data: Any = None, doc: dict | None = None, **overrides) -> dict:
-    result = {
+def envelope(data: Any = None, doc: Document | None = None, **overrides: Any) -> Result:
+    result: Result = {
         'schema_version': 1,
         'execution': 'completed',
         'validation': 'not_run',
@@ -301,7 +327,7 @@ def envelope(data: Any = None, doc: dict | None = None, **overrides) -> dict:
     return result
 
 
-def _destination(path: str, overwrite: bool = False, source: str | None = None):
+def _destination(path: str, overwrite: bool = False, source: str | None = None) -> None:
     target = Path(path)
     if source and target.resolve() == Path(source).resolve():
         _error(
@@ -312,13 +338,13 @@ def _destination(path: str, overwrite: bool = False, source: str | None = None):
     target.parent.mkdir(parents=True, exist_ok=True)
 
 
-def _load(path):
+def _load(path: str) -> Document:
     from .storage import load_document
 
     return load_document(path)
 
 
-def _gate(doc, suites, strict=False):
+def _gate(doc: Document, suites: list[str] | None, strict: bool = False) -> Result:
     from .checks import run_checks
 
     report = run_checks(doc, suites=suites)
@@ -338,7 +364,7 @@ def _gate(doc, suites, strict=False):
     return report
 
 
-def _mutate(path, operation):
+def _mutate(path: str, operation: Callable[[Document], tuple[Document, Result, bool]]) -> Result:
     from .storage import DocumentLock, save_document
 
     lock = DocumentLock(path)
@@ -350,7 +376,7 @@ def _mutate(path, operation):
         return envelope(result, updated)
 
 
-def execute(command: str, arguments: dict | None = None) -> dict:
+def execute(command: str, arguments: Args | None = None) -> Result:
     """Dispatch with exclusive output ownership, including exports over open files."""
     arguments = {} if arguments is None else arguments
     _validate(command, arguments)
@@ -362,169 +388,225 @@ def execute(command: str, arguments: dict | None = None) -> dict:
     return _execute(command, arguments)
 
 
-def _execute(command: str, arguments: dict | None = None, *, output_owner=None) -> dict:
+def _execute(command: str, arguments: Args | None = None, *, output_owner: str | None = None) -> Result:
     """Execute one validated command; no printing and no implicit network calls."""
     a = {} if arguments is None else arguments
     _validate(command, a)
-    a = dict(a)
-    if command == 'transact':
-        command = 'apply'
-    from . import engine, model, storage
+    handler = _HANDLERS.get('apply' if command == 'transact' else command)
+    if handler is None:
+        _error('unsupported_feature', f'Command is unavailable: {command}')
+    return handler(dict(a), output_owner)
 
-    if command == 'version':
-        from . import __version__
 
-        return envelope(
-            {
-                'engine_version': __version__,
-                'operation_schema_version': 1,
-                'offset_unit': 'unicode_scalar',
-                'range_end': 'exclusive',
-            }
-        )
-    if command == 'capabilities':
-        from .providers import list_capabilities
+def _cmd_version(a: Args, owner: str | None) -> Result:
+    from . import __version__
 
-        return envelope(
-            {
-                'commands': COMMANDS,
-                'providers': list_capabilities(),
-                'formats': ['byax', 'txt', 'md', 'html', 'docx', 'odt', 'rtf', 'doc', 'pdf'],
-                'topic': a.get('topic'),
-                'transactions': 'atomic envelope under exclusive file lock',
-                'network': 'only explicitly selected provider calls',
-                'offset_unit': 'unicode_scalar',
-                'limitations': [
-                    'Format fidelity and provider availability are reported per operation.',
-                    'Native OS print dialogs require the desktop application.',
-                ],
-            }
-        )
-    if command == 'schema':
-        topic = a.get('topic', 'commands')
-        if topic in ('operations', 'operation', 'editing'):
-            if hasattr(engine, 'operation_schema'):
-                return envelope({'schema': engine.operation_schema()})
-            return envelope({'schema': getattr(engine, 'OP_SCHEMAS', {}), 'offset_unit': 'unicode_scalar'})
-        return envelope({'commands': {key: command_schema(key) for key in COMMANDS}})
-    if command == 'new':
-        _destination(a['out'], a.get('overwrite', False))
-        doc = model.new_document(a.get('title', 'Untitled'), a.get('text', ''))
-        storage.save_document(doc, a['out'], owner=output_owner)
-        return envelope(doc=doc, outputs=[a['out']])
-    if command in ('inspect', 'context', 'find', 'diff', 'check'):
-        doc = _load(a['path'])
-        if command == 'inspect':
-            result = engine.inspect(
-                doc,
-                section='outline' if a.get('outline') else a.get('section'),
-                target=a.get('target'),
-                limit=a.get('limit', 100),
-            )
-        elif command == 'context':
-            result = engine.context(
-                doc, target=a.get('target'), limit=a.get('limit', 10000), profile=a.get('profile')
-            )
-        elif command == 'find':
-            result = engine.find(
-                doc,
-                a['query'],
-                case_sensitive=a.get('case_sensitive', False),
-                whole_word=a.get('whole_word', False),
-                regex=a.get('regex', False),
-            )
-        elif command == 'diff':
-            result = engine.diff(doc, a['from_revision'])
-        else:
-            from .checks import run_checks
-
-            result = run_checks(
-                doc, suites=a.get('suite'), limit=a.get('limit', 100), profile=a.get('profile')
-            )
-            if a.get('strict'):
-                result = dict(result, strict=True)
-        return envelope(result, doc)
-    if command in ('apply', 'fill'):
-        request = dict(a['input'])
-        if command == 'fill':
-            request = {'operations': [{'type': 'fill_fields', 'values': request}]}
-        for option, key in (
-            ('expect_revision', 'expected_revision'),
-            ('request_id', 'request_id'),
-            ('require_suite', 'required_suites'),
-        ):
-            if a.get(option) is not None:
-                request[key] = a[option]
-
-        def apply(doc):
-            candidate, result = engine.apply(doc, request, dry_run=a.get('dry_run', False))
-            return candidate, result, not a.get('dry_run', False)
-
-        return _mutate(a['path'], apply)
-    if command == 'history':
-        action = a.get('action', 'list')
-        if action == 'list':
-            doc = _load(a['path'])
-            result = engine.inspect(doc, section='history', limit=a.get('limit', 100))
-            result['branches'] = doc['history'].get('branches', {})
-            result['current_branch'] = doc['history'].get('current_branch', 'main')
-            return envelope(result, doc)
-
-        def history(doc):
-            if a.get('expect_revision') and doc['revision'] != a['expect_revision']:
-                _error(
-                    'stale_revision',
-                    'Document revision changed',
-                    expected=a['expect_revision'],
-                    actual=doc['revision'],
-                )
-            if action in ('checkpoint', 'branch'):
-                if not a.get('name'):
-                    _error('invalid_input', 'History action requires --name')
-                updated, result = getattr(engine, action)(doc, a['name'])
-            elif action == 'restore':
-                if not a.get('revision'):
-                    _error('invalid_input', 'Restore requires --revision')
-                updated, result = engine.restore(doc, a['revision'])
-            else:
-                _error('invalid_input', f'Unknown history action: {action}')
-            return updated, result, True
-
-        return _mutate(a['path'], history)
-    if command == 'review':
-        action = a.get('action', 'list')
-        if action == 'list':
-            doc = _load(a['path'])
-            return envelope({'items': doc.get('review', {})}, doc)
-        ops = {
-            'propose': 'propose',
-            'accept': 'accept_proposal',
-            'reject': 'reject_proposal',
-            'comment': 'add_comment',
-            'resolve': 'resolve_comment',
-            'accept-change': 'accept_change',
-            'reject-change': 'reject_change',
+    return envelope(
+        {
+            'engine_version': __version__,
+            'operation_schema_version': 1,
+            'offset_unit': 'unicode_scalar',
+            'range_end': 'exclusive',
         }
-        if action not in ops:
-            _error('invalid_input', f'Unknown review action: {action}')
-        op = dict(a.get('input') or {})
-        if action == 'propose':
-            op = {'values': op}
-        op['type'] = ops[action]
-        if a.get('target'):
-            op['target'] = a['target']
-        return execute(
-            'apply',
-            {
-                'path': a['path'],
-                'input': {'operations': [op]},
-                **{k: a[k] for k in ('expect_revision', 'request_id', 'dry_run') if k in a},
-            },
-        )
-    if command in ('import', 'convert', 'export', 'save-as'):
+    )
+
+
+def _cmd_capabilities(a: Args, owner: str | None) -> Result:
+    from .providers import list_capabilities
+
+    return envelope(
+        {
+            'commands': COMMANDS,
+            'providers': list_capabilities(),
+            'formats': ['byax', 'txt', 'md', 'html', 'docx', 'odt', 'rtf', 'doc', 'pdf'],
+            'topic': a.get('topic'),
+            'transactions': 'atomic envelope under exclusive file lock',
+            'network': 'only explicitly selected provider calls',
+            'offset_unit': 'unicode_scalar',
+            'limitations': [
+                'Format fidelity and provider availability are reported per operation.',
+                'Native OS print dialogs require the desktop application.',
+            ],
+        }
+    )
+
+
+def _cmd_schema(a: Args, owner: str | None) -> Result:
+    from . import engine
+
+    topic = a.get('topic', 'commands')
+    if topic in ('operations', 'operation', 'editing'):
+        if hasattr(engine, 'operation_schema'):
+            return envelope({'schema': engine.operation_schema()})
+        return envelope({'schema': getattr(engine, 'OP_SCHEMAS', {}), 'offset_unit': 'unicode_scalar'})
+    return envelope({'commands': {key: command_schema(key) for key in COMMANDS}})
+
+
+def _cmd_new(a: Args, owner: str | None) -> Result:
+    from . import model, storage
+
+    _destination(a['out'], a.get('overwrite', False))
+    doc = model.new_document(a.get('title', 'Untitled'), a.get('text', ''))
+    storage.save_document(doc, a['out'], owner=owner)
+    return envelope(doc=doc, outputs=[a['out']])
+
+
+def _cmd_inspect(a: Args, owner: str | None) -> Result:
+    from . import engine
+
+    doc = _load(a['path'])
+    result = engine.inspect(
+        doc,
+        section='outline' if a.get('outline') else a.get('section'),
+        target=a.get('target'),
+        limit=a.get('limit', 100),
+    )
+    return envelope(result, doc)
+
+
+def _cmd_context(a: Args, owner: str | None) -> Result:
+    from . import engine
+
+    doc = _load(a['path'])
+    result = engine.context(
+        doc, target=a.get('target'), limit=a.get('limit', 10000), profile=a.get('profile')
+    )
+    return envelope(result, doc)
+
+
+def _cmd_find(a: Args, owner: str | None) -> Result:
+    from . import engine
+
+    doc = _load(a['path'])
+    result = engine.find(
+        doc,
+        a['query'],
+        case_sensitive=a.get('case_sensitive', False),
+        whole_word=a.get('whole_word', False),
+        regex=a.get('regex', False),
+    )
+    return envelope(result, doc)
+
+
+def _cmd_diff(a: Args, owner: str | None) -> Result:
+    from . import engine
+
+    doc = _load(a['path'])
+    return envelope(engine.diff(doc, a['from_revision']), doc)
+
+
+def _cmd_check(a: Args, owner: str | None) -> Result:
+    from .checks import run_checks
+
+    doc = _load(a['path'])
+    result = run_checks(doc, suites=a.get('suite'), limit=a.get('limit', 100), profile=a.get('profile'))
+    if a.get('strict'):
+        result = dict(result, strict=True)
+    return envelope(result, doc)
+
+
+def _cmd_apply(a: Args, owner: str | None, *, fill: bool = False) -> Result:
+    from . import engine
+
+    request = dict(a['input'])
+    if fill:
+        request = {'operations': [{'type': 'fill_fields', 'values': request}]}
+    for option, key in (
+        ('expect_revision', 'expected_revision'),
+        ('request_id', 'request_id'),
+        ('require_suite', 'required_suites'),
+    ):
+        if a.get(option) is not None:
+            request[key] = a[option]
+
+    def apply(doc: Document) -> tuple[Document, Result, bool]:
+        candidate, result = engine.apply(doc, request, dry_run=a.get('dry_run', False))
+        return candidate, result, not a.get('dry_run', False)
+
+    return _mutate(a['path'], apply)
+
+
+def _cmd_fill(a: Args, owner: str | None) -> Result:
+    return _cmd_apply(a, owner, fill=True)
+
+
+def _cmd_history(a: Args, owner: str | None) -> Result:
+    from . import engine
+
+    action = a.get('action', 'list')
+    if action == 'list':
+        doc = _load(a['path'])
+        result = engine.inspect(doc, section='history', limit=a.get('limit', 100))
+        result['branches'] = doc['history'].get('branches', {})
+        result['current_branch'] = doc['history'].get('current_branch', 'main')
+        return envelope(result, doc)
+
+    def history(doc: Document) -> tuple[Document, Result, bool]:
+        if a.get('expect_revision') and doc['revision'] != a['expect_revision']:
+            _error(
+                'stale_revision',
+                'Document revision changed',
+                expected=a['expect_revision'],
+                actual=doc['revision'],
+            )
+        if action in ('checkpoint', 'branch', 'switch_branch'):
+            if not a.get('name'):
+                _error('invalid_input', 'History action requires --name')
+            updated, result = getattr(engine, action)(doc, a['name'])
+        elif action == 'restore':
+            if not a.get('revision'):
+                _error('invalid_input', 'Restore requires --revision')
+            updated, result = engine.restore(doc, a['revision'])
+        else:
+            _error('invalid_input', f'Unknown history action: {action}')
+        return updated, result, True
+
+    return _mutate(a['path'], history)
+
+
+_REVIEW_OPS = {
+    'propose': 'propose',
+    'accept': 'accept_proposal',
+    'reject': 'reject_proposal',
+    'comment': 'add_comment',
+    'resolve': 'resolve_comment',
+    'accept-change': 'accept_change',
+    'reject-change': 'reject_change',
+}
+
+
+def _cmd_review(a: Args, owner: str | None) -> Result:
+    action = a.get('action', 'list')
+    if action == 'list':
+        doc = _load(a['path'])
+        return envelope({'items': doc.get('review', {})}, doc)
+    if action not in _REVIEW_OPS:
+        _error('invalid_input', f'Unknown review action: {action}')
+    op = dict(a.get('input') or {})
+    if action == 'propose':
+        op = {'values': op}
+    op['type'] = _REVIEW_OPS[action]
+    if a.get('target'):
+        op['target'] = a['target']
+    return execute(
+        'apply',
+        {
+            'path': a['path'],
+            'input': {'operations': [op]},
+            **{k: a[k] for k in ('expect_revision', 'request_id', 'dry_run') if k in a},
+        },
+    )
+
+
+def _exchange(command: str) -> Handler:
+    """import/convert read exchange formats; save-as/export read native packages."""
+
+    def handler(a: Args, owner: str | None) -> Result:
+        from . import storage
         from .exchange import export_document, import_document
 
-        _destination(a['out'], a.get('overwrite', False), a['path'])
+        if not a.get('dry_run'):
+            _destination(a['out'], a.get('overwrite', False), a['path'])
         if command in ('import', 'convert'):
             doc, imported = import_document(a['path'])
         else:
@@ -534,16 +616,27 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
             if a.get('require_suite') or a.get('strict')
             else None
         )
+        overwrite = a.get('overwrite', False)
         if command in ('import', 'save-as'):
-            storage.save_document(doc, a['out'], owner=output_owner)
-            result = {'outputs': [a['out']]}
+            storage.save_document(doc, a['out'], owner=owner)
+            result: Result = {'outputs': [a['out']]}
+        elif a.get('dry_run'):
+            fmt = a.get('format') or Path(a['out']).suffix.lstrip('.')
+            result = export_document(doc, None, format=fmt, profile=a.get('profile'), preview=True)
         elif a.get('profile') == 'clean':
             from .publication import export_clean
 
-            result = export_clean(doc, a['out'], format=a.get('format'), profile=None, owner=output_owner)
+            result = export_clean(
+                doc, a['out'], format=a.get('format'), profile=None, owner=owner, overwrite=overwrite
+            )
         else:
             result = export_document(
-                doc, a['out'], format=a.get('format'), profile=a.get('profile'), owner=output_owner
+                doc,
+                a['out'],
+                format=a.get('format'),
+                profile=a.get('profile'),
+                owner=owner,
+                overwrite=overwrite,
             )
         if imported:
             result['import_report'] = imported
@@ -551,279 +644,298 @@ def _execute(command: str, arguments: dict | None = None, *, output_owner=None) 
             result['required_checks'] = gate
             result['validation'] = gate['validation']
         return envelope(result, doc)
-    if command == 'render':
-        from .layout import render
 
-        _destination(a['out'], a.get('overwrite', False))
-        doc = _load(a['path'])
-        pages, selection = _affected_pages(doc) if a.get('pages') == 'affected' else (a.get('pages'), None)
-        result = render(doc, a['out'], pages=pages)
-        if selection:
-            result['selection'] = selection
-        return envelope(result, doc)
-    if command in ('pack', 'unpack'):
-        _destination(a['out'], a.get('overwrite', False), a['path'])
-        if command == 'pack':
-            import tempfile
+    return handler
 
-            with tempfile.TemporaryDirectory(dir=Path(a['out']).parent) as temporary:
-                stage = Path(temporary) / 'packed.byax'
-                storage.pack(a['path'], stage)
-                os.replace(stage, a['out'])
-        else:
-            storage.unpack(a['path'], a['out'], include_history=a.get('include_history', False))
-        return envelope(outputs=[a['out']])
-    if command == 'providers':
-        from .providers import ProviderConfig, ProviderRegistry
 
-        registry = ProviderRegistry(config_dir=a.get('config_dir'))
+def _cmd_render(a: Args, owner: str | None) -> Result:
+    from .layout import render
+
+    _destination(a['out'], a.get('overwrite', False))
+    doc = _load(a['path'])
+    pages, selection = _affected_pages(doc) if a.get('pages') == 'affected' else (a.get('pages'), None)
+    result = render(doc, a['out'], pages=pages)
+    if selection:
+        result['selection'] = selection
+    return envelope(result, doc)
+
+
+def _cmd_pack(a: Args, owner: str | None) -> Result:
+    import tempfile
+
+    from . import storage
+
+    _destination(a['out'], a.get('overwrite', False), a['path'])
+    with tempfile.TemporaryDirectory(dir=Path(a['out']).parent) as temporary:
+        stage = Path(temporary) / 'packed.byax'
+        storage.pack(a['path'], stage)
+        os.replace(stage, a['out'])
+    return envelope(outputs=[a['out']])
+
+
+def _cmd_unpack(a: Args, owner: str | None) -> Result:
+    from . import storage
+
+    _destination(a['out'], a.get('overwrite', False), a['path'])
+    storage.unpack(a['path'], a['out'], include_history=a.get('include_history', False))
+    return envelope(outputs=[a['out']])
+
+
+def _cmd_providers(a: Args, owner: str | None) -> Result:
+    from .providers import ProviderConfig, ProviderRegistry
+
+    registry = ProviderRegistry(config_dir=a.get('config_dir'))
+    action = a.get('action', 'list')
+    if action == 'list':
+        return envelope({'providers': registry.list()})
+    if action == 'configure':
+        try:
+            config = ProviderConfig(**a.get('input', {}))
+        except TypeError as exc:
+            _error('invalid_input', str(exc), field='input')
+        registry.save(config)
+        return envelope({'providers': registry.list()})
+    if not a.get('alias'):
+        _error('invalid_input', 'Provider action requires --alias')
+    if action == 'preview':
+        return envelope(registry.preview(a['alias'], text=a.get('text', ''), context=a.get('input')))
+    if action == 'test':
+        options = a.get('input', {})
+        if set(options) - {'capability', 'text', 'audio_path'}:
+            _error('invalid_input', 'Provider test input supports capability, text and audio_path')
+        return envelope(registry.test(a['alias'], authorized=a.get('allow_remote', False), **options))
+    if action == 'review':
+        if not a.get('text'):
+            _error('invalid_input', 'Review requires --text')
+        return envelope(
+            registry.review(
+                a['alias'], a['text'], context=a.get('input'), authorized=a.get('allow_remote', False)
+            )
+        )
+    _error('invalid_input', f'Unknown provider action: {action}')
+
+
+def _job_worker(payload: Args, cancel: threading.Event) -> Result:
+    if cancel.is_set():
+        _error('cancelled', 'Job cancelled')
+    if payload.get('document_snapshot'):
+        import tempfile
+
+        from .storage import save_document
+
+        with tempfile.TemporaryDirectory(prefix='byax-job-input-') as temporary:
+            snapshot_path = str(Path(temporary) / 'frozen.byax')
+            save_document(payload['document_snapshot'], snapshot_path)
+            result = execute(payload['command'], dict(payload['arguments'], path=snapshot_path))
+        result['stale'] = _load(payload['arguments']['path'])['revision'] != payload['revision']
+        if result['stale']:
+            result['review'] = 'required'
+    else:
+        result = execute(payload['command'], payload['arguments'])
+    child_code = result_exit_code(result)
+    if child_code:
+        # Keep the child's error class so the job exits like a direct call.
+        code = (result.get('error') or {}).get('code') or _EXIT_ERRORS.get(child_code, 'execution_failure')
+        _error(code, 'Job did not satisfy policy', result=result)
+    return result
+
+
+def _submit_job(manager: JobManager, a: Args) -> Result:
+    spec = a.get('input', {})
+    allowed = ('batch', 'convert', 'check', 'render', 'providers')
+    if spec.get('command') not in allowed or not isinstance(spec.get('arguments'), dict):
+        _error(
+            'invalid_input',
+            'Job input requires command (batch/convert/check/render/providers) and arguments',
+        )
+    frozen = dict(spec)
+    path = spec['arguments'].get('path')
+    if path and spec['command'] in ('check', 'render'):
+        frozen['document_snapshot'] = _load(path)
+        frozen['revision'] = frozen['document_snapshot']['revision']
+    if spec['command'] == 'render':
+        from .layout import ensure_app
+
+        ensure_app()
+    job = manager.submit(spec['command'], frozen, _job_worker)
+    return manager.wait(job['id'])
+
+
+def _cmd_jobs(a: Args, owner: str | None) -> Result:
+    from .jobs import JobManager
+
+    manager = JobManager(root=a.get('root'))
+    try:
         action = a.get('action', 'list')
         if action == 'list':
-            return envelope({'providers': registry.list()})
-        if action == 'configure':
-            try:
-                config = ProviderConfig(**a.get('input', {}))
-            except TypeError as exc:
-                _error('invalid_input', str(exc), field='input')
-            registry.save(config)
-            return envelope({'providers': registry.list()})
-        if not a.get('alias'):
-            _error('invalid_input', 'Provider action requires --alias')
-        if action == 'preview':
-            return envelope(registry.preview(a['alias'], text=a.get('text', ''), context=a.get('input')))
-        if action == 'test':
-            options = a.get('input', {})
-            if set(options) - {'capability', 'text', 'audio_path'}:
-                _error('invalid_input', 'Provider test input supports capability, text and audio_path')
-            return envelope(registry.test(a['alias'], authorized=a.get('allow_remote', False), **options))
-        if action == 'review':
-            if not a.get('text'):
-                _error('invalid_input', 'Review requires --text')
-            return envelope(
-                registry.review(
-                    a['alias'], a['text'], context=a.get('input'), authorized=a.get('allow_remote', False)
+            return envelope({'jobs': manager.list()})
+        if action == 'submit':
+            result = _submit_job(manager, a)
+        else:
+            if action not in ('status', 'result', 'cancel', 'recover') or not a.get('id'):
+                _error(
+                    'invalid_input',
+                    'Use submit/list/status/result/cancel/recover; supply --id where required',
                 )
-            )
-        _error('invalid_input', f'Unknown provider action: {action}')
-    if command == 'transcribe':
-        return _transcribe(a)
-    if command == 'jobs':
-        from .jobs import JobManager
+            result = getattr(manager, action)(a['id'])
+        if result.get('state') == 'failed' and isinstance(result.get('error'), dict):
+            from .errors import ByaxError
 
-        manager = JobManager(root=a.get('root'))
-        try:
-            action = a.get('action', 'list')
-            if action == 'list':
-                return envelope({'jobs': manager.list()})
-            if action == 'submit':
-                spec = a.get('input', {})
-                allowed = ('batch', 'convert', 'check', 'render', 'providers')
-                if spec.get('command') not in allowed or not isinstance(spec.get('arguments'), dict):
-                    _error(
-                        'invalid_input',
-                        'Job input requires command (batch/convert/check/render/providers) and arguments',
-                    )
-                frozen = dict(spec)
-                path = spec['arguments'].get('path')
-                if path and spec['command'] in ('check', 'render'):
-                    frozen['document_snapshot'] = _load(path)
-                    frozen['revision'] = frozen['document_snapshot']['revision']
-                if spec['command'] == 'render':
-                    from .layout import ensure_app
+            code = result['error'].get('code', 'execution_failure')
+            if ByaxError(code, '').exit_code != 1:
+                raise ByaxError(code, 'Job ended with an error', job=result)
+        return envelope({'job': result}, execution=result.get('state', 'completed'))
+    finally:
+        manager.close(wait=True)
 
-                    ensure_app()
 
-                def worker(payload, cancel):
-                    if cancel.is_set():
-                        _error('cancelled', 'Job cancelled')
-                    if payload.get('document_snapshot'):
-                        import tempfile
+def _cmd_proof(a: Args, owner: str | None) -> Result:
+    from .proof import create_proof
 
-                        from .storage import save_document
+    doc = _load(a['path'])
+    selections = a.get('input', {})
+    if set(selections) - {'crops', 'overlays'}:
+        _error('invalid_input', 'Proof JSON accepts crops and overlays arrays')
+    pages, selection = _affected_pages(doc) if a.get('pages') == 'affected' else (a.get('pages'), None)
+    result = create_proof(
+        doc,
+        a['out'],
+        pages=pages,
+        crops=selections.get('crops'),
+        overlays=selections.get('overlays'),
+        contact=not a.get('no_contact', False),
+        columns=a.get('columns', 3),
+        thumbnail_width=a.get('thumbnail_width', 320),
+        owner=owner,
+    )
+    if selection:
+        result['selection'] = selection
+    return envelope(result, doc)
 
-                        with tempfile.TemporaryDirectory(prefix='byax-job-input-') as temporary:
-                            snapshot_path = str(Path(temporary) / 'frozen.byax')
-                            save_document(payload['document_snapshot'], snapshot_path)
-                            result = execute(
-                                payload['command'], dict(payload['arguments'], path=snapshot_path)
-                            )
-                        result['stale'] = (
-                            _load(payload['arguments']['path'])['revision'] != payload['revision']
-                        )
-                        if result['stale']:
-                            result['review'] = 'required'
-                    else:
-                        result = execute(payload['command'], payload['arguments'])
-                    child_code = result_exit_code(result)
-                    if child_code:
-                        # Keep the child's error class so the job exits like a direct call.
-                        code = (result.get('error') or {}).get('code') or _EXIT_ERRORS.get(
-                            child_code, 'execution_failure'
-                        )
-                        _error(code, 'Job did not satisfy policy', result=result)
-                    return result
 
-                job = manager.submit(spec['command'], frozen, worker)
-                result = manager.wait(job['id'])
-            else:
-                if action not in ('status', 'result', 'cancel', 'recover') or not a.get('id'):
-                    _error(
-                        'invalid_input',
-                        'Use submit/list/status/result/cancel/recover; supply --id where required',
-                    )
-                result = getattr(manager, action)(a['id'])
-            if result.get('state') == 'failed' and isinstance(result.get('error'), dict):
-                from .errors import ByaxError
+def _cmd_table(a: Args, owner: str | None) -> Result:
+    from .table_io import export_csv, import_csv
 
-                code = result['error'].get('code', 'execution_failure')
-                if ByaxError(code, '').exit_code != 1:
-                    raise ByaxError(code, 'Job ended with an error', job=result)
-            return envelope({'job': result}, execution=result.get('state', 'completed'))
-        finally:
-            manager.close(wait=True)
-    if command == 'proof':
-        from .proof import create_proof
+    common = {key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
+    if a.get('action', 'import') == 'import':
+        if not a.get('csv'):
+            _error('invalid_input', 'Table import requires --csv')
+        if a.get('out'):
+            _error('invalid_input', 'Table import edits the native document; --out is for CSV export')
 
-        doc = _load(a['path'])
-        selections = a.get('input', {})
-        if set(selections) - {'crops', 'overlays'}:
-            _error('invalid_input', 'Proof JSON accepts crops and overlays arrays')
-        pages, selection = _affected_pages(doc) if a.get('pages') == 'affected' else (a.get('pages'), None)
-        result = create_proof(
-            doc,
-            a['out'],
-            pages=pages,
-            crops=selections.get('crops'),
-            overlays=selections.get('overlays'),
-            contact=not a.get('no_contact', False),
-            columns=a.get('columns', 3),
-            thumbnail_width=a.get('thumbnail_width', 320),
-            owner=output_owner,
-        )
-        if selection:
-            result['selection'] = selection
-        return envelope(result, doc)
-    if command == 'table':
-        from .table_io import export_csv, import_csv
-
-        common = {key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
-        if a.get('action', 'import') == 'import':
-            if not a.get('csv'):
-                _error('invalid_input', 'Table import requires --csv')
-            if a.get('out'):
-                _error('invalid_input', 'Table import edits the native document; --out is for CSV export')
-
-            def import_table(doc):
-                updated, result = import_csv(
-                    doc,
-                    a['table'],
-                    a['csv'],
-                    expected_revision=a.get('expect_revision'),
-                    grow=a.get('grow', False),
-                    dry_run=a.get('dry_run', False),
-                    request_id=a.get('request_id'),
-                    **common,
-                )
-                return updated, result, not a.get('dry_run', False)
-
-            return _mutate(a['path'], import_table)
-        if a.get('action') != 'export' or not a.get('out'):
-            _error(
-                'invalid_input',
-                'Use table --action import --csv input.csv or --action export --out output.csv',
-            )
-        _destination(a['out'], a.get('overwrite', False), a['path'])
-        doc = _load(a['path'])
-        return envelope(
-            export_csv(
+        def import_table(doc: Document) -> tuple[Document, Result, bool]:
+            updated, result = import_csv(
                 doc,
                 a['table'],
-                a['out'],
-                newline=a.get('newline'),
-                overwrite=a.get('overwrite', False),
-                owner=output_owner,
+                a['csv'],
+                expected_revision=a.get('expect_revision'),
+                grow=a.get('grow', False),
+                dry_run=a.get('dry_run', False),
+                request_id=a.get('request_id'),
                 **common,
-            ),
+            )
+            return updated, result, not a.get('dry_run', False)
+
+        return _mutate(a['path'], import_table)
+    if a.get('action') != 'export' or not a.get('out'):
+        _error(
+            'invalid_input',
+            'Use table --action import --csv input.csv or --action export --out output.csv',
+        )
+    _destination(a['out'], a.get('overwrite', False), a['path'])
+    doc = _load(a['path'])
+    return envelope(
+        export_csv(
             doc,
-        )
-    if command == 'template-batch':
-        from .exchange import export_document
-        from .table_io import template_rows
-
-        _destination(a['out'], a.get('overwrite', False))
-        output_dir = Path(a['out'])
-        if output_dir.exists() and not output_dir.is_dir():
-            _error('invalid_input', 'Template batch output must be a directory')
-        template = _load(a['path'])
-        # Parse and validate before creating deliverables, then retain every row outcome.
-        rows = template_rows(
-            template, a['csv'], **{key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
-        )
-        fmt = a.get('format', 'byax')
-        if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf'):
-            _error('invalid_input', 'Unsupported template batch output format')
-        outcomes = []
-        for index, (doc, result) in enumerate(rows, start=1):
-            output = output_dir / f'document-{index:04d}.{fmt}'
-            if doc is not None:
-                try:
-                    from .storage import DocumentLock
-
-                    with DocumentLock(output) as lock:
-                        _destination(str(output), a.get('overwrite', False))
-                        exported = export_document(
-                            doc, output, format=fmt, profile=a.get('profile'), owner=lock.owner
-                        )
-                    result = envelope(exported, doc, csv_row=result['csv_row'])
-                except Exception as exc:  # noqa: BLE001 - preserve every batch row outcome
-                    result, _ = error_result(exc)
-                    result['csv_row'] = index + 1
-            outcomes.append(result)
-        failed = sum(bool(result_exit_code(item)) for item in outcomes)
-        return envelope(
-            {
-                'items': outcomes,
-                'total': len(outcomes),
-                'failed': failed,
-                'template_revision': template['revision'],
-            },
-            execution='failed' if failed else 'completed',
-        )
-    if command == 'batch':
-        return _batch(a)
-    if command == 'redact':
-        from .publication import save_sanitized
-
-        _destination(a['out'], False, a['path'])
-        doc = _load(a['path'])
-        if set(a['input']) - {'targets', 'terms', 'preserve'}:
-            _error('invalid_input', 'Redaction input supports targets, terms and preserve', field='input')
-        result = save_sanitized(
-            doc,
+            a['table'],
             a['out'],
-            a['input'].get('targets', []),
-            terms=a['input'].get('terms'),
-            preserve=a['input'].get('preserve'),
-        )
-        return envelope(result, doc)
-    if command == 'reproduction':
-        from .publication import reproduce, reproduction_record
-
-        doc = _load(a['path'])
-        if a.get('action', 'record') == 'record':
-            result = reproduction_record(doc, settings=a.get('input'))
-            if a.get('out'):
-                _destination(a['out'], a.get('overwrite', False))
-                Path(a['out']).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
-            return envelope({'record': result, 'outputs': [a['out']] if a.get('out') else []}, doc)
-        if a.get('action') != 'verify' or not a.get('input') or not a.get('out'):
-            _error('invalid_input', 'Verification requires --input record.json and --out directory')
-        _destination(a['out'], a.get('overwrite', False))
-        return envelope(reproduce(doc, a['input'], a['out']), doc)
-    _error('unsupported_feature', f'Command is unavailable: {command}')
+            newline=a.get('newline'),
+            overwrite=a.get('overwrite', False),
+            owner=owner,
+            **common,
+        ),
+        doc,
+    )
 
 
-def _affected_pages(doc):
+def _cmd_template_batch(a: Args, owner: str | None) -> Result:
+    from .exchange import export_document
+    from .storage import DocumentLock
+    from .table_io import template_rows
+
+    _destination(a['out'], a.get('overwrite', False))
+    output_dir = Path(a['out'])
+    if output_dir.exists() and not output_dir.is_dir():
+        _error('invalid_input', 'Template batch output must be a directory')
+    template = _load(a['path'])
+    # Parse and validate before creating deliverables, then retain every row outcome.
+    rows = template_rows(
+        template, a['csv'], **{key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
+    )
+    fmt = a.get('format', 'byax')
+    if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf'):
+        _error('invalid_input', 'Unsupported template batch output format')
+    outcomes = []
+    for index, (doc, result) in enumerate(rows, start=1):
+        output = output_dir / f'document-{index:04d}.{fmt}'
+        if doc is not None:
+            try:
+                with DocumentLock(output) as lock:
+                    _destination(str(output), a.get('overwrite', False))
+                    exported = export_document(
+                        doc, output, format=fmt, profile=a.get('profile'), owner=lock.owner
+                    )
+                result = envelope(exported, doc, csv_row=result['csv_row'])
+            except Exception as exc:  # noqa: BLE001 - preserve every batch row outcome
+                result, _ = error_result(exc)
+                result['csv_row'] = index + 1
+        outcomes.append(result)
+    failed = sum(bool(result_exit_code(item)) for item in outcomes)
+    return envelope(
+        {
+            'items': outcomes,
+            'total': len(outcomes),
+            'failed': failed,
+            'template_revision': template['revision'],
+        },
+        execution='failed' if failed else 'completed',
+    )
+
+
+def _cmd_redact(a: Args, owner: str | None) -> Result:
+    from .publication import save_sanitized
+
+    _destination(a['out'], False, a['path'])
+    doc = _load(a['path'])
+    if set(a['input']) - {'targets', 'terms', 'preserve'}:
+        _error('invalid_input', 'Redaction input supports targets, terms and preserve', field='input')
+    result = save_sanitized(
+        doc,
+        a['out'],
+        a['input'].get('targets', []),
+        terms=a['input'].get('terms'),
+        preserve=a['input'].get('preserve'),
+    )
+    return envelope(result, doc)
+
+
+def _cmd_reproduction(a: Args, owner: str | None) -> Result:
+    from .publication import reproduce, reproduction_record
+
+    doc = _load(a['path'])
+    if a.get('action', 'record') == 'record':
+        result = reproduction_record(doc, settings=a.get('input'))
+        if a.get('out'):
+            _destination(a['out'], a.get('overwrite', False))
+            Path(a['out']).write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+        return envelope({'record': result, 'outputs': [a['out']] if a.get('out') else []}, doc)
+    if a.get('action') != 'verify' or not a.get('input') or not a.get('out'):
+        _error('invalid_input', 'Verification requires --input record.json and --out directory')
+    _destination(a['out'], a.get('overwrite', False))
+    return envelope(reproduce(doc, a['input'], a['out']), doc)
+
+
+def _affected_pages(doc: Document) -> tuple[list[int], Result]:
     """Conservative reflow range derived from retained before/after target layout."""
     from .engine import diff, revision_document
     from .layout import build_document, resolve_layout
@@ -850,7 +962,7 @@ def _affected_pages(doc):
         global_change = True
     positions = []
 
-    def add(resolved, target):
+    def add(resolved: Result, target: str) -> bool:
         page = resolved['positions'].get(target)
         if page is None:
             return False
@@ -878,14 +990,14 @@ def _affected_pages(doc):
     }
 
 
-def _transcribe(a):
+def _transcribe(a: Args, owner: str | None = None) -> Result:
     from .jobs import JobManager
     from .model import new_document
     from .providers import ProviderRegistry
     from .transcription import DictationSession
 
     mode = {'cleaned': 'cleanup', 'document-aware': 'document_aware'}.get(
-        a.get('mode'), a.get('mode', 'direct')
+        a.get('mode', ''), a.get('mode', 'direct')
     )
     if mode not in ('direct', 'cleanup', 'document_aware'):
         _error('invalid_input', 'Mode must be direct, cleaned, or document-aware')
@@ -910,7 +1022,7 @@ def _transcribe(a):
     manager = JobManager(root=a.get('job_root'))
     try:
 
-        def worker(payload, cancel):
+        def worker(payload: Args, cancel: threading.Event) -> Result:
             return session.process(
                 registry,
                 payload['alias'],
@@ -940,7 +1052,7 @@ def _transcribe(a):
             return envelope({'job': result}, doc, execution=result['state'], review='required')
         if a.get('insert'):
 
-            def insert(current):
+            def insert(current: Document) -> tuple[Document, Result, bool]:
                 updated, change = session.apply(current)
                 return updated, change, True
 
@@ -952,52 +1064,94 @@ def _transcribe(a):
         manager.close(wait=True)
 
 
-def _batch(a):
-    from concurrent.futures import ThreadPoolExecutor
+def _batch(a: Args, owner: str | None = None) -> Result:
+    from .jobs import run_batch
 
     spec = a['input']
     if set(spec) - {'items'} or not isinstance(spec.get('items'), list):
         _error('invalid_input', 'Batch input must contain an items array')
-    items = spec['items']
-    if len(items) > 1000 or a.get('workers', 1) > 16:
-        _error('limit_exceeded', 'Batch limit is 1000 inputs and 16 workers')
-    destinations = [
-        str(Path(item['out']).resolve()) for item in items if isinstance(item, dict) and 'out' in item
-    ]
-    if len(set(destinations)) != len(destinations):
-        _error('invalid_input', 'Batch outputs must be distinct')
-
-    def run(item):
-        try:
-            if not isinstance(item, dict):
-                _error('invalid_input', 'Every batch item must be an object')
-            result = execute(
-                'convert', dict(item, overwrite=item.get('overwrite', a.get('overwrite', False)))
-            )
-            return {'input': item.get('path'), 'result': result, 'exit_code': result_exit_code(result)}
-        except Exception as exc:  # noqa: BLE001 - transport boundary must return structured failures
-            result, code = error_result(exc)
-            return {
-                'input': item.get('path') if isinstance(item, dict) else None,
-                'result': result,
-                'exit_code': code,
-            }
-
     if any(
         isinstance(item, dict)
         and (item.get('format') == 'pdf' or str(item.get('out', '')).lower().endswith('.pdf'))
-        for item in items
+        for item in spec['items']
     ):
         from .layout import ensure_app
 
         ensure_app()
-    with ThreadPoolExecutor(max_workers=a.get('workers', 1)) as executor:
-        results = list(executor.map(run, items))
-    failed = sum(bool(item['exit_code']) for item in results)
-    return envelope(
-        {'items': results, 'total': len(items), 'failed': failed},
-        execution='failed' if failed else 'completed',
+    report = run_batch(
+        spec['items'],
+        lambda item: execute('convert', item),
+        workers=a.get('workers', 1),
+        overwrite=a.get('overwrite', False),
+        max_memory_mb=a.get('max_memory_mb', 1024),
+        staging=a.get('staging', 'each'),
+        describe_error=error_result,
     )
+    return envelope(report, execution=report.pop('execution'))
+
+
+def _cmd_fonts(a: Args, owner: str | None) -> Result:
+    from . import fonts
+
+    action = a.get('action', 'inspect')
+    if action == 'inspect':
+        if not a.get('family'):
+            _error('invalid_input', 'Font inspection requires --family', field='family')
+        info = fonts.inspect_font(a['family'], a.get('bold', False), a.get('italic', False))
+        info.pop('path', None)
+        return envelope({'font': info})
+    if not a.get('path'):
+        _error('invalid_input', f'Font action {action} requires a document path', field='path')
+    if action == 'glyphs':
+        doc = _load(a['path'])
+        return envelope({'glyph_fallbacks': fonts.glyph_fallbacks(doc)}, doc)
+    if action == 'embed':
+        if not a.get('family'):
+            _error('invalid_input', 'Font embedding requires --family', field='family')
+
+        def embed(doc: Document) -> tuple[Document, Result, bool]:
+            from .engine import _commit
+
+            updated, info = fonts.embed_font(doc, a['family'], a.get('bold', False), a.get('italic', False))
+            committed = _commit(doc, updated, [{'type': 'embed_font', 'family': a['family']}])
+            return committed, {'font': info, 'changed_ids': [info['sha256']]}, True
+
+        return _mutate(a['path'], embed)
+    _error('invalid_input', 'Use fonts --action inspect, glyphs or embed')
+
+
+_HANDLERS: dict[str, Handler] = {
+    'version': _cmd_version,
+    'capabilities': _cmd_capabilities,
+    'schema': _cmd_schema,
+    'new': _cmd_new,
+    'inspect': _cmd_inspect,
+    'context': _cmd_context,
+    'find': _cmd_find,
+    'diff': _cmd_diff,
+    'check': _cmd_check,
+    'apply': _cmd_apply,
+    'fill': _cmd_fill,
+    'history': _cmd_history,
+    'review': _cmd_review,
+    'import': _exchange('import'),
+    'convert': _exchange('convert'),
+    'export': _exchange('export'),
+    'save-as': _exchange('save-as'),
+    'render': _cmd_render,
+    'pack': _cmd_pack,
+    'unpack': _cmd_unpack,
+    'providers': _cmd_providers,
+    'transcribe': _transcribe,
+    'jobs': _cmd_jobs,
+    'proof': _cmd_proof,
+    'table': _cmd_table,
+    'template-batch': _cmd_template_batch,
+    'batch': _batch,
+    'redact': _cmd_redact,
+    'reproduction': _cmd_reproduction,
+    'fonts': _cmd_fonts,
+}
 
 
 _EXIT_ERRORS = {
@@ -1010,7 +1164,7 @@ _EXIT_ERRORS = {
 }
 
 
-def result_exit_code(result: dict) -> int:
+def result_exit_code(result: Result) -> int:
     state = result.get('execution')
     if state == 'cancelled':
         return 6
@@ -1025,7 +1179,7 @@ def result_exit_code(result: dict) -> int:
     return 0
 
 
-def error_result(exc: Exception) -> tuple[dict, int]:
+def error_result(exc: BaseException) -> tuple[Result, int]:
     from .errors import ByaxError
 
     if isinstance(exc, ByaxError):
@@ -1043,7 +1197,7 @@ def error_result(exc: Exception) -> tuple[dict, int]:
 
 
 class Parser(argparse.ArgumentParser):
-    def error(self, message):
+    def error(self, message: str) -> NoReturn:
         _error('invalid_input', message)
 
 
@@ -1091,7 +1245,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv=None) -> int:
+def main(argv: list[str] | None = None) -> int:
     try:
         ns = vars(build_parser().parse_args(argv))
         command = ns.pop('command')
@@ -1120,7 +1274,7 @@ def main(argv=None) -> int:
                 _error('limit_exceeded', 'JSON input exceeds 16 MiB')
             ns['input'] = json.loads(raw)
         if 'pages' in ns and ns['pages'] != 'affected':
-            pages = []
+            pages: list[int] = []
             for token in ns['pages'].split(','):
                 if '-' in token:
                     start, end = map(int, token.split('-', 1))

@@ -12,6 +12,12 @@ from .errors import ByaxError
 
 _SURROGATE = regex.compile('[\ud800-\udfff]')
 BLOCK_TYPES = {'paragraph', 'heading', 'table', 'image', 'page_break', 'section_break', 'toc', 'footnote'}
+# Current document schema. Older supported versions are upgraded by explicit
+# transitions in ``migration``; newer versions are rejected without rewriting.
+SCHEMA_VERSION = 2
+STYLE_KINDS = ('paragraph', 'character')
+DEPENDENCY_POLICIES = ('link', 'embedded')
+DEPENDENCY_STATUSES = ('unresolved', 'current', 'changed', 'missing', 'embedded')
 
 
 def new_id(prefix='obj'):
@@ -28,7 +34,7 @@ def object_hash(value):
 
 def new_document(title='Untitled', text=''):
     return {
-        'schema_version': 1,
+        'schema_version': SCHEMA_VERSION,
         'id': new_id('doc'),
         'revision': new_id('rev'),
         'metadata': {'title': title, 'author': '', 'language': 'en'},
@@ -58,6 +64,7 @@ def new_document(title='Untitled', text=''):
             'margins': {'top': 72, 'right': 72, 'bottom': 72, 'left': 72},
         },
         'assets': {},
+        'dependencies': {},
         'references': {},
         'profiles': {},
         'review': {'comments': [], 'proposals': [], 'tracked_changes': [], 'findings': []},
@@ -98,6 +105,27 @@ def find_object(doc, target):
     raise ByaxError('missing_target', 'The target no longer exists.', target=target)
 
 
+def dependency_id(uri, salt=''):
+    """Deterministic identity for an external dependency record."""
+    return 'dep_' + hashlib.sha256((uri + '\x00' + salt).encode()).hexdigest()[:32]
+
+
+def link_external_image(doc, block, uri):
+    """Record an image block's external source as an explicit, unretrieved dependency."""
+    identity = dependency_id(uri, block['id'])
+    doc.setdefault('dependencies', {})[identity] = {
+        'id': identity,
+        'uri': uri,
+        'kind': 'image',
+        'policy': 'link',
+        'status': 'unresolved',
+        'sha256': None,
+        'asset': None,
+    }
+    block.setdefault('attrs', {})['link'] = identity
+    return identity
+
+
 def snapshot(doc):
     return copy.deepcopy({k: v for k, v in doc.items() if k not in {'history', 'requests'}})
 
@@ -106,8 +134,18 @@ def validate_document(doc, *, include_history=True):
     def fail(message, path):
         raise ByaxError('schema_error', message, field=path)
 
-    if not isinstance(doc, dict) or type(doc.get('schema_version')) is not int or doc['schema_version'] != 1:
-        raise ByaxError('unsupported_version', 'Only document schema version 1 is supported.')
+    if not isinstance(doc, dict) or type(doc.get('schema_version')) is not int:
+        raise ByaxError('unsupported_version', 'Document schema version is missing.')
+    if doc['schema_version'] != SCHEMA_VERSION:
+        from .migration import SUPPORTED_VERSIONS
+
+        raise ByaxError(
+            'unsupported_version',
+            f'Document schema version {doc["schema_version"]} is not the current version {SCHEMA_VERSION}.',
+            found=doc['schema_version'],
+            current=SCHEMA_VERSION,
+            migration='available' if doc['schema_version'] in SUPPORTED_VERSIONS else 'unavailable',
+        )
     for key in ('id', 'revision'):
         if not isinstance(doc.get(key), str) or not doc[key]:
             fail('A nonempty identity is required.', key)
@@ -116,6 +154,7 @@ def validate_document(doc, *, include_history=True):
         'styles',
         'layout',
         'assets',
+        'dependencies',
         'references',
         'profiles',
         'review',
@@ -198,9 +237,27 @@ def validate_document(doc, *, include_history=True):
             or not isinstance(asset.get('mime'), str)
         ):
             fail('Invalid asset identity or metadata.', 'assets')
+    for identity, dependency in doc['dependencies'].items():
+        path = 'dependencies.' + str(identity)
+        if (
+            not isinstance(dependency, dict)
+            or dependency.get('id') != identity
+            or not isinstance(dependency.get('uri'), str)
+            or not dependency['uri']
+        ):
+            fail('Dependencies require a matching identity and a URI.', path)
+        if (
+            dependency.get('policy') not in DEPENDENCY_POLICIES
+            or dependency.get('status') not in DEPENDENCY_STATUSES
+        ):
+            fail('Unknown dependency policy or status.', path)
+        if dependency.get('asset') is not None and dependency['asset'] not in doc['assets']:
+            fail('Dependency cache refers to a missing asset.', path + '.asset')
     for key, style in doc['styles'].items():
         if not isinstance(style, dict):
             fail('Named styles must contain attribute objects.', 'styles.' + key)
+        if style.get('kind', 'paragraph') not in STYLE_KINDS:
+            fail('Style kind must be paragraph or character.', 'styles.' + key + '.kind')
     for key in ('width', 'height'):
         value = doc['layout'].get(key)
         if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
@@ -211,6 +268,7 @@ def validate_document(doc, *, include_history=True):
         for k in ('top', 'right', 'bottom', 'left')
     ):
         fail('Margins require finite nonnegative measurements.', 'layout.margins')
+    validate_layout_extensions(doc, fail)
     history = doc['history']
     if (
         not isinstance(history.get('revisions'), list)
@@ -236,6 +294,10 @@ def validate_document(doc, *, include_history=True):
         type(settings['history_limit']) is not int or settings['history_limit'] < 1
     ):
         fail('History limit must be a positive integer.', 'settings.history_limit')
+    if 'request_retention' in settings and (
+        type(settings['request_retention']) is not int or settings['request_retention'] < 1
+    ):
+        fail('Request retention must be a positive integer.', 'settings.request_retention')
     for name in ('requirements', 'bookmarks'):
         if name in settings and (
             not isinstance(settings[name], dict)
@@ -268,3 +330,114 @@ def validate_document(doc, *, include_history=True):
     except (TypeError, ValueError, UnicodeError, RecursionError) as exc:
         fail(str(exc), '$')
     return doc
+
+
+COLUMN_KEYS = {'count', 'gap', 'gaps', 'widths', 'ratios', 'balance'}
+ROW_SPLIT_POLICIES = {'auto', 'allow', 'never'}
+SECTION_STARTS = {'next_page', 'continuous', 'odd_page', 'even_page'}
+XREF_SHOW = {'page', 'text', 'number', 'label'}
+
+
+def _number(value, positive=False):
+    return type(value) in (int, float) and math.isfinite(value) and (value > 0 if positive else value >= 0)
+
+
+def validate_columns(value, path, fail):
+    """Columns are a count or {count, gap|gaps, widths|ratios, balance} in points."""
+    if type(value) is int:
+        if not 1 <= value <= 12:
+            fail('Column count must be 1..12.', path)
+        return
+    if not isinstance(value, dict) or set(value) - COLUMN_KEYS:
+        fail('Columns must be a count or an object with count, gap, gaps, widths, ratios and balance.', path)
+    count = value.get('count', len(value.get('widths', [])) or 1)
+    if type(count) is not int or not 1 <= count <= 12:
+        fail('Column count must be 1..12.', path + '.count')
+    if 'gap' in value and not _number(value['gap']):
+        fail('Column gap must be a nonnegative number of points.', path + '.gap')
+    for key, size in (('gaps', count - 1), ('widths', count), ('ratios', count)):
+        if key in value and (
+            not isinstance(value[key], list)
+            or len(value[key]) != size
+            or not all(_number(v, positive=key != 'gaps') for v in value[key])
+        ):
+            fail(f'Column {key} must list {size} numbers.', path + '.' + key)
+    if 'balance' in value and type(value['balance']) is not bool:
+        fail('Column balance must be a boolean.', path + '.balance')
+
+
+def validate_master(name, master, fail, path='layout.masters'):
+    if not isinstance(name, str) or not name or not isinstance(master, dict):
+        fail('Page masters must be named objects.', path)
+    if 'margins' in master and (
+        not isinstance(master['margins'], dict) or not all(_number(v) for v in master['margins'].values())
+    ):
+        fail('Master margins require nonnegative numbers.', f'{path}.{name}.margins')
+    for key in ('width', 'height'):
+        if key in master and not _number(master[key], positive=True):
+            fail('Master paper dimensions must be positive numbers.', f'{path}.{name}.{key}')
+    if 'columns' in master:
+        validate_columns(master['columns'], f'{path}.{name}.columns', fail)
+    artwork = master.get('artwork', [])
+    if not isinstance(artwork, list) or any(not isinstance(item, dict) for item in artwork):
+        fail('Master artwork must be a list of objects.', f'{path}.{name}.artwork')
+
+
+def validate_layout_extensions(doc, fail):
+    """Additive checks for columns, masters, table pagination, layer groups and cross-references."""
+    layout = doc['layout']
+    masters = layout.get('masters', {})
+    if not isinstance(masters, dict):
+        fail('Page masters must be a mapping.', 'layout.masters')
+    for name, master in masters.items():
+        validate_master(name, master, fail)
+    if 'columns' in layout:
+        validate_columns(layout['columns'], 'layout.columns', fail)
+    if layout.get('master') is not None and layout['master'] not in masters:
+        fail('Assigned page master is not defined.', 'layout.master')
+    for index, block in enumerate(doc['blocks']):
+        attrs, path = block.get('attrs', {}), f'blocks[{index}].attrs'
+        if block.get('type') == 'section_break':
+            section = attrs.get('layout', {})
+            if not isinstance(section, dict):
+                fail('Section layout must be an object.', path + '.layout')
+            for source, prefix in ((section, path + '.layout'), (attrs, path)):
+                if 'columns' in source:
+                    validate_columns(source['columns'], prefix + '.columns', fail)
+                if source.get('master') is not None and source['master'] not in masters:
+                    fail('Assigned page master is not defined.', prefix + '.master')
+            if 'start' in attrs and attrs['start'] not in SECTION_STARTS:
+                fail('Section start must be next_page, continuous, odd_page or even_page.', path + '.start')
+        if block.get('type') == 'table':
+            if 'row_split' in attrs and attrs['row_split'] not in ROW_SPLIT_POLICIES:
+                fail('Table row_split must be auto, allow or never.', path + '.row_split')
+            if 'repeat_header' in attrs and type(attrs['repeat_header']) is not bool:
+                fail('Table repeat_header must be a boolean.', path + '.repeat_header')
+            if 'continued_label' in attrs and not isinstance(attrs['continued_label'], str):
+                fail('Table continued_label must be text.', path + '.continued_label')
+        for key in ('outputs', 'exclude_outputs'):
+            if key in attrs and (
+                not isinstance(attrs[key], list) or not all(isinstance(v, str) for v in attrs[key])
+            ):
+                fail('Output policies must list output names.', path + '.' + key)
+        for mark in block.get('marks', []):
+            if mark.get('type') == 'xref':
+                value = mark.get('value')
+                if (
+                    not isinstance(value, dict)
+                    or not isinstance(value.get('target'), str)
+                    or value.get('show', 'page') not in XREF_SHOW
+                ):
+                    fail('Cross-references require a target and a show mode.', f'blocks[{index}].marks')
+    groups = {
+        layer.get('id')
+        for layer in doc['layers']
+        if layer.get('kind') == 'group' or layer.get('type') == 'group'
+    }
+    for index, layer in enumerate(doc['layers']):
+        if layer.get('group') is not None and (layer['group'] not in groups or layer.get('id') in groups):
+            fail('Layer group must reference an existing, non-nested group layer.', f'layers[{index}].group')
+        if 'outputs' in layer and (
+            not isinstance(layer['outputs'], list) or not all(isinstance(v, str) for v in layer['outputs'])
+        ):
+            fail('Output policies must list output names.', f'layers[{index}].outputs')

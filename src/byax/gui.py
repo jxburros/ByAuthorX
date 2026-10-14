@@ -52,7 +52,8 @@ from PySide6.QtWidgets import (
 
 from . import engine, gui_a11y, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
-from .gui_art import ActivityGraphic, EmptyPanel
+from .gui_ai import AIPanel
+from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_editor import PageCanvas, SemanticEditor
 from .gui_motion import MotionController, PenLineAnimation
 
@@ -411,6 +412,7 @@ class MainWindow(QMainWindow):
             EmptyPanel(
                 self.tr('Your document outline'),
                 self.tr('Headings, tables, images, and bookmarks appear here.'),
+                graphic=themed_art('outline-empty'),
             )
         )
         outline_dock = QDockWidget(self.tr('Outline'), self)
@@ -462,7 +464,9 @@ class MainWindow(QMainWindow):
         self.layer_stack.addWidget(self.layer_list)
         self.layer_stack.addWidget(
             EmptyPanel(
-                self.tr('No document layers'), self.tr('Add a watermark or a layer from the Insert menu.')
+                self.tr('No document layers'),
+                self.tr('Add a watermark or a layer from the Insert menu.'),
+                graphic=themed_art('layers-empty'),
             )
         )
         ll.addWidget(self.layer_stack)
@@ -475,6 +479,8 @@ class MainWindow(QMainWindow):
             button.clicked.connect(slot)
             ll.addWidget(button)
         self.inspector.addTab(layers, self.tr('Layers'))
+        self.ai_panel = AIPanel(self)
+        self.inspector.addTab(self.ai_panel, self.tr('AI'))
         inspector_dock = QDockWidget(self.tr('Inspector'), self)
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(260)
@@ -979,8 +985,9 @@ class MainWindow(QMainWindow):
         if refresh:
             self.refresh(previous=previous)
         else:
-            if hasattr(self.editor.document(), 'byax_resolved'):
-                del self.editor.document().byax_resolved
+            from .layout import invalidate_resolved
+
+            invalidate_resolved(self.editor.document())
             self.update_sidebar()
             self.update_status()
         return result
@@ -2710,7 +2717,7 @@ class MainWindow(QMainWindow):
         from .layout import adopt_resolved, resolve_pages, resolved_documents
 
         document, doc = self.editor.document(), self.doc
-        if hasattr(document, 'byax_resolved'):
+        if None in getattr(document, 'byax_resolved_outputs', {}):
             self.pages.set_document(document, doc)
             return
         self._pages_generation += 1

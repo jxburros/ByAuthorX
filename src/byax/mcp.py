@@ -81,13 +81,14 @@ def handle(request: dict) -> dict | None:
         try:
             check_provider_admin(names[tool], args)
             payload = execute(names[tool], args)
-            failed = bool(result_exit_code(payload))
+            code = result_exit_code(payload)
         except Exception as exc:  # noqa: BLE001 - transport boundary
-            payload, _ = error_result(exc)
-            failed = True
+            payload, code = error_result(exc)
         result = {
             'content': [{'type': 'text', 'text': json.dumps(payload, ensure_ascii=False, default=str)}],
-            'isError': failed,
+            # Same envelope plus the CLI exit state, matching REST responses.
+            'structuredContent': json.loads(json.dumps(dict(payload, exit_code=code), default=str)),
+            'isError': bool(code),
         }
     else:
         return dict(response, error={'code': -32601, 'message': f'Method not found: {method}'})

@@ -92,16 +92,18 @@ def test_snapshots_follow_accumulated_delta_size():
         assert restored['blocks'][0]['text'] == text
 
 
-def test_request_records_are_capped_and_gui_commits_record_none():
+def test_request_retention_bounds_records_and_gui_commits_record_none(monkeypatch):
+    monkeypatch.setattr(engine, 'REQUEST_RETENTION', 5)
+    monkeypatch.setattr(engine, 'TOMBSTONE_FACTOR', 2)
     doc = model.new_document(text='x')
     target = doc['blocks'][0]['id']
     doc, _ = _edit(doc, {'type': 'set_text', 'target': target, 'text': 'g'}, request_id='gui-1', origin='gui')
     assert doc['requests'] == {}
-    for i in range(engine.REQUEST_LIMIT + 20):
+    for i in range(30):
         doc, _ = _edit(doc, {'type': 'set_text', 'target': target, 'text': str(i)}, request_id=f'r{i}')
-    assert len(doc['requests']) == engine.REQUEST_LIMIT
-    assert 'r0' not in doc['requests'] and f'r{engine.REQUEST_LIMIT + 19}' in doc['requests']
-    _, result = _edit(doc, {'type': 'set_text', 'target': target, 'text': '519'}, request_id='r519')
+    assert sum('result' in r for r in doc['requests'].values()) == 5
+    assert len(doc['requests']) <= 5 * 2 + 5
+    _, result = _edit(doc, {'type': 'set_text', 'target': target, 'text': '29'}, request_id='r29')
     assert result['execution'] == 'already_committed'
 
 

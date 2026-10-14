@@ -6,11 +6,22 @@ import bisect
 import json
 
 from PySide6.QtCore import QAbstractAnimation, QEvent, QRectF, Qt, QTimer
-from PySide6.QtGui import QPainter, QPixmap
-from PySide6.QtWidgets import QLabel, QPushButton, QVBoxLayout, QWidget
+from PySide6.QtGui import QPainter, QPalette, QPixmap
+from PySide6.QtWidgets import QApplication, QLabel, QPushButton, QVBoxLayout, QWidget
 
 from .brand import BRAND_ROOT, BrandGraphic
 from .gui_motion import PenLineAnimation
+
+
+def art_theme(widget=None):
+    """Pick the companion variant that matches the effective window palette."""
+    palette = widget.palette() if widget is not None else QApplication.palette()
+    return 'dark' if palette.color(QPalette.Window).lightness() < 128 else 'light'
+
+
+def themed_art(name, widget=None):
+    """Path, relative to the brand root, of a light/dark companion still."""
+    return f'ui/{name}-{art_theme(widget)}.png'
 
 
 class EmptyPanel(QWidget):
@@ -147,3 +158,59 @@ class ActivityGraphic(PenLineAnimation):
         index = max(0, bisect.bisect_right(self.frame_times, time) - 1)
         width, height = self.manifest['frameWidth'], self.manifest['frameHeight']
         painter.drawPixmap(self.art_rect, self.sprite, QRectF(index * width, 0, width, height))
+
+
+class TaskLoop(PenLineAnimation):
+    """A companion waiting loop owned by one task: it never runs as ambient decoration.
+
+    Playback happens only between start() and stop(), while visible and not minimized;
+    reduced motion shows the delivered still (fully written hold pose) instead.
+    """
+
+    def __init__(self, motion, name, width, parent=None):
+        super().__init__(motion, parent, profile=f'{name}-{art_theme(parent)}', width=width)
+        self.name = name
+        self.running = False
+        self.animation.setLoopCount(-1)
+        self.setAccessibleName(self.tr('Working'))
+        self.hide()
+
+    def start(self):
+        self.running = True
+        self.show()
+        self._sync_playback()
+
+    def stop(self):
+        self.running = False
+        self.animation.stop()
+        self.set_progress(1.0)
+        self.hide()
+
+    def _sync_playback(self):
+        window = self.window()
+        if not self.running or not self.isVisible() or window.isMinimized() or self.motion.reduced:
+            self.animation.stop()
+            self.set_progress(1.0)
+        elif self.animation.state() != QAbstractAnimation.Running:
+            self.animation.start()
+
+    def _preference_changed(self, reduced):
+        self._sync_playback()
+
+    def showEvent(self, event):
+        BrandGraphic.showEvent(self, event)
+        self.window().installEventFilter(self)
+        self._sync_playback()
+
+    def eventFilter(self, watched, event):
+        if event.type() in (QEvent.WindowStateChange, QEvent.Show, QEvent.Hide):
+            QTimer.singleShot(0, self, self._sync_playback)
+        return super().eventFilter(watched, event)
+
+    def paintEvent(self, event):
+        if self.motion.reduced or self.animation.state() == QAbstractAnimation.Stopped:
+            painter = QPainter(self)
+            painter.setRenderHint(QPainter.SmoothPixmapTransform)
+            painter.drawPixmap(self.art_rect, self.pixmap, QRectF(self.pixmap.rect()))
+            return
+        super().paintEvent(event)

@@ -3,5 +3,45 @@
     "source": "assets/logo-companion-library/illustrations/margin-notes-light.png",
     "source_sha256": "1501892108766ef0b37cc3bfa9b006193d800b0b87e2a8bbb211e4c051a42a73"
   },
-  "note": "Made with Vixl. Native playback uses only committed PNG/JSON files."
+  "note": "Made with Vixl. Native playback uses only committed PNG/JSON files.",
+  "ai-empty-light.png": {
+    "source": "assets/logo-companion-library/illustrations/idea-on-paper-light.png",
+    "source_sha256": "664e0a6002be463d89ded1b5b7131391375736eb94671af6d825d14ba2cd4ebe"
+  },
+  "ai-empty-dark.png": {
+    "source": "assets/logo-companion-library/illustrations/idea-on-paper-dark.png",
+    "source_sha256": "bd104a3aae4d038c5033df1063be9e01c5a7704bdb758e1533ffdbc993fa0fa0"
+  },
+  "ai-setup-light.png": {
+    "source": "assets/logo-companion-library/illustrations/local-copy-light.png",
+    "source_sha256": "f956d2fdbd5ad8d457dac103201079b79d8ff8b185dd4f7ec2504f1b9c48267e"
+  },
+  "ai-setup-dark.png": {
+    "source": "assets/logo-companion-library/illustrations/local-copy-dark.png",
+    "source_sha256": "e8ef75a8be89275b59cc631786c2e27578c4aa9cd79ba1f23a2c719184d947ed"
+  },
+  "spelling-clean-light.png": {
+    "source": "assets/logo-companion-library/illustrations/signature-manuscript-light.png",
+    "source_sha256": "fca95935a0e59b115fd1edbf3a457772ef66d207f86bcba7e2feaf5b53e42365"
+  },
+  "spelling-clean-dark.png": {
+    "source": "assets/logo-companion-library/illustrations/signature-manuscript-dark.png",
+    "source_sha256": "5142ed78a7b6a7e5f202f49cfa919be8e642d2a81190b67b5b8c59e06c4d04fc"
+  },
+  "layers-empty-light.png": {
+    "source": "assets/logo-companion-library/illustrations/revision-pages-light.png",
+    "source_sha256": "1ded309ba0e34a73b40f05b1f2ba10a7f3f3ec54b2c99018c2a4c66b585d60ed"
+  },
+  "layers-empty-dark.png": {
+    "source": "assets/logo-companion-library/illustrations/revision-pages-dark.png",
+    "source_sha256": "c43538db810ec3edffe898ec156d41bcb9ae9b7ec74ff9038082dd8ed59c3911"
+  },
+  "outline-empty-light.png": {
+    "source": "assets/logo-companion-library/illustrations/loop-bound-book-light.png",
+    "source_sha256": "183a34a4f3c797f672787dd36b2b36638f32be2103ccb28cf21d07cd8f20e543"
+  },
+  "outline-empty-dark.png": {
+    "source": "assets/logo-companion-library/illustrations/loop-bound-book-dark.png",
+    "source_sha256": "6d140ef4f5ab80f89dcc57a591ef3b3b753e72e8076d9046d7312ea2e0926781"
+  }
 }

@@ -78,6 +78,8 @@ def test_main_window_controls_and_actions_are_named(window):
     window.show()
     QApplication.processEvents()
     assert unlabeled(window) == []
+    ai_controls = [w for w in window.ai_panel.findChildren(QWidget) if gui_a11y.actionable(w)]
+    assert len(ai_controls) >= 5 and unlabeled(window.ai_panel) == []
     actions = all_actions(window)
     assert len(actions) > 80
     for action in actions:
@@ -218,6 +220,8 @@ def test_every_dialog_names_its_controls(window, dialogs):
     dialogs.append((about.windowTitle(), unlabeled(about)))
     about.close()
     assert len(dialogs) >= len(DIALOG_METHODS) + 3
+    titles = [title for title, _ in dialogs]
+    assert 'Dictation' in titles and 'Checking and voice profiles' in titles
     assert [entry for entry in dialogs if entry[1]] == []
     assert not window.test_errors
 
@@ -259,6 +263,8 @@ def test_pseudo_locale_changes_menus_toolbar_and_dialogs(app, monkeypatch, tmp_p
         toolbar_texts = [a.text() for a in window.findChild(QToolBar).actions() if not a.isSeparator()]
         assert '⟦BOLD⟧' in toolbar_texts
         assert window.status_label.text() == '⟦READY⟧'
+        tabs = [window.inspector.tabText(i) for i in range(window.inspector.count())]
+        assert '⟦AI⟧' in tabs and '⟦REVIEW⟧' in tabs
         window.find_replace()
         assert dialogs[-1][0] == '⟦FIND AND REPLACE⟧'
         assert all(isinstance(a, QAction) for a in all_actions(window))

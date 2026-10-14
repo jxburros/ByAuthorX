@@ -206,13 +206,16 @@ def test_selective_sanitization_preserves_verified_styles_layout_and_images(tmp_
     assert clean['layout']['header'] == {'first': 'Confidential: [REDACTED]', 'odd': 'Case file'}
     assert clean['layout']['margins']['left'] == 90
     images = [b for b in clean['blocks'] if b['type'] == 'image']
-    assert len(images) == 1 and images[0]['attrs'] == {
+    assert len(images) == 2 and images[0]['attrs'] == {
         'width': 120,
         'asset': hashlib.sha256(clean_png).hexdigest(),
         'alt': 'Photo of [REDACTED]',
     }
-    assert list(clean['assets']) == [hashlib.sha256(clean_png).hexdigest()]
-    assert report['dropped_assets'] == [hashlib.sha256(tagged_png).hexdigest()]
+    # The tagged image keeps only re-encoded pixels; its trailing text is gone and re-verified.
+    assert report['reencoded_assets'] == [hashlib.sha256(tagged_png).hexdigest()]
+    assert report['dropped_assets'] == []
+    assert images[1]['attrs']['asset'] != hashlib.sha256(tagged_png).hexdigest()
+    assert set(clean['assets']) == {hashlib.sha256(clean_png).hexdigest(), images[1]['attrs']['asset']}
     with zipfile.ZipFile(output) as archive:
         assert all(
             b'Alice' not in archive.read(name) and 'Alice'.encode('utf-16-le') not in archive.read(name)
