@@ -55,7 +55,8 @@ def test_every_inline_and_paragraph_format_survives_save_reopen_and_layout(tmp_p
     reopened = load_document(path)
     assert reopened['blocks'] == doc['blocks']
     assert {m['type'] for m in reopened['blocks'][0]['marks']} == set(INLINE) | {'subscript'}
-    block = build_document(reopened).firstBlock()
+    qdoc = build_document(reopened)  # keep the document alive while its blocks are used
+    block = qdoc.firstBlock()
     assert block.blockFormat().textIndent() == -18 and len(block.blockFormat().tabPositions()) == 2
     report = element_report(reopened, reopened['blocks'][0])
     assert {o['property'] for o in report['overrides']} >= set(PARAGRAPH) - {'tabs'} | {'tabs'}
