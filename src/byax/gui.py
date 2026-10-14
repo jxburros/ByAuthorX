@@ -61,7 +61,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import engine, gui_a11y, model, storage
+from . import __version__, engine, gui_a11y, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
@@ -659,8 +659,8 @@ class MainWindow(FileViews, WorkflowPanels, QMainWindow):
                 'A native, local-first writing workspace.\n\n'
                 'Write. Review. Keep what works.\n'
                 'Provider workflows run only when requested.\n'
-                'Version 0.1.0 · MIT license'
-            )
+                'Version %1 · MIT license'
+            ).replace('%1', __version__)
         )
         description.setWordWrap(True)
         layout.addWidget(description)

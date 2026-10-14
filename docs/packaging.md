@@ -17,7 +17,7 @@ Ubuntu 24.04:
 
 ```bash
 uv run python scripts/build_deb.py
-sudo apt install ./dist/byauthorx_0.1.0_amd64.deb
+sudo apt install ./dist/byauthorx_<version>_amd64.deb
 ```
 
 The package installs under `/opt/byauthorx`, provides `/usr/bin/byauthorx`, `/usr/bin/byax`, and `/usr/bin/byax-mcp`, and registers the desktop launcher and case-insensitive `.byax` MIME association. Do not distribute a package frozen on a newer glibc system as an Ubuntu 24.04 build.
@@ -37,6 +37,16 @@ The installer registers `.byax` and a Start menu shortcut. The installer adds th
 ## Verification still required for release
 
 Install the generated packages on clean Windows 11 and Ubuntu 24.04 desktops. Exercise file associations, PowerShell/UTF-8 CLI, native dialogs, clipboard, input methods, display scaling, accessibility services, physical printing, keyring access and microphone capture. Provider integrations require selected accounts or installed local executables and models. Record these results in the acceptance matrix rather than implying they were tested by offscreen unit tests.
+
+## Cutting a release
+
+The version lives in `src/byax/__init__.py` (`__version__`). `pyproject.toml`, `uv.lock` and the `MyAppVersion` define in `packaging/windows.iss` must carry the same value; the About dialog, `byax version` and the `.deb` name read it from source. `tests/test_release_metadata.py` fails when any copy disagrees or `CHANGELOG.md` has no `## [x.y.z]` entry.
+
+1. Change `__version__`, `pyproject.toml` and `packaging/windows.iss`, run `uv lock` to refresh `uv.lock`, and add the changelog entry with its date and known limitations.
+2. Run the CI gates locally (format, lint, mypy, tests with the coverage floor, `scripts/build.py --bundle-only`) and merge to `main` only when CI is green on both runners.
+3. Tag the merge commit `vX.Y.Z` and push the tag. Create the GitHub Release from that tag, attach the installer and `.deb` from the CI artifacts of that commit, and copy the changelog entry into the release notes. Mark it as a pre-release while the installers remain unsigned and uninstalled-on-hardware (see below).
+
+The `.deb` is written to `dist/byauthorx_<version>_amd64.deb` and the Windows installer to `dist/ByAuthorX-<version>-windows-x64-setup.exe`.
 
 ## Explicit update and rollback policy
 

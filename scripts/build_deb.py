@@ -4,6 +4,7 @@ import os
 import platform
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 os_release = platform.freedesktop_os_release()
@@ -13,12 +14,15 @@ if platform.machine() not in ('x86_64', 'AMD64'):
     raise SystemExit('This package recipe targets x64.')
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / 'src'))
+from byax import __version__  # noqa: E402
+
 root = ROOT / 'build' / 'deb'
 if root.exists():
     shutil.rmtree(root)
 (root / 'DEBIAN').mkdir(parents=True)
-(root / 'DEBIAN' / 'control').write_text("""Package: byauthorx
-Version: 0.1.0
+(root / 'DEBIAN' / 'control').write_text(f"""Package: byauthorx
+Version: {__version__}
 Section: editors
 Priority: optional
 Architecture: amd64
@@ -50,7 +54,7 @@ subprocess.run(
         '--root-owner-group',
         '--build',
         str(root),
-        str(ROOT / 'dist' / 'byauthorx_0.1.0_amd64.deb'),
+        str(ROOT / 'dist' / f'byauthorx_{__version__}_amd64.deb'),
     ],
     check=True,
 )
