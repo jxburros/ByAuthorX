@@ -487,6 +487,8 @@ class MainWindow(QMainWindow):
         self.inspector = QTabWidget()
         self.review_list = QListWidget()
         self.review_list.setWordWrap(True)
+        # Items wrap to the panel, so they never need sideways scrolling, whatever the face's widths.
+        self.review_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
         self.review_list.setAccessibleName(self.tr('Comments, proposals, and findings'))
         self.review_list.itemActivated.connect(self.review_item)
         review = QWidget()
@@ -571,6 +573,7 @@ class MainWindow(QMainWindow):
         self.statusBar().addWidget(self.activity_slot)
         self.statusBar().addWidget(self.status_label, 1)
         self.word_label = QLabel()
+        self.word_label.setObjectName('statusCounter')
         self.statusBar().addPermanentWidget(self.word_label)
 
     def create_about_dialog(self):

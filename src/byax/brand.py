@@ -48,14 +48,26 @@ def app_icon():
     return icon
 
 
+def interface_font(*, plain=False):
+    """The application font: the body face first, then the fallback face for the scripts it lacks.
+
+    ``plain`` sets the fallback face alone, for readers who asked for high contrast.
+    """
+    body, fallback = TOKENS['font']['body'], TOKENS['font']['fallback']
+    font = QFont(fallback if plain else body, 11)
+    font.setFamilies([fallback] if plain else [body, fallback])
+    return font
+
+
 def configure_application(app: QApplication):
     register_bundled_fonts()
-    app.setFont(QFont(TOKENS['font']['body'], 11))
     app.setWindowIcon(app_icon())
     if prefers_high_contrast(app):
-        # The platform high-contrast theme outranks brand colours.
+        # The platform high-contrast theme outranks brand colours, and a plain face reads best.
+        app.setFont(interface_font(plain=True))
         app.setStyleSheet('')
         return
+    app.setFont(interface_font())
     palette = QPalette()
     for role, color in (
         (QPalette.Window, COLORS['paper']),
@@ -86,6 +98,12 @@ def rule_url(name, theme='light'):
 def stylesheet():
     c = COLORS
     control, panel = TOKENS['radius']['control'], TOKENS['radius']['panel']
+    # The brand faces cover Latin only, so each role names the fallback face after its own: a character
+    # they lack (Cyrillic, Greek, Latin Extended-B) is set in Manrope rather than in whatever the system picks.
+    display, annotation, counter = (
+        f'"{TOKENS["font"][role]}", "{TOKENS["font"]["fallback"]}"'
+        for role in ('display', 'annotation', 'counter')
+    )
     return f"""
         QMainWindow, QDialog {{ background: {c['paper']}; color: {c['ink']}; }}
         QMenuBar, QToolBar, QStatusBar {{ background: {c['surface']}; color: {c['ink']};
@@ -115,7 +133,7 @@ def stylesheet():
         QPushButton[primary="true"] {{ background: {c['green']}; color: white; border-color: {c['green']}; }}
         QPushButton[primary="true"]:hover {{ background: {c['greenText']}; }}
         QPushButton:disabled, QToolButton:disabled {{ color: {c['muted']}; background: {c['paper']}; }}
-        QDockWidget {{ color: {c['ink']}; font-weight: 600; }}
+        QDockWidget {{ color: {c['ink']}; font-family: {display}; font-size: 16px; }}
         QDockWidget::title {{ background: {c['surface']}; padding: 12px; background-image: {rule_url('rule-h')};
             background-repeat: repeat-x; background-position: bottom left; background-origin: border; }}
         QTreeWidget, QListWidget {{ border: 0; background: {c['surface']}; color: {c['ink']}; padding: 8px; }}
@@ -134,13 +152,14 @@ def stylesheet():
         QAbstractScrollArea:focus, QLineEdit:focus, QComboBox:focus, QSpinBox:focus,
         QDoubleSpinBox:focus, QToolButton:focus, QPushButton:focus {{ border: 2px solid {c['greenText']}; }}
         QScrollArea#pagePreview {{ background: {c['paper']}; border: 0; }}
-        QLabel#brandTagline {{ font-family: "IM Fell English"; font-size: 32px; color: {c['ink']}; }}
+        QLabel#brandTagline {{ font-family: {display}; font-size: 32px; color: {c['ink']}; }}
         QWidget#writingWorkspace {{ background: {c['paper']}; }}
-        QLabel#documentTitle {{ font-size: 16px; font-weight: 600; color: {c['ink']}; }}
+        QLabel#documentTitle {{ font-family: {display}; font-size: 19px; color: {c['ink']}; }}
         QLabel#documentState, QLabel#workspaceView {{ color: {c['muted']}; font-size: 12px; }}
         QWidget#emptyPanel {{ background: {c['surface']}; }}
-        QLabel#emptyHeading {{ font-weight: 600; font-size: 15px; color: {c['ink']}; }}
-        QLabel#emptyDescription {{ color: {c['muted']}; font-size: 13px; }}
+        QLabel#emptyHeading {{ font-family: {display}; font-size: 18px; color: {c['ink']}; }}
+        QLabel#emptyDescription {{ font-family: {annotation}; color: {c['ink']}; font-size: 16px; }}
+        QLabel#statusCounter {{ font-family: {counter}; color: {c['ink']}; font-size: 13px; }}
     """
 
 

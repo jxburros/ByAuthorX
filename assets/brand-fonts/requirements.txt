@@ -1,0 +1,4 @@
+# Authoring only; the same Vixl line as the logo libraries, plus the WOFF2 compressor.
+# vixl-engine brings fontTools, shapely, numpy and HarfBuzz, which the font compiler uses.
+vixl-engine @ git+https://github.com/jxburros/Vixl.git@83b637853b673fe719b792c7bf0a3276a34d6022
+brotli>=1.1,<2
