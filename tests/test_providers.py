@@ -597,3 +597,454 @@ def test_native_model_review_registers_selection_proposal_without_sharing_surrou
     finally:
         window.dirty = False
         window.close()
+
+
+# Provider-control acceptance with mocked transports (no live inference).
+
+
+import httpx
+
+_REAL_CLIENT = httpx.Client
+
+
+def _mock_client(monkeypatch, handler):
+    monkeypatch.setattr(
+        httpx, 'Client', lambda **kwargs: _REAL_CLIENT(transport=httpx.MockTransport(handler), **kwargs)
+    )
+
+
+def _ok_review():
+    return {
+        'id': 'req_1',
+        'choices': [{'message': {'content': '{"findings": []}'}}],
+        'usage': {'prompt_tokens': 1000, 'completion_tokens': 500},
+    }
+
+
+def test_unsent_requests_retry_only_under_explicit_policy(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    monkeypatch.setattr('byax.providers._sleep', lambda seconds: None)
+    calls = []
+
+    def handler(request):
+        calls.append(request)
+        if len(calls) == 1:
+            raise httpx.ConnectError('refused', request=request)
+        return httpx.Response(200, json=_ok_review())
+
+    _mock_client(monkeypatch, handler)
+    never = registry(tmp_path / 'never')
+    with pytest.raises(ByaxError) as caught:
+        never.review('test', 'text', authorized=True)
+    assert caught.value.code == 'provider_failure' and caught.value.details['request_sent'] is False
+    assert len(calls) == 1
+    calls.clear()
+    retrying = registry(tmp_path / 'retry', retry_policy='unsent_only', max_retries=2)
+    result = retrying.review('test', 'text', authorized=True)
+    assert len(calls) == 2 and result['transport']['attempts'] == 2
+
+
+def test_delivered_or_timed_out_requests_are_never_retried(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    monkeypatch.setattr('byax.providers._sleep', lambda seconds: None)
+    reg = registry(tmp_path, retry_policy='unsent_only', max_retries=3)
+    calls = []
+
+    def server_error(request):
+        calls.append(request)
+        return httpx.Response(500, json={})
+
+    _mock_client(monkeypatch, server_error)
+    with pytest.raises(ByaxError, match='request failed'):
+        reg.review('test', 'text', authorized=True)
+    assert len(calls) == 1
+    calls.clear()
+
+    def timeout(request):
+        calls.append(request)
+        raise httpx.ReadTimeout('slow', request=request)
+
+    _mock_client(monkeypatch, timeout)
+    with pytest.raises(ByaxError) as caught:
+        reg.review('test', 'text', authorized=True)
+    assert caught.value.code == 'uncertain_external_outcome' and len(calls) == 1
+
+
+def test_rate_limit_rejection_honours_retry_after(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    slept = []
+    monkeypatch.setattr('byax.providers._sleep', slept.append)
+    responses = [
+        httpx.Response(429, headers={'retry-after': '2'}, json={}),
+        httpx.Response(200, json=_ok_review()),
+    ]
+    _mock_client(monkeypatch, lambda request: responses.pop(0))
+    reg = registry(tmp_path, retry_policy='unsent_only', max_retries=1, timeout=30)
+    assert reg.review('test', 'text', authorized=True)['transport']['attempts'] == 2
+    assert slept == [2.0]
+    _mock_client(monkeypatch, lambda request: httpx.Response(429, json={}))
+    with pytest.raises(ByaxError) as caught:
+        registry(tmp_path / 'never').review('test', 'text', authorized=True)
+    assert caught.value.details['processed'] is False and caught.value.details['attempts'] == 1
+
+
+def test_retry_and_cost_configuration_is_validated(tmp_path):
+    reg = ProviderRegistry(tmp_path)
+    for bad in (
+        {'retry_policy': 'always'},
+        {'max_retries': 2},
+        {'retry_policy': 'unsent_only', 'max_retries': 9},
+        {'cost_rates': {'input_per_million': 1}},
+        {'cost_rates': {'input_per_million': -1, 'source': 'x'}},
+        {'cost_rates': {'surprise': 1, 'source': 'x'}},
+    ):
+        with pytest.raises(ByaxError):
+            reg.save(ProviderConfig('bad', 'openai', 'm', credential_ref='env:X', **bad))
+    # Configurations saved before these fields existed still load.
+    reg.path.write_text(
+        json.dumps(
+            {
+                'old': {
+                    'alias': 'old',
+                    'kind': 'openai',
+                    'model': 'm',
+                    'credential_ref': 'env:X',
+                    'retry_policy': 'never',
+                }
+            }
+        )
+    )
+    assert reg.get('old').max_retries == 0 and reg.get('old').cost_rates is None
+
+
+def test_expired_or_revoked_credentials_are_reported_without_secret(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'expired-secret-value')
+    _mock_client(
+        monkeypatch, lambda request: httpx.Response(401, json={'error': 'expired-secret-value invalid'})
+    )
+    reg = registry(tmp_path)
+    with pytest.raises(ByaxError) as caught:
+        reg.review('test', 'text', authorized=True)
+    assert caught.value.details['credential_status'] == 'rejected'
+    assert 'expired-secret-value' not in json.dumps(caught.value.to_dict())
+
+
+def test_missing_credentials_block_requests_and_status_never_reveals_values(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.delenv('BYAX_TEST_SECRET', raising=False)
+    reg = registry(tmp_path)
+    calls = []
+    _mock_client(monkeypatch, lambda request: calls.append(request) or httpx.Response(200, json={}))
+    status = reg.credential_status('test')
+    assert status == {
+        'reference': 'env:BYAX_TEST_SECRET',
+        'storage': 'environment',
+        'available': False,
+        'required': True,
+        'note': status['note'],
+    }
+    with pytest.raises(ByaxError) as caught:
+        reg.review('test', 'text', authorized=True)
+    assert caught.value.code == 'missing_dependency' and calls == []
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'present-secret')
+    preview = reg.preview('test', text='hello')
+    assert preview['credential']['available'] is True and 'present-secret' not in json.dumps(preview)
+    local = ProviderRegistry(tmp_path / 'local')
+    local.save(ProviderConfig('local', 'ollama', 'm'))
+    assert local.credential_status('local')['required'] is False
+
+
+def test_payload_inspection_matches_transmitted_body_and_limits(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    sent = []
+
+    def handler(request):
+        sent.append(json.loads(request.read()))
+        return httpx.Response(200, json=_ok_review())
+
+    _mock_client(monkeypatch, handler)
+    reg = registry(tmp_path)
+    context = {'revision': 'rev_1', 'references': {'src': {'text': 'Authorized excerpt'}}}
+    preview = reg.preview('test', text='Selected words', context=context)
+    reg.review('test', 'Selected words', context=context, authorized=True)
+    assert preview['request']['json'] == sent[0]
+    assert preview['request']['headers'] == ['Authorization'] and 'secret' not in json.dumps(preview)
+    assert preview['limits']['within_limit'] and preview['policy']['retries'] == 'never automatic'
+    small = registry(tmp_path / 'small', max_input_chars=50)
+    assert small.preview('test', text='x' * 100)['limits']['within_limit'] is False
+    with pytest.raises(ByaxError) as caught:
+        small.review('test', 'x' * 100, authorized=True)
+    assert caught.value.code == 'limit_exceeded' and caught.value.details['limit'] == 50
+
+
+def test_usage_is_normalized_and_costs_are_only_user_rate_estimates(tmp_path, monkeypatch):
+    from byax.providers import normalize_usage
+
+    assert normalize_usage({'usage': {'input_tokens': 3, 'output_tokens': 4}})['input_tokens'] == 3
+    assert (
+        normalize_usage({'usageMetadata': {'promptTokenCount': 5, 'candidatesTokenCount': 6}})[
+            'output_tokens'
+        ]
+        == 6
+    )
+    assert normalize_usage({'prompt_eval_count': 7, 'eval_count': 8})['input_tokens'] == 7
+    assert normalize_usage({})['reported'] is False
+    reg = registry(tmp_path)
+    monkeypatch.setattr(reg, '_request', lambda *a, **k: _ok_review())
+    plain = reg.review('test', 'text', authorized=True)
+    assert plain['cost'] is None and plain['cost_estimate'] is None
+    priced = registry(
+        tmp_path / 'priced',
+        cost_rates={
+            'input_per_million': 2.0,
+            'output_per_million': 10.0,
+            'currency': 'USD',
+            'source': 'my contract, 2026-10',
+        },
+    )
+    monkeypatch.setattr(priced, '_request', lambda *a, **k: _ok_review())
+    estimate = priced.review('test', 'text', authorized=True)['cost_estimate']
+    assert estimate['amount'] == pytest.approx(0.007) and estimate['exact'] is False
+    assert estimate['rates_source'] == 'my contract, 2026-10'
+    monkeypatch.setattr(priced, '_request', lambda *a, **k: {'choices': _ok_review()['choices']})
+    unreported = priced.review('test', 'text', authorized=True)
+    assert unreported['cost'] is None and unreported['cost_estimate']['amount'] is None
+
+
+def test_independent_defaults_and_per_check_workflow_overrides(tmp_path):
+    reg = ProviderRegistry(tmp_path)
+    for alias, kind in (
+        ('writer', 'anthropic'),
+        ('checker', 'openai'),
+        ('local', 'ollama'),
+        ('ears', 'elevenlabs'),
+    ):
+        reg.save(ProviderConfig(alias, kind, 'm', credential_ref=None if kind == 'ollama' else 'env:X'))
+    with pytest.raises(ByaxError) as caught:
+        reg.resolve('review')
+    assert caught.value.details['local_writing'] == 'available'
+    reg.set_route('review', 'writer')
+    reg.set_route('recognition', 'ears')
+    reg.set_route('review', 'checker', check='factual')
+    reg.set_route('cleanup', 'local', workflow='cleanup')
+    assert reg.resolve('review') == {'role': 'review', 'alias': 'writer', 'source': 'default'}
+    assert reg.resolve('review', check='factual')['alias'] == 'checker'
+    assert reg.resolve('review', check='spelling')['alias'] == 'writer'
+    assert reg.resolve('cleanup', workflow='cleanup')['source'] == 'workflow:cleanup'
+    assert reg.resolve('recognition')['alias'] == 'ears'
+    assert reg.resolve('review', profile={'providers': {'review': 'local'}})['source'] == 'profile'
+    assert reg.resolve('review', explicit='local', check='factual')['source'] == 'explicit'
+    with pytest.raises(ByaxError, match='capability'):
+        reg.set_route('recognition', 'writer')
+    with pytest.raises(ByaxError, match='capability'):
+        reg.resolve('review', explicit='ears')
+    reg.set_route('review', None, check='factual')
+    assert reg.resolve('review', check='factual')['alias'] == 'writer'
+
+
+def test_streaming_capabilities_are_truthful():
+    capabilities = {row['kind']: row for row in list_capabilities()}
+    assert {kind for kind, row in capabilities.items() if row['streaming']} == {'openai', 'whisper.cpp'}
+    assert capabilities['elevenlabs']['streaming'] is False and capabilities['elevenlabs']['timestamps']
+    assert capabilities['anthropic']['streaming_scope'] is None
+
+
+def test_openai_streaming_reports_provisional_then_final(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    audio = tmp_path / 'a.wav'
+    audio.write_bytes(b'audio')
+    stream = (
+        ''.join(
+            'data: ' + json.dumps(event) + '\n\n'
+            for event in (
+                {'type': 'transcript.text.delta', 'delta': 'Delete'},
+                {'type': 'transcript.text.delta', 'delta': ' this paragraph'},
+                {
+                    'type': 'transcript.text.done',
+                    'text': 'Delete this paragraph.',
+                    'usage': {'input_tokens': 9, 'output_tokens': 4},
+                },
+            )
+        )
+        + 'data: [DONE]\n\n'
+    )
+    bodies = []
+
+    def handler(request):
+        bodies.append(request.read())
+        return httpx.Response(200, headers={'content-type': 'text/event-stream'}, content=stream.encode())
+
+    _mock_client(monkeypatch, handler)
+    reg = registry(tmp_path / 'config')
+    events = []
+    result = reg.transcribe_stream('test', audio, on_event=events.append, authorized=True)
+    assert b'name="stream"' in bodies[0] and b'true' in bodies[0]
+    assert [event['type'] for event in events] == ['provisional', 'provisional', 'final']
+    assert events[1]['text'] == 'Delete this paragraph' and events[-1]['text'] == 'Delete this paragraph.'
+    assert result['streamed'] is True and result['usage_summary']['output_tokens'] == 4
+    # A model without streaming answers with one JSON body; that is reported as not streamed.
+    _mock_client(monkeypatch, lambda request: httpx.Response(200, json={'text': 'Once.'}))
+    events.clear()
+    result = reg.transcribe_stream('test', audio, on_event=events.append, authorized=True)
+    assert result['streamed'] is False and events == [
+        {'type': 'final', 'index': 0, 'text': 'Once.', 'start': None, 'end': None}
+    ]
+    with pytest.raises(ByaxError, match='authorization'):
+        reg.transcribe_stream('test', audio, on_event=events.append)
+
+
+def test_interrupted_stream_is_uncertain_and_never_commits_partial_text(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    audio = tmp_path / 'a.wav'
+    audio.write_bytes(b'audio')
+    stream = 'data: ' + json.dumps({'type': 'transcript.text.delta', 'delta': 'partial'}) + '\n\n'
+    _mock_client(
+        monkeypatch,
+        lambda request: httpx.Response(
+            200, headers={'content-type': 'text/event-stream'}, content=stream.encode()
+        ),
+    )
+    events = []
+    with pytest.raises(ByaxError) as caught:
+        registry(tmp_path / 'c').transcribe_stream('test', audio, on_event=events.append, authorized=True)
+    assert caught.value.code == 'uncertain_external_outcome'
+    assert all(event['type'] == 'provisional' for event in events)
+
+
+def test_elevenlabs_word_timings_become_segments_without_claiming_streaming(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    audio = tmp_path / 'a.wav'
+    audio.write_bytes(b'audio')
+    words = [
+        {'text': 'Hello', 'start': 0.0, 'end': 0.4, 'type': 'word'},
+        {'text': ' ', 'type': 'spacing', 'start': 0.4, 'end': 0.5},
+        {'text': 'there.', 'start': 0.5, 'end': 0.9, 'type': 'word'},
+        {'text': ' ', 'type': 'spacing'},
+        {'text': 'Next', 'start': 1.2, 'end': 1.5, 'type': 'word'},
+    ]
+    _mock_client(
+        monkeypatch, lambda request: httpx.Response(200, json={'text': 'Hello there. Next', 'words': words})
+    )
+    reg = registry(tmp_path / 'c', 'elevenlabs')
+    events = []
+    result = reg.transcribe_stream('test', audio, on_event=events.append, authorized=True)
+    assert result['streamed'] is False and result['timestamps'] is True
+    assert result['segments'] == [
+        {'index': 0, 'start': 0.0, 'end': 0.9, 'text': 'Hello there.'},
+        {'index': 1, 'start': 1.2, 'end': 1.5, 'text': 'Next'},
+    ]
+    assert [event['text'] for event in events] == ['Hello there.', 'Next']
+
+
+def test_openai_timestamps_are_opt_in(tmp_path, monkeypatch):
+    import httpx
+
+    monkeypatch.setenv('BYAX_TEST_SECRET', 'secret')
+    audio = tmp_path / 'a.wav'
+    audio.write_bytes(b'audio')
+    bodies = []
+
+    def handler(request):
+        bodies.append(request.read())
+        return httpx.Response(
+            200,
+            json={
+                'text': 'A. B.',
+                'segments': [
+                    {'text': ' A.', 'start': 0, 'end': 1.5},
+                    {'text': ' B.', 'start': 1.5, 'end': 3},
+                ],
+            },
+        )
+
+    _mock_client(monkeypatch, handler)
+    reg = registry(tmp_path / 'c')
+    reg.transcribe('test', audio, authorized=True)
+    timed = reg.transcribe('test', audio, authorized=True, timestamps=True)
+    assert b'verbose_json' not in bodies[0] and b'verbose_json' in bodies[1]
+    assert timed['segments'][1] == {'index': 1, 'start': 1.5, 'end': 3.0, 'text': 'B.'}
+
+
+def _whisper_fixture(tmp_path, monkeypatch, script):
+    executable = tmp_path / 'recognizer'
+    executable.write_text(script)
+    real_popen = subprocess.Popen
+    monkeypatch.setattr(
+        'byax.providers.subprocess.Popen',
+        lambda command, **kwargs: real_popen([sys.executable, *command], **kwargs),
+    )
+    model = tmp_path / 'model.bin'
+    model.write_bytes(b'fixture')
+    wav = tmp_path / 'speech.wav'
+    with wave.open(str(wav), 'wb') as audio:
+        audio.setparams((1, 2, 16000, 0, 'NONE', 'not compressed'))
+        audio.writeframes(b'\x00\x00' * 1600)
+    reg = ProviderRegistry(tmp_path / 'config')
+    reg.save(ProviderConfig('local', 'whisper.cpp', str(model), executable=str(executable), timeout=20))
+    return reg, wav
+
+
+def test_whisper_segments_are_delivered_while_the_process_runs(tmp_path, monkeypatch):
+    gate = tmp_path / 'first-segment-seen'
+    script = f"""import sys, time, pathlib
+args = sys.argv
+print('[00:00:00.000 --> 00:00:01.500]   Delete this paragraph.', flush=True)
+deadline = time.time() + 10
+while not pathlib.Path({str(gate)!r}).exists():
+    if time.time() > deadline:
+        sys.exit(3)
+    time.sleep(0.02)
+print('[00:00:01.500 --> 00:00:03.000]   Second phrase.', flush=True)
+pathlib.Path(args[args.index('-of') + 1] + '.txt').write_text('Delete this paragraph. Second phrase.')
+"""
+    reg, wav = _whisper_fixture(tmp_path, monkeypatch, script)
+    events = []
+
+    def on_event(event):
+        events.append(event)
+        gate.write_text('seen')  # The fixture continues only after the first segment reached us.
+
+    result = reg.transcribe_stream('local', wav, on_event=on_event)
+    assert [(event['start'], event['end'], event['text']) for event in events] == [
+        (0.0, 1.5, 'Delete this paragraph.'),
+        (1.5, 3.0, 'Second phrase.'),
+    ]
+    assert result['streamed'] is True and result['segments'][1]['index'] == 1
+    assert result['text'] == 'Delete this paragraph. Second phrase.'
+
+
+def test_whisper_failure_reports_completed_segments(tmp_path, monkeypatch):
+    script = "print('[00:00:00.000 --> 00:00:01.000]  Kept words', flush=True)\nimport sys\nsys.exit(2)\n"
+    reg, wav = _whisper_fixture(tmp_path, monkeypatch, script)
+    with pytest.raises(ByaxError) as caught:
+        reg.transcribe_stream('local', wav, on_event=lambda event: None)
+    assert caught.value.details['completed_segments'][0]['text'] == 'Kept words'
+
+
+def test_whisper_line_parser():
+    from byax.providers import parse_whisper_line
+
+    assert parse_whisper_line('[00:01:02.250 --> 00:01:04,000]  Words here') == {
+        'start': 62.25,
+        'end': 64.0,
+        'text': 'Words here',
+    }
+    assert parse_whisper_line('whisper_init: loading model') is None
+    assert parse_whisper_line('[00:00:00.000 --> 00:00:01.000]   ') is None
