@@ -11,6 +11,12 @@ import regex
 from .errors import ByaxError
 
 BLOCK_TYPES = {'paragraph', 'heading', 'table', 'image', 'page_break', 'section_break', 'toc', 'footnote'}
+# Current document schema. Older supported versions are upgraded by explicit
+# transitions in ``migration``; newer versions are rejected without rewriting.
+SCHEMA_VERSION = 2
+STYLE_KINDS = ('paragraph', 'character')
+DEPENDENCY_POLICIES = ('link', 'embedded')
+DEPENDENCY_STATUSES = ('unresolved', 'current', 'changed', 'missing', 'embedded')
 
 
 def new_id(prefix='obj'):
@@ -27,7 +33,7 @@ def object_hash(value):
 
 def new_document(title='Untitled', text=''):
     return {
-        'schema_version': 1,
+        'schema_version': SCHEMA_VERSION,
         'id': new_id('doc'),
         'revision': new_id('rev'),
         'metadata': {'title': title, 'author': '', 'language': 'en'},
@@ -57,6 +63,7 @@ def new_document(title='Untitled', text=''):
             'margins': {'top': 72, 'right': 72, 'bottom': 72, 'left': 72},
         },
         'assets': {},
+        'dependencies': {},
         'references': {},
         'profiles': {},
         'review': {'comments': [], 'proposals': [], 'tracked_changes': [], 'findings': []},
@@ -97,6 +104,27 @@ def find_object(doc, target):
     raise ByaxError('missing_target', 'The target no longer exists.', target=target)
 
 
+def dependency_id(uri, salt=''):
+    """Deterministic identity for an external dependency record."""
+    return 'dep_' + hashlib.sha256((uri + '\x00' + salt).encode()).hexdigest()[:32]
+
+
+def link_external_image(doc, block, uri):
+    """Record an image block's external source as an explicit, unretrieved dependency."""
+    identity = dependency_id(uri, block['id'])
+    doc.setdefault('dependencies', {})[identity] = {
+        'id': identity,
+        'uri': uri,
+        'kind': 'image',
+        'policy': 'link',
+        'status': 'unresolved',
+        'sha256': None,
+        'asset': None,
+    }
+    block.setdefault('attrs', {})['link'] = identity
+    return identity
+
+
 def snapshot(doc):
     return copy.deepcopy({k: v for k, v in doc.items() if k not in {'history', 'requests'}})
 
@@ -105,8 +133,18 @@ def validate_document(doc, *, include_history=True):
     def fail(message, path):
         raise ByaxError('schema_error', message, field=path)
 
-    if not isinstance(doc, dict) or type(doc.get('schema_version')) is not int or doc['schema_version'] != 1:
-        raise ByaxError('unsupported_version', 'Only document schema version 1 is supported.')
+    if not isinstance(doc, dict) or type(doc.get('schema_version')) is not int:
+        raise ByaxError('unsupported_version', 'Document schema version is missing.')
+    if doc['schema_version'] != SCHEMA_VERSION:
+        from .migration import SUPPORTED_VERSIONS
+
+        raise ByaxError(
+            'unsupported_version',
+            f'Document schema version {doc["schema_version"]} is not the current version {SCHEMA_VERSION}.',
+            found=doc['schema_version'],
+            current=SCHEMA_VERSION,
+            migration='available' if doc['schema_version'] in SUPPORTED_VERSIONS else 'unavailable',
+        )
     for key in ('id', 'revision'):
         if not isinstance(doc.get(key), str) or not doc[key]:
             fail('A nonempty identity is required.', key)
@@ -115,6 +153,7 @@ def validate_document(doc, *, include_history=True):
         'styles',
         'layout',
         'assets',
+        'dependencies',
         'references',
         'profiles',
         'review',
@@ -197,9 +236,27 @@ def validate_document(doc, *, include_history=True):
             or not isinstance(asset.get('mime'), str)
         ):
             fail('Invalid asset identity or metadata.', 'assets')
+    for identity, dependency in doc['dependencies'].items():
+        path = 'dependencies.' + str(identity)
+        if (
+            not isinstance(dependency, dict)
+            or dependency.get('id') != identity
+            or not isinstance(dependency.get('uri'), str)
+            or not dependency['uri']
+        ):
+            fail('Dependencies require a matching identity and a URI.', path)
+        if (
+            dependency.get('policy') not in DEPENDENCY_POLICIES
+            or dependency.get('status') not in DEPENDENCY_STATUSES
+        ):
+            fail('Unknown dependency policy or status.', path)
+        if dependency.get('asset') is not None and dependency['asset'] not in doc['assets']:
+            fail('Dependency cache refers to a missing asset.', path + '.asset')
     for key, style in doc['styles'].items():
         if not isinstance(style, dict):
             fail('Named styles must contain attribute objects.', 'styles.' + key)
+        if style.get('kind', 'paragraph') not in STYLE_KINDS:
+            fail('Style kind must be paragraph or character.', 'styles.' + key + '.kind')
     for key in ('width', 'height'):
         value = doc['layout'].get(key)
         if type(value) not in (int, float) or not math.isfinite(value) or value <= 0:
@@ -235,6 +292,10 @@ def validate_document(doc, *, include_history=True):
         type(settings['history_limit']) is not int or settings['history_limit'] < 1
     ):
         fail('History limit must be a positive integer.', 'settings.history_limit')
+    if 'request_retention' in settings and (
+        type(settings['request_retention']) is not int or settings['request_retention'] < 1
+    ):
+        fail('Request retention must be a positive integer.', 'settings.request_retention')
     for name in ('requirements', 'bookmarks'):
         if name in settings and (
             not isinstance(settings[name], dict)

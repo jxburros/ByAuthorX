@@ -105,7 +105,30 @@ def run_checks(doc, suites=None, *, limit=100, profile=None):
                     b['id'],
                     style=b['style'],
                 )
-            if b.get('type') == 'image' and b.get('attrs', {}).get('asset') not in doc.get('assets', {}):
+            link = b.get('attrs', {}).get('link')
+            if b.get('type') == 'image' and link:
+                dependency = doc.get('dependencies', {}).get(link)
+                if dependency is None:
+                    add(
+                        'dependency.record_missing',
+                        'structure',
+                        'error',
+                        'Linked image has no dependency record.',
+                        b['id'],
+                    )
+                elif dependency.get('status') in ('unresolved', 'missing'):
+                    add(
+                        'dependency.' + dependency['status'],
+                        'structure',
+                        'warning',
+                        'Linked image content is unavailable; refresh it with explicit authorization or embed a copy.'
+                        if not dependency.get('asset')
+                        else 'Linked image source is missing; the last retrieved copy is used.',
+                        b['id'],
+                        dependency=link,
+                        uri=dependency.get('uri'),
+                    )
+            elif b.get('type') == 'image' and b.get('attrs', {}).get('asset') not in doc.get('assets', {}):
                 add('asset.missing', 'structure', 'error', 'Image asset is missing.', b['id'])
             for mark in b.get('marks', []):
                 if mark.get('type') in ('citation', 'reference') and mark.get('value') not in doc.get(
