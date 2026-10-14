@@ -65,6 +65,12 @@ OP_SCHEMAS = {
     'replace_content': ('blocks', 'assets import_provenance'),
     'set_bookmark': ('name target', 'offset'),
     'remove_bookmark': ('name', ''),
+    'define_master': ('name values', ''),
+    'delete_master': ('name', ''),
+    'group_layers': ('name targets', 'id'),
+    'ungroup_layers': ('target', ''),
+    'reorder_layer': ('target to_index', ''),
+    'insert_cross_reference': ('target offset ref', 'show prefix'),
 }
 # Checking, evidence and section-profile operations (handlers defined near _measure).
 OP_SCHEMAS.update(
@@ -437,7 +443,7 @@ def _containers(doc, target):
                 return [block]
             if any(cell.get('id') == target for cell in row.get('cells', [])):
                 return [block, row]
-    return []
+    return _layer_groups(doc, target)
 
 
 def _find_review(doc, collection, target):
@@ -1114,6 +1120,136 @@ def _op_compact_history(doc, op, base_revision, kind, changed, allow_policy_chan
     changed.append('history')
 
 
+def _layer_groups(doc, target):
+    """A locked layer group locks its member layers."""
+    layer = next((item for item in doc['layers'] if item.get('id') == target), None)
+    group = layer and layer.get('group')
+    return [item for item in doc['layers'] if group and item.get('id') == group]
+
+
+def _is_group(layer):
+    return layer.get('kind') == 'group' or layer.get('type') == 'group'
+
+
+def _master_users(doc, name):
+    users = ['layout'] if doc['layout'].get('master') == name else []
+    for block in doc['blocks']:
+        attrs = block.get('attrs', {})
+        if block.get('type') == 'section_break' and name in (
+            attrs.get('master'),
+            attrs.get('layout', {}).get('master'),
+        ):
+            users.append(block['id'])
+    return users
+
+
+def _op_define_master(doc, op, base_revision, kind, changed, allow_policy_changes):
+    from .model import validate_master
+
+    if not isinstance(op['values'], dict):
+        _error('Expected an object.', 'values')
+    validate_master(op['name'], op['values'], lambda message, path: _error(message, path))
+    doc['layout'].setdefault('masters', {})[op['name']] = copy.deepcopy(op['values'])
+    changed.append('layout')
+
+
+def _op_delete_master(doc, op, base_revision, kind, changed, allow_policy_changes):
+    if op['name'] not in doc['layout'].get('masters', {}):
+        raise ByaxError('missing_target', 'The page master does not exist.', target=op['name'])
+    users = _master_users(doc, op['name'])
+    if users:
+        raise ByaxError(
+            'precondition_failed', 'The page master is still assigned.', target=op['name'], users=users
+        )
+    del doc['layout']['masters'][op['name']]
+    changed.append('layout')
+
+
+def _op_group_layers(doc, op, base_revision, kind, changed, allow_policy_changes):
+    targets = op['targets']
+    if not isinstance(targets, list) or not targets or any(not isinstance(t, str) for t in targets):
+        _error('Expected a nonempty list of layer IDs.', 'targets')
+    if len(set(targets)) != len(targets):
+        _error('Layer IDs must be unique.', 'targets')
+    members = []
+    for target in targets:
+        layer = _target(doc, {'target': target})
+        if layer not in doc['layers'] or _is_group(layer):
+            _error('Only ungrouped object layers can be grouped.', 'targets', target=target)
+        if layer.get('group'):
+            _error('Layer already belongs to a group.', 'targets', target=target)
+        members.append(layer)
+    ident = op.get('id') or new_id('group')
+    if any(item.get('id') == ident for item in doc['layers']):
+        _error('Duplicate object identity.', 'id')
+    group = {'id': ident, 'kind': 'group', 'name': op['name'], 'visible': True, 'locked': False}
+    doc['layers'].insert(min(doc['layers'].index(layer) for layer in members), group)
+    for layer in members:
+        layer['group'] = ident
+    changed.extend([ident, *targets])
+
+
+def _op_ungroup_layers(doc, op, base_revision, kind, changed, allow_policy_changes):
+    group = _target(doc, op)
+    if group not in doc['layers'] or not _is_group(group):
+        _error('Target must be a layer group.', 'target')
+    doc['layers'].remove(group)
+    for layer in doc['layers']:
+        if layer.get('group') == group['id']:
+            layer.pop('group')
+            changed.append(layer['id'])
+    changed.append(group['id'])
+
+
+def _op_reorder_layer(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Move a layer in the stacking list; z values are renumbered within each plane."""
+    layer = _target(doc, op)
+    if layer not in doc['layers']:
+        _error('Target must be a layer.', 'target')
+    if op['to_index'] >= len(doc['layers']):
+        _error('Layer index is outside the layer list.', 'to_index')
+    doc['layers'].remove(layer)
+    doc['layers'].insert(op['to_index'], layer)
+    planes = {True: [], False: []}
+    for item in doc['layers']:
+        if not _is_group(item):
+            planes[bool(item.get('foreground', item.get('z', 0) > 0))].append(item)
+    for foreground, items in planes.items():
+        for index, item in enumerate(items):
+            z = index + 1 if foreground else index - len(items)
+            if item.get('z', 0) != z:
+                item['z'] = z
+                changed.append(item['id'])
+    if layer['id'] not in changed:
+        changed.append(layer['id'])
+
+
+def _op_insert_cross_reference(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Insert a semantic reference whose visible label is resolved by layout after reflow."""
+    from .model import XREF_SHOW
+
+    obj = _target(doc, op)
+    if 'text' not in obj or obj.get('type') in ('table', 'image', 'page_break', 'section_break', 'toc'):
+        _error('Target is not editable text.', 'target')
+    show = op.get('show', 'page')
+    if show not in XREF_SHOW:
+        _error('Unsupported cross-reference display.', 'show', supported=sorted(XREF_SHOW))
+    bookmarks = doc['settings'].get('bookmarks', {})
+    if op['ref'] not in bookmarks:
+        find_object(doc, op['ref'])
+    value = {'target': op['ref'], 'show': show}
+    if 'prefix' in op:
+        if not isinstance(op['prefix'], str):
+            _error('Expected a string.', 'prefix')
+        value['prefix'] = op['prefix']
+    _splice(obj, op['offset'], op['offset'], '?')
+    obj.setdefault('marks', []).append(
+        {'start': op['offset'], 'end': op['offset'] + 1, 'type': 'xref', 'value': value}
+    )
+    _adjust_anchors(doc, obj['id'], op['offset'], op['offset'], 1)
+    changed.append(obj['id'])
+
+
 _HANDLERS = {
     'insert_text': _op_text_edit,
     'delete_text': _op_text_edit,
@@ -1164,6 +1300,12 @@ _HANDLERS = {
     'remove_bookmark': _op_remove_bookmark,
     'replace_content': _op_replace_content,
     'compact_history': _op_compact_history,
+    'define_master': _op_define_master,
+    'delete_master': _op_delete_master,
+    'group_layers': _op_group_layers,
+    'ungroup_layers': _op_ungroup_layers,
+    'reorder_layer': _op_reorder_layer,
+    'insert_cross_reference': _op_insert_cross_reference,
 }
 
 
