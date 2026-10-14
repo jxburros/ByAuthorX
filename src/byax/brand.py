@@ -48,14 +48,26 @@ def app_icon():
     return icon
 
 
+def interface_font(*, plain=False):
+    """The application font: the body face first, then the fallback face for the scripts it lacks.
+
+    ``plain`` sets the fallback face alone, for readers who asked for high contrast.
+    """
+    body, fallback = TOKENS['font']['body'], TOKENS['font']['fallback']
+    font = QFont(fallback if plain else body, 11)
+    font.setFamilies([fallback] if plain else [body, fallback])
+    return font
+
+
 def configure_application(app: QApplication):
     register_bundled_fonts()
-    app.setFont(QFont(TOKENS['font']['body'], 11))
     app.setWindowIcon(app_icon())
     if prefers_high_contrast(app):
-        # The platform high-contrast theme outranks brand colours.
+        # The platform high-contrast theme outranks brand colours, and a plain face reads best.
+        app.setFont(interface_font(plain=True))
         app.setStyleSheet('')
         return
+    app.setFont(interface_font())
     palette = QPalette()
     for role, color in (
         (QPalette.Window, COLORS['paper']),
@@ -86,10 +98,10 @@ def rule_url(name, theme='light'):
 def stylesheet():
     c = COLORS
     control, panel = TOKENS['radius']['control'], TOKENS['radius']['panel']
-    # The brand faces cover Latin only; the body face is the named fallback, so a character they lack
-    # (Cyrillic, Greek, Latin Extended-B) is set in Manrope rather than in whatever the system picks.
+    # The brand faces cover Latin only, so each role names the fallback face after its own: a character
+    # they lack (Cyrillic, Greek, Latin Extended-B) is set in Manrope rather than in whatever the system picks.
     display, annotation, counter = (
-        f'"{TOKENS["font"][role]}", "{TOKENS["font"]["body"]}"'
+        f'"{TOKENS["font"][role]}", "{TOKENS["font"]["fallback"]}"'
         for role in ('display', 'annotation', 'counter')
     )
     return f"""

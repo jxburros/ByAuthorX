@@ -27,7 +27,8 @@ def make_window(qtbot, monkeypatch, tmp_path):
 
 def test_fonts_and_icon_sizes_available(qtbot, monkeypatch, tmp_path):
     window = make_window(qtbot, monkeypatch, tmp_path)
-    assert QApplication.instance().font().family() == 'Manrope'
+    assert QApplication.instance().font().family() == 'Irongall'
+    assert QApplication.instance().font().families() == ['Irongall', 'Manrope']
     for family in (
         'Manrope',
         'IM Fell English',
@@ -68,13 +69,13 @@ def test_interface_text_uses_the_brand_fonts_by_role(qtbot, monkeypatch, tmp_pat
     )
     heading = next(label for label in window.findChildren(QLabel, 'emptyHeading'))
     assert heading.font().family() == 'Irongall'
-    # helper text: Scholium; status counters: Onionskin; controls stay in Manrope
+    # helper text: Scholium; status counters: Onionskin; every control is in the application font, Irongall
     helper = next(label for label in window.findChildren(QLabel, 'emptyDescription'))
     assert helper.font().family() == 'Scholium'
     assert window.word_label.font().family() == 'Onionskin'
-    assert window.menuBar().font().family() == 'Manrope'
-    assert window.status_label.font().family() == 'Manrope'
-    assert window.document_state.font().family() == 'Manrope'
+    assert window.menuBar().font().family() == 'Irongall'
+    assert window.status_label.font().family() == 'Irongall'
+    assert window.document_state.font().family() == 'Irongall'
 
 
 def test_view_motion_completes_without_changing_document(qtbot, monkeypatch, tmp_path):

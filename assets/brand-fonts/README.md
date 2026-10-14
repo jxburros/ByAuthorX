@@ -35,7 +35,7 @@ The six names were picked because a quick search found no existing typeface with
 
 ## In the application
 
-All six TTFs are bundled with ByAuthorX in `src/byax/resources/fonts`, so they are registered at startup, appear in the document font picker, and ship in the wheel and the frozen builds. The interface uses three of them: Irongall for headings and the About screen, Scholium for helper text, and Onionskin for the status-bar counters, while controls stay in Manrope ([brand and typography](../../docs/brand.md)). A full build copies the fonts into the application itself; `--install-only` re-copies the committed ones, and a test fails if the bundled copies drift from `manifest.json`.
+All six TTFs are bundled with ByAuthorX in `src/byax/resources/fonts`, so they are registered at startup, appear in the document font picker, and ship in the wheel and the frozen builds. The interface uses three of them: Irongall is the application font (menus, controls, headings and the About screen), Scholium sets helper text, and Onionskin sets the status-bar counters, with Manrope as the plain fallback ([brand and typography](../../docs/brand.md)). A full build copies the fonts into the application itself; `--install-only` re-copies the committed ones, and a test fails if the bundled copies drift from `manifest.json`.
 
 ## How they were made
 

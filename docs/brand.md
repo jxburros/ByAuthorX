@@ -26,7 +26,7 @@
 
 Controls use a 6 px radius; panels use 8 px. Layout uses the supplied 4/8 px rhythm. A 2 px deep-green focus border identifies keyboard focus. Primary green buttons carry white text. Color never replaces the control label.
 
-The native workspace keeps a professional control layer: Manrope labels and controls, restrained toolbar buttons, Irongall panel headings, and a white writing surface within warm-paper margins. The document header reports its title, save state, and current view. Outline and Inspector start at 230 and 300 px and remain resizable. Selected paragraph styles have readable labels while retaining canonical engine keys.
+The native workspace keeps a professional control layer: Irongall labels and controls, restrained toolbar buttons, and a white writing surface within warm-paper margins. The document header reports its title, save state, and current view. Outline and Inspector start at 230 and 300 px and remain resizable. Selected paragraph styles have readable labels while retaining canonical engine keys.
 
 When Review has no active items, a small static illustration from the logo companion library accompanies a clear explanation and a local-checks action. Real items replace that empty state; reply/accept/reject controls enable only when the selected item supports them. Interface artwork stays outside authored content and exports.
 
@@ -71,13 +71,14 @@ Each kind of interface text has a font role in `tokens.json`, and `byax.brand.st
 
 | Role (`font.*`) | Family | Where it sets text |
 | --- | --- | --- |
-| `body` | Manrope Regular/Semibold | Menus, toolbar buttons, labels, inputs, tabs and the status message (11 pt by default) |
-| `display` | Irongall | The About headline, the document title, dock titles (Outline, Inspector) and empty-state headings |
+| `body` | Irongall | The application font: menus, toolbar buttons, labels, inputs, tabs and the status message (11 pt by default) |
+| `display` | Irongall | The same face at larger sizes: the About headline, the document title, dock titles (Outline, Inspector) and empty-state headings |
+| `fallback` | Manrope Regular/Semibold | Any character Irongall lacks (Cyrillic, Greek, Latin Extended-B), and every label under a high-contrast theme |
 | `annotation` | Scholium | Helper text under an empty-state heading and the AI tab's status and hint lines |
 | `counter` | Onionskin | The word, character and reading-time counters in the status bar |
 | `reading` | Source Serif 4 | Registered and selectable for reading and document styles |
 
-Controls stay in Manrope so they remain calm and legible; the expressive faces take headings and brand moments. Irongall is the wordmark's own serif, Scholium is drawn from the illustrations and is set at 16 px in ink colour because its pen line is thin, and Onionskin's fixed pitch keeps the counters steady as they change. The brand faces cover Latin only, so each role lists Manrope after its own family: a character they lack (Cyrillic, Greek) is set in Manrope rather than in whatever the system picks. Under a platform high-contrast theme the stylesheet is dropped and every role falls back to the system font. Tenuis, Brobdingnag and Decussate are bundled and selectable in documents but the interface does not use them: a hairline, an ultra-black slab and a stitched face are display faces for artwork. The fonts are drawn and compiled by `scripts/build_brand_fonts.py`; its `--install-only` step copies the built files into `src/byax/resources/fonts`, where `register_bundled_fonts()` registers every `*.ttf` at startup and `bundled_font_path()` fingerprints them for font identity, embedding and reproduction records.
+Irongall is the application font because it is the wordmark's own serif: its sturdy strokes hold up at 11 pt, and it makes every label read as part of the same hand as the logo. Scholium is drawn from the illustrations and is set at 16 px in ink colour because its pen line is thin, and Onionskin's fixed pitch keeps the counters steady as they change. The brand faces cover Latin only, so the application font and every role list Manrope after their own family: a character they lack is set in Manrope rather than in whatever the system picks. Under a platform high-contrast theme the stylesheet is dropped and the application font becomes Manrope alone, because a plain face reads best for readers who asked for contrast. Tenuis, Brobdingnag and Decussate are bundled and selectable in documents but the interface does not use them: a hairline, an ultra-black slab and a stitched face are display faces for artwork. The fonts are drawn and compiled by `scripts/build_brand_fonts.py`; its `--install-only` step copies the built files into `src/byax/resources/fonts`, where `register_bundled_fonts()` registers every `*.ttf` at startup and `bundled_font_path()` fingerprints them for font identity, embedding and reproduction records.
 
 Manrope, IM FELL English and Source Serif 4 are bundled with their SIL OFL notices, and the six brand fonts are original ByAuthorX designs under the project's MIT license. Existing document styles, content, revision history, and export typography are preserved; branding does not inject decoration into authored documents. The writing page stays white.
 

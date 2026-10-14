@@ -274,12 +274,9 @@ def test_fingerprinted_bundled_faces_cover_every_brand_font():
 
 def test_the_design_tokens_name_a_brand_font_for_each_text_role():
     tokens = json.loads((ROOT / 'src/byax/resources/brand/tokens.json').read_text(encoding='utf-8'))['font']
-    assert (
-        tokens['display'] == 'Irongall'
-        and tokens['annotation'] == 'Scholium'
-        and tokens['counter'] == 'Onionskin'
-    )
-    assert tokens['body'] == 'Manrope'  # controls stay in the calm sans
+    assert tokens['body'] == 'Irongall' and tokens['display'] == 'Irongall'
+    assert tokens['annotation'] == 'Scholium' and tokens['counter'] == 'Onionskin'
+    assert tokens['fallback'] == 'Manrope'  # the plain face for scripts the brand faces lack
 
 
 # the desktop toolkit can load them ----------------------------------------------------------------------

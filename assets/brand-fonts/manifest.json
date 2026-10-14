@@ -19,13 +19,13 @@
       "files": {
         "ttf": {
           "path": "fonts/irongall/Irongall-Regular.ttf",
-          "bytes": 153660,
-          "sha256": "0db4102493713a14cdb7bf9b61e19d1d2257c13427bbfbc047b0af90bdaf38b8"
+          "bytes": 154592,
+          "sha256": "912f6cf82d3164992a88f24c078914e67417c7684e3e45a0bdd45b487fb10cdb"
         },
         "woff2": {
           "path": "fonts/irongall/Irongall-Regular.woff2",
-          "bytes": 46840,
-          "sha256": "b4f31c39a67bfa186ca8a614f502cb1c884923c32ea3ebd28054db52765d58e8"
+          "bytes": 47192,
+          "sha256": "e486cc078f9c14c0442c459b10dc5460f781dc7e341a7c467a5d3e7ecaeffd98"
         }
       },
       "masters": {
@@ -69,8 +69,8 @@
         },
         "woff2": {
           "path": "fonts/scholium/Scholium-Regular.woff2",
-          "bytes": 44848,
-          "sha256": "4149db8e4b4f00a8f15a6f8752db8fd42132df3c85f8a2fd5ccc20bba02f944c"
+          "bytes": 44812,
+          "sha256": "ee3dac68273f4075d133fbde6cc3d3c5b1a17e4e62bc317a976ce8b2f4d4bd8b"
         }
       },
       "masters": {
@@ -113,8 +113,8 @@
         },
         "woff2": {
           "path": "fonts/tenuis/Tenuis-Regular.woff2",
-          "bytes": 19864,
-          "sha256": "316e7a5c0dec07b3387388dee65f4d3446a811ccc940c4497bcd73760b76f014"
+          "bytes": 19888,
+          "sha256": "52a4504ff8ec193b068483b6101840b80b6d31d8c8e0eca406c94abed68e8167"
         }
       },
       "masters": {
@@ -157,8 +157,8 @@
         },
         "woff2": {
           "path": "fonts/brobdingnag/Brobdingnag-Regular.woff2",
-          "bytes": 23084,
-          "sha256": "1f0fb359700e3e7925fa46e33c2a0256e7c3d123fc02a0fd3520deaf00c62655"
+          "bytes": 23052,
+          "sha256": "17c74f1b788f4b2dfc8ffae84c5d182fa8001b3c73a1b9afec8b921867f9bca4"
         }
       },
       "masters": {
@@ -199,8 +199,8 @@
         },
         "woff2": {
           "path": "fonts/onionskin/Onionskin-Regular.woff2",
-          "bytes": 31096,
-          "sha256": "a34443176cbb4fd820ed629678b7db15e2a9a2b4b1d73e7a5ed566be358465b9"
+          "bytes": 31128,
+          "sha256": "23834de2911d32e6f4567eaba8b26d0a8f728ae5e55fee77c082ae1e9418d20f"
         }
       },
       "masters": {
@@ -241,8 +241,8 @@
         },
         "woff2": {
           "path": "fonts/decussate/Decussate-Regular.woff2",
-          "bytes": 9380,
-          "sha256": "69f9f617f091f93c381d6481469d7a6e796d03c9c731e5e214f5822f1438e256"
+          "bytes": 9348,
+          "sha256": "de2604aeb6b99b5c36d4980d266b6cc938b02b857a06f9f24b72ee6e4d6ff381"
         }
       },
       "masters": {

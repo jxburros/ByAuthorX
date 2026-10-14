@@ -59,7 +59,7 @@ def irongall():
         wide=1.10,
         ball=21,
         over=11,
-        dot=44,
+        dot=62,
         stress=-5,
     )
     m = Metrics(xh=480, cap=690, asc=752, desc=-240, ascent=960, descent=300)

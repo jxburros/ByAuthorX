@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Capture the documentation screenshots from Qt's offscreen renderer with a sample document.
 
-Run it after any change to the interface typography or branding, then review the five PNGs it writes to
+Run it after any change to the interface typography or branding, then review the six PNGs it writes to
 docs/images. The sample document is set in Source Serif 4 as an explicit specimen choice; the busy capture
 holds a local task open, and the saved and review captures show the save confirmation.
 """
@@ -24,6 +24,7 @@ from PySide6.QtWidgets import QApplication  # noqa: E402
 
 import byax.gui as gui  # noqa: E402
 from byax import model  # noqa: E402
+from byax.gui_editor import ProofMark  # noqa: E402
 
 TEXT = (
     'The space to write\n'
@@ -41,6 +42,45 @@ def sample_document():
     doc['blocks'][2]['style'] = 'heading1'
     doc['styles']['body'].update(font_family='Source Serif 4', font_size=16)
     return doc
+
+
+MARKED = (
+    'The space to write\n'
+    'A useful draft begins with a clear page and room to think. I keep teh first pass simple: one thought, '
+    'then the next. The old opening was cut and replaced; the new one is underlined here.\n'
+    'A second look\n'
+    'Review adds perspective without taking over the page. Keep the words that sound like you; refine the '
+    'ones that get in the way, an the sytem works.'
+)
+
+
+def marked_document():
+    """The sample document with spelling and grammar marks, an underline and a strikethrough."""
+    doc = model.new_document(title='Notes on the first draft', text=MARKED)
+    for index in (0, 2):
+        doc['blocks'][index]['style'] = 'heading1'
+    doc['styles']['body'].update(font_family='Source Serif 4', font_size=16)
+    first, second = doc['blocks'][1], doc['blocks'][3]
+    for block, phrase, kind in (
+        (first, 'The old opening was cut', 'strike'),
+        (first, 'underlined here', 'underline'),
+    ):
+        start = block['text'].index(phrase)
+        block['marks'].append({'type': kind, 'start': start, 'end': start + len(phrase)})
+    return doc
+
+
+def proof_marks(doc):
+    first, second = doc['blocks'][1], doc['blocks'][3]
+    found = []
+    for block, word, kind, label in (
+        (first, 'teh', 'spelling', 'Possible misspelling: teh'),
+        (second, 'an the', 'grammar', 'Check the grammar here'),
+        (second, 'sytem', 'spelling', 'Possible misspelling: sytem'),
+    ):
+        start = block['text'].index(word)
+        found.append(ProofMark(block['id'], start, start + len(word), kind, label, block['text']))
+    return found
 
 
 def make_window(app, settings_dir):
@@ -96,6 +136,13 @@ def main():
         QTest.qWait(1400)  # the loop holds its fully written pose from about 1.1 s to 1.4 s
         save(window, args.out / 'editor-busy.png')
         window._end_activity('capture')
+
+        window.doc = marked_document()
+        window.dirty = False
+        window.refresh()
+        window.editor.set_proof_marks(proof_marks(window.doc))
+        window.editor._finish_reveal()
+        save(window, args.out / 'editor-marks.png')
 
         dialog = window.create_about_dialog()
         dialog.show()
