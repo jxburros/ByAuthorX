@@ -1,0 +1,85 @@
+name: Windows installer
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    paths:
+      - '.github/workflows/windows-installer.yml'
+      - 'packaging/windows.iss'
+      - 'scripts/test_windows_installer.ps1'
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: windows-installer-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+jobs:
+  installer:
+    runs-on: windows-2022
+    timeout-minutes: 30
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --extra dev
+      - name: Verify release version
+        shell: pwsh
+        run: |
+          $version = uv run python -c "import tomllib; print(tomllib.load(open('pyproject.toml', 'rb'))['project']['version'])"
+          if ($LASTEXITCODE -ne 0) { throw "Cannot read project version" }
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$version") {
+            throw "Release tag must match pyproject.toml version: v$version"
+          }
+          "APP_VERSION=$version" >> $env:GITHUB_ENV
+      - name: Test application
+        run: uv run python -m pytest -q
+      - name: Freeze GUI, CLI and MCP
+        run: uv run python scripts/build.py --bundle-only
+      - name: Compile installer
+        shell: pwsh
+        run: |
+          $compiler = Join-Path ${env:ProgramFiles(x86)} 'Inno Setup 6\ISCC.exe'
+          if (!(Test-Path -LiteralPath $compiler)) { throw "Inno Setup 6 is missing" }
+          & $compiler "/DMyAppVersion=$env:APP_VERSION" packaging/windows.iss
+          if ($LASTEXITCODE -ne 0) { throw "Installer compilation failed" }
+      - name: Verify install and uninstall
+        shell: pwsh
+        run: ./scripts/test_windows_installer.ps1
+      - name: Create checksum
+        shell: pwsh
+        run: |
+          $installer = Get-Item "dist/ByAuthorX-$env:APP_VERSION-windows-x64-setup.exe"
+          $hash = (Get-FileHash -LiteralPath $installer.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$hash  $($installer.Name)" | Set-Content -Encoding ascii "$($installer.FullName).sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ByAuthorX-Windows-installer
+          if-no-files-found: error
+          path: |
+            dist/*setup.exe
+            dist/*setup.exe.sha256
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: installer
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ByAuthorX-Windows-installer
+          path: installer
+      - name: Publish Windows development installer
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if ! gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release create "$RELEASE_TAG" --verify-tag --prerelease --title "ByAuthorX $RELEASE_TAG" --notes "Windows 11 x64 development installer. Bundles the desktop app, CLI and MCP server; no Python installation required. Unsigned build; physical Windows 11 acceptance remains required."
+          fi
+          gh release upload "$RELEASE_TAG" installer/* --clobber
