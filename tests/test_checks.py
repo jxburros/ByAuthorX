@@ -34,7 +34,7 @@ def test_typed_required_fields_and_false_zero():
 
 
 def test_heading_and_alt_checks_are_advisory_to_writing():
-    doc = new_document()
+    doc = new_document(text='Introduction')
     doc['blocks'][0].update(type='heading', attrs={'level': 3})
     report = run_checks(doc, ['accessibility'])
     assert report['validation'] == 'passed'
