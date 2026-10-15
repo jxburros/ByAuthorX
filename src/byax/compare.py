@@ -9,6 +9,8 @@ import difflib
 
 import regex as unicode_regex
 
+from .text_merge import conflict_ranges, merge_text
+
 LAYOUT_ATTRS = (
     'page_break_before',
     'column_break_before',
@@ -289,6 +291,8 @@ def _three_way(base, ours, theirs):
                     merged.pop(key, None)
                 else:
                     merged[key] = copy.deepcopy(value)
+        elif group == ('text', 'marks') and (text_result := merge_text(base, ours, theirs)) is not None:
+            merged.update(text_result)
         else:
             conflicts.append('+'.join(group))
     attrs_b, attrs_o, attrs_t = (x.get('attrs', {}) for x in (base, ours, theirs))
@@ -411,7 +415,17 @@ def plan_merge(base, ours, theirs):
         elif block != b and o != block:
             merged, fields = _three_way(b, o, block)
             if fields:
-                conflict('block', identity, fields=fields, base=b, ours=o, theirs=block)
+                conflict(
+                    'block',
+                    identity,
+                    fields=fields,
+                    base=b,
+                    ours=o,
+                    theirs=block,
+                    ranges=conflict_ranges(b.get('text', ''), o.get('text', ''), block.get('text', ''))
+                    if 'text+marks' in fields
+                    else [],
+                )
             elif merged != o:
                 operations.append({'type': 'set_block', 'target': identity, 'values': merged})
         if identity in present:

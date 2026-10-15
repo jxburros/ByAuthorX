@@ -114,6 +114,18 @@ def build_context(
     limit=100_000,
 ):
     """Only explicitly selected context, with a per-part report of what will be sent."""
+    from .profiles import effective_profile
+
+    resolved = effective_profile(doc, target, profile or None)
+    profile = resolved['profile'] if resolved else profile
+    if resolved and resolved['sections'] and profile['source_authority'] == 'exclusive':
+        denied = set(references or []) - set(profile['references'])
+        if denied:
+            raise ByaxError(
+                'protected_edit',
+                'Selected sources are outside the section source policy.',
+                references=sorted(denied),
+            )
     if type(nearby) is not int or not 0 <= nearby <= 50:
         raise ByaxError('invalid_input', 'Nearby paragraph count must be 0–50')
     blocks = doc.get('blocks', [])
@@ -185,7 +197,13 @@ def build_context(
     if profile:
         settings = {
             key: profile[key]
-            for key in ('voice_preservation', 'editing_freedom', 'intentional_exceptions')
+            for key in (
+                'sensitivity',
+                'voice_preservation',
+                'editing_freedom',
+                'intentional_exceptions',
+                'source_authority',
+            )
             if key in profile
         }
         context.setdefault('profile', {}).update(settings)
@@ -265,7 +283,10 @@ class DictationSession:
         self.mode = mode
         self.policy = policy
         self.direct_options = dict(direct_options or {})
-        self.profile = copy.deepcopy(profile or {})
+        from .profiles import effective_profile
+
+        resolved = effective_profile(doc, target, profile or None)
+        self.profile = copy.deepcopy(resolved['profile'] if resolved else (profile or {}))
         self.retain_raw = retain_raw
         self.retain_audio = retain_audio
         self.audio_owned = audio_owned
@@ -364,7 +385,13 @@ class DictationSession:
             selected = {key: source[key] for key in ('terminology', 'protected_passages') if key in source}
         profile = {
             key: self.profile[key]
-            for key in ('voice_preservation', 'editing_freedom', 'intentional_exceptions')
+            for key in (
+                'sensitivity',
+                'voice_preservation',
+                'editing_freedom',
+                'intentional_exceptions',
+                'source_authority',
+            )
             if key in self.profile
         }
         selected['profile'] = {**selected.get('profile', {}), **profile}

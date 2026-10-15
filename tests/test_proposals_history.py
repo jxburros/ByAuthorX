@@ -420,3 +420,90 @@ def test_proposals_may_target_dependencies_and_review_records_but_not_unknown_id
     with pytest.raises(ByaxError) as error:
         _proposal(doc, [{'type': 'set_text', 'target': 'p_missing', 'text': 'x'}])
     assert error.value.code == 'missing_target'
+
+
+@pytest.mark.parametrize('automatic', [False, True])
+def test_peer_base_survives_compaction_and_round_trip(tmp_path, automatic):
+    doc = new_document(text='Shared base')
+    base = doc['revision']
+    target = doc['blocks'][0]['id']
+    doc, _ = edit(doc, {'type': 'pin_merge_base', 'peer': 'offline-copy', 'revision': base})
+    doc['settings']['history_limit'] = 4 if automatic else 100
+    for index in range(12):
+        doc, _ = engine.apply(
+            doc,
+            {
+                'operations': [
+                    {'type': 'set_text', 'target': target, 'text': f'Changed {index}'},
+                ]
+            },
+            auto_compact_history=automatic,
+        )
+    if not automatic:
+        doc, _ = edit(doc, {'type': 'compact_history', 'keep_last': 1})
+    assert base in doc['history']['last_compaction']['pinned_revisions_retained']
+    assert engine._revision(doc, base)['blocks'][0]['text'] == 'Shared base'
+    path = tmp_path / 'shared.byax'
+    save_document(doc, path)
+    restored = load_document(path)
+    assert restored['history']['peer_bases'] == {'offline-copy': base}
+    assert engine._revision(restored, base)['blocks'][0]['text'] == 'Shared base'
+
+
+def test_merge_base_does_not_guess_fork_when_graph_is_disconnected():
+    doc, _ = _branch_scenario()
+    doc['history']['parents'] = {}
+    with pytest.raises(ByaxError, match='merge base is not recorded'):
+        engine.merge_base(doc, 'draft')
+
+
+def test_peer_pin_validation_and_atomicity():
+    doc = new_document(text='Base')
+    with pytest.raises(ByaxError):
+        edit(doc, {'type': 'pin_merge_base', 'peer': 'copy', 'revision': 'missing'})
+    assert 'peer_bases' not in doc['history']
+    pinned, _ = edit(doc, {'type': 'pin_merge_base', 'peer': 'copy', 'revision': doc['revision']})
+    unpinned, _ = edit(pinned, {'type': 'unpin_merge_base', 'peer': 'copy'})
+    assert pinned['history']['peer_bases'] == {'copy': doc['revision']}
+    assert unpinned['history']['peer_bases'] == {}
+
+
+def test_unpinned_removed_common_base_fails_instead_of_merging_wrong_state():
+    doc = new_document(text='Shared original')
+    base = doc['revision']
+    target = doc['blocks'][0]['id']
+    doc, _ = edit(doc, {'type': 'set_text', 'target': target, 'text': 'First edit'})
+    doc, _ = edit(doc, {'type': 'set_text', 'target': target, 'text': 'Second edit'})
+    doc, _ = edit(doc, {'type': 'compact_history', 'keep_last': 1})
+    with pytest.raises(ByaxError, match='not in retained history'):
+        engine._revision(doc, base)
+
+
+def test_same_paragraph_disjoint_edits_merge_through_review_with_marks():
+    doc = new_document(text='First sentence. Last sentence.')
+    target = doc['blocks'][0]['id']
+    doc, _ = edit(
+        doc, {'type': 'format_text', 'target': target, 'start': 0, 'end': 5, 'marks': {'bold': True}}
+    )
+    doc, _ = engine.branch(doc, 'draft')
+    doc, _ = edit(
+        doc,
+        {'type': 'replace_text', 'target': target, 'match': 'Last sentence', 'replacement': 'Last phrase'},
+    )
+    doc, _ = engine.switch_branch(doc, 'main')
+    doc, _ = edit(
+        doc,
+        {
+            'type': 'replace_text',
+            'target': target,
+            'match': 'sentence',
+            'replacement': 'phrase',
+            'occurrence': 1,
+        },
+    )
+    doc, result = edit(doc, {'type': 'propose_merge', 'source': 'draft'})
+    proposal = _record(doc, result['changed_ids'][0])
+    assert not proposal['conflicts']
+    merged, _ = edit(doc, {'type': 'accept_proposal', 'target': proposal['id']})
+    assert merged['blocks'][0]['text'] == 'First phrase. Last phrase.'
+    assert merged['blocks'][0]['marks'] == doc['blocks'][0]['marks']

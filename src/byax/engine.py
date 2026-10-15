@@ -90,6 +90,8 @@ OP_SCHEMAS = {
     'mark_dependency_missing': ('target', 'reason'),
     'embed_dependency': ('target', ''),
     'compact_history': ('keep_last', ''),
+    'pin_merge_base': ('peer revision', ''),
+    'unpin_merge_base': ('peer', ''),
     'replace_content': ('blocks', 'assets import_provenance'),
     'set_bookmark': ('name target', 'offset'),
     'remove_bookmark': ('name', ''),
@@ -1489,10 +1491,6 @@ def _merge_base(doc, ours, theirs, source):
     for revision in ancestors(theirs):
         if revision in mine:
             return revision
-    forks = history.get('forks', {})
-    for name in (source, history.get('current_branch')):
-        if forks.get(name):
-            return forks[name]
     raise ByaxError(
         'missing_target',
         'The merge base is not recorded in retained history; compare the branches and propose edits manually.',
@@ -1970,6 +1968,25 @@ def _op_replace_content(doc, op, base_revision, kind, changed, allow_policy_chan
     changed.extend(sorted(old_ids | {x for x in new_ids if x}))
 
 
+def _op_pin_merge_base(doc, op, base_revision, kind, changed, allow_policy_changes):
+    peer = op['peer']
+    if not isinstance(peer, str) or not peer.strip():
+        _error('Peer must be a nonempty name.', 'peer')
+    pins = dict(doc['history'].get('peer_bases', {}))
+    if kind == 'pin_merge_base':
+        revision = op['revision']
+        if not isinstance(revision, str):
+            _error('Revision must be a retained revision ID.', 'revision')
+        state = _revision(doc, revision)
+        pins[peer] = state['revision']
+    else:
+        if peer not in pins:
+            raise ByaxError('missing_target', 'Peer has no pinned merge base.', target=peer)
+        del pins[peer]
+    doc['history']['peer_bases'] = pins
+    changed.append('history')
+
+
 def _op_compact_history(doc, op, base_revision, kind, changed, allow_policy_changes):
     _compact_history(doc, op['keep_last'])
     changed.append('history')
@@ -2170,6 +2187,8 @@ _HANDLERS = {
     'remove_bookmark': _op_remove_bookmark,
     'replace_content': _op_replace_content,
     'compact_history': _op_compact_history,
+    'pin_merge_base': _op_pin_merge_base,
+    'unpin_merge_base': _op_pin_merge_base,
     'define_master': _op_define_master,
     'delete_master': _op_delete_master,
     'group_layers': _op_group_layers,
@@ -2530,7 +2549,8 @@ def _needs_snapshot(records):
 def _compact_history(doc, keep_last):
     history = doc['history']
     records = history['revisions']
-    protected = set(history.get('branches', {}).values())
+    pinned = set(history.get('peer_bases', {}).values()) | set(history.get('forks', {}).values())
+    protected = set(history.get('branches', {}).values()) | pinned
     keep = {r['revision'] for r in records[-keep_last:]} if keep_last else set()
     keep.update(r['revision'] for r in records if r.get('name') or r['revision'] in protected)
     rebuilt, state, previous = [], None, None
@@ -2548,6 +2568,7 @@ def _compact_history(doc, keep_last):
     history['revisions'] = rebuilt
     history['last_compaction'] = {
         'removed_revisions': removed,
+        'pinned_revisions_retained': sorted(pinned & keep),
         'removed_assets': [],
         'recovery_removed': ['Restore and compare removed unnamed revisions'],
         'timestamp': datetime.now(UTC).isoformat(),
