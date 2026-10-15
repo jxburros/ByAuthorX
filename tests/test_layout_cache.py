@@ -46,7 +46,7 @@ def test_cached_and_uncached_layout_and_pixels_are_identical(tmp_path, monkeypat
     from byax import engine
 
     doc = new_document(text='Café e\u0301 😀\nSecond page')
-    doc, result = engine.apply(
+    doc, _ = engine.apply(
         doc,
         {
             'operations': [
