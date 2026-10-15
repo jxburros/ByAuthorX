@@ -287,6 +287,7 @@ class DictationSession:
 
         resolved = effective_profile(doc, target, profile or None)
         self.profile = copy.deepcopy(resolved['profile'] if resolved else (profile or {}))
+        self.section_profile = bool(resolved and resolved['sections'])
         self.retain_raw = retain_raw
         self.retain_audio = retain_audio
         self.audio_owned = audio_owned
@@ -380,6 +381,14 @@ class DictationSession:
         """The exact context the editorial provider receives for this mode."""
         source = copy.deepcopy(context or {})
         if self.mode == 'document_aware':
+            if self.section_profile and self.profile.get('source_authority') == 'exclusive':
+                denied = set(source.get('references', {})) - set(self.profile.get('references', []))
+                if denied:
+                    raise ByaxError(
+                        'protected_edit',
+                        'Selected sources are outside the section source policy.',
+                        references=sorted(denied),
+                    )
             selected = {key: value for key, value in source.items() if key != 'selection'}
         else:
             selected = {key: source[key] for key in ('terminology', 'protected_passages') if key in source}

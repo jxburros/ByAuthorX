@@ -546,3 +546,20 @@ def test_section_settings_reach_dictation_context_and_session():
     assert not payload.get('references')
     with pytest.raises(ByaxError, match='section source policy'):
         build_context(doc, 'p_lyric', references=['unapproved'])
+
+
+def test_section_source_policy_cannot_be_bypassed_with_prebuilt_dictation_context():
+    from byax.transcription import DictationSession
+
+    doc = _sectioned()
+    doc, _ = engine.apply(
+        doc,
+        {
+            'operations': [
+                {'type': 'set_section_profile', 'target': 'h_lyrics', 'values': {'profile': 'lyric'}},
+            ]
+        },
+    )
+    session = DictationSession(doc, 'p_lyric', mode='document_aware')
+    with pytest.raises(ByaxError, match='section source policy'):
+        session.editorial_context({'references': {'unapproved': {'text': 'Do not send'}}})
