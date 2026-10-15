@@ -1,3 +1,4 @@
+import base64
 import io
 
 from PIL import Image
@@ -45,6 +46,30 @@ def test_cached_and_uncached_layout_and_pixels_are_identical(tmp_path, monkeypat
     from byax import engine
 
     doc = new_document(text='Café e\u0301 😀\nSecond page')
+    doc, result = engine.apply(
+        doc,
+        {
+            'operations': [
+                {'type': 'add_asset', 'data': base64.b64encode(png('red')).decode(), 'mime': 'image/png'},
+            ]
+        },
+    )
+    asset = next(iter(doc['assets']))
+    doc, _ = engine.apply(
+        doc,
+        {
+            'operations': [
+                {'type': 'place_image', 'asset': asset, 'alt': 'First red square', 'width': 40, 'height': 40},
+                {
+                    'type': 'place_image',
+                    'asset': asset,
+                    'alt': 'Repeated red square',
+                    'width': 40,
+                    'height': 40,
+                },
+            ]
+        },
+    )
     target = doc['blocks'][1]['id']
     doc, _ = engine.apply(
         doc,
