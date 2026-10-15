@@ -89,7 +89,41 @@ def add_cover(doc, ident='cover', wrap='inline'):
     )
 
 
+def flowing_fixture(pages):
+    doc = document(f'flowing_{pages}')
+    doc['settings']['fixture'].update(requested_pages=pages, pagination='automatic; estimated size')
+    for index in range(pages):
+        if index % 20 == 0:
+            doc['blocks'].append(
+                block(
+                    f'section_{index}',
+                    kind='section_break',
+                    columns=1 if index % 40 == 0 else 2,
+                    section_start='continuous',
+                )
+            )
+        doc['blocks'].append(
+            block(f'heading_{index}', f'Observation {index}', 'heading', level=1, keep_with_next=True)
+        )
+        doc['blocks'].append(block(f'paragraph_{index}', PROSE * 11, widow_control=2, orphan_control=2))
+        if index % 10 == 0:
+            doc['blocks'].append(table(f'table_{index}', [['Site', 'Count'], ['North', index]]))
+            doc['blocks'].append(
+                block(
+                    f'note_{index}',
+                    'Synthetic note for this observation.',
+                    'footnote',
+                    reference=f'paragraph_{index}',
+                )
+            )
+        if index % 20 == 0:
+            doc['blocks'].append(add_cover(doc, f'image_{index}'))
+    return validate_document(doc)
+
+
 def make_fixture(name):
+    if name in {'flowing_100', 'flowing_500', 'flowing_2000'}:
+        return flowing_fixture(int(name.split('_')[1]))
     doc = document(name)
     if name == 'letter':
         doc['blocks'] = [
@@ -200,7 +234,18 @@ def make_fixture(name):
     return validate_document(doc)
 
 
-NAMES = ('letter', 'resume', 'report', 'newsletter', 'press_kit', 'mixed_100', 'long_500')
+NAMES = (
+    'letter',
+    'resume',
+    'report',
+    'newsletter',
+    'press_kit',
+    'mixed_100',
+    'long_500',
+    'flowing_100',
+    'flowing_500',
+    'flowing_2000',
+)
 
 
 def main():

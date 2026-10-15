@@ -112,7 +112,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/44/1c/577d3ce406e88f370
 
 [[package]]
 name = "byauthorx"
-version = "0.1.1"
+version = "0.2.0"
 source = { editable = "." }
 dependencies = [
     { name = "bibtexparser" },

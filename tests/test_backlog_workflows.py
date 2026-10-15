@@ -302,3 +302,83 @@ def test_layer_gui_edit_group_and_ungroup_preserves_output_policy(window, monkey
     assert len(window.doc['layers']) == 2 and not any('group' in layer for layer in window.doc['layers'])
     assert window.doc['layers'][0]['exclude_outputs'] == ['md', 'txt']
     editor.close()
+
+
+def test_linked_asset_gui_retrieve_embed_and_cli_round_trip(window, monkeypatch, tmp_path):
+    import io
+
+    from PIL import Image
+    from PySide6.QtWidgets import QCheckBox, QDialog, QListWidget, QPushButton
+
+    raw = io.BytesIO()
+    Image.new('RGB', (4, 4), 'red').save(raw, format='PNG')
+    (tmp_path / 'image.png').write_bytes(raw.getvalue())
+    doc, _ = engine.apply(
+        model.new_document(text='Asset test'),
+        {
+            'operations': [
+                {'type': 'link_asset', 'uri': 'image.png', 'id': 'image'},
+                {'type': 'place_linked_image', 'link': 'image', 'alt': 'Red square'},
+            ]
+        },
+    )
+    window.doc = doc
+    window.path = tmp_path / 'gui.byax'
+    window.refresh()
+    monkeypatch.setattr(window, 'background', lambda label, work, done: done(work()))
+    monkeypatch.setattr(window, 'report', lambda *args: None)
+
+    def operate(dialog):
+        items = dialog.findChild(QListWidget)
+        assert items.count() == 1 and 'unresolved' in items.item(0).text()
+        assert not dialog.findChild(QCheckBox).isChecked()
+        items.setCurrentRow(0)
+        buttons = {button.text(): button for button in dialog.findChildren(QPushButton)}
+        buttons['Retrieve selected asset'].click()
+        assert window.doc['dependencies']['image']['status'] == 'current'
+        buttons['Embed retrieved asset'].click()
+        assert window.doc['dependencies']['image']['policy'] == 'embedded'
+        return QDialog.Accepted
+
+    monkeypatch.setattr(QDialog, 'exec', operate)
+    window.linked_assets()
+    assert window.doc['blocks'][1]['attrs'].get('link') is None
+    path = tmp_path / 'cli.byax'
+    storage.save_document(doc, path)
+    execute('dependencies', {'path': str(path), 'action': 'refresh', 'authorize': True})
+    assert storage.load_document(path)['dependencies']['image']['status'] == 'current'
+    execute('dependencies', {'path': str(path), 'action': 'embed', 'target': 'image'})
+    assert storage.load_document(path)['dependencies']['image']['policy'] == 'embedded'
+
+
+@pytest.mark.parametrize(
+    'style',
+    [
+        'title',
+        'subtitle',
+        'body',
+        'heading1',
+        'heading2',
+        'heading3',
+        'heading4',
+        'heading5',
+        'heading6',
+        'quotation',
+        'caption',
+        'code',
+        'list',
+    ],
+)
+def test_common_style_picker_preserves_content(window, style):
+    window.doc = model.new_document(text='Unchanged authored words')
+    window.refresh()
+    index = window.style_box.findData(style)
+    assert index >= 0
+    window.editor.selectAll()
+    window.style_box.setCurrentIndex(index)
+    window.style_box.activated.emit(index)
+    assert window.doc['blocks'][0]['style'] == style
+    assert window.doc['blocks'][0]['text'] == 'Unchanged authored words'
+    window.editor.selectAll()
+    window.clear_formatting()
+    assert window.doc['blocks'][0]['text'] == 'Unchanged authored words'

@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-15T00:56:09.908175+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "machine": "x86_64",
+    "processor": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 5,
+    "python": "3.12.14",
+    "engine": "0.1.1",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "file_view": "byax",
+  "provider_configuration": "None; local deterministic operations only.",
+  "definitions": {
+    "p95": "Nearest-rank percentile of wall-clock sample durations.",
+    "model_edit": "Canonical candidate transaction against original loaded fixture; includes validation/history; excludes GUI input and paint.",
+    "full_reflow": "After a canonical paragraph insertion, construct shared QTextDocument and resolve all physical display pages; includes full layout, excludes paint and the edit itself.",
+    "inspection": "Bounded semantic inspection against an already loaded document.",
+    "fixture_load": "Fixture construction excluded from every timed operation.",
+    "gui_startup_to_window": "Fresh interpreter process launch until MainWindow with the fixture is shown, exposed and its first paint processed; includes Python/Qt import and package load.",
+    "keystroke_to_paint": "QTest key press delivered through the event loop to the editor plus a synchronous viewport repaint; excludes the 300 ms idle commit.",
+    "typing_commit": "flush_edits after one keystroke: canonical transaction, history delta and sidebar/status refresh.",
+    "structural_edit_to_paint": "Paragraph style change from the GUI command through commit, editor document update and synchronous viewport repaint.",
+    "structural_full_rebuild_to_paint": "Same edit forced through a full shared-document rebuild, for comparison.",
+    "save_ui_block": "Time save() holds the UI thread before returning to the event loop; serialization continues on a worker.",
+    "save_completion": "Time until the worker save finishes and the window marks the document saved.",
+    "idle_cpu_percent": "Process CPU time divided by wall time while the loaded window runs its event loop without input."
+  },
+  "not_measured": [
+    "Cancellation acknowledgement",
+    "Physical Windows 11 / Ubuntu 24.04 desktop behavior",
+    "Remote provider latency"
+  ],
+  "fixtures": {
+    "mixed_100": {
+      "semantic_sha256": "a9b51ee9542ddeecb1170b0c88d7c30691be263b59a2fcfb1d2d6c84709b4712",
+      "blocks": 379,
+      "text_characters": 87862,
+      "requested_pages": 100,
+      "measured_pages": 100,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 5,
+          "median_ms": 16.44449299999451,
+          "p95_ms": 49.819822000017666,
+          "min_ms": 15.879159999997228,
+          "max_ms": 49.819822000017666,
+          "raw_ms": [
+            49.819822000017666,
+            15.94572099998004,
+            16.989734999981465,
+            16.44449299999451,
+            15.879159999997228
+          ]
+        },
+        "full_reflow": {
+          "samples": 5,
+          "median_ms": 684.8002859999838,
+          "p95_ms": 778.9269649999824,
+          "min_ms": 586.8229499999984,
+          "max_ms": 778.9269649999824,
+          "raw_ms": [
+            622.4545110000008,
+            684.8002859999838,
+            586.8229499999984,
+            704.4902389999947,
+            778.9269649999824
+          ]
+        },
+        "inspection": {
+          "samples": 5,
+          "median_ms": 0.07851899999877787,
+          "p95_ms": 0.21041900001250724,
+          "min_ms": 0.06842299998766066,
+          "max_ms": 0.21041900001250724,
+          "raw_ms": [
+            0.21041900001250724,
+            0.07851899999877787,
+            0.07118799999261682,
+            0.09296099997868623,
+            0.06842299998766066
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    },
+    "long_500": {
+      "semantic_sha256": "8dd6777930f5e469f93fd497a7390f710c22cadfb67f3d5f08c5f2c0c8ec6d7b",
+      "blocks": 1499,
+      "text_characters": 861392,
+      "requested_pages": 500,
+      "measured_pages": 500,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 5,
+          "median_ms": 53.68379899999809,
+          "p95_ms": 76.62438700000962,
+          "min_ms": 47.3354620000066,
+          "max_ms": 76.62438700000962,
+          "raw_ms": [
+            50.281234999999924,
+            53.68379899999809,
+            47.3354620000066,
+            64.84937600001217,
+            76.62438700000962
+          ]
+        },
+        "full_reflow": {
+          "samples": 5,
+          "median_ms": 1224.7627840000064,
+          "p95_ms": 1300.3074880000156,
+          "min_ms": 1042.157001999982,
+          "max_ms": 1300.3074880000156,
+          "raw_ms": [
+            1145.2190589999987,
+            1224.7627840000064,
+            1042.157001999982,
+            1249.6388049999894,
+            1300.3074880000156
+          ]
+        },
+        "inspection": {
+          "samples": 5,
+          "median_ms": 0.23448400000347647,
+          "p95_ms": 1.1372360000052595,
+          "min_ms": 0.1282229999901574,
+          "max_ms": 1.1372360000052595,
+          "raw_ms": [
+            0.8474089999879197,
+            1.1372360000052595,
+            0.14083299998901566,
+            0.23448400000347647,
+            0.1282229999901574
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    }
+  }
+}

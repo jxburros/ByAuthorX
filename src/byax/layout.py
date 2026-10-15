@@ -7,13 +7,16 @@ faithfully resolve are disclosed as located findings, never called validated.
 from __future__ import annotations
 
 import base64
+import contextvars
 import copy
 import difflib
+import hashlib
 import itertools
 import math
 import os
 import threading
 import unicodedata
+from collections import OrderedDict
 from contextlib import contextmanager
 from pathlib import Path
 
@@ -193,7 +196,33 @@ def _insert_marked(cursor, text, marks, base=None, doc=None):
         selection.mergeCharFormat(_char_format(values))
 
 
+_IMAGE_CACHE = OrderedDict()
+_IMAGE_CACHE_LOCK = threading.Lock()
+_IMAGE_CACHE_BYTES = 64 * 1024 * 1024
+_GLYPH_CACHE = contextvars.ContextVar('byax_glyph_cache', default=None)
+
+
 def _decode_image(raw):
+    # Hash the actual bytes: callers may supply an unvalidated/stale asset key.
+    key = hashlib.sha256(raw).digest()
+    with _IMAGE_CACHE_LOCK:
+        cached = _IMAGE_CACHE.get(key)
+        if cached is not None:
+            _IMAGE_CACHE.move_to_end(key)
+            return QImage(cached)
+    image = _read_image(raw)
+    if not image.isNull() and image.sizeInBytes() <= _IMAGE_CACHE_BYTES:
+        with _IMAGE_CACHE_LOCK:
+            _IMAGE_CACHE[key] = QImage(image)
+            while (
+                len(_IMAGE_CACHE) > 128
+                or sum(item.sizeInBytes() for item in _IMAGE_CACHE.values()) > _IMAGE_CACHE_BYTES
+            ):
+                _IMAGE_CACHE.popitem(last=False)
+    return image
+
+
+def _read_image(raw):
     buffer = QBuffer()
     buffer.setData(QByteArray(raw))
     buffer.open(QIODevice.OpenModeFlag.ReadOnly)
@@ -219,7 +248,9 @@ def _decode_image(raw):
 
 
 def _check_glyphs(qdoc, block=None, stop=None):
-    checked = {}
+    checked = _GLYPH_CACHE.get()
+    if checked is None:
+        checked = {}
     block = qdoc.firstBlock() if block is None else block
     while block.isValid() and block != stop:
         missing = set()
@@ -1834,6 +1865,7 @@ class _Resolver:
             'fragments': [],
             'section': section,
             'number': number,
+            'physical_number': len(self.pages) + 1,
             'notes': [],
             'body_top': margins['top'],
             'body_bottom': height - margins['bottom'],
@@ -1864,7 +1896,7 @@ class _Resolver:
                 }
             )
             if top <= EPSILON:
-                self.positions.setdefault(ident, self.pages.index(page) + 1)
+                self.positions.setdefault(ident, page['physical_number'])
             y += bottom - top
 
     def fit(self, run, pos, top, bottom, state, fresh, width_change):
@@ -2017,7 +2049,7 @@ class _Resolver:
 
     def commit(self, band_index, plan, page, top):
         self.findings.extend(plan['findings'])
-        page_number = self.pages.index(page) + 1
+        page_number = page['physical_number']
         for placement in plan['placements']:
             run, pos, fit = placement['run'], placement['pos'], placement['fit']
             if fit['end'] <= pos:
@@ -2289,8 +2321,14 @@ def _dependent_targets(doc):
 
 def resolve_pages(doc, output=None):
     """Physical pages for printing, preview and export: always typographically exact lines."""
-    with hand_drawn_marks(False):
-        return _resolve_pages(doc, output)
+    token = _GLYPH_CACHE.set({})
+    try:
+        with hand_drawn_marks(False):
+            return _resolve_pages(doc, output)
+    finally:
+        # Scope font coverage to one resolve, so font installation/substitution
+        # changes cannot leave stale answers in subsequent resolves.
+        _GLYPH_CACHE.reset(token)
 
 
 def _resolve_pages(doc, output=None):

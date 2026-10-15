@@ -430,3 +430,76 @@ Additional backlog evidence: `test_backlog_workflows.py` exercises native export
 | Library spec phase 5 | Deferred as specified | No outside DOI/catalog lookup or Zotero local API; manual DOI/URL entry and Zotero file imports work |
 
 See [the guide](library-and-citations-guide.md) for commands, limits and local storage.
+
+## Version 0.2 automated acceptance — 14 October 2026
+
+Issue closure evidence is recorded in [the 0.2 audit](issue-audit-0.2.md).
+The prior rows describe historical subsets; this section supersedes their specific
+remaining GUI asset, style-picker, section-dictation and bounded-context gaps.
+
+- **#6:** all common styles, including Heading 4–6 and List, are selectable through
+  the GUI and preserve text on application/clear. Existing inheritance, list
+  split/join/restart, mark, formatting and save/reopen tests remain passing.
+- **#9:** the actual linked-assets dialog retrieves the selected local asset only
+  after its explicit action, then embeds it; CLI refresh/embed round trips pass.
+  Existing network consent, missing-location, invalidation and publication tests
+  cover dependency policy persistence.
+- **#27:** effective section settings now reach both transcription contexts and
+  sessions. An exclusive section policy refuses unapproved reference selections.
+  Nothing selects or retrieves source contents automatically. Existing profile
+  movement, inheritance, exceptions, protection and collection tests pass.
+- **#35:** existing inspection/context tests cover bounded continuation, exact
+  editable content, source versions, omission diagnostics and required payloads.
+  Added checks prohibit network access and reject embedded credential fields.
+- **#69:** disjoint same-paragraph edits merge in the canonical review workflow;
+  conflicts include base scalar ranges. Grapheme boundaries and compatible marks
+  survive. Ambiguous formatting remains an explicit whole-block conflict.
+- **#70 (partial):** local peer pins and fork retention survive both compaction
+  modes. Disconnected ancestry no longer guesses a fork. Hosted pin management
+  awaits #81; this issue is not closed.
+- **#92:** [research note](coediting-spike.md) recommends against live co-typing
+  until authenticated host/lease contracts exist; offline diff3 is not a CRDT.
+
+### Resolver measurements (#72)
+
+Five samples per fixture before and after the cache/page-index change on the same
+unqualified Linux container, Python 3.12 / Qt 6.12, offscreen. Other test activity
+was running, so these timings are indicative, not controlled hardware qualification.
+Full reflow includes shared text-document construction and all-page resolution.
+Nearest-rank p95 is the maximum with five samples. PNG bytes after decoding,
+PDF extracted text, and PNG/PDF layout signatures agree with caches disabled in
+the regression fixture; the existing 36 layout tests pass.
+
+| Fixture | Before median / p95 ms | After median / p95 ms |
+| --- | ---: | ---: |
+| mixed_100 | 684.8 / 778.9 | 494.8 / 527.1 |
+| long_500 | 1224.8 / 1300.3 | 953.0 / 1042.4 |
+
+Raw environment, hashes and samples: [before](benchmarks/0.2-layout-before.json),
+[after](benchmarks/0.2-layout-after.json). Cache keys hash actual image bytes;
+retention is capped at 64 MiB and 128 images, with copy-on-write return values.
+Glyph coverage is shared within one resolve and discarded afterwards.
+
+### Scaling baseline (#76, reference for #66/#73/#74/#75)
+
+Reproduce with `QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py
+--no-gui --scaling --samples 5 --out artifacts/benchmark.json` (one shell line).
+The flowing fixtures contain tables, footnotes, images and column changes, with
+no explicit page breaks. Requested sizes are estimates; measured pages below are
+authoritative. Every edit sample starts from the same unchanged fixture. No claim
+of constant commit cost, incremental resolution or desktop input latency is made.
+
+| Requested pages | Actual pages | Start / middle / end edit full-resolution median ms |
+| ---: | ---: | ---: |
+| 100 | 90 | 172.6 / 177.8 / 174.9 |
+| 500 | 450 | 1051.3 / 1004.6 / 1014.4 |
+| 2000 | 1825 | 4229.0 / 4284.5 / 4205.0 |
+
+| Blocks | Character edit / split / heading insert median ms |
+| ---: | ---: |
+| 379 | 10.1 / 9.7 / 9.6 |
+| 1499 | 37.4 / 38.1 / 41.6 |
+| 5000 | 151.2 / 133.0 / 142.6 |
+| 15000 | 476.0 / 478.0 / 446.5 |
+
+[Raw scaling data](benchmarks/0.2-scaling.json) includes all samples, nearest-rank p95, environment and fixture hashes. Commit cost still scales with block count; #73/#74 remain open. Future changes should rerun these workloads on the same host for before/after comparisons.

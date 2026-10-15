@@ -212,6 +212,11 @@ def main():
     parser.add_argument(
         '--file-view', choices=['byax', 'pdf', 'docx', 'odt', 'rtf', 'html', 'md', 'txt'], default='byax'
     )
+    parser.add_argument(
+        '--scaling',
+        action='store_true',
+        help='Also measure 100/500/2000 flowing pages and up to 15000 blocks.',
+    )
     parser.add_argument('--samples', type=int, default=20)
     parser.add_argument('--no-gui', action='store_true', help='Skip GUI startup/latency/idle metrics.')
     parser.add_argument('--startup-samples', type=int, default=5)
@@ -311,6 +316,10 @@ def main():
                     'startup_3s': entry['metrics']['gui_startup_to_window']['p95_ms'] <= 3000,
                 }
             )
+    if args.scaling:
+        from benchmark_scaling import scaling_metrics
+
+        report['scaling'] = scaling_metrics(measure, args.samples)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
     print(json.dumps(report, ensure_ascii=False, indent=2))

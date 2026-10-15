@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-15T00:56:54.282397+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "machine": "x86_64",
+    "processor": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 5,
+    "python": "3.12.14",
+    "engine": "0.1.1",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "file_view": "byax",
+  "provider_configuration": "None; local deterministic operations only.",
+  "definitions": {
+    "p95": "Nearest-rank percentile of wall-clock sample durations.",
+    "model_edit": "Canonical candidate transaction against original loaded fixture; includes validation/history; excludes GUI input and paint.",
+    "full_reflow": "After a canonical paragraph insertion, construct shared QTextDocument and resolve all physical display pages; includes full layout, excludes paint and the edit itself.",
+    "inspection": "Bounded semantic inspection against an already loaded document.",
+    "fixture_load": "Fixture construction excluded from every timed operation.",
+    "gui_startup_to_window": "Fresh interpreter process launch until MainWindow with the fixture is shown, exposed and its first paint processed; includes Python/Qt import and package load.",
+    "keystroke_to_paint": "QTest key press delivered through the event loop to the editor plus a synchronous viewport repaint; excludes the 300 ms idle commit.",
+    "typing_commit": "flush_edits after one keystroke: canonical transaction, history delta and sidebar/status refresh.",
+    "structural_edit_to_paint": "Paragraph style change from the GUI command through commit, editor document update and synchronous viewport repaint.",
+    "structural_full_rebuild_to_paint": "Same edit forced through a full shared-document rebuild, for comparison.",
+    "save_ui_block": "Time save() holds the UI thread before returning to the event loop; serialization continues on a worker.",
+    "save_completion": "Time until the worker save finishes and the window marks the document saved.",
+    "idle_cpu_percent": "Process CPU time divided by wall time while the loaded window runs its event loop without input."
+  },
+  "not_measured": [
+    "Cancellation acknowledgement",
+    "Physical Windows 11 / Ubuntu 24.04 desktop behavior",
+    "Remote provider latency"
+  ],
+  "fixtures": {
+    "mixed_100": {
+      "semantic_sha256": "a9b51ee9542ddeecb1170b0c88d7c30691be263b59a2fcfb1d2d6c84709b4712",
+      "blocks": 379,
+      "text_characters": 87862,
+      "requested_pages": 100,
+      "measured_pages": 100,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 5,
+          "median_ms": 16.835076000006666,
+          "p95_ms": 53.17962899999884,
+          "min_ms": 16.05905700000676,
+          "max_ms": 53.17962899999884,
+          "raw_ms": [
+            53.17962899999884,
+            16.835076000006666,
+            17.005885999992643,
+            16.625446999995575,
+            16.05905700000676
+          ]
+        },
+        "full_reflow": {
+          "samples": 5,
+          "median_ms": 494.7569299999941,
+          "p95_ms": 527.0562739999889,
+          "min_ms": 469.32332599999427,
+          "max_ms": 527.0562739999889,
+          "raw_ms": [
+            475.2713049999784,
+            469.32332599999427,
+            494.7569299999941,
+            527.0562739999889,
+            497.62925499999255
+          ]
+        },
+        "inspection": {
+          "samples": 5,
+          "median_ms": 0.10762299999100833,
+          "p95_ms": 0.15169099998502134,
+          "min_ms": 0.06369700000163903,
+          "max_ms": 0.15169099998502134,
+          "raw_ms": [
+            0.14898700001708676,
+            0.15169099998502134,
+            0.10762299999100833,
+            0.08993700001269644,
+            0.06369700000163903
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    },
+    "long_500": {
+      "semantic_sha256": "8dd6777930f5e469f93fd497a7390f710c22cadfb67f3d5f08c5f2c0c8ec6d7b",
+      "blocks": 1499,
+      "text_characters": 861392,
+      "requested_pages": 500,
+      "measured_pages": 500,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 5,
+          "median_ms": 50.39356800000405,
+          "p95_ms": 54.98088200002371,
+          "min_ms": 48.71636600000784,
+          "max_ms": 54.98088200002371,
+          "raw_ms": [
+            51.76761800001373,
+            48.71636600000784,
+            54.98088200002371,
+            50.39356800000405,
+            49.79915200001983
+          ]
+        },
+        "full_reflow": {
+          "samples": 5,
+          "median_ms": 953.0138929999907,
+          "p95_ms": 1042.404667999989,
+          "min_ms": 912.079346000013,
+          "max_ms": 1042.404667999989,
+          "raw_ms": [
+            953.0138929999907,
+            912.079346000013,
+            919.2825540000058,
+            954.1565060000039,
+            1042.404667999989
+          ]
+        },
+        "inspection": {
+          "samples": 5,
+          "median_ms": 0.2535149999971509,
+          "p95_ms": 0.7554990000073758,
+          "min_ms": 0.11721800001396332,
+          "max_ms": 0.7554990000073758,
+          "raw_ms": [
+            0.3323349999959646,
+            0.2535149999971509,
+            0.7554990000073758,
+            0.13313299999140327,
+            0.11721800001396332
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    }
+  }
+}

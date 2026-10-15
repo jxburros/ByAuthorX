@@ -1,0 +1,514 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-15T00:59:16.588377+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-x86_64-with-glibc2.41",
+    "machine": "x86_64",
+    "processor": "AMD EPYC 9V74 80-Core Processor",
+    "logical_cpus": 5,
+    "python": "3.12.14",
+    "engine": "0.1.1",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "file_view": "byax",
+  "provider_configuration": "None; local deterministic operations only.",
+  "definitions": {
+    "p95": "Nearest-rank percentile of wall-clock sample durations.",
+    "model_edit": "Canonical candidate transaction against original loaded fixture; includes validation/history; excludes GUI input and paint.",
+    "full_reflow": "After a canonical paragraph insertion, construct shared QTextDocument and resolve all physical display pages; includes full layout, excludes paint and the edit itself.",
+    "inspection": "Bounded semantic inspection against an already loaded document.",
+    "fixture_load": "Fixture construction excluded from every timed operation.",
+    "gui_startup_to_window": "Fresh interpreter process launch until MainWindow with the fixture is shown, exposed and its first paint processed; includes Python/Qt import and package load.",
+    "keystroke_to_paint": "QTest key press delivered through the event loop to the editor plus a synchronous viewport repaint; excludes the 300 ms idle commit.",
+    "typing_commit": "flush_edits after one keystroke: canonical transaction, history delta and sidebar/status refresh.",
+    "structural_edit_to_paint": "Paragraph style change from the GUI command through commit, editor document update and synchronous viewport repaint.",
+    "structural_full_rebuild_to_paint": "Same edit forced through a full shared-document rebuild, for comparison.",
+    "save_ui_block": "Time save() holds the UI thread before returning to the event loop; serialization continues on a worker.",
+    "save_completion": "Time until the worker save finishes and the window marks the document saved.",
+    "idle_cpu_percent": "Process CPU time divided by wall time while the loaded window runs its event loop without input."
+  },
+  "not_measured": [
+    "Cancellation acknowledgement",
+    "Physical Windows 11 / Ubuntu 24.04 desktop behavior",
+    "Remote provider latency"
+  ],
+  "fixtures": {
+    "mixed_100": {
+      "semantic_sha256": "a9b51ee9542ddeecb1170b0c88d7c30691be263b59a2fcfb1d2d6c84709b4712",
+      "blocks": 379,
+      "text_characters": 87862,
+      "requested_pages": 100,
+      "measured_pages": 100,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 5,
+          "median_ms": 16.868412000007993,
+          "p95_ms": 50.13708000001316,
+          "min_ms": 16.402489000029163,
+          "max_ms": 50.13708000001316,
+          "raw_ms": [
+            50.13708000001316,
+            16.629441000020506,
+            16.868412000007993,
+            17.078529000002618,
+            16.402489000029163
+          ]
+        },
+        "full_reflow": {
+          "samples": 5,
+          "median_ms": 462.37740899999835,
+          "p95_ms": 473.7801010000453,
+          "min_ms": 453.30412999999226,
+          "max_ms": 473.7801010000453,
+          "raw_ms": [
+            473.7801010000453,
+            453.30412999999226,
+            462.37740899999835,
+            455.08055999999897,
+            464.2076750000115
+          ]
+        },
+        "inspection": {
+          "samples": 5,
+          "median_ms": 0.09100699998043638,
+          "p95_ms": 0.1392709999663566,
+          "min_ms": 0.06205400001135786,
+          "max_ms": 0.1392709999663566,
+          "raw_ms": [
+            0.1392709999663566,
+            0.0712179999595719,
+            0.06205400001135786,
+            0.10034199999608973,
+            0.09100699998043638
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    },
+    "long_500": {
+      "semantic_sha256": "8dd6777930f5e469f93fd497a7390f710c22cadfb67f3d5f08c5f2c0c8ec6d7b",
+      "blocks": 1499,
+      "text_characters": 861392,
+      "requested_pages": 500,
+      "measured_pages": 500,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 5,
+          "median_ms": 49.17257900001459,
+          "p95_ms": 50.938721999955305,
+          "min_ms": 47.20141600000716,
+          "max_ms": 50.938721999955305,
+          "raw_ms": [
+            50.938721999955305,
+            47.20141600000716,
+            49.103403999993134,
+            49.17257900001459,
+            49.69172500000241
+          ]
+        },
+        "full_reflow": {
+          "samples": 5,
+          "median_ms": 957.702286999961,
+          "p95_ms": 990.4092090000063,
+          "min_ms": 914.4260009999812,
+          "max_ms": 990.4092090000063,
+          "raw_ms": [
+            951.7139370000223,
+            965.5990449999763,
+            957.702286999961,
+            914.4260009999812,
+            990.4092090000063
+          ]
+        },
+        "inspection": {
+          "samples": 5,
+          "median_ms": 0.1931720000243331,
+          "p95_ms": 0.7656880000013189,
+          "min_ms": 0.11310100001082901,
+          "max_ms": 0.7656880000013189,
+          "raw_ms": [
+            0.5082890000380758,
+            0.1931720000243331,
+            0.7656880000013189,
+            0.1328309999735211,
+            0.11310100001082901
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    }
+  },
+  "scaling": {
+    "flowing": {
+      "100": {
+        "semantic_sha256": "08abf74487609f94a75d21cec2734066cde01473924b210adc60c1d8f713c118",
+        "blocks": 230,
+        "text_characters": 313050,
+        "requested_pages": 100,
+        "measured_pages": 90,
+        "pagination": "automatic; no explicit page breaks",
+        "metrics": {
+          "resolve_after_start_edit": {
+            "samples": 5,
+            "median_ms": 172.5700179999876,
+            "p95_ms": 212.68017300002384,
+            "min_ms": 170.48354300004576,
+            "max_ms": 212.68017300002384,
+            "raw_ms": [
+              172.5700179999876,
+              171.15730199998325,
+              170.48354300004576,
+              212.68017300002384,
+              176.31059699999696
+            ]
+          },
+          "resolve_after_middle_edit": {
+            "samples": 5,
+            "median_ms": 177.8457490000278,
+            "p95_ms": 208.24521500003357,
+            "min_ms": 174.840042000028,
+            "max_ms": 208.24521500003357,
+            "raw_ms": [
+              180.69485900002746,
+              177.8457490000278,
+              208.24521500003357,
+              175.36068999999088,
+              174.840042000028
+            ]
+          },
+          "resolve_after_end_edit": {
+            "samples": 5,
+            "median_ms": 174.89222099999324,
+            "p95_ms": 209.8100919999979,
+            "min_ms": 173.54070699997237,
+            "max_ms": 209.8100919999979,
+            "raw_ms": [
+              209.8100919999979,
+              174.81077799999412,
+              174.89222099999324,
+              173.54070699997237,
+              204.070760000036
+            ]
+          }
+        }
+      },
+      "500": {
+        "semantic_sha256": "1969e244c10f00d7ab393ae34304bcac8d5ac791e3b7e2399b61fd8bb701ea5b",
+        "blocks": 1150,
+        "text_characters": 1565690,
+        "requested_pages": 500,
+        "measured_pages": 450,
+        "pagination": "automatic; no explicit page breaks",
+        "metrics": {
+          "resolve_after_start_edit": {
+            "samples": 5,
+            "median_ms": 1051.277342999981,
+            "p95_ms": 1120.8099819999688,
+            "min_ms": 994.6243459999664,
+            "max_ms": 1120.8099819999688,
+            "raw_ms": [
+              994.6243459999664,
+              1021.1510109999722,
+              1120.8099819999688,
+              1051.277342999981,
+              1089.8744769999666
+            ]
+          },
+          "resolve_after_middle_edit": {
+            "samples": 5,
+            "median_ms": 1004.6330309999689,
+            "p95_ms": 1087.1601829999804,
+            "min_ms": 986.5736250000054,
+            "max_ms": 1087.1601829999804,
+            "raw_ms": [
+              1004.6330309999689,
+              1044.137371999966,
+              998.6096949999705,
+              1087.1601829999804,
+              986.5736250000054
+            ]
+          },
+          "resolve_after_end_edit": {
+            "samples": 5,
+            "median_ms": 1014.4474239999681,
+            "p95_ms": 1105.300442999976,
+            "min_ms": 982.4009479999631,
+            "max_ms": 1105.300442999976,
+            "raw_ms": [
+              1105.300442999976,
+              984.0781920000268,
+              1014.4474239999681,
+              1017.0214970000302,
+              982.4009479999631
+            ]
+          }
+        }
+      },
+      "2000": {
+        "semantic_sha256": "ad64e0d04f276a0b9a024fc13ea44c85b660132adecfa458e1c5d67d83ab207e",
+        "blocks": 4600,
+        "text_characters": 6264090,
+        "requested_pages": 2000,
+        "measured_pages": 1825,
+        "pagination": "automatic; no explicit page breaks",
+        "metrics": {
+          "resolve_after_start_edit": {
+            "samples": 5,
+            "median_ms": 4228.983706000008,
+            "p95_ms": 4711.884539000039,
+            "min_ms": 4124.403684000015,
+            "max_ms": 4711.884539000039,
+            "raw_ms": [
+              4221.430446999989,
+              4228.983706000008,
+              4711.884539000039,
+              4124.403684000015,
+              4285.32274600002
+            ]
+          },
+          "resolve_after_middle_edit": {
+            "samples": 5,
+            "median_ms": 4284.499800999982,
+            "p95_ms": 4683.131425,
+            "min_ms": 4134.701103999987,
+            "max_ms": 4683.131425,
+            "raw_ms": [
+              4260.940839999989,
+              4134.701103999987,
+              4509.351236000043,
+              4284.499800999982,
+              4683.131425
+            ]
+          },
+          "resolve_after_end_edit": {
+            "samples": 5,
+            "median_ms": 4205.033423999965,
+            "p95_ms": 4526.435563000006,
+            "min_ms": 4070.330924000018,
+            "max_ms": 4526.435563000006,
+            "raw_ms": [
+              4184.614775999989,
+              4205.033423999965,
+              4526.435563000006,
+              4070.330924000018,
+              4500.709935000032
+            ]
+          }
+        }
+      }
+    },
+    "commits": {
+      "379": {
+        "semantic_sha256": "8fdcdf67bc2b2f57f9a30e24f2d63a28db1585041f3d1345d9be03b7aa07be72",
+        "blocks": 379,
+        "text_characters": 107257,
+        "metrics": {
+          "single_character": {
+            "samples": 5,
+            "median_ms": 10.084743999982493,
+            "p95_ms": 10.369894999996632,
+            "min_ms": 9.806343000036577,
+            "max_ms": 10.369894999996632,
+            "raw_ms": [
+              10.017602999994324,
+              10.369894999996632,
+              10.084743999982493,
+              9.806343000036577,
+              10.140148000004956
+            ]
+          },
+          "paragraph_split": {
+            "samples": 5,
+            "median_ms": 9.706482000012784,
+            "p95_ms": 9.910621000017272,
+            "min_ms": 9.360609999987446,
+            "max_ms": 9.910621000017272,
+            "raw_ms": [
+              9.910621000017272,
+              9.66324699999177,
+              9.719221000011657,
+              9.360609999987446,
+              9.706482000012784
+            ]
+          },
+          "heading_insert": {
+            "samples": 5,
+            "median_ms": 9.590146999983062,
+            "p95_ms": 9.920004999969478,
+            "min_ms": 9.462043999974412,
+            "max_ms": 9.920004999969478,
+            "raw_ms": [
+              9.462043999974412,
+              9.920004999969478,
+              9.700935000012123,
+              9.590146999983062,
+              9.556885999984388
+            ]
+          }
+        }
+      },
+      "1499": {
+        "semantic_sha256": "42311c12901ebfe6fe78d1748a9d32414755af349279ccaa407c0fc632535d06",
+        "blocks": 1499,
+        "text_characters": 424217,
+        "metrics": {
+          "single_character": {
+            "samples": 5,
+            "median_ms": 37.40391000002319,
+            "p95_ms": 45.11189099997637,
+            "min_ms": 36.82016800001975,
+            "max_ms": 45.11189099997637,
+            "raw_ms": [
+              39.28335099999458,
+              37.40391000002319,
+              37.34292799998684,
+              45.11189099997637,
+              36.82016800001975
+            ]
+          },
+          "paragraph_split": {
+            "samples": 5,
+            "median_ms": 38.14271600003849,
+            "p95_ms": 60.59603200003494,
+            "min_ms": 37.33061899998802,
+            "max_ms": 60.59603200003494,
+            "raw_ms": [
+              37.33061899998802,
+              38.48653599999352,
+              38.14271600003849,
+              37.604803000022,
+              60.59603200003494
+            ]
+          },
+          "heading_insert": {
+            "samples": 5,
+            "median_ms": 41.6274640000438,
+            "p95_ms": 60.19120500002373,
+            "min_ms": 36.65237400002752,
+            "max_ms": 60.19120500002373,
+            "raw_ms": [
+              43.76065900004278,
+              60.19120500002373,
+              41.6274640000438,
+              36.65237400002752,
+              37.13184899999078
+            ]
+          }
+        }
+      },
+      "5000": {
+        "semantic_sha256": "b0961e61a967f3c19c72b75640f27b6edbacdfc189b164ed77784292320ec992",
+        "blocks": 5000,
+        "text_characters": 1415000,
+        "metrics": {
+          "single_character": {
+            "samples": 5,
+            "median_ms": 151.2445729999854,
+            "p95_ms": 178.47410199999558,
+            "min_ms": 129.67488800001092,
+            "max_ms": 178.47410199999558,
+            "raw_ms": [
+              178.47410199999558,
+              135.45957200000203,
+              167.06740000000764,
+              129.67488800001092,
+              151.2445729999854
+            ]
+          },
+          "paragraph_split": {
+            "samples": 5,
+            "median_ms": 132.95610800003033,
+            "p95_ms": 167.7962019999768,
+            "min_ms": 128.4318080000162,
+            "max_ms": 167.7962019999768,
+            "raw_ms": [
+              128.4318080000162,
+              167.7962019999768,
+              130.02257200002987,
+              156.08137399999578,
+              132.95610800003033
+            ]
+          },
+          "heading_insert": {
+            "samples": 5,
+            "median_ms": 142.60676499998226,
+            "p95_ms": 160.8435219999933,
+            "min_ms": 132.5386859999753,
+            "max_ms": 160.8435219999933,
+            "raw_ms": [
+              140.38161199999877,
+              156.79522200002793,
+              132.5386859999753,
+              160.8435219999933,
+              142.60676499998226
+            ]
+          }
+        }
+      },
+      "15000": {
+        "semantic_sha256": "52569b071b2eb609742d482ddb6320a0c1d6efd9ff0b40e336718937519ae83e",
+        "blocks": 15000,
+        "text_characters": 4245000,
+        "metrics": {
+          "single_character": {
+            "samples": 5,
+            "median_ms": 475.99887299998045,
+            "p95_ms": 511.6293350000092,
+            "min_ms": 432.88925100000597,
+            "max_ms": 511.6293350000092,
+            "raw_ms": [
+              475.99887299998045,
+              484.27770699998973,
+              511.6293350000092,
+              432.88925100000597,
+              474.93487600002027
+            ]
+          },
+          "paragraph_split": {
+            "samples": 5,
+            "median_ms": 478.01845000003595,
+            "p95_ms": 603.3848019999937,
+            "min_ms": 441.9008099999928,
+            "max_ms": 603.3848019999937,
+            "raw_ms": [
+              465.49179099997673,
+              603.3848019999937,
+              441.9008099999928,
+              478.01845000003595,
+              493.85626899999124
+            ]
+          },
+          "heading_insert": {
+            "samples": 5,
+            "median_ms": 446.4555619999828,
+            "p95_ms": 452.2951140000373,
+            "min_ms": 417.74678600000925,
+            "max_ms": 452.2951140000373,
+            "raw_ms": [
+              428.6035499999912,
+              452.2951140000373,
+              417.74678600000925,
+              446.4555619999828,
+              446.92482900001096
+            ]
+          }
+        }
+      }
+    },
+    "qualification": "Full resolution and canonical commit on this host; not incremental or desktop latency."
+  }
+}

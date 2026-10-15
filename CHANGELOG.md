@@ -7,6 +7,44 @@ number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any 
 disagrees or if the version has no entry below. The release workflow publishes a version's
 entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
+## [0.2.0] - 2026-10-14
+
+### Added
+
+- Grapheme-safe merging of disjoint edits within one paragraph, with preserved
+  compatible formatting and explicit conflicting scalar ranges.
+- Explicit peer merge-base pins, retained through manual and automatic history
+  compaction, with a report of retained pins. Missing ancestry fails explicitly.
+- Optional flowing-prose and commit-scaling benchmarks, including approximately
+  100/500/2,000 pages and up to 15,000 blocks, with raw samples and host details.
+- Heading 4–6 and List in the desktop paragraph-style selector.
+- Reference libraries, citations and a two-row editing workspace from the changes
+  merged since 0.1.1; see the
+  [library guide](https://github.com/jxburros/ByAuthorX/blob/main/docs/library-and-citations-guide.md).
+
+### Fixed
+
+- Repeated image decoding, repeated glyph-coverage queries and linear page lookups
+  during layout. The image cache is bounded by bytes and entry count; glyph results
+  are scoped to a resolve so newly installed fonts do not leave stale results.
+- Dictation context and sessions now resolve section-specific voice, sensitivity,
+  editing freedom and source policy. Exclusive section source rules reject
+  unapproved selections without retrieving any source automatically.
+
+### Verification and limits
+
+- Added GUI/CLI linked-asset retrieval and embedding coverage, complete common-style
+  picker coverage, context isolation checks, and merge/history regressions.
+- Local layout measurements and raw scaling samples are in
+  [the acceptance matrix](https://github.com/jxburros/ByAuthorX/blob/main/docs/acceptance-matrix.md).
+  These are offscreen container measurements, not qualified desktop latency.
+- Live co-typing remains a no-go pending host, lease and identity contracts; the
+  [spike report](https://github.com/jxburros/ByAuthorX/blob/main/docs/coediting-spike.md)
+  records the decision. Peer pins do not implement a hosted collaboration service.
+- The installers remain unsigned. Physical desktop/device, screen-reader and live
+  provider acceptance remain unverified. The full specification is not complete;
+  see the [release issue audit](https://github.com/jxburros/ByAuthorX/blob/main/docs/issue-audit-0.2.md).
+
 ## [0.1.1] - 2026-10-14
 
 The first release with installers attached. Version 0.1.0 was tagged, but its release page has no
@@ -87,3 +125,5 @@ limitations below before relying on it.
 
 [0.1.1]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.0
+
+[0.2.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.2.0

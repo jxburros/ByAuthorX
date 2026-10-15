@@ -83,3 +83,24 @@ Network response fixtures exercise adapter contracts; they do not establish live
 ## Rendering limits
 
 `QTextDocument` supplies native bidirectional shaping and text pagination. The current renderer explicitly reports features it cannot faithfully resolve. See the acceptance matrix for section columns, sophisticated object wrapping, footnote placement, and font reproducibility coverage. A serialization success alone does not establish validated publication.
+
+## Shared-history merge bases (0.2)
+
+Before distributing a document copy, pin its current revision with a canonical
+operation such as `{"type":"pin_merge_base","peer":"editor-laptop","revision":"rev_…"}`.
+Pins are stored in `history.peer_bases` and survive save/reopen. Update the pin
+only when that peer acknowledges a newer shared base. Removing a peer is explicit:
+`{"type":"unpin_merge_base","peer":"editor-laptop"}`.
+
+Both explicit and automatic history compaction retain peer pins and branch fork
+points, as well as named checkpoints and branch heads. The compaction report lists
+`pinned_revisions_retained` and `removed_revisions`. Pins can exceed the soft
+history limit; storage is not silently reclaimed at the expense of a known peer.
+Unknown revision pins fail atomically. A missing ancestry path fails with a
+structured `missing_target` error; merge no longer guesses a branch fork as its
+base. Old copies distributed without a pin may need manual reconciliation.
+
+These operations are local history policy, available through canonical apply.
+A future hosted implementation (#81) must authorize pin changes at the host and
+maintain the registry from authenticated sync acknowledgements. Host authorization
+and live peer discovery are not provided by the local engine.

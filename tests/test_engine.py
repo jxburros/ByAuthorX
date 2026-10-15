@@ -942,3 +942,20 @@ def test_visual_and_table_protection_across_interfaces(tmp_path):
         )
     assert error.value.code == 'protected_edit'
     assert load_document(path)['revision'] == doc['revision']
+
+
+def test_context_never_contacts_accounts_and_rejects_credentials(monkeypatch):
+    import httpx
+
+    def forbidden(*args, **kwargs):
+        pytest.fail('Packaging context must not contact a network account')
+
+    monkeypatch.setattr(httpx.Client, 'request', forbidden)
+    doc = new_document(text='Exact selected content')
+    doc['references']['unselected'] = {'uri': 'https://example.invalid/private', 'text': 'Private'}
+    package = engine.context(doc)
+    assert not package['references']
+    assert package['inclusion_report']['unselected_references'] == ['unselected']
+    doc['blocks'][0]['attrs']['api_key'] = 'synthetic-secret'
+    with pytest.raises(ByaxError):
+        engine.context(doc)
