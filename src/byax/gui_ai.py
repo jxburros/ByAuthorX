@@ -542,7 +542,10 @@ class AIPanel(QWidget):
                 {'target': t, 'start': s, 'end': e, 'text': model.find_object(frozen, t).get('text', '')[s:e]}
                 for t, s, e in selected
             ]
-        return context
+        # Codex entries and traits hidden from AI never reach a model (context engine 8.2).
+        from .codex import redact_for_ai
+
+        return redact_for_ai(frozen, context)
 
     def send(self):
         from .gui_providers import authorize_payload
@@ -569,8 +572,10 @@ class AIPanel(QWidget):
                 from .retrieval import augment_context, retrieve_context
 
                 remote = registry.preview(alias, kind='chat')['remote']
+                from .series import with_series
+
                 retrieval = retrieve_context(
-                    frozen,
+                    with_series(frozen, getattr(window, 'path', None)),
                     prompt,
                     method='auto',
                     remote=remote,

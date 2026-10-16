@@ -2828,10 +2828,13 @@ def _rtf(doc):
 def _exchange_losses(doc, fmt, losses):
     if fmt == 'byax':
         return
+    from .codex import export_losses as codex_losses
     from .project import export_losses
 
     # Binder order survives as headings; item kinds, statuses and targets do not.
     losses.extend(export_losses(doc, fmt))
+    # Codex entries stay in the master.
+    losses.extend(codex_losses(doc, fmt))
     for category in ('review', 'references', 'fields', 'layers'):
         value = doc.get(category)
         if category == 'review':

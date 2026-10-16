@@ -83,17 +83,19 @@ def _v1_to_v2(state):
 
 
 def _v2_to_v3(state):
-    """Schema 3 adds the optional manuscript ``project`` binder (CP A1) and optional
-    ``prefix``/``suffix`` text on citation marks (CE 6.5). No data changes: the
-    binder is absent until created, and existing citation affixes are already text.
+    """Schema 3 adds the optional manuscript ``project`` binder (CP A1), the optional
+    ``codex`` (CE 8.2) and optional ``prefix``/``suffix`` text on citation marks (CE 6.5).
+    No data changes: the binder and codex are absent until created, and existing
+    citation affixes are already text.
     """
-    if 'project' in state:
-        raise ByaxError(
-            'unsupported_feature',
-            'A version 2 document already contains an unknown "project" construct; '
-            'it cannot be upgraded without risking loss.',
-            field='project',
-        )
+    for field in ('project', 'codex'):
+        if field in state:
+            raise ByaxError(
+                'unsupported_feature',
+                f'A version 2 document already contains an unknown "{field}" construct; '
+                'it cannot be upgraded without risking loss.',
+                field=field,
+            )
     citations = 0
     for block in state.get('blocks', []):
         for mark in block.get('marks', []):
@@ -108,6 +110,7 @@ def _v2_to_v3(state):
             citations += any(key in mark for key in ('prefix', 'suffix'))
     return [
         {'kind': 'added_optional_structure', 'field': 'project', 'count': 0},
+        {'kind': 'added_optional_structure', 'field': 'codex', 'count': 0},
         {'kind': 'citation_context_fields', 'field': 'marks.prefix/suffix', 'count': citations},
     ]
 
@@ -115,7 +118,7 @@ def _v2_to_v3(state):
 # from_version: (to_version, description, transition)
 TRANSITIONS = {
     1: (2, 'Explicit external dependency records for linked images', _v1_to_v2),
-    2: (3, 'Optional manuscript project binder and citation prefix/suffix text', _v2_to_v3),
+    2: (3, 'Optional manuscript project binder, codex and citation prefix/suffix text', _v2_to_v3),
 }
 SUPPORTED_VERSIONS = frozenset(TRANSITIONS) | {SCHEMA_VERSION}
 

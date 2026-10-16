@@ -241,6 +241,43 @@ it. Word, Markdown and other exports keep the binder order as headings and list 
 as losses. The corkboard and outline views come later; every binder action already works from the
 CLI, MCP and REST.
 
+## Codex, project find and series
+
+These features work without any AI: they read only your files and never use the network.
+
+**Codex** (Tools → Codex…) keeps characters, places, items and terms. Each entry has a name,
+aliases ("Lizzy", "Eliza"), excluded phrases (occurrences inside them are not counted), a *Match
+letter case* switch (on by default, so the name "Will" is not the word "will"), a description and
+traits such as "eyes: grey". The panel lists each entry's mentions (activate one to jump there) and
+a **heatmap** of mentions per chapter; every count is also the cell's text. Edits are ordinary
+undoable changes saved in the `.byax` file. Exports keep your text and report that the codex stays
+in the master; clean publications leave it out. The fiction name-spelling check uses codex names
+and aliases as known spellings.
+
+**Hide from AI** works per entry and per trait. Hidden entries and traits are never sent to a model,
+never appear in assistant context and are not shown to MCP or REST clients. An assistant never edits
+the codex: it can only propose a fact ("Mara's eyes are grey, ch. 3 ¶12"), which arrives in
+Proposed changes with where it was read, for you to accept or reject.
+
+**Find in project** (Edit → Find in project…, Ctrl+Shift+F) searches this document and every other
+`.byax` file in the same folder with the [library search syntax](cli-reference.md#library-search-syntax).
+Results show the document and chapter; results in this document open at the passage. Choose
+*This document* to stay in the open file. **Save search…** keeps a query as a saved search (a
+self-updating collection): it is stored in this document and its results are recomputed each time
+you run it. The **Backlinks** tab lists, for a heading, bookmark or codex entry, the cross-references
+or recognized mentions pointing to it, and *unlinked mentions*: plain-text occurrences of a heading
+or bookmark name, and codex near misses (a different letter case, or an excluded phrase). The search
+index is rebuilt from your files as needed and kept in your user cache folder, never next to your
+documents; after the first project search it is also updated whenever you save.
+
+**Series.** Books of a series can share one codex and set of research libraries through a
+`.byaxseries` file in the folder above the books: `byax codex book-1.byax --action series-export
+--out ../saga.byaxseries`, then `--action series-attach --series-path ../saga.byaxseries` in each
+book. A book's own entry wins over a series entry with the same name, and its own library
+attachment wins over the series'. The series file can also list member documents, which then join
+project find. The format is described in the
+[library and citations guide](library-and-citations-guide.md#series-files).
+
 ## Libraries and citations
 
 Tools → Libraries attaches local research folders for retrieval; **Cite** inserts a citation from

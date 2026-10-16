@@ -27,6 +27,8 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `quote_match`, `context_assembly` | Quote normalization, exact/normalized/near alignment and three-selector anchors (RapidFuzz); offline token estimates, token budgets over the character caps, and the Ollama `num_ctx` plan with its `limit_exceeded` refusal |
 | `search_query`, `ranking`, `vector_store` | Shared search syntax compiled to safe FTS5 expressions, with RapidFuzz suggestions; `Hit`, reciprocal-rank fusion, de-duplication, MMR and the reranker interface; vector storage behind one interface (float32 BLOBs in the index cache today) |
 | `citations`, `citation_render` | Source records, CSL-JSON/BibTeX/RIS exchange, citation marks and APA/MLA/Chicago rendering |
+| `project_index` | The manuscript as a corpus: one block-level index (schema 2 conventions) of the open document, sibling `.byax` files and series members, shared with the binder (block map, item, chapter, kind); incremental by block hash, in the user cache; project find, saved searches (`saved_search_*` operations), backlinks and unlinked mentions, optional vectors |
+| `codex`, `series`, `cli_codex` | Codex entries (aliases, excluded phrases, case sensitivity, traits, hide from AI) and the `codex_*` operations; Aho-Corasick mention scan, heatmap, AI-visible views and redaction, fact proposals; `.byaxseries` files shared by several projects; the `codex` and read-only `entity` commands |
 | `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report and the `project_*` canonical operations |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
@@ -52,7 +54,7 @@ Packages declare `format_version` (package layout, currently 1) and `schema_vers
 | Transition | Change |
 | --- | --- |
 | 1 → 2 | Adds the required `dependencies` object. Image blocks whose `source` is an external URI (and Markdown `external_images` entries) become explicit linked dependency records (`status: unresolved`) referenced by `attrs.link`; the original `source` value is kept. |
-| 2 → 3 | Adds the optional top-level `project` binder (absent until created; a version 2 document that already uses `project` for something else is rejected) and optional text `prefix`/`suffix` fields on citation marks. No data changes: existing citation affixes are already text, and a non-text affix is rejected rather than rewritten. The report counts citation marks carrying the fields. Note: `cite` already stores rendering affixes (such as `see `) under these names, so the context-engine 6.5 selectors (32-character context) need a decision on meaning or separate keys before re-anchoring ships. |
+| 2 → 3 | Adds the optional top-level `project` binder and `codex` (both absent until created; a version 2 document that already uses either name for something else is rejected) and optional text `prefix`/`suffix` fields on citation marks. No data changes: existing citation affixes are already text, and a non-text affix is rejected rather than rewritten. The report counts citation marks carrying the fields. Note: `cite` already stores rendering affixes (such as `see `) under these names, so the context-engine 6.5 selectors (32-character context) need a decision on meaning or separate keys before re-anchoring ships. |
 
 Policy:
 
@@ -89,6 +91,23 @@ the removed heading blocks the merge. Headings removed or demoted by other edits
 rebound (`project_set_meta` with `heading`) or removed explicitly, never dropped. Exports write the
 binder as headings and report kinds, statuses, targets and synopses as located `binder_metadata`
 losses; clean publication drops the binder with the other metadata.
+
+## Codex and the project index
+
+The optional `codex` object is `{"entries": {entry_id: entry}}`; an entry is
+`{id, kind, name, aliases?, excluded?, case_sensitive?, description?, traits, hide_from_ai?, tags?,
+created, updated, provenance?}` with `kind` one of `character`, `place`, `item`, `term`, and each
+trait `{id, name, value, hide_from_ai?, provenance?, created, updated}`. Entry identities may not
+collide with body objects or binder items, so proposals can target them (`engine._find_reviewable`)
+with hash preconditions. Edits are the canonical operations `codex_add`, `codex_update`,
+`codex_remove`, `codex_add_trait`, `codex_update_trait` and `codex_remove_trait`; dates come from
+the edit envelope's timestamp. `settings.series` (`{"path": "<relative>.byaxseries"}`) and
+`settings.saved_searches` (`{name: {query, scope, kind?, item?, created, updated}}`) are validated
+settings; saved searches change only through `saved_search_set` and `saved_search_remove`.
+
+`project_index` is derived data in the user cache keyed by the project folder. It never writes to
+the project or a document, reads only local files, and is refreshed explicitly (CLI calls refresh
+before answering; the desktop after the first project search and on save).
 
 ## Review anchors, proposals and branches
 

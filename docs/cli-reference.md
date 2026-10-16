@@ -91,6 +91,9 @@ command's flags.
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
 | `project` | List, reorder, split, merge and annotate manuscript binder items |
 | `sync` | Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal |
+| `project-search` | Find across the project folder, run saved searches, and list backlinks and unlinked mentions |
+| `codex` | List, look up, edit and scan for codex entries; propose facts for review |
+| `entity` | Read-only codex lookup, mentions and heatmap (entries hidden from AI are never shown) |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -214,6 +217,63 @@ byax sync Chapter.byax --action archive-conflict --copy-path "Chapter (Sam's con
   overwrites an archived file.
 
 MCP exposes the same command as `byax_sync`; REST scopes both `path` and `copy_path` to its roots.
+
+## Project search and codex
+
+`byax project-search PATH --action …` searches the project: the folder of `PATH` (the document
+plus every sibling `.byax`, skipping migration backups, files still syncing and copies with the
+same document identity) and the member documents of its series. The block-level index lives in the
+user cache; each call refreshes it from changed local files first, so results are always current.
+Queries use the [library search syntax](#library-search-syntax).
+
+```bash
+byax project-search Novel.byax --query '"Harrow Point" -lamp' --json        # find (default action)
+byax project-search Novel.byax --query lighthouse --kind scene --limit 10    # binder kind filter
+byax project-search Novel.byax --query lighthouse --scope document           # open document only
+byax project-search Novel.byax --action saved-add --name Lights --query lighthouse
+byax project-search Novel.byax --action saved-run --name Lights
+byax project-search Novel.byax --action backlinks --target cx_mara           # heading or codex entry
+byax project-search Novel.byax --action unlinked-mentions --bookmark midpoint
+byax project-search Novel.byax --action refresh --rebuild
+```
+
+- Actions: `find`, `status`, `refresh`, `saved-list`, `saved-run`, `saved-add`, `saved-remove`,
+  `backlinks`, `unlinked-mentions`. Filters: `--scope project|document`, `--documents` (relative
+  paths, repeatable), `--kind` (binder kind), `--item` (a binder item and its descendants).
+- Hits carry `path`, `document_id`, the stable `block_id`/`target`, `item`, `item_title`, `chapter`,
+  `kind`, `heading`, `start`/`end` of the first literal match, `stale` and `match` (`porter`,
+  `trigram`), plus `suggestions` for unmatched terms (`--expand` searches them). Lists are bounded
+  with `truncated` and `continuation`.
+- Saved searches are stored in the document settings (`settings.saved_searches`); `saved-add` and
+  `saved-remove` are canonical operations and accept `--expect-revision`, `--request-id`, `--dry-run`.
+
+`byax codex PATH --action …` works on codex entries:
+
+```bash
+byax codex Novel.byax                                        # list (hidden entries are counted, not shown)
+byax codex Novel.byax --action add --name "Mara Vey" --kind character --input aliases.json
+byax codex Novel.byax --action add-trait --target cx_… --name eyes --value grey --hide-from-ai
+byax codex Novel.byax --action mentions --target p_… --start 0 --end 40 --radius 2
+byax codex Novel.byax --action heatmap
+byax codex Novel.byax --action propose-fact --name Mara --trait eyes --value grey --input fact.json
+byax codex Novel.byax --action series-export --out ../saga.byaxseries
+byax codex Novel.byax --action series-attach --series-path ../saga.byaxseries
+```
+
+- Reads: `list` (`--kind`), `get` and `lookup` (`--target` identity or `--name`), `mentions`
+  (`--target` with `--start`/`--end`/`--radius`, or `--text`, or the whole document; `--limit`,
+  `--offset`), `heatmap` (per binder item), `series`. Hidden entries and traits appear only with
+  `--include-hidden`, which MCP and REST refuse.
+- Edits (canonical operations): `add` (`--input` holds `aliases`, `excluded`, `case_sensitive`,
+  `description`, `tags`, `traits`), `update`, `remove`, `add-trait`, `update-trait`, `remove-trait`.
+- `propose-fact` records a review proposal (`--input` may hold `provenance`, for example
+  `{"target": "p_…", "start": 0, "end": 40, "quote": "…", "label": "ch. 3 ¶12"}`); accept it with
+  `byax review --action accept`.
+- `series-attach` and `series-detach` set `settings.series` (local CLI only); `series-export` writes
+  the document's entries and library attachments to a new `.byaxseries` file.
+
+`byax entity` (`byax_entity` over MCP) takes the read actions above and always returns the
+AI-visible view; edit actions are refused.
 
 ## Library search syntax
 

@@ -1,0 +1,534 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T21:52:17.120726+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.13.16",
+    "engine": "0.3.0",
+    "hardware_qualification": "Unqualified execution host; reference laptops not verified."
+  },
+  "commands": [
+    "uv run python scripts/codex_benchmark.py --write"
+  ],
+  "mentions": {
+    "fixture": "tests/fixtures/codex/pride-and-prejudice-1-6.json (built by scripts/build_codex_fixture.py)",
+    "method": "A reported mention is correct when its entry and exact span equal a label. Precision = correct / reported; recall = correct / labelled.",
+    "qualification": "One novel excerpt (7,694 words) with name-form labels; pronouns and descriptions are out of scope, so this measures the matcher against a writer-maintained codex, not coreference.",
+    "words": 7694,
+    "with_aliases": {
+      "correct": 268,
+      "reported": 268,
+      "labelled": 268,
+      "precision": 1.0,
+      "recall": 1.0,
+      "false_positives": [],
+      "missed": [],
+      "by_entry": {
+        "cx_bingley": {
+          "correct": 39,
+          "reported": 39,
+          "labelled": 39
+        },
+        "cx_caroline": {
+          "correct": 9,
+          "reported": 9,
+          "labelled": 9
+        },
+        "cx_charlotte": {
+          "correct": 14,
+          "reported": 14,
+          "labelled": 14
+        },
+        "cx_darcy": {
+          "correct": 31,
+          "reported": 31,
+          "labelled": 31
+        },
+        "cx_derbyshire": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_elizabeth": {
+          "correct": 39,
+          "reported": 39,
+          "labelled": 39
+        },
+        "cx_hertfordshire": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_jane": {
+          "correct": 25,
+          "reported": 25,
+          "labelled": 25
+        },
+        "cx_kitty": {
+          "correct": 5,
+          "reported": 5,
+          "labelled": 5
+        },
+        "cx_lady_lucas": {
+          "correct": 5,
+          "reported": 5,
+          "labelled": 5
+        },
+        "cx_london": {
+          "correct": 3,
+          "reported": 3,
+          "labelled": 3
+        },
+        "cx_longbourn": {
+          "correct": 4,
+          "reported": 4,
+          "labelled": 4
+        },
+        "cx_lucas_lodge": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_lydia": {
+          "correct": 4,
+          "reported": 4,
+          "labelled": 4
+        },
+        "cx_maria": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_mary": {
+          "correct": 8,
+          "reported": 8,
+          "labelled": 8
+        },
+        "cx_meryton": {
+          "correct": 7,
+          "reported": 7,
+          "labelled": 7
+        },
+        "cx_mr_bennet": {
+          "correct": 16,
+          "reported": 16,
+          "labelled": 16
+        },
+        "cx_mr_hurst": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_mrs_bennet": {
+          "correct": 13,
+          "reported": 13,
+          "labelled": 13
+        },
+        "cx_mrs_hurst": {
+          "correct": 5,
+          "reported": 5,
+          "labelled": 5
+        },
+        "cx_mrs_long": {
+          "correct": 10,
+          "reported": 10,
+          "labelled": 10
+        },
+        "cx_netherfield": {
+          "correct": 10,
+          "reported": 10,
+          "labelled": 10
+        },
+        "cx_pride": {
+          "correct": 7,
+          "reported": 7,
+          "labelled": 7
+        },
+        "cx_sir_william": {
+          "correct": 9,
+          "reported": 9,
+          "labelled": 9
+        }
+      },
+      "automaton": "python"
+    },
+    "names_only": {
+      "correct": 141,
+      "reported": 143,
+      "labelled": 268,
+      "precision": 0.986,
+      "recall": 0.5261,
+      "false_positives": [
+        [
+          5,
+          49,
+          6,
+          22,
+          "cx_elizabeth"
+        ],
+        [
+          5,
+          50,
+          6,
+          22,
+          "cx_elizabeth"
+        ]
+      ],
+      "missed": [
+        [
+          0,
+          9,
+          50,
+          61,
+          "cx_netherfield"
+        ],
+        [
+          0,
+          11,
+          1,
+          8,
+          "cx_bingley"
+        ],
+        [
+          0,
+          23,
+          92,
+          103,
+          "cx_sir_william"
+        ],
+        [
+          0,
+          24,
+          257,
+          262,
+          "cx_elizabeth"
+        ],
+        [
+          0,
+          25,
+          37,
+          42,
+          "cx_elizabeth"
+        ],
+        [
+          0,
+          25,
+          125,
+          129,
+          "cx_jane"
+        ],
+        [
+          0,
+          25,
+          160,
+          165,
+          "cx_lydia"
+        ],
+        [
+          0,
+          26,
+          116,
+          121,
+          "cx_elizabeth"
+        ],
+        [
+          1,
+          1,
+          34,
+          39,
+          "cx_elizabeth"
+        ],
+        [
+          1,
+          3,
+          30,
+          39,
+          "cx_elizabeth"
+        ],
+        [
+          1,
+          7,
+          25,
+          30,
+          "cx_kitty"
+        ],
+        [
+          1,
+          8,
+          1,
+          6,
+          "cx_kitty"
+        ],
+        [
+          1,
+          9,
+          47,
+          52,
+          "cx_kitty"
+        ],
+        [
+          1,
+          9,
+          96,
+          101,
+          "cx_elizabeth"
+        ],
+        [
+          1,
+          16,
+          211,
+          215,
+          "cx_mary"
+        ],
+        [
+          1,
+          17,
+          0,
+          4,
+          "cx_mary"
+        ],
+        [
+          1,
+          18,
+          7,
+          11,
+          "cx_mary"
+        ],
+        [
+          1,
+          23,
+          6,
+          11,
+          "cx_kitty"
+        ],
+        [
+          1,
+          24,
+          319,
+          324,
+          "cx_lydia"
+        ],
+        [
+          1,
+          25,
+          11,
+          16,
+          "cx_lydia"
+        ]
+      ],
+      "by_entry": {
+        "cx_bingley": {
+          "correct": 29,
+          "reported": 29,
+          "labelled": 39
+        },
+        "cx_caroline": {
+          "correct": 9,
+          "reported": 9,
+          "labelled": 9
+        },
+        "cx_charlotte": {
+          "correct": 0,
+          "reported": 0,
+          "labelled": 14
+        },
+        "cx_darcy": {
+          "correct": 23,
+          "reported": 23,
+          "labelled": 31
+        },
+        "cx_derbyshire": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_elizabeth": {
+          "correct": 1,
+          "reported": 3,
+          "labelled": 39
+        },
+        "cx_hertfordshire": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_jane": {
+          "correct": 0,
+          "reported": 0,
+          "labelled": 25
+        },
+        "cx_kitty": {
+          "correct": 0,
+          "reported": 0,
+          "labelled": 5
+        },
+        "cx_lady_lucas": {
+          "correct": 5,
+          "reported": 5,
+          "labelled": 5
+        },
+        "cx_london": {
+          "correct": 3,
+          "reported": 3,
+          "labelled": 3
+        },
+        "cx_longbourn": {
+          "correct": 4,
+          "reported": 4,
+          "labelled": 4
+        },
+        "cx_lucas_lodge": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_lydia": {
+          "correct": 0,
+          "reported": 0,
+          "labelled": 4
+        },
+        "cx_maria": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_mary": {
+          "correct": 0,
+          "reported": 0,
+          "labelled": 8
+        },
+        "cx_meryton": {
+          "correct": 7,
+          "reported": 7,
+          "labelled": 7
+        },
+        "cx_mr_bennet": {
+          "correct": 16,
+          "reported": 16,
+          "labelled": 16
+        },
+        "cx_mr_hurst": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 1
+        },
+        "cx_mrs_bennet": {
+          "correct": 13,
+          "reported": 13,
+          "labelled": 13
+        },
+        "cx_mrs_hurst": {
+          "correct": 5,
+          "reported": 5,
+          "labelled": 5
+        },
+        "cx_mrs_long": {
+          "correct": 10,
+          "reported": 10,
+          "labelled": 10
+        },
+        "cx_netherfield": {
+          "correct": 1,
+          "reported": 1,
+          "labelled": 10
+        },
+        "cx_pride": {
+          "correct": 7,
+          "reported": 7,
+          "labelled": 7
+        },
+        "cx_sir_william": {
+          "correct": 3,
+          "reported": 3,
+          "labelled": 9
+        }
+      },
+      "automaton": "python"
+    }
+  },
+  "project_search": {
+    "fixture": "project_100k (scripts/generate_fixtures.py), saved as a one-document project folder",
+    "words": 103681,
+    "indexed_rows": 518,
+    "index_build_ms": 119.31,
+    "noop_refresh_ms": 1.6,
+    "one_paragraph_update_ms": 32.45,
+    "one_paragraph_update_rows": {
+      "added": 0,
+      "changed": 1,
+      "removed": 0,
+      "unchanged": 517
+    },
+    "keyword_search": {
+      "samples_per_query": 20,
+      "queries": {
+        "observation": {
+          "p50_ms": 5.02,
+          "p95_ms": 6.85
+        },
+        "\"field team\"": {
+          "p50_ms": 5.38,
+          "p95_ms": 5.71
+        },
+        "interpret*": {
+          "p50_ms": 5.19,
+          "p95_ms": 5.38
+        },
+        "narrative -table": {
+          "p50_ms": 1.3,
+          "p95_ms": 1.41
+        },
+        "NEAR(clear account, 5)": {
+          "p50_ms": 5.65,
+          "p95_ms": 6.09
+        },
+        "Alex Rivera": {
+          "p50_ms": 1.04,
+          "p95_ms": 1.27
+        },
+        "referenes": {
+          "p50_ms": 1.71,
+          "p95_ms": 1.87
+        },
+        "heading:\"Scene 12.3\"": {
+          "p50_ms": 0.72,
+          "p95_ms": 0.79
+        },
+        "meaning wording": {
+          "p50_ms": 5.4,
+          "p95_ms": 6.2
+        },
+        "ervatio": {
+          "p50_ms": 7.1,
+          "p95_ms": 8.23
+        }
+      },
+      "result_totals": {
+        "observation": 361,
+        "\"field team\"": 363,
+        "interpret*": 361,
+        "narrative -table": 0,
+        "NEAR(clear account, 5)": 361,
+        "Alex Rivera": 1,
+        "referenes": 0,
+        "heading:\"Scene 12.3\"": 4,
+        "meaning wording": 361,
+        "ervatio": 361
+      },
+      "worst_query_p95_ms": 8.23,
+      "target_p95_ms": 100,
+      "meets_target": true
+    },
+    "heatmap_ms": {
+      "p50": 100.17,
+      "max": 155.93,
+      "mentions": 5045
+    },
+    "selection_context_ms": {
+      "p50": 1.56,
+      "p95": 2.0
+    }
+  }
+}

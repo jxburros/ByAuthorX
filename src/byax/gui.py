@@ -65,6 +65,7 @@ from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_codex import CodexPanels
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
@@ -98,7 +99,14 @@ class Worker(QRunnable):
 
 
 class MainWindow(
-    FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, SyncPanels, QMainWindow
+    FileViews,
+    WorkflowPanels,
+    WorkspacePanels,
+    RibbonPanels,
+    LibraryPanels,
+    SyncPanels,
+    CodexPanels,
+    QMainWindow,
 ):
     def __init__(self, path=None):
         super().__init__()
@@ -255,6 +263,7 @@ class MainWindow(
             (self.tr('Paste'), self.editor.paste, QKeySequence.Paste, 'paste'),
             (self.tr('Select all'), self.editor.selectAll, QKeySequence.SelectAll, None),
             (self.tr('Find and replace…'), self.find_replace, QKeySequence.Find, 'find'),
+            (self.tr('Find in project…'), self.project_find, 'Ctrl+Shift+F', None),
         ]:
             menus['&Edit'].addAction(self.action(title, slot, key, icon=icon))
         self.ribbon_actions = {}
@@ -566,6 +575,7 @@ class MainWindow(
             ('Linked assets…', self.linked_assets),
             ('Reusable settings…', self.reusable_settings),
             ('Readability report…', self.readability_report),
+            ('Codex…', self.codex_panel),
             ('Synced folder safety…', self.sync_safety_details),
             ('Review conflicted copies…', self.review_conflicted_copies),
         ):
@@ -1331,6 +1341,7 @@ class MainWindow(
             if self.path == path:
                 self._disk_stamp = self.file_stamp(path)
                 self._mark_saved(task['revision'])
+                self.update_project_index(path, self.doc)
 
         self._start_save(path, finished)
         return self.wait_for_save() if wait else True

@@ -350,8 +350,10 @@ def review_document(window, *, check=None, instructions=None):
 
             remote = registry.preview(alias, kind='chat')['remote']
             config = registry.get(alias)
+            from .series import with_series
+
             retrieval = retrieve_context(
-                frozen,
+                with_series(frozen, getattr(window, 'path', None)),
                 text[:4096],
                 profile=profile,
                 remote=remote,
@@ -365,6 +367,10 @@ def review_document(window, *, check=None, instructions=None):
                     return
                 library_authorized = True
             context = augment_context(context, retrieval)
+        from .codex import redact_for_ai
+
+        # Codex entries and traits hidden from AI never reach a model.
+        context = redact_for_ai(frozen, context)
         preview = registry.preview(alias, text=text, context=context)
     except Exception as exc:
         window.error(exc)
