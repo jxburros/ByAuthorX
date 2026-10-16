@@ -60,6 +60,15 @@ def check_provider_admin(command, arguments):
         raise ByaxError('invalid_input', 'Name the output path for the sample project copy', field='out')
     if command == 'providers' and arguments.get('action') == 'configure':
         raise ByaxError('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
+    if command == 'grammar' and arguments.get('action', 'status') not in ('status', 'rules', 'check'):
+        raise ByaxError(
+            'unsupported_feature',
+            'Configure, install, start or stop LanguageTool through the local CLI or desktop',
+        )
+    if command == 'languages' and arguments.get('action', 'list') not in ('list', 'verify', 'coverage'):
+        raise ByaxError(
+            'unsupported_feature', 'Install or remove language packs through the local CLI or desktop'
+        )
     if command == 'jobs' and arguments.get('action') == 'submit':
         spec = arguments.get('input', {})
         if not isinstance(spec, dict):
@@ -419,4 +428,82 @@ INTERFACE_INVENTORY = (
     ('Editing', 'binder status', 'project --action set-status', 'byax.engine.apply', None),
     ('Editing', 'binder word target', 'project --action set-target', 'byax.engine.apply', None),
     ('Editing', 'binder metadata', 'project --action set-meta', 'byax.engine.apply', None),
+    # Grammar tiers (CP D1) and language packs (CP D4). Administrative actions are refused over MCP and REST.
+    (
+        'Checks',
+        'grammar tiers status',
+        'grammar --action status',
+        'byax.grammar.languagetool_status',
+        'Inspector > Checks',
+    ),
+    (
+        'Checks',
+        'grammar rule catalogue',
+        'grammar --action rules',
+        'byax.grammar.rule_set',
+        'Inspector > Checks',
+    ),
+    (
+        'Checks',
+        'check text with the grammar tiers',
+        'grammar --action check',
+        'byax.grammar.check_text',
+        None,
+    ),
+    (
+        'Checks',
+        'configure the LanguageTool tier',
+        'grammar --action configure',
+        'byax.grammar.save_config',
+        'Inspector > Checks',
+    ),
+    (
+        'Checks',
+        'start or stop the local LanguageTool server',
+        'grammar --action start',
+        'byax.grammar.start_languagetool',
+        'Inspector > Checks',
+    ),
+    (
+        'Checks',
+        'install LanguageTool (explicit download)',
+        'grammar --action install-languagetool',
+        'byax.grammar.install_languagetool',
+        'Tools > Languages…',
+    ),
+    (
+        'Discovery',
+        'language packs',
+        'languages --action list',
+        'byax.language_packs.list_packs',
+        'Tools > Languages…',
+    ),
+    (
+        'Inspection',
+        'verify language packs',
+        'languages --action verify',
+        'byax.language_packs.verify_packs',
+        'Tools > Languages…',
+    ),
+    (
+        'Inspection',
+        'translation coverage',
+        'languages --action coverage',
+        'byax.language_packs.coverage_report',
+        'Tools > Languages…',
+    ),
+    (
+        'Files',
+        'install language pack',
+        'languages --action install',
+        'byax.language_packs.install_pack',
+        'Tools > Languages…',
+    ),
+    (
+        'Files',
+        'remove language pack',
+        'languages --action remove',
+        'byax.language_packs.remove_pack',
+        'Tools > Languages…',
+    ),
 )

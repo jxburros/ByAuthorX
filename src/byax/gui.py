@@ -67,6 +67,7 @@ from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
+from .gui_languages import LanguagePanels
 from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
 from .gui_onboarding import OnboardingPanels
@@ -106,6 +107,7 @@ class MainWindow(
     LibraryPanels,
     SyncPanels,
     OnboardingPanels,
+    LanguagePanels,
     QMainWindow,
 ):
     def __init__(self, path=None):
@@ -581,6 +583,7 @@ class MainWindow(
             ('Readability report…', self.readability_report),
             ('Synced folder safety…', self.sync_safety_details),
             ('Review conflicted copies…', self.review_conflicted_copies),
+            ('Languages…', self.show_languages),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
         self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
@@ -3555,6 +3558,10 @@ def main(argv=None):
     app.setApplicationName('ByAuthorX')
     app.setOrganizationName('ByAuthorX')
     app.setStyle('Fusion')
+    # Interface language: English unless the person chose a language with an installed strings pack.
+    from .language_packs import install_translator
+
+    install_translator(app, str(QSettings('ByAuthorX', 'ByAuthorX').value('interface/language', '') or ''))
     args = sys.argv[1:] if argv is None else argv
     # Finder and the Dock deliver documents as events on macOS, possibly before the window exists.
     opener = gui_platform.FileOpenFilter(app)

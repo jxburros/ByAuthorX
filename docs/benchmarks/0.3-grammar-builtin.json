@@ -1,0 +1,589 @@
+{
+ "corpus": {
+  "sentences": 299,
+  "with_errors": 155,
+  "clean": 144,
+  "labelled_errors": 155
+ },
+ "groups": {
+  "agreement": {
+   "true_positives": 20,
+   "false_positives": 0,
+   "missed": 0,
+   "precision": 1.0,
+   "recall": 1.0
+  },
+  "confusion": {
+   "true_positives": 50,
+   "false_positives": 0,
+   "missed": 6,
+   "precision": 1.0,
+   "recall": 0.8929
+  },
+  "idiom": {
+   "true_positives": 26,
+   "false_positives": 0,
+   "missed": 1,
+   "precision": 1.0,
+   "recall": 0.963
+  },
+  "pronoun_case": {
+   "true_positives": 4,
+   "false_positives": 0,
+   "missed": 2,
+   "precision": 1.0,
+   "recall": 0.6667
+  },
+  "punctuation": {
+   "true_positives": 7,
+   "false_positives": 2,
+   "missed": 1,
+   "precision": 0.7778,
+   "recall": 0.875
+  },
+  "quantity": {
+   "true_positives": 11,
+   "false_positives": 0,
+   "missed": 1,
+   "precision": 1.0,
+   "recall": 0.9167
+  },
+  "usage": {
+   "true_positives": 8,
+   "false_positives": 0,
+   "missed": 1,
+   "precision": 1.0,
+   "recall": 0.8889
+  },
+  "verb_form": {
+   "true_positives": 16,
+   "false_positives": 0,
+   "missed": 1,
+   "precision": 1.0,
+   "recall": 0.9412
+  }
+ },
+ "overall": {
+  "true_positives": 142,
+  "false_positives": 2,
+  "missed": 13,
+  "precision": 0.9861,
+  "recall": 0.9161
+ },
+ "clean_sentence_findings": 2,
+ "rules": {
+  "advice_for_advise": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "advise_for_advice": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "affect_for_effect": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "all_of_the_sudden": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "amount_for_number": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "and_etc": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "baited_breath": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "bare_for_bear": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "between_you_and_i": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "breath_for_breathe": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "breathe_for_breath": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "by_in_large": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "cant_hardly": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "case_and_point": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "coarse_of_action": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "comma_splice_adverb": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "comma_splice_clauses": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 2
+  },
+  "contraction_for_its": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "could_care_less": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "didnt_used_to": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "doggy_dog": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "double_negative_no": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "effect_for_affect": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "escape_goat": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "everyone_are": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "fewer_for_less": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "first_person_has": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "first_person_is_are": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "for_granite": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "free_reign": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "intensive_purposes": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "irregardless": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "its_for_its_contraction": {
+   "labelled": 4,
+   "true_positives": 4,
+   "false_positives": 0
+  },
+  "lead_for_led": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "less_for_fewer": {
+   "labelled": 3,
+   "true_positives": 3,
+   "false_positives": 0
+  },
+  "loose_for_lose": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "lose_for_loose": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "lowercase_i": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "make_due": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "many_for_much": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "maybe_for_may_be": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "missing_apostrophe": {
+   "labelled": 4,
+   "true_positives": 4,
+   "false_positives": 0
+  },
+  "modal_of": {
+   "labelled": 5,
+   "true_positives": 5,
+   "false_positives": 0
+  },
+  "much_for_many": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "mute_point": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "nip_in_the_butt": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "object_pronoun_subject": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "of_for_off": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "one_in_the_same": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "pacifically": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "participle_after_have": {
+   "labelled": 9,
+   "true_positives": 9,
+   "false_positives": 0
+  },
+  "peak_interest": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "per_say": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "plural_pronoun_has": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "plural_pronoun_is": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "plural_was": {
+   "labelled": 3,
+   "true_positives": 3,
+   "false_positives": 0
+  },
+  "run_together_words": {
+   "labelled": 4,
+   "true_positives": 4,
+   "false_positives": 0
+  },
+  "semicolon_adverb_comma": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "simple_past_for_participle": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "sneak_peak": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "supposably": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "suppose_to": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "than_for_then": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "their_for_there": {
+   "labelled": 3,
+   "true_positives": 3,
+   "false_positives": 0
+  },
+  "then_for_than": {
+   "labelled": 3,
+   "true_positives": 3,
+   "false_positives": 0
+  },
+  "there_for_their": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "there_is_plural": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "theyre_for_their": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "third_person_are": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "third_person_dont": {
+   "labelled": 3,
+   "true_positives": 3,
+   "false_positives": 0
+  },
+  "third_person_have": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "to_for_too_verb": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "tongue_and_cheek": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "too_for_to": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "tow_the_line": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "use_to_participle": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "weather_for_whether": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "were_for_where": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "wet_appetite": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "whether_for_weather": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "whos_for_whose": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "whose_for_whos": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  },
+  "wreck_havoc": {
+   "labelled": 1,
+   "true_positives": 1,
+   "false_positives": 0
+  },
+  "your_for_youre": {
+   "labelled": 4,
+   "true_positives": 3,
+   "false_positives": 0
+  },
+  "youre_for_your": {
+   "labelled": 2,
+   "true_positives": 2,
+   "false_positives": 0
+  }
+ },
+ "rules_without_a_labelled_example": [],
+ "false_positives": [
+  {
+   "text": "He came, he saw, he conquered.",
+   "group": "punctuation",
+   "flagged": ","
+  },
+  {
+   "text": "It was the best of times, it was the worst of times.",
+   "group": "punctuation",
+   "flagged": ","
+  }
+ ],
+ "missed": [
+  {
+   "text": "Tell me when your ready to leave.",
+   "group": "confusion",
+   "expected": "your"
+  },
+  {
+   "text": "Their going to be late for the train again.",
+   "group": "confusion",
+   "expected": "Their"
+  },
+  {
+   "text": "She lays down for a nap every afternoon.",
+   "group": "confusion",
+   "expected": "lays"
+  },
+  {
+   "text": "The puppy dragged it's favourite toy across the floor.",
+   "group": "confusion",
+   "expected": "it's"
+  },
+  {
+   "text": "I think your right about the date.",
+   "group": "confusion",
+   "expected": "your"
+  },
+  {
+   "text": "There best friend is waiting at the gate.",
+   "group": "confusion",
+   "expected": "There"
+  },
+  {
+   "text": "She had swore never to return to the city.",
+   "group": "verb_form",
+   "expected": "swore"
+  },
+  {
+   "text": "It was a secret between he and me.",
+   "group": "pronoun_case",
+   "expected": "he"
+  },
+  {
+   "text": "Him and the others left before the end.",
+   "group": "pronoun_case",
+   "expected": "Him"
+  },
+  {
+   "text": "Less cookies were left after the party.",
+   "group": "quantity",
+   "expected": "Less"
+  },
+  {
+   "text": "I wanted to go, I was too tired to move.",
+   "group": "punctuation",
+   "expected": ","
+  },
+  {
+   "text": "He got away scotch free after the trial.",
+   "group": "idiom",
+   "expected": "scotch free"
+  },
+  {
+   "text": "Ive been there twice this year.",
+   "group": "usage",
+   "expected": "Ive"
+  }
+ ],
+ "open_coverage": {
+  "sentences": 54,
+  "labelled_errors": 39,
+  "found": 4,
+  "recall": 0.1026,
+  "matches_on_clean_sentences": 0,
+  "matches_elsewhere_in_sentences_with_errors": 0
+ }
+}

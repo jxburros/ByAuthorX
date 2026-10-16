@@ -7,6 +7,8 @@
 | Attach research libraries and cite sources | [Library and citations guide](library-and-citations-guide.md) |
 | Configure AI review, chat and dictation | [Providers](providers.md) |
 | Understand how views, formats and losses work | [File views](file-views.md), [compatibility](compatibility.md) |
+| Understand grammar checking, its tiers and measured accuracy | [Grammar](grammar.md) |
+| Install dictionaries and grammar packs; see translation coverage | [Language packs and translations](translations.md) |
 | Fix a problem | [Troubleshooting](troubleshooting.md) |
 | Understand the design | [Architecture](architecture.md), [implementation contract](implementation-contract.md) |
 | Work on the code | [Development guide](development.md), [CONTRIBUTING](../CONTRIBUTING.md) |

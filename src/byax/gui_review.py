@@ -35,7 +35,7 @@ MODEL_CHECKS = {
 # (kind, label, description, active by default)
 LOCAL_CHECKS = (
     ('spelling', 'Spelling', 'Local dictionary. Nothing leaves this computer.', True),
-    ('grammar', 'Grammar', 'Local grammar and usage rules.', True),
+    ('grammar', 'Grammar', 'Local grammar and usage rules; the optional LanguageTool tier adds more.', True),
     (
         'health',
         'Document health',
@@ -116,6 +116,8 @@ class ChecksPanel(QWidget):
             for kind, label, description, default in checks:
                 self._add_row(rows, kind, self.tr(label), self.tr(description), default)
             layout.addWidget(group)
+            if title == 'On this computer':
+                layout.addWidget(self._grammar_group())
         fiction = QGroupBox(self.tr('Fiction analysis (advisory, off by default)'))
         fiction.setAccessibleName(self.tr('Fiction analysis checks'))
         rows = QVBoxLayout(fiction)
@@ -152,6 +154,38 @@ class ChecksPanel(QWidget):
         self.custom = self._load_custom()
         self._render_custom()
         self.sync()
+
+    # Grammar tiers -----------------------------------------------------------
+
+    def _grammar_group(self):
+        group = QGroupBox(self.tr('Grammar tiers'))
+        group.setAccessibleName(self.tr('Grammar tiers'))
+        rows = QVBoxLayout(group)
+        self.grammar_builtin_label = QLabel()
+        self.grammar_builtin_label.setAccessibleName(self.tr('Built-in grammar rules status'))
+        self.grammar_lt_label = QLabel()
+        self.grammar_lt_label.setAccessibleName(self.tr('LanguageTool status'))
+        self.grammar_lt_label.setWordWrap(True)
+        rows.addWidget(self.grammar_builtin_label)
+        rows.addWidget(self.grammar_lt_label)
+        setup = QPushButton(self.tr('Set up grammar tiers…'))
+        setup.setAccessibleName(self.tr('Set up grammar tiers'))
+        setup.setToolTip(
+            self.tr(
+                'Install or start the optional LanguageTool tier. Nothing is downloaded unless you confirm.'
+            )
+        )
+        setup.clicked.connect(lambda: self.window.show_languages(tab='grammar'))
+        rows.addWidget(setup)
+        self.refresh_grammar_status()
+        return group
+
+    def refresh_grammar_status(self):
+        from .gui_languages import tier_summary
+
+        summary = tier_summary()
+        self.grammar_builtin_label.setText(summary['builtin'])
+        self.grammar_lt_label.setText(summary['languagetool'])
 
     # Rows ------------------------------------------------------------------
 

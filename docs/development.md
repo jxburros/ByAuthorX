@@ -45,7 +45,15 @@ Fixtures and benchmarks:
 ```bash
 uv run python scripts/generate_fixtures.py --out artifacts/fixtures
 QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py --out artifacts/benchmark.json
+uv run python scripts/grammar_benchmark.py --write                 # built-in grammar precision/recall (docs/benchmarks)
+uv run python scripts/grammar_benchmark.py --write --languagetool <folder>   # also a local LanguageTool (Java 17+)
+uv run python scripts/extract_strings.py --write                   # refresh the interface-string catalogue
+BYAX_LANGUAGETOOL_URL=http://127.0.0.1:8081 uv run python -m pytest -m languagetool   # tests against a real local server
 ```
+
+The grammar and language-pack tests never need Java or the network: they use a fake local server
+(`tests/fixtures/grammar/fake_languagetool.py`) and a local file server. `tests/conftest.py` points
+`BYAX_GRAMMAR_DIR` and `BYAX_LANGUAGES_DIR` at temporary folders for every test.
 
 ## CI gates (run these before pushing)
 

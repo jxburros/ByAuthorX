@@ -145,7 +145,9 @@ The same checks run headless as `byax sync` ([reference](cli-reference.md#sync-f
 The Inspector's **Checks** tab lists every check with an active checkbox and its own **Run**
 button; **Run all active checks** in **Proposed changes** runs the active ones together:
 
-- *On this computer*: spelling, grammar, document health. Active by default.
+- *On this computer*: spelling, grammar, document health. Active by default. Grammar has two tiers,
+  the built-in rules and the optional LanguageTool; see
+  [Grammar tiers and languages](#grammar-tiers-and-languages).
 - *Fiction analysis (advisory)*: dialogue tags, filter words and telling, repeated words and
   openings, rhythm, sensory balance and invented-name spelling. Local and inactive by default; see
   [Fiction checks and readability](#fiction-checks-and-readability).
@@ -217,6 +219,37 @@ fixture produces none, and the limits fixture shows where the heuristics are wro
 *felt*, an emotion told in words the list lacks, a distinct character called Corin). These are
 small hand-annotated fixtures, not an accuracy estimate for a manuscript. Timing on a 100,000-word
 manuscript is in [`benchmarks/0.3-fiction-performance.json`](benchmarks/0.3-fiction-performance.json).
+
+### Grammar tiers and languages
+
+Grammar checking has two tiers, both on your computer; the Checks tab shows the state of each
+(*Built-in rules: on (85 English rules)* and *LanguageTool: not installed, stopped or running*):
+
+- **Built-in rules** are always available. They are deliberately narrow and precise: commonly
+  confused words in clear contexts (*should of*, *its a*, *your welcome*, *taller then*), simple
+  agreement (*they was*, *he don't*), verb forms (*has went*, *I seen*), *between you and I*,
+  *less people*, comma splices, a lowercase *i* and about two dozen misheard idioms (*for all
+  intensive purposes*). Spacing, capitals, *a/an*, doubled words and unbalanced quotes are covered by
+  the older checks and are not repeated. They do not run inside quoted speech when the pattern is
+  dialect (*he don't*), and a profile's sensitivity decides which rules run.
+- **LanguageTool** is optional and adds broad grammar and style coverage in many languages. It is
+  free software that needs Java 17 or newer and runs as a separate local program; ByAuthorX never
+  bundles it and only ever sends text to it on this computer. Use it by choosing a LanguageTool
+  folder you already have, by pointing at a server you started, or by letting ByAuthorX download the
+  official release. Nothing is downloaded until you confirm a dialog that shows the source address,
+  the size (about 240 MiB) and the SHA-256, and the file is checked before it is unpacked.
+  **Tools > Languages… > Grammar** (or `byax grammar`) installs, starts and stops it.
+
+Findings from either tier have exact ranges and, where there is a fix, a proposal you accept one at
+a time. The built-in tier is much narrower than LanguageTool, and a clean grammar run says so in its
+coverage. The language of a paragraph is its own `language` setting, else the document language.
+Accuracy per rule family on a labelled fixture, the comparison between the tiers and the reasoning
+are in [grammar](grammar.md).
+
+**Tools > Languages…** also lists the language packs (dictionaries, grammar rules, word lists and
+interface strings; English ships built in), installs a pack from a file after showing its checksum,
+verifies them and removes them, and chooses the interface language. No interface translation ships
+yet; see [translations](translations.md) for coverage per language and how to make a pack.
 
 ### Assistant: Chat vs Work
 

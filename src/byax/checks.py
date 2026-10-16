@@ -9,7 +9,8 @@ only units whose fingerprints still match and re-evaluate everything else.
 import copy
 import re
 
-from . import fiction_checks
+from . import fiction_checks, language_packs
+from . import grammar as grammar_tiers
 from .errors import ByaxError
 from .model import object_hash, text_of, validate_document
 
@@ -66,11 +67,12 @@ RULES = {
     'factual.library_citation': ('factual', 'factual', 'conservative', None, 'warning'),
 }
 RULES.update(fiction_checks.RULES)
+RULES.update(grammar_tiers.RULES)
 # Coverage that deterministic rules never provide; always reported for the suite.
 UNMEASURED = {
     'grammar': (
         'grammar.agreement_structure',
-        'Agreement, sentence structure and ambiguous constructions require a configured reviewer; deterministic punctuation rules do not establish them.',
+        'Agreement, sentence structure and ambiguous constructions beyond the built-in patterns and the optional LanguageTool tier require a configured reviewer; rules do not establish them.',
     ),
     'editorial': (
         'editorial.clarity_voice',
@@ -234,6 +236,8 @@ def run_checks(doc, suites=None, *, limit=100, profile=None, scope=None, previou
                 'level': 'report',
             }
         )
+    if 'grammar' in expanded:
+        coverage.append({**grammar_tiers.tier_coverage(), 'scope': selection['label']})
     if selection['kind'] != 'document':
         document_suites = sorted(expanded - BLOCK_SUITES - {'consistency'})
         if document_suites:
@@ -486,6 +490,7 @@ class _Context:
         self.library_evidence = {}
         self.library_fingerprints = {}
         settings = doc.get('settings', {})
+        language_packs.rescan()
         self.env = object_hash(
             {
                 'language': doc.get('metadata', {}).get('language'),
@@ -499,6 +504,7 @@ class _Context:
                     if 'fiction' in suites
                     else {}
                 ),
+                **({'grammar': grammar_tiers.tier_signature()} if 'grammar' in suites else {}),
             }
         )
 
@@ -799,6 +805,7 @@ def _evaluate_block(ctx, block, key):
         for target, text in texts:
             if 'grammar' in suites:
                 _grammar(sink, target, text, language, level, cell=target != block['id'])
+                grammar_tiers.evaluate_text(ctx, sink, block, target, text, language, level)
             if 'editorial' in suites:
                 _editorial(sink, target, text, level)
             if 'spelling' in suites:
@@ -964,15 +971,27 @@ def _editorial(sink, target, text, level):
                 )
 
 
-def _speller(language):
-    if language not in _SPELLERS:
-        try:
-            from spellchecker import SpellChecker
+def _build_speller(language):
+    """A fresh dictionary for a language: an installed, verified pack first, then the built-in one."""
+    try:
+        from spellchecker import SpellChecker
 
-            _SPELLERS[language] = SpellChecker(language=language)
-        except (ImportError, ValueError):
-            _SPELLERS[language] = None
-    return _SPELLERS[language]
+        path = language_packs.spelling_dictionary(language)
+        return SpellChecker(language=None, local_dictionary=path) if path else SpellChecker(language=language)
+    except (ImportError, ValueError, OSError):
+        return None
+
+
+def _speller(language):
+    """Cached dictionary per language; an entry is ``(pack signature, checker)`` and is rebuilt when the pack changes."""
+    signature = language_packs.data_signature('spelling', language)
+    entry = _SPELLERS.get(language, ())
+    if isinstance(entry, tuple) and (not entry or entry[0] != signature):
+        entry = _SPELLERS[language] = (signature, _build_speller(language))
+    return entry[1] if isinstance(entry, tuple) else entry
+
+
+language_packs.on_refresh(_SPELLERS.clear)
 
 
 def _spelling(sink, ctx, block, target, text, language):
@@ -2311,11 +2330,8 @@ def record_findings(doc, values, revision=None):
 def spelling_suggestions(doc, words, *, limit=5):
     """Ranked local-dictionary candidates for unknown words; advisory, never applied."""
     language = doc.get('metadata', {}).get('language', 'en').split('-')[0]
-    try:
-        from spellchecker import SpellChecker
-
-        checker = SpellChecker(language=language)
-    except (ImportError, ValueError):
+    checker = _build_speller(language)
+    if checker is None:
         return {word: [] for word in words}
     checker.word_frequency.load_words(doc.get('settings', {}).get('dictionary', []))
     result = {}
