@@ -167,6 +167,18 @@ the reply and recorded as `unverified` (`citations_unverified`); see `citation_r
 The request and response shapes are covered by recorded HTTP fixtures
 (`tests/fixtures/grounding`), written from the public API reference; no live call was made.
 
+## A judge for uncertain citations
+
+Any alias that can hold a text conversation (OpenAI, Anthropic, Gemini, Ollama) can be named as the **judge**
+for citations the deterministic checks cannot settle: `ProviderRegistry.chat(..., judge_alias="…")`, or
+`byax check --citations --judge ALIAS`. It must be a different provider from the one that wrote the answer (a
+different alias with the same kind, model and endpoint is refused too), and nothing is sent before that is
+checked. A remote judge needs the usual remote authorization plus the `library_passages` permission for its
+alias, and never receives text from a `local_only` library; a judge on this computer needs neither. The
+claim and the cited text travel as untrusted data, the answer is a category (`supported`, `partial`,
+`unsupported`) with a short reason, and a reply that cannot be read is recorded as not run. See
+[Optional judge](library-and-citations-guide.md#optional-judge-stage-3).
+
 ## Streaming recognition
 
 `list_capabilities()` declares `streaming` per adapter, and only adapters with an implemented incremental path claim it:

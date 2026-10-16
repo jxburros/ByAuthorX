@@ -222,6 +222,11 @@ class LibraryPanels:
         style.setObjectName('citationStyle')
         for label, value in (('APA', 'apa'), ('MLA', 'mla'), ('Chicago', 'chicago')):
             style.addItem(self.tr(label), value)
+        from .csl_styles import list_styles
+
+        for installed in list_styles()['styles']:
+            if not installed['built_in']:
+                style.addItem(installed.get('title') or installed['name'], installed['name'])
         style.setCurrentIndex(max(0, style.findData(current.get('style', 'apa'))))
         form.addRow(self.tr('Style'), style)
         presentation = QComboBox()
@@ -506,11 +511,11 @@ class LibraryPanels:
         from .citations import export_sources
 
         path, selected = QFileDialog.getSaveFileName(
-            self, self.tr('Export sources'), '', 'CSL-JSON (*.json);;BibTeX (*.bib)'
+            self, self.tr('Export sources'), '', 'CSL-JSON (*.json);;BibTeX (*.bib);;RIS (*.ris)'
         )
         if path:
             try:
-                format_name = 'bibtex' if 'BibTeX' in selected else 'csl-json'
+                format_name = 'bibtex' if 'BibTeX' in selected else 'ris' if 'RIS' in selected else 'csl-json'
                 Path(path).write_text(
                     export_sources(self.doc.get('references', {}), format_name), encoding='utf-8'
                 )

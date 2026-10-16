@@ -65,6 +65,7 @@ from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_bibliography import BibliographyPanels
 from .gui_codex import CodexPanels
 from .gui_compile import CompilePanels
 from .gui_docx_review import DocxReviewPanels
@@ -120,6 +121,7 @@ class MainWindow(
     DraftPanels,
     CompilePanels,
     CodexPanels,
+    BibliographyPanels,
     DocxReviewPanels,
     QMainWindow,
 ):
@@ -605,6 +607,10 @@ class MainWindow(
             ('Reusable settings…', self.reusable_settings),
             ('Readability report…', self.readability_report),
             ('Codex…', self.codex_panel),
+            ('Bibliography health…', self.bibliography_health),
+            ('Where is this source used…', self.where_used),
+            ('Import from Zotero…', self.import_from_zotero),
+            ('Citation styles…', self.citation_styles),
             ('Synced folder safety…', self.sync_safety_details),
             ('Review conflicted copies…', self.review_conflicted_copies),
             ('Languages…', self.show_languages),

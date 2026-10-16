@@ -39,6 +39,7 @@ from .errors import ByaxError
 STATES = ('supported', 'partial', 'unsupported', 'not_checkable', 'unanchored', 'unverified')
 ORIGINS = ('native', 'token', 'user')
 STAGE_ORDER = ('quote', 'fuzzy', 'entailment', 'judge')
+_DECISIVE = ('supported', 'partial', 'unsupported', 'not_checkable')
 DEFAULT_STAGES = ('quote', 'fuzzy')
 CONTEXT_CHARS = 32
 # Claim-to-chunk alignment (0-100). At or above NEAR the cited words are effectively the source's;
@@ -270,6 +271,157 @@ def claimed_quotation(claim):
     """A quotation inside a claim (text between quotation marks), or None."""
     match = _QUOTE_IN.search(claim or '')
     return match.group(1) if match else None
+
+
+_ABBREVIATIONS = frozenset(
+    [
+        'mr',
+        'mrs',
+        'ms',
+        'dr',
+        'prof',
+        'sr',
+        'jr',
+        'st',
+        'mt',
+        'vs',
+        'etc',
+        'al',
+        'fig',
+        'figs',
+        'eq',
+        'no',
+        'nos',
+        'vol',
+        'vols',
+        'ch',
+        'sec',
+        'pp',
+        'ed',
+        'eds',
+        'cf',
+        'approx',
+        'dept',
+        'inc',
+        'ltd',
+        'co',
+        'corp',
+        'gen',
+        'col',
+        'lt',
+        'capt',
+        'sgt',
+        'rev',
+        'hon',
+        'gov',
+        'sen',
+        'rep',
+        'ca',
+        'viz',
+    ]
+)
+_ABBREVIATION_PHRASES = ('e.g.', 'i.e.', 'a.m.', 'p.m.', 'u.s.', 'u.k.', 'ph.d.', 'cf.')
+_BOUNDARY = re.compile(r'[.!?\u2026]+[\"\u201d\u2019\')\]]*(?=\s)|\n[ \t]*\n')
+_CLAUSE_JOINERS = re.compile(
+    r';\s+|,\s+(?=(?:but|yet|whereas|while|although|though|however|and|so)\b)|\s+(?=(?:whereas|although)\b)',
+    re.IGNORECASE,
+)
+MIN_CLAUSE_WORDS = 4
+
+
+def _opens_sentence(text, position):
+    """Whether the text after ``position`` starts like a new sentence (a capital, digit, quote or bracket)."""
+    rest = text[position:].lstrip()
+    return bool(rest) and (rest[0].isupper() or rest[0].isdigit() or rest[0] in '"\u201c\u2018\'([')
+
+
+def _is_abbreviation(text, boundary_start):
+    word = re.search(r'([\w.]+)$', text[:boundary_start])
+    if not word:
+        return False
+    token = word.group(1).lower()
+    if any(text[: boundary_start + 1].lower().endswith(p) for p in _ABBREVIATION_PHRASES):
+        return True
+    # A single capital initial ("J. Smith") and a listed abbreviation are not sentence ends.
+    return token.rstrip('.') in _ABBREVIATIONS or (
+        len(token) == 1 and token.isalpha() and word.group(1).isupper()
+    )
+
+
+def _sentence_spans(text):
+    spans, start = [], 0
+    for match in _BOUNDARY.finditer(text):
+        end = match.end()
+        group = match.group()
+        if group[0] != '\n':
+            if not _opens_sentence(text, end):
+                continue
+            if group[0] == '.' and not group.startswith('..') and _is_abbreviation(text, match.start()):
+                continue
+        spans.append((start, end))
+        start = end
+    if text[start:].strip():
+        spans.append((start, len(text)))
+    return spans
+
+
+def _outside_quotes(text, start, end):
+    """Positions in ``text[start:end]`` that are not inside quotation marks or brackets."""
+    depth, quoted, free = 0, False, set()
+    for index in range(start, end):
+        char = text[index]
+        if char in '"\u201c\u201d':
+            quoted = not quoted if char == '"' else char == '\u201c'
+        elif char in '([':
+            depth += 1
+        elif char in ')]':
+            depth = max(0, depth - 1)
+        elif not quoted and depth == 0:
+            free.add(index)
+    return free
+
+
+def split_claims(text, *, clauses=True):
+    """Split ``text`` into claims for a later entailment or judge stage (plan Phase 5).
+
+    Sentences first (abbreviations such as ``Dr.``, ``e.g.`` and ``et al.``, initials and decimals do
+    not end one); then, with ``clauses``, a sentence is split at a semicolon or at ``, but`` / ``, yet``
+    / ``, and`` / ``, so`` / ``whereas`` / ``although`` when each side has at least four words, never
+    inside quotation marks or brackets. Returns ``[{'text', 'start', 'end', 'sentence', 'clause'}]``
+    in order; ``text[start:end] == item['text']`` always holds, and ``clause`` is the position of the
+    piece within its sentence (0 when the sentence was not split).
+    """
+    if not isinstance(text, str):
+        raise ByaxError('invalid_input', 'Claim text must be a string')
+    claims = []
+    for number, (begin, end) in enumerate(_sentence_spans(text)):
+        pieces = [(begin, end)]
+        if clauses:
+            free = _outside_quotes(text, begin, end)
+            cuts = [m for m in _CLAUSE_JOINERS.finditer(text, begin, end) if m.start() in free]
+            pieces, last = [], begin
+            for cut in cuts:
+                left, right = text[last : cut.start()], text[cut.end() : end]
+                if len(left.split()) >= MIN_CLAUSE_WORDS and len(right.split()) >= MIN_CLAUSE_WORDS:
+                    pieces.append((last, cut.start() + (1 if text[cut.start()] == ';' else 0)))
+                    last = cut.end()
+            pieces.append((last, end))
+        for clause, (a, b) in enumerate(pieces):
+            while a < b and text[a].isspace():
+                a += 1
+            while b > a and text[b - 1].isspace():
+                b -= 1
+            if a < b:
+                claims.append(
+                    {
+                        'text': text[a:b],
+                        'start': a,
+                        'end': b,
+                        'sentence': number,
+                        'clause': clause if len(pieces) > 1 else 0,
+                    }
+                )
+    return claims
 
 
 def from_tokens(text, passages=None, references=None):
@@ -697,14 +849,17 @@ def available_stages():
     return [name for name in STAGE_ORDER if name in _STAGES]
 
 
-def verify(records, stages=DEFAULT_STAGES, *, texts=None):
+def verify(records, stages=DEFAULT_STAGES, *, texts=None, overrides=None):
     """Run the cascade over ``records`` and return updated copies.
 
     ``texts`` maps each record's key (chunk ID, else citation ID) to the source text it cites, for
     example :func:`source_texts` of the request's passages. A record with an ID that was not supplied
     stays ``unverified``; one whose source text is unavailable becomes ``unanchored``. Each stage's
     outcome is appended to ``checks``; the state is the last decisive result. Stages that are not
-    installed are listed as ``not_run``, never silently treated as passed.
+    installed are listed as ``not_run``, never silently treated as passed. ``overrides`` maps stage
+    names to checks used for this call only (the optional LLM judge is built per request, see
+    :mod:`byax.grounding_judge`). Records that already carry checks keep their earlier result, so a
+    later stage can be run over verified records without repeating the first ones.
     """
     if isinstance(stages, str):
         stages = (stages,)
@@ -727,9 +882,9 @@ def verify(records, stages=DEFAULT_STAGES, *, texts=None):
             record.reason = record.reason or 'The cited source text is not available to check.'
             results.append(record)
             continue
-        decided = None
+        decided = current_result(record)
         for name in sorted(dict.fromkeys(stages), key=STAGE_ORDER.index):
-            stage = _STAGES.get(name)
+            stage = (overrides or {}).get(name) or _STAGES.get(name)
             if stage is None:
                 record.checks.append(
                     {
@@ -743,11 +898,21 @@ def verify(records, stages=DEFAULT_STAGES, *, texts=None):
             check = stage(record, text)
             if check:
                 record.checks.append(check)
-                if check.get('result') in ('supported', 'partial', 'unsupported', 'not_checkable'):
+                if check.get('result') in _DECISIVE:
                     decided = check['result']
         record.state = decided or 'unverified'
         results.append(record)
     return results
+
+
+def current_result(record):
+    """The last decisive result among a record's checks, else its decisive state, else None."""
+    record = GroundingRecord.from_dict(record)
+    decided = None
+    for check in record.checks:
+        if check.get('result') in _DECISIVE:
+            decided = check['result']
+    return decided or (record.state if record.state in _DECISIVE else None)
 
 
 def summarize(records):

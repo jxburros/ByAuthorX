@@ -1,0 +1,20 @@
+{
+ "request": {
+  "method": "GET",
+  "url": "https://api.datacite.org/dois/10.1234/this-doi-does-not-exist-byax"
+ },
+ "response": {
+  "headers": {
+   "content-type": "application/json; charset=utf-8"
+  },
+  "json": {
+   "errors": [
+    {
+     "status": "404",
+     "title": "The resource you are looking for doesn't exist."
+    }
+   ]
+  },
+  "status": 404
+ }
+}

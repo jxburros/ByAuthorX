@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "HEAD",
+  "url": "https://www.crossref.org/"
+ },
+ "response": {
+  "headers": {
+   "content-type": "text/html"
+  },
+  "status": 200,
+  "text": ""
+ }
+}

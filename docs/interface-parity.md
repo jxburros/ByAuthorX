@@ -301,3 +301,40 @@ always AI-visible view for model clients. All lists are bounded with `offset` co
 | Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
 | Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
+
+## Bibliography health, exchange and excerpts
+
+`bibliography` and `excerpt` are two commands dispatched through `cli.execute`. Over MCP and REST the
+read-only parts work: the health report from the cache, RIS and BibTeX export, listing styles, the
+Retraction Watch index status, where-used and the excerpt check. Everything that would fetch from
+the network (online checks, style downloads), read the person's Zotero, change their configuration
+or installed styles, or send citations to a judge provider is refused there (`unsupported_feature`),
+including inside a `jobs` submission; the person at this computer runs it through the CLI or the
+desktop. All network lookups go through the `citation_lookup` permission.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Checks | bibliography health | `byax bibliography --action health` | `byax_bibliography` | `POST /v1/execute` | `byax.bibliography.health` | Tools > Bibliography health… |
+| Checks | online bibliography checks | `byax bibliography --action health --online` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.registry_record` | Tools > Bibliography health… |
+| Checks | dead links and archived copies | `byax bibliography --action health --online --archive` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.archived_copy` | Tools > Bibliography health… |
+| Checks | citation judge (cascade stage 3) | `byax check --citations --judge` | `byax_check` (refused) | `POST /v1/execute` (refused) | `byax.grounding_judge.judge_audit` | — (headless) |
+| Checks | excerpt check | `byax excerpt --action check` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.check` | Tools > Where is this source used… |
+| Inspection | bibliography status | `byax bibliography --action status` | `byax_bibliography` | `POST /v1/execute` | `byax.citation_lookup.RetractionIndex.info` | Tools > Bibliography health… |
+| Inspection | retraction index | `byax bibliography --action retractions-status` | `byax_bibliography` | `POST /v1/execute` | `byax.citation_lookup.RetractionIndex.info` | Tools > Bibliography health… |
+| Inspection | citation styles | `byax bibliography --action styles-list` | `byax_bibliography` | `POST /v1/execute` | `byax.csl_styles.list_styles` | Tools > Citation styles… |
+| Inspection | where a source is used | `byax excerpt --action where-used` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.where_used` | Tools > Where is this source used… |
+| Inspection | list excerpts | `byax excerpt --action list` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.excerpt_marks` | Tools > Where is this source used… |
+| Files | RIS export | `byax bibliography --action ris-export` | `byax_bibliography` | `POST /v1/execute` | `byax.ris.dump` | Library / Cite |
+| Files | RIS import | `byax bibliography --action ris-import` | `byax_bibliography` | `POST /v1/execute` | `byax.ris.parse` | Library / Cite |
+| Files | BibTeX export with citation keys | `byax bibliography --action export-bib` | `byax_bibliography` | `POST /v1/execute` | `byax.zotero.export_bib` | Library / Cite |
+| Files | Zotero import | `byax bibliography --action zotero-import` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.zotero.import_from_zotero` | Tools > Import from Zotero… |
+| Files | Zotero collections | `byax bibliography --action zotero-collections` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.zotero.ZoteroClient.collections` | Tools > Import from Zotero… |
+| Files | Retraction Watch import | `byax bibliography --action retractions-import` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.import_retraction_watch` | Tools > Bibliography health… |
+| Files | preview citation style | `byax bibliography --action styles-preview` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.csl_styles.preview` | Tools > Citation styles… |
+| Files | add citation style | `byax bibliography --action styles-add` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.csl_styles.add_from_repository` | Tools > Citation styles… |
+| Files | remove citation style | `byax bibliography --action styles-remove` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.csl_styles.remove` | Tools > Citation styles… |
+| Files | clear lookup cache | `byax bibliography --action clear-cache` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.clear_cache` | Tools > Bibliography health… |
+| Providers | bibliography lookup permission | `byax bibliography --action consent` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.grant` | Tools > Bibliography health… |
+| Providers | bibliography contact address | `byax bibliography --action configure` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.save_settings` | Tools > Bibliography health… |
+| Editing | add excerpt | `byax excerpt --action add` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.add_operations` | — (headless) |
+| Review | refresh excerpts | `byax excerpt --action refresh` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.check` | Tools > Where is this source used… |

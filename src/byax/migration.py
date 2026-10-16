@@ -84,7 +84,8 @@ def _v1_to_v2(state):
 
 def _v2_to_v3(state):
     """Schema 3 adds the optional manuscript ``project`` binder (CP A1), the optional
-    ``codex`` (CE 8.2) and the optional citation ``anchor`` object (CE 6.5: quote,
+    ``codex`` (CE 8.2), the optional ``excerpt`` mark (CE 9, A2: a source back-pointer on excerpted
+    text) and the optional citation ``anchor`` object (CE 6.5: quote,
     32-character source prefix and suffix, position, content hash and anchored/unanchored
     state). No data changes: the binder, codex and anchors are absent until created.
     Citation ``prefix``/``suffix`` stay what they always were, rendering affixes such as
@@ -101,6 +102,14 @@ def _v2_to_v3(state):
     affixes = anchors = 0
     for block in state.get('blocks', []):
         for mark in block.get('marks', []):
+            if isinstance(mark, dict) and mark.get('type') == 'excerpt':
+                raise ByaxError(
+                    'unsupported_feature',
+                    'A version 2 document already contains an unknown "excerpt" mark; '
+                    'it cannot be upgraded without risking loss.',
+                    target=block.get('id'),
+                    field='marks.excerpt',
+                )
             if not isinstance(mark, dict) or mark.get('type') != 'citation':
                 continue
             if any(not isinstance(mark.get(key, ''), str) for key in ('prefix', 'suffix')):
@@ -124,6 +133,7 @@ def _v2_to_v3(state):
         {'kind': 'added_optional_structure', 'field': 'codex', 'count': 0},
         {'kind': 'citation_anchor_fields', 'field': 'marks.anchor', 'count': anchors},
         {'kind': 'citation_affixes_checked', 'field': 'marks.prefix/suffix', 'count': affixes},
+        {'kind': 'added_optional_structure', 'field': 'marks.excerpt', 'count': 0},
     ]
 
 

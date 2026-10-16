@@ -860,6 +860,8 @@ class ProviderRegistry:
         library_authorized=False,
         cancel_event=None,
         native_citations=None,
+        judge_alias=None,
+        judge_authorized=False,
     ):
         """Multi-turn assistant conversation about a document.
 
@@ -872,7 +874,10 @@ class ProviderRegistry:
         document context, selection, passages and current turn. ``grounding`` in the result
         holds one record per citation, checked by cascade stage 1. Anthropic in chat mode
         uses native citations over custom-content documents unless ``native_citations`` is
-        False; other adapters and work mode use ``[[cite:ID]]`` tokens.
+        False; other adapters and work mode use ``[[cite:ID]]`` tokens. ``judge_alias`` names an
+        optional second provider (never this one) that judges the low-confidence citations
+        (:mod:`byax.grounding_judge`); it is refused before anything is sent when it is the
+        generator, and a remote judge needs ``judge_authorized`` plus its own library permission.
         """
         config = self.get(alias)
         if config.kind not in {'openai', 'anthropic', 'gemini', 'ollama'}:
@@ -918,6 +923,19 @@ class ProviderRegistry:
         )
         context = context or {}
         passages = [p for p in context.get('library_passages') or [] if isinstance(p, dict)]
+        judge = None
+        if judge_alias:
+            from .grounding_judge import make_stage
+
+            judge = make_stage(
+                self,
+                judge_alias,
+                generator=alias,
+                authorized=judge_authorized,
+                library_authorized=library_authorized,
+                passages=passages,
+                cancel_event=cancel_event,
+            )
         # Native citations (decision 3): Anthropic custom-content documents, CHAT mode only, because
         # the citations API cannot be combined with structured output. WORK mode keeps [[cite:ID]].
         native = (
@@ -961,6 +979,12 @@ class ProviderRegistry:
                 else 'Remote provider; enable citation_retry for this provider to allow one corrective retry',
                 'invalid_ids': grounded['token_invalid'],
             }
+        if judge is not None:
+            from .grounding_judge import judge_grounding
+
+            grounded = judge_grounding(
+                grounded, judge, passages=passages, references=context.get('references') or {}
+            )
         result['grounding'] = grounded
         if retry:
             result['citation_retry'] = retry

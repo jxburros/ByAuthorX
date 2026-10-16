@@ -24,6 +24,10 @@ DEPENDENCY_STATUSES = ('unresolved', 'current', 'changed', 'missing', 'embedded'
 # and ``suffix`` are up to 32 characters of source text either side of the quote, ``position`` is
 # the quote's span in the cited chunk text and ``content_hash`` the source version it was anchored
 # to. Older readers ignore the object.
+# An ``excerpt`` mark (context engine plan 9, A2) covers text that was taken from a source and keeps a
+# back-pointer to it: ``value`` is the source ID, ``quote`` the source text, ``locator`` where in the source and
+# ``anchor`` the same source-side selectors a citation keeps. When the source is removed or the text can
+# no longer be found, ``anchor.state`` becomes ``unanchored``; the excerpt text is never removed with it.
 ANCHOR_CONTEXT_CHARS = 32
 ANCHOR_STATES = ('anchored', 'unanchored')
 
@@ -246,10 +250,20 @@ def validate_document(doc, *, include_history=True):
                 not isinstance(mark.get(key, ''), str) for key in ('prefix', 'suffix')
             ):
                 fail('Citation prefix and suffix must be text.', path + '.marks')
-            if mark['type'] == 'citation' and 'anchor' in mark:
+            if mark['type'] in ('citation', 'excerpt') and 'anchor' in mark:
                 problem = citation_anchor_problem(mark['anchor'])
                 if problem:
                     fail(problem, path + '.marks')
+            if mark['type'] == 'excerpt' and (
+                not isinstance(mark.get('value'), str)
+                or not isinstance(mark.get('quote', ''), str)
+                or not isinstance(mark.get('locator', {}), dict)
+                or not isinstance(mark.get('unanchored_reason', ''), str)
+            ):
+                fail(
+                    'Excerpt marks need a source ID, text quote, locator object and text reason.',
+                    path + '.marks',
+                )
         if b['type'] == 'table':
             rows = b.get('rows')
             if not isinstance(rows, list) or not rows:

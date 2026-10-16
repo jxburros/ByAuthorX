@@ -517,6 +517,18 @@ citation** to cite it in your text. Checks → **Citation audit** (or `byax chec
 checks every citation you made against its source on this computer, without AI. See the
 [library and citations guide](library-and-citations-guide.md#grounding-citation-chips-and-the-citation-audit).
 
+**Bibliography.** Tools → **Bibliography health…** (also in the Checks tab) looks over your reference
+list on this computer: malformed DOIs, citations without a reference and references never cited,
+citations per section, how old the references are, and whether a sentence's period or a note mark
+sits on the wrong side of a citation. **Check online…** can also ask Crossref, DataCite and OpenAlex
+whether the DOIs exist, whether their details match, and whether a work has been retracted (and look
+up dead links); it first shows which services receive what, and sends nothing without your say-so.
+A DOI nobody recognizes is shown as “unverified, please check”, never as fake. Tools → **Import from
+Zotero…** reads your local Zotero (read-only) including highlights as notes with their pages;
+**Citation styles…** adds more CSL styles after showing where each comes from; **Where is this source
+used…** lists every citation and excerpt per source. See
+[Bibliography health](library-and-citations-guide.md#bibliography-health).
+
 ## Keyboard and accessibility
 
 Controls are native, with accessible names; dragging in the Binder always has Alt+arrow and menu equivalents. Shortcuts written Ctrl+… in this guide are Cmd+… on macOS

@@ -1,0 +1,23 @@
+{
+ "request": {
+  "method": "GET",
+  "url": "https://archive.org/wayback/available?url=https%3A%2F%2Fexample.com%2F"
+ },
+ "response": {
+  "headers": {
+   "content-type": "application/json"
+  },
+  "json": {
+   "archived_snapshots": {
+    "closest": {
+     "available": true,
+     "status": "200",
+     "timestamp": "20261016213336",
+     "url": "http://web.archive.org/web/20261016213336/https://example.com/"
+    }
+   },
+   "url": "https://example.com/"
+  },
+  "status": 200
+ }
+}

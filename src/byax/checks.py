@@ -46,7 +46,15 @@ TRANSITIONS = {
 LEVELS = {'conservative': 0, 'balanced': 1, 'broad': 2}
 INTENTIONAL_ATTRS = ('intentional', 'code', 'quotation', 'lyric', 'dialect', 'verbatim')
 INTENTIONAL_STYLES = ('code', 'quotation')
-FORMATTING_MARKS_EXCLUDED = ('citation', 'reference', 'field', 'comment', 'cross_reference', 'bookmark')
+FORMATTING_MARKS_EXCLUDED = (
+    'citation',
+    'excerpt',
+    'reference',
+    'field',
+    'comment',
+    'cross_reference',
+    'bookmark',
+)
 
 # rule: (suite, family, level, languages or None for every language, severity)
 RULES = {

@@ -100,6 +100,24 @@ Match surrounding code (single quotes, type hints on public functions). Never cl
 does not support. Untrusted text (document content, model output) is data and must not select executables, enable
 retrieval or touch secrets. No network except explicit, user-selected provider calls.
 
+## Bibliography fixtures and live checks
+
+Bibliography tests never reach the network. `tests/bibliography_fixtures.py` provides `ReplayTransport`, which
+answers `httpx` requests from `tests/fixtures/bibliography/*.json` and fails on a request that has no recording,
+and `RecordingTransport`. To re-record after a registry changes its answers (network access needed):
+
+```bash
+uv run python tests/bibliography_fixtures.py record
+```
+
+This runs the real lookup client against Crossref, DataCite, OpenAlex and the Wayback Machine for the DOIs and
+links in `SCENARIOS` and `LINKS`, and rewrites one file per request (Crossref `reference` lists and some bulky
+OpenAlex and DataCite fields are dropped to keep them small; the file says so). Review the diff before committing.
+Tests that make real requests carry the `live` marker, which `addopts` deselects; run them with
+`uv run python -m pytest -m live tests/test_bibliography_live.py`. The Zotero fixtures in `tests/fixtures/zotero`
+are hand-written to the Zotero Web API v3 format. `tests/conftest.py` points `BYAX_BIBLIOGRAPHY_DIR` (lookup
+cache, Retraction Watch index, installed CSL styles, contact address) at a temporary folder for every test.
+
 ## Word review fixtures
 
 `tests/fixtures/docx-review` holds the round-trip fixture set used by `tests/test_docx_review.py`. It

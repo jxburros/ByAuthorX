@@ -122,6 +122,12 @@ LOCAL_CHECKS = (
         'Checks every citation’s quotation against its source, and whether the source changed. No AI.',
         False,
     ),
+    (
+        'bibliography',
+        'Bibliography health',
+        'Reference list, DOIs, retractions, citation placement. Online lookups run only when you ask.',
+        False,
+    ),
 )
 AI_CHECKS = (
     (
@@ -409,6 +415,8 @@ class ChecksPanel(QWidget):
             self.window.ai_panel.check_spelling()
         if 'citations' in kinds:
             self.run_citation_audit()
+        if 'bibliography' in kinds:
+            self.window.bibliography_health()
         suites = (['grammar'] if 'grammar' in kinds else []) + (HEALTH_SUITES if 'health' in kinds else [])
         groups = [kind.split(':', 1)[1] for kind in kinds if kind.startswith('fiction:')]
         if groups:

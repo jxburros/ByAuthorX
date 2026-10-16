@@ -48,6 +48,15 @@ def check_provider_admin(command, arguments):
             'unsupported_feature',
             'Manage library attachments and configuration through the local CLI or desktop',
         )
+    if command == 'check' and arguments.get('judge'):
+        raise ByaxError(
+            'unsupported_feature',
+            'Sending citations to a judge provider is done through the local CLI or desktop; automation reads the deterministic audit',
+        )
+    if command == 'bibliography':
+        from .cli_bibliography import refuse_over_transports
+
+        refuse_over_transports(arguments)
     if command == 'codex' and arguments.get('include_hidden'):
         raise ByaxError(
             'unsupported_feature', 'Codex entries hidden from AI are shown only in the local CLI and desktop'
@@ -753,4 +762,155 @@ INTERFACE_INVENTORY = (
     ('Files', 'detach series', 'codex --action series-detach', 'byax.engine.apply', None),
     ('Files', 'export series codex', 'codex --action series-export', 'byax.series.save', None),
     ('Inspection', 'entity lookup (read only)', 'entity', 'byax.cli_codex.entity_command', None),
+    # Bibliography health, exchange, styles, Zotero and live excerpts (context engine plan 9).
+    (
+        'Checks',
+        'bibliography health',
+        'bibliography --action health',
+        'byax.bibliography.health',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Checks',
+        'online bibliography checks',
+        'bibliography --action health --online',
+        'byax.citation_lookup.Lookup.registry_record',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Checks',
+        'dead links and archived copies',
+        'bibliography --action health --online --archive',
+        'byax.citation_lookup.Lookup.archived_copy',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Checks',
+        'citation judge (cascade stage 3)',
+        'check --citations --judge',
+        'byax.grounding_judge.judge_audit',
+        None,
+    ),
+    (
+        'Checks',
+        'excerpt check',
+        'excerpt --action check',
+        'byax.excerpts.check',
+        'Tools > Where is this source used…',
+    ),
+    (
+        'Inspection',
+        'bibliography status',
+        'bibliography --action status',
+        'byax.citation_lookup.RetractionIndex.info',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Inspection',
+        'retraction index',
+        'bibliography --action retractions-status',
+        'byax.citation_lookup.RetractionIndex.info',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Inspection',
+        'citation styles',
+        'bibliography --action styles-list',
+        'byax.csl_styles.list_styles',
+        'Tools > Citation styles…',
+    ),
+    (
+        'Inspection',
+        'where a source is used',
+        'excerpt --action where-used',
+        'byax.excerpts.where_used',
+        'Tools > Where is this source used…',
+    ),
+    (
+        'Inspection',
+        'list excerpts',
+        'excerpt --action list',
+        'byax.excerpts.excerpt_marks',
+        'Tools > Where is this source used…',
+    ),
+    ('Files', 'RIS export', 'bibliography --action ris-export', 'byax.ris.dump', 'Library / Cite'),
+    ('Files', 'RIS import', 'bibliography --action ris-import', 'byax.ris.parse', 'Library / Cite'),
+    (
+        'Files',
+        'BibTeX export with citation keys',
+        'bibliography --action export-bib',
+        'byax.zotero.export_bib',
+        'Library / Cite',
+    ),
+    (
+        'Files',
+        'Zotero import',
+        'bibliography --action zotero-import',
+        'byax.zotero.import_from_zotero',
+        'Tools > Import from Zotero…',
+    ),
+    (
+        'Files',
+        'Zotero collections',
+        'bibliography --action zotero-collections',
+        'byax.zotero.ZoteroClient.collections',
+        'Tools > Import from Zotero…',
+    ),
+    (
+        'Files',
+        'Retraction Watch import',
+        'bibliography --action retractions-import',
+        'byax.citation_lookup.import_retraction_watch',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Files',
+        'preview citation style',
+        'bibliography --action styles-preview',
+        'byax.csl_styles.preview',
+        'Tools > Citation styles…',
+    ),
+    (
+        'Files',
+        'add citation style',
+        'bibliography --action styles-add',
+        'byax.csl_styles.add_from_repository',
+        'Tools > Citation styles…',
+    ),
+    (
+        'Files',
+        'remove citation style',
+        'bibliography --action styles-remove',
+        'byax.csl_styles.remove',
+        'Tools > Citation styles…',
+    ),
+    (
+        'Files',
+        'clear lookup cache',
+        'bibliography --action clear-cache',
+        'byax.citation_lookup.Lookup.clear_cache',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Providers',
+        'bibliography lookup permission',
+        'bibliography --action consent',
+        'byax.citation_lookup.Lookup.grant',
+        'Tools > Bibliography health…',
+    ),
+    (
+        'Providers',
+        'bibliography contact address',
+        'bibliography --action configure',
+        'byax.citation_lookup.save_settings',
+        'Tools > Bibliography health…',
+    ),
+    ('Editing', 'add excerpt', 'excerpt --action add', 'byax.excerpts.add_operations', None),
+    (
+        'Review',
+        'refresh excerpts',
+        'excerpt --action refresh',
+        'byax.excerpts.check',
+        'Tools > Where is this source used…',
+    ),
 )
