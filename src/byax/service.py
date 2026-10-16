@@ -80,6 +80,12 @@ class AccessPolicy:
                 for key, child in value.items():
                     if (key in PATH_KEYS or is_path_argument(key)) and isinstance(child, str):
                         value[key] = self.check_path(child)
+                    elif (
+                        (key in PATH_KEYS or is_path_argument(key))
+                        and isinstance(child, list)
+                        and all(isinstance(item, str) for item in child)
+                    ):
+                        value[key] = [self.check_path(item) for item in child]
                     else:
                         visit(child)
             elif isinstance(value, list):

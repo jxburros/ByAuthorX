@@ -65,6 +65,7 @@ from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_beta_readers import BetaReaderPanels
 from .gui_codex import CodexPanels
 from .gui_compile import CompilePanels
 from .gui_docx_review import DocxReviewPanels
@@ -121,6 +122,7 @@ class MainWindow(
     CompilePanels,
     CodexPanels,
     DocxReviewPanels,
+    BetaReaderPanels,
     QMainWindow,
 ):
     def __init__(self, path=None):
@@ -221,6 +223,8 @@ class MainWindow(
             (self.tr('Compile…'), self.compile_book, None, None),
             (self.tr('Send for review (Word)…'), lambda: self.send_for_review(), None, None),
             (self.tr('Merge reviewed copy…'), lambda: self.merge_reviewed_word_copy(), None, None),
+            (self.tr('Send to beta readers…'), lambda: self.send_to_beta_readers(), None, None),
+            (self.tr('Import reader comments…'), lambda: self.import_reader_comments(), None, None),
             (self.tr('Page setup…'), self.page_setup, None, None),
             (self.tr('Print preview…'), self.print_preview, None, None),
             (self.tr('Print…'), self.print_document, QKeySequence.Print, 'print'),
@@ -1033,13 +1037,16 @@ class MainWindow(
             for record in self.doc['review'].get(kind, []):
                 if record.get('status') in ('resolved', 'accepted', 'rejected'):
                     continue
-                self.review_list.addItem(
+                label = (
                     record.get('text')
                     or record.get('explanation')
                     or record.get('message')
                     or record.get('title')
                     or kind.replace('_', ' ').title()
                 )
+                if kind == 'comments' and record.get('source') in ('beta_reader', 'pdf_review'):
+                    label = f'{record.get("author") or self.tr("Reader")}: {label}'
+                self.review_list.addItem(label)
                 if self.file_view != 'byax' and kind not in FORMATS[self.file_view]['review']:
                     item = self.review_list.item(self.review_list.count() - 1)
                     item.setText(item.text() + self.tr(' (not in this format)'))

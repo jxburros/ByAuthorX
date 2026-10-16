@@ -102,6 +102,8 @@ command's flags.
 | `entity` | Read-only codex lookup, mentions and heatmap (entries hidden from AI are never shown) |
 | `review-package` | Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on; `--action list` lists packages |
 | `merge-review` | Merge a returned Word review copy as pending proposals and comment threads |
+| `beta-copy` | Write a read-and-comment copy for beta readers: self-contained HTML (or a read-only companion page), PDF or Word |
+| `merge-comments` | Merge beta readers' comment files (and annotated PDFs) as comments and proposals |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -468,7 +470,59 @@ byax merge-review Chapter.byax --reviewed-path "Chapter (review) JE.docx" --json
 MCP exposes `byax_review_package` and `byax_merge_review`. REST scopes `path`, `out` and
 `reviewed_path` to its roots. Accept or reject the proposals with `byax review --action accept|reject`.
 
-## Library search syntax
+## Beta readers
+
+```bash
+byax beta-copy Chapter.byax --out "Chapter (readers).html" --note "Be honest, be kind." --json
+byax beta-copy Chapter.byax --out "Chapter (readers).pdf" --format pdf --json
+byax beta-copy Chapter.byax --out "Chapter (phone).html" --companion --json
+byax merge-comments Chapter.byax --comments "Chapter.byaxcomments.json" --comments "Kim.byaxcomments.json" --json
+```
+
+There is no hosted service. `beta-copy` writes one file; you send it however you like.
+
+- `beta-copy` (`--out`, `--format html|pdf|docx` (default `html`), `--reviewer`, `--note`,
+  `--companion`, `--overwrite`, `--expect-revision`, `--dry-run`) records the current revision as the
+  snapshot of review package `rv_…` exactly as `review-package` does (the peer `review:rv_…` pin and a
+  `metadata.review_packages` record with `format`, `reviewer`, `note`), saves the document, and only
+  then writes the file. `html` is one self-contained page: inline CSS and script, a
+  Content-Security-Policy that forbids every network request, offline commenting on selected text and
+  a download of `<title>.byaxcomments.json`. The output depends only on the document revision and the
+  arguments (no clock, no random values). `pdf` is the controlled PDF export with the footer
+  `Review copy rv_…  Page n of m` and the package ID as `/Creator`; the layout is reproducible but the
+  file is not byte for byte, because Qt stamps its creation time. `docx` is the Word review copy of
+  `review-package` restricted to comments. `--companion` (HTML only) writes a read-only page with no
+  script and no comment interface; it takes no comments back, so it pins and records nothing and does
+  not touch the document. `--note` and `--reviewer` apply to HTML. The result has `beta_copy`
+  (`format`, `companion`, `review_id`, `recorded`, `revision`, `snapshot_hash`, `sha256`),
+  `review_package` and an `export_report` of located losses (for example your own open comments, which
+  an HTML or PDF copy does not show).
+- `merge-comments` (`--comments`, repeatable; `--review-id`, `--expect-revision`, `--dry-run`) reads
+  comment files and PDFs readers marked up. A comment file is validated strictly as untrusted data: at
+  most 4 MiB and 5,000 comments, a closed schema, bounded text, cleaned control and direction
+  characters, nothing interpreted. The package comes from the file's `review_id` (or `--review-id`),
+  must still be pinned and must reproduce the recorded snapshot hash. Each comment is re-anchored
+  against the snapshot with its three selectors (position, quote, prefix and suffix), then mapped onto
+  the current document through the same word-level change map the Word merge uses. The result is
+  `add_comment` operations attributed to the reader, never to ByAuthorX, with stable IDs derived from
+  the review, reader and comment ID, so importing a file again, or a later export from the same
+  reader, adds nothing twice. A reader's suggested replacement or deletion becomes one pending
+  `beta_reader` proposal (with `review_source`: review ID, format, file, `sha256`, reader, comment ID)
+  when its passage still reads as it did; otherwise it is kept as a comment. Files merge
+  independently: a file that is invalid, belongs to another document or was already merged appears in
+  `rejected` or `comment_merge.files[].status` and the others are still merged; a single bad file
+  raises its error. A comment that cannot be anchored is never dropped: it becomes a comment on its
+  paragraph (or the first one) that quotes the lost passage, and the report lists a located loss
+  (`beta_comment_quote_lost`, `beta_comment_block_unknown`, `beta_comment_block_removed`,
+  `beta_comment_remapped`, `beta_comment_moved`, `beta_suggestion_not_placed`). A `.pdf` argument is
+  read with pypdf: sticky notes, free text and highlight, underline, strike-out and squiggly marks
+  with their contents and author become comments (highlights on the character range they cover, notes
+  on their paragraph) and `/IRT` replies become replies; other annotation kinds that carry text are
+  reported as `pdf_annotation_unsupported`. A Word file is merged with `merge-review` instead.
+
+MCP exposes `byax_beta_copy` and `byax_merge_comments`. REST scopes `path`, `out` and every entry of
+`comments_path` to its roots. Accept or reject the suggestions with `byax review --action accept|reject`.
+
 
 `library-search`, `library --action search` and `context --library-query` accept:
 

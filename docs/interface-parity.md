@@ -60,6 +60,8 @@ document drifts from it.
 | Review | send for review (Word) | `byax review-package` | `byax_review_package` | `POST /v1/execute` | `byax.docx_review.create_review_package` | File > Send for review (Word)… |
 | Review | list review packages | `byax review-package --action list` | `byax_review_package` | `POST /v1/execute` | `byax.docx_review.review_packages` | — (headless) |
 | Review | merge reviewed Word copy | `byax merge-review` | `byax_merge_review` | `POST /v1/execute` | `byax.docx_review.merge_reviewed_copy` | File > Merge reviewed copy… |
+| Review | send to beta readers (HTML, PDF, Word) | `byax beta-copy` | `byax_beta_copy` | `POST /v1/execute` | `byax.beta_readers.create_beta_copy` | File > Send to beta readers… |
+| Review | merge reader comments | `byax merge-comments` | `byax_merge_comments` | `POST /v1/execute` | `byax.beta_readers.merge_comments` | File > Import reader comments… |
 | History | list | `byax history` | `byax_history` | `POST /v1/execute` | `byax.engine.inspect` | Review > Revision history… |
 | History | checkpoint | `byax history --action checkpoint` | `byax_history` | `POST /v1/execute` | `byax.engine.checkpoint` | Review > Checkpoint… |
 | History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Start alternate draft… |

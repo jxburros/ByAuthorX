@@ -34,7 +34,15 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-qt>=4", "pytest-cov>=5", "ruff>=0.9", "mypy>=1.11", "pyinstaller>=6"]
+dev = [
+    "pytest>=8",
+    "pytest-qt>=4",
+    "pytest-cov>=5",
+    "ruff>=0.9",
+    "mypy>=1.11",
+    "pyinstaller>=6",
+    "playwright>=1.49",
+]
 
 [project.scripts]
 byax = "byax.cli:main"
