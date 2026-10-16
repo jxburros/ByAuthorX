@@ -56,7 +56,7 @@ quote-style = "single"
 
 [tool.mypy]
 python_version = "3.11"
-files = ["src/byax/engine.py", "src/byax/storage.py", "src/byax/cli.py", "src/byax/service.py", "src/byax/mcp.py", "src/byax/transport_policy.py", "src/byax/citations.py", "src/byax/project.py", "src/byax/grammar.py", "src/byax/language_packs.py"]
+files = ["src/byax/engine.py", "src/byax/storage.py", "src/byax/cli.py", "src/byax/service.py", "src/byax/mcp.py", "src/byax/transport_policy.py", "src/byax/citations.py", "src/byax/project.py", "src/byax/grammar.py", "src/byax/language_packs.py", "src/byax/compile.py"]
 follow_imports = "silent"
 ignore_missing_imports = true
 check_untyped_defs = false

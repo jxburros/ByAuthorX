@@ -113,6 +113,11 @@ def geometry(doc):
     margins = {
         key: float(layout.get('margins', {}).get(key, 72)) for key in ('top', 'right', 'bottom', 'left')
     }
+    # Book design: a binding gutter widens the inside (left on a recto) margin.
+    gutter = layout.get('gutter', 0)
+    if type(gutter) not in (int, float) or not math.isfinite(gutter) or gutter < 0:
+        raise ByaxError('invalid_input', 'The gutter must be a finite nonnegative number of points')
+    margins['left'] += float(gutter)
     if not all(math.isfinite(v) and v >= 0 for v in [width, height, *margins.values()]):
         raise ByaxError('invalid_input', 'Page geometry must contain finite positive dimensions')
     if width > MAX_PAGE_POINTS or height > MAX_PAGE_POINTS:
@@ -167,6 +172,13 @@ def _char_format(values):
         elif key == 'code' and value:
             fmt.setFontFamilies(['DejaVu Sans Mono'])
             fmt.setBackground(QColor('#eef0f2'))
+        elif key == 'small_caps':
+            fmt.setFontCapitalization(
+                QFont.Capitalization.SmallCaps if value else QFont.Capitalization.MixedCase
+            )
+        elif key == 'letter_spacing' and type(value) in (int, float) and math.isfinite(value):
+            fmt.setFontLetterSpacingType(QFont.SpacingType.AbsoluteSpacing)
+            fmt.setFontLetterSpacing(float(value))
     return fmt
 
 
@@ -825,6 +837,19 @@ def _format_page_number(number, style='decimal'):
     raise ByaxError('invalid_input', 'Unsupported page numbering format', format=style)
 
 
+def _parity_number(settings, physical, number):
+    """Number deciding recto/verso: the folio (default) or, for books, the physical sheet side."""
+    return physical if settings.get('page_parity') == 'physical' else number
+
+
+def page_margins(settings, parity):
+    """Margins of one page; ``mirror_margins`` swaps inside and outside on versos (even pages)."""
+    margins = geometry({'layout': settings})[2]
+    if settings.get('mirror_margins') and parity % 2 == 0:
+        margins = {**margins, 'left': margins['right'], 'right': margins['left']}
+    return margins
+
+
 def _region(
     value, page, count, *, number=None, number_format='decimal', section_page=None, section_pages=None
 ):
@@ -845,9 +870,11 @@ def _region(
 def _region_parts(value, page, count, *, default_align='left', **kwargs):
     """Resolve a header/footer variant into left/center/right parts."""
     number = page + 1 if kwargs.get('number') is None else kwargs['number']
+    parity = kwargs.pop('parity', None)
+    parity = number if parity is None else parity
     section_page = page + 1 if kwargs.get('section_page') is None else kwargs['section_page']
     if isinstance(value, dict) and any(key in value for key in ('first', 'odd', 'even', 'text')):
-        variant = 'first' if section_page == 1 and 'first' in value else 'even' if number % 2 == 0 else 'odd'
+        variant = 'first' if section_page == 1 and 'first' in value else 'even' if parity % 2 == 0 else 'odd'
         value = value.get(variant, value.get('text', ''))
     if not isinstance(value, dict):
         value = {default_align: value}
@@ -1860,6 +1887,8 @@ class _Resolver:
             number = settings['_byax_page_number_restart']
         else:
             number = previous['number'] + 1
+        parity = _parity_number(settings, len(self.pages) + 1, number)
+        margins = page_margins(settings, parity)
         page = {
             'width': width,
             'height': height,
@@ -1868,6 +1897,7 @@ class _Resolver:
             'section': section,
             'number': number,
             'physical_number': len(self.pages) + 1,
+            'parity': parity,
             'notes': [],
             'body_top': margins['top'],
             'body_bottom': height - margins['bottom'],
@@ -2150,11 +2180,21 @@ class _Resolver:
             if page is not None:
                 self.finish_notes(page)
             page = self.new_page(settings)
-            if start in ('odd', 'even') and (page['number'] % 2 == 1) != (start == 'odd'):
+            if start in ('odd', 'even') and (page['parity'] % 2 == 1) != (start == 'odd'):
                 page['blank'] = True
+                if len(self.pages) > 1:
+                    # The blank page belongs to the sequence it completes, so a section that
+                    # restarts numbering restarts on its first text page.
+                    before = self.pages[-2]
+                    page.update(number=before['number'] + 1, section=before['section'])
                 self.finish_notes(page)
                 page = self.new_page(settings)
             top = page['body_top']
+            # ``sink``: book chapter openers start lower on the page they open.
+            blocks = band.get('blocks') or [{}]
+            sink = blocks[0].get('attrs', {}).get('sink', 0)
+            if type(sink) in (int, float) and 0 < sink < (page['body_bottom'] - page['body_top']) / 2:
+                top += float(sink)
         else:
             top = page['used'] + (12 if page['fragments'] else 0)
         columns, findings = resolve_columns(
@@ -2253,15 +2293,19 @@ class _Resolver:
             page = self.new_page(page['layout'])
             self.place_carry(page, page['body_bottom'] - page['body_top'])
         self.finish_notes(page)
+        # Blank pages inserted for odd/even section starts are not counted, so a section's
+        # first page (its "first" header variant, for example a chapter opener) is its first text page.
         section_counts = {}
         for page in self.pages:
-            section_counts[page['section']] = section_counts.get(page['section'], 0) + 1
+            section_counts[page['section']] = section_counts.get(page['section'], 0) + (not page['blank'])
         current, local = None, 0
         for page in self.pages:
             if page['section'] != current:
                 current, local = page['section'], 0
-            local += 1
-            page.update(section_page=local, section_pages=section_counts[current])
+            local += not page['blank']
+            page.update(
+                section_page=local + 1 if page['blank'] else local, section_pages=section_counts[current]
+            )
             page['number_label'] = _format_page_number(
                 page['number'], page['layout'].get('page_number_format', 'decimal')
             )
@@ -2758,14 +2802,22 @@ def _draw_image_overlays(painter, doc, resolved, page_index, foreground):
 
 def _draw_regions(painter, page, page_index, total):
     settings = page['layout']
-    width, height, margins = geometry({'layout': settings})
-    painter.setPen(QColor('#525866'))
-    painter.setFont(QFont('DejaVu Sans', int(settings.get('region_font_size', 9))))
+    if page.get('blank') and settings.get('blank_page_regions') is False:
+        return  # Book convention: inserted blank pages carry no running head or folio.
+    width, height, _margins = geometry({'layout': settings})
+    parity = page.get('parity', page['number'])
+    margins = page_margins(settings, parity)
+    painter.setPen(QColor(settings.get('region_color', '#525866')))
+    font = QFont(settings.get('region_font', 'DejaVu Sans'), int(settings.get('region_font_size', 9)))
+    if settings.get('region_small_caps'):
+        font.setCapitalization(QFont.Capitalization.SmallCaps)
+    painter.setFont(font)
     kwargs = {
         'number': page['number'],
         'number_format': settings.get('page_number_format', 'decimal'),
         'section_page': page['section_page'],
         'section_pages': page['section_pages'],
+        'parity': parity,
     }
     body = width - margins['left'] - margins['right']
     header_top = float(settings.get('header_distance', 18))
@@ -2900,6 +2952,11 @@ def _report(qdoc, outputs, selected):
     }
     if resolved:
         report['layout_signature'] = layout_signature(resolved)
+        # The block that opens each page's body (None for a blank or notes-only page): the page breaks.
+        report['page_starts'] = [
+            next((f['ids'][0] for f in page['fragments'] if f['kind'] == 'body' and f.get('ids')), None)
+            for page in resolved['pages']
+        ]
         report['visibility'] = resolved.get('visibility')
         report['objects'] = [
             {k: v for k, v in item.items() if k != 'asset'} for item in resolved.get('objects', [])
@@ -2937,13 +2994,54 @@ def render(doc, out_dir, pages=None, output=None):
     return _report(qdoc, outputs, selected)
 
 
+CROP_MARK_LENGTH = 18.0
+CROP_MARK_GAP = 3.0
+
+
+def print_marks(layout):
+    """Bleed and crop-mark settings of a layout: ``bleed`` (points) and ``crop_marks`` (bool)."""
+    bleed = layout.get('bleed', 0)
+    if type(bleed) not in (int, float) or not math.isfinite(bleed) or not 0 <= bleed <= 72:
+        raise ByaxError('invalid_input', 'Bleed must be a number of points from 0 to 72')
+    crop = layout.get('crop_marks', False)
+    if type(crop) is not bool:
+        raise ByaxError('invalid_input', 'crop_marks must be true or false')
+    # The slug outside the bleed holds the crop marks.
+    slug = CROP_MARK_LENGTH + CROP_MARK_GAP if crop else 0.0
+    return {'bleed': float(bleed), 'crop_marks': crop, 'offset': float(bleed) + slug}
+
+
+def _draw_crop_marks(painter, width, height, offset, bleed):
+    """Hairline trim marks at each corner, outside the bleed so they never print on the trimmed page."""
+    painter.save()
+    pen = painter.pen()
+    pen.setColor(QColor('black'))
+    pen.setWidthF(0.25)
+    painter.setPen(pen)
+    start = bleed + CROP_MARK_GAP
+    for x in (offset, offset + width):
+        for y in (offset, offset + height):
+            vertical = -1 if y == offset else 1
+            horizontal = -1 if x == offset else 1
+            painter.drawLine(
+                QPointF(x, y + vertical * start), QPointF(x, y + vertical * (start + CROP_MARK_LENGTH))
+            )
+            painter.drawLine(
+                QPointF(x + horizontal * start, y), QPointF(x + horizontal * (start + CROP_MARK_LENGTH), y)
+            )
+    painter.restore()
+
+
 def export_pdf(doc, path, pages=None, output=None):
+    """Controlled PDF; the layout's ``bleed`` and ``crop_marks`` enlarge each sheet around the trim."""
     qdoc = build_document(doc)
     selected = _selected_pages(pages, resolved_page_count(qdoc, doc, output))
+    marks = print_marks(doc.get('layout', {}))
+    offset = marks['offset']
     width, height, _ = geometry(doc)
     writer = QPdfWriter(str(path))
     writer.setResolution(72)
-    writer.setPageSize(QPageSize(QSizeF(width, height), QPageSize.Unit.Point))
+    writer.setPageSize(QPageSize(QSizeF(width + 2 * offset, height + 2 * offset), QPageSize.Unit.Point))
     page_layout = writer.pageLayout()
     page_layout.setMode(QPageLayout.Mode.FullPageMode)
     writer.setPageLayout(page_layout)
@@ -2955,14 +3053,39 @@ def export_pdf(doc, path, pages=None, output=None):
     try:
         for i, page in enumerate(selected):
             pw, ph = resolved_page_size(qdoc, page)
-            writer.setPageSize(QPageSize(QSizeF(pw, ph), QPageSize.Unit.Point))
+            writer.setPageSize(QPageSize(QSizeF(pw + 2 * offset, ph + 2 * offset), QPageSize.Unit.Point))
             if i:
                 writer.newPage()
-            draw_page(painter, qdoc, doc, page, output)
+            if offset:
+                painter.save()
+                settings = qdoc.byax_resolved['pages'][page]['layout']
+                bleed = marks['bleed']
+                # The page background runs into the bleed; the slug beyond it stays white.
+                painter.fillRect(
+                    QRectF(offset - bleed, offset - bleed, pw + 2 * bleed, ph + 2 * bleed),
+                    QColor(settings.get('background', 'white')),
+                )
+                painter.translate(offset, offset)
+                draw_page(painter, qdoc, doc, page, output)
+                painter.restore()
+                if marks['crop_marks']:
+                    _draw_crop_marks(painter, pw, ph, offset, bleed)
+            else:
+                draw_page(painter, qdoc, doc, page, output)
     finally:
         painter.end()
     del writer
-    return _report(qdoc, [str(Path(path).resolve())], selected)
+    report = _report(qdoc, [str(Path(path).resolve())], selected)
+    if offset:
+        report['print'] = {
+            'trim': [width, height],
+            'bleed': marks['bleed'],
+            'crop_marks': marks['crop_marks'],
+            'media': [width + 2 * offset, height + 2 * offset],
+            'boxes': 'TrimBox and BleedBox are not written; the trim is offset by '
+            f'{offset:g} pt on every side and marked by crop marks when enabled',
+        }
+    return report
 
 
 def check_layout(doc):

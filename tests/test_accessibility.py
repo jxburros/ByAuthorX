@@ -174,6 +174,7 @@ DIALOG_METHODS = [
     'provider_settings',
     'table_properties',
     'dictation',
+    'compile_book',
 ]
 
 

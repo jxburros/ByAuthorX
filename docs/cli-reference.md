@@ -96,6 +96,7 @@ command's flags.
 | `languages` | List, verify, install and remove language packs; report interface translation coverage |
 | `goals` | Show progress against document, item, daily and session goals; set local goals |
 | `drafts` | List, save, switch, compare and bring changes from named drafts |
+| `compile` | Compile a manuscript project into a book (PDF, EPUB, Word or Markdown) with preflight |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -271,6 +272,40 @@ byax drafts novel.byax --action bring --name "After beta" --note "Try the new en
   `--name` is the starting draft and `--against` the draft compared to it (default: the working draft).
 - `bring` is `propose_merge`: it registers a reviewable proposal with the changes saved in `--name`
   (using the common ancestor, with conflicts listed). Nothing changes until `byax review --action accept`.
+
+## Compiling a book
+
+`byax compile PATH` turns a project into a finished book with a compile preset (see the
+[user guide](user-guide.md#compiling-a-book)). The master is never changed. Flags: `--preset`
+(`novel`, `nonfiction`, `manuscript` or a preset saved in the document), `--preset-file` (a settings
+collection holding a compile preset), `--target` (`pdf`, `epub`, `docx`, `md`; default from `--out`, then
+the preset), `--trim` (`5x8`, `5.25x8`, `5.5x8.5`, `6x9`, `a5`, …), `--include ITEM` (repeat; the exact
+binder items to compile), `--exclude ITEM` (repeat; also excludes descendants), `--input` (a partial
+compile profile merged over the preset), `--out`, `--overwrite`, `--strict`, `--preflight-only`,
+`--dry-run`, `--action`, `--name`, `--expect-revision`, `--request-id`.
+
+```bash
+byax compile novel.byax --preset novel --target pdf --out book.pdf --json
+byax compile novel.byax --preset novel --out book.epub                    # target from the extension
+byax compile novel.byax --preset manuscript --out submission.docx         # standard manuscript format
+byax compile novel.byax --preset novel --trim 6x9 --preflight-only --json # paginate and check, write nothing
+byax compile novel.byax --preset nonfiction --dry-run --json              # compiled structure and losses only
+byax compile novel.byax --action presets --json                           # bundled and saved presets
+byax compile novel.byax --action show --preset novel --input design.json  # the effective profile
+byax compile novel.byax --action save-preset --name "Trade 6x9" --trim 6x9 # canonical set_settings
+byax compile novel.byax --action export-preset --preset "Trade 6x9" --out trade.json
+byax compile novel.byax --preset-file trade.json --out book.pdf
+```
+
+The result carries `compile` (preset, target, included and excluded items, generated matter, the
+compiled document's hash and, for PDF, `layout_signature`, `page_count`, `page_starts` and the trim and
+margins; for Word and Markdown, `roundtrip`), `losses` (the target exporter's located losses plus every
+difference found by re-importing Word or Markdown output), `findings` and `preflight` (preflight
+findings in the shared findings model) and `outputs`. Preflight errors (nothing to compile) refuse the
+compile with exit code 4 before anything is written; `--strict` turns warnings and losses into exit
+code 5. `save-preset` is one canonical `set_settings` operation (`compile_presets`), so
+`--expect-revision`, `--request-id` and `--dry-run` behave as for `apply`. Over REST, `--out` and
+`--preset-file` are scoped to the authorized roots.
 
 ## Sync-folder safety
 

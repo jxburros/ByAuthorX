@@ -439,7 +439,29 @@ ARGUMENTS['drafts'] = {
     'request_id': 'string',
     'dry_run': 'boolean',
 }
+# Compile pipeline (byax.compile, CP B2): a project to a print PDF, EPUB, Word or Markdown book.
+COMMANDS['compile'] = 'Compile a manuscript project into a book (PDF, EPUB, Word or Markdown) with preflight'
+ARGUMENTS['compile'] = {
+    'path': 'string',
+    'out': 'string',
+    'action': 'string',
+    'preset': 'string',
+    'preset_file': 'string',
+    'target': 'string',
+    'trim': 'string',
+    'include': 'array',
+    'exclude': 'array',
+    'input': 'object',
+    'name': 'string',
+    'preflight_only': 'boolean',
+    'dry_run': 'boolean',
+    'overwrite': 'boolean',
+    'strict': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+}
 REQUIRED = {
+    'compile': ['path'],
     'statistics': ['path'],
     'readability': ['path'],
     'collection': ['path'],
@@ -1512,10 +1534,11 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
-from .grammar import grammar_command
-from .language_packs import languages_command
+from .compile import compile_command
 from .drafts import drafts_command
 from .goals import goals_command
+from .grammar import grammar_command
+from .language_packs import languages_command
 from .project import project_command
 from .sync_safety import sync_command
 
@@ -1567,6 +1590,7 @@ _HANDLERS: dict[str, Handler] = {
     'languages': languages_command,
     'goals': goals_command,
     'drafts': drafts_command,
+    'compile': compile_command,
 }
 
 

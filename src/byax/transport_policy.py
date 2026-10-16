@@ -610,4 +610,35 @@ INTERFACE_INVENTORY = (
         'byax.language_packs.remove_pack',
         'Tools > Languages…',
     ),
+    # Compile pipeline (CP B2).
+    ('Output', 'compile a book', 'compile', 'byax.compile.compile_document', 'File > Compile…'),
+    ('Checks', 'compile preflight', 'compile --preflight-only', 'byax.compile.preflight', 'File > Compile…'),
+    (
+        'Discovery',
+        'compile presets',
+        'compile --action presets',
+        'byax.compile.list_presets',
+        'File > Compile…',
+    ),
+    (
+        'Inspection',
+        'effective compile profile',
+        'compile --action show',
+        'byax.compile.resolve_profile',
+        None,
+    ),
+    (
+        'Editing',
+        'save compile preset',
+        'compile --action save-preset',
+        'byax.compile.save_preset_operations',
+        'File > Compile…',
+    ),
+    (
+        'Files',
+        'export compile preset',
+        'compile --action export-preset',
+        'byax.compile.preset_collection',
+        None,
+    ),
 )

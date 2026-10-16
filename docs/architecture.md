@@ -31,6 +31,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report, the `project_*` canonical operations, interactive move/drop planners and the opt-in synopsis proposal |
 | `goals`, `drafts` | Writing goals, sessions and streaks (local preferences keyed by document identity, never in the document) and named drafts built on branches with scene-level comparison |
 | `gui_project`, `gui_goals`, `gui_drafts` | Binder panel (outline and corkboard, drag and keyboard reordering, synopsis editing), writing-goals button and dialog, draft save, compare and bring-changes dialogs |
+| `compile`, `gui_compile` | Compile pipeline: compile profiles (presets in `resources/compile` are settings collections), the transient compiled document built by `engine.apply` on a copy, per-target export through the existing exporters, Word/Markdown round-trip verification, preflight findings; File → Compile… |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `grammar`, `language_packs`, `gui_languages` | Offline grammar tiers behind one engine interface: data-driven built-in rules (`resources/grammar`) and an adapter for a local LanguageTool server (loopback only, explicit pinned download, UTF-16 to scalar offset mapping); versioned, checksummed language packs for spelling dictionaries, grammar rules, word lists and interface strings (installed under the user data folder, verified before use, built-in English packs), the translation catalogue and the `QTranslator` plumbing; the Languages dialog and the Checks tab tier status |
@@ -132,6 +133,32 @@ alias receives the item's own text (bounded to 12,000 characters, head and tail 
 context with a fixed instruction, through `ProviderRegistry.chat` in chat mode, so remote authorization and
 payload preview are unchanged. The reply becomes a `propose` payload containing one `project_set_meta`
 edit; the synopsis exists only after the proposal is accepted.
+
+## Compile pipeline
+
+`compile.build(master, profile, target)` deep-copies the master, drops editing state that is never
+output (history, replay records, review items, layers, protections, locks, tracking and the binder
+object) and turns the copy into a *compiled document* with canonical operations through
+`engine.apply`: excluded items are deleted, `order` uses `move_section`, styles are defined, binder
+headings become numbered openers, scene headings become separators, the first paragraph after an
+opener gets character-style marks for the drop cap and lead-in, and generated front and back matter is
+inserted. Print uses one section break per opener (so each opener is its section's first page and
+the `first` header and footer variants suppress the running heads) with `start: odd_page` or
+`next_page`; Word uses `page_break_before`; EPUB uses explicit `split_at` points. Generated block IDs
+are counters (`compile_<kind>_NNNN`), the EPUB `modified` date comes from the master and nothing reads
+the clock, so the compiled document's hash, the EPUB bytes and the PDF page breaks repeat.
+
+Layout additions used by book design (all optional layout keys, default off): `gutter` (added to the
+inside margin), `mirror_margins` (swap inside and outside on versos), `page_parity: physical` (recto
+and verso, odd/even section starts and header variants follow the sheet, not the folio, so a
+restarted folio 1 still lands on a recto), `blank_page_regions: false` (inserted blank pages carry no
+running head or folio; blank pages are not counted as a section's first page and belong to the
+sequence they complete), a block `sink` (space above a block that opens a page), `bleed` and
+`crop_marks` (PDF sheet enlarged around the trim), `region_font`, `region_font_size`,
+`region_small_caps` and `region_color`, and `small_caps` and `letter_spacing` character values. The
+PDF report adds `page_starts` (the block that opens each page body). The Word adapter now writes and
+reads `{page}`/`{pages}` as PAGE/NUMPAGES fields, a distinct first-page header or footer, region
+alignment, line spacing, style alignment and page break before.
 
 ## Review anchors, proposals and branches
 

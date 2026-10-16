@@ -49,6 +49,7 @@ uv run python scripts/grammar_benchmark.py --write                 # built-in gr
 uv run python scripts/grammar_benchmark.py --write --languagetool <folder>   # also a local LanguageTool (Java 17+)
 uv run python scripts/extract_strings.py --write                   # refresh the interface-string catalogue
 BYAX_LANGUAGETOOL_URL=http://127.0.0.1:8081 uv run python -m pytest -m languagetool   # tests against a real local server
+QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark_compile.py --out artifacts/compile.json  # compile the 100k project
 ```
 
 The grammar and language-pack tests never need Java or the network: they use a fake local server

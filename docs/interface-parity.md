@@ -242,3 +242,19 @@ The `grammar` command reports and configures the two grammar tiers (the built-in
 | Inspection | translation coverage | `byax languages --action coverage` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.coverage_report` | Tools > Languages… |
 | Files | install language pack | `byax languages --action install` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.install_pack` | Tools > Languages… |
 | Files | remove language pack | `byax languages --action remove` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.remove_pack` | Tools > Languages… |
+
+## Compile pipeline
+
+`compile` turns a project into a print PDF, EPUB, Word or Markdown book (see the
+[user guide](user-guide.md#compiling-a-book)). It never changes the master; `--preset-file` is a
+path argument and is scoped like `--out` over REST. `save-preset` is a canonical `set_settings`
+operation, so `--expect-revision`, `--request-id` and `--dry-run` behave as for `apply`.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Output | compile a book | `byax compile PATH --preset NAME --target pdf --out FILE` | `byax_compile` | `POST /v1/execute` | `byax.compile.compile_document` | File > Compile… |
+| Checks | compile preflight | `byax compile PATH --preflight-only` | `byax_compile` | `POST /v1/execute` | `byax.compile.preflight` | File > Compile… |
+| Discovery | compile presets | `byax compile PATH --action presets` | `byax_compile` | `POST /v1/execute` | `byax.compile.list_presets` | File > Compile… |
+| Inspection | effective compile profile | `byax compile PATH --action show` | `byax_compile` | `POST /v1/execute` | `byax.compile.resolve_profile` | — (headless) |
+| Editing | save compile preset | `byax compile PATH --action save-preset --name NAME` | `byax_compile` | `POST /v1/execute` | `byax.compile.save_preset_operations` | File > Compile… |
+| Files | export compile preset | `byax compile PATH --action export-preset --out FILE.json` | `byax_compile` | `POST /v1/execute` | `byax.compile.preset_collection` | — (headless) |

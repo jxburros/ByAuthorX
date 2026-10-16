@@ -384,6 +384,7 @@ COLLECTION_KINDS = (
     'layout',
     'requirements',
     'section_profiles',
+    'compile',
 )
 CONFLICT_POLICIES = ('error', 'replace', 'keep')
 FIELD_TYPES = ('text', 'number', 'integer', 'date', 'enum', 'choice', 'boolean', 'bool', 'asset')
@@ -406,6 +407,7 @@ def export_settings(doc, kinds=None, *, styles=None, profiles=None, sources=None
     """Collect reusable settings with their dependencies closed over; never credentials."""
     from .storage import _check_secrets
 
+    explicit = kinds is not None
     kinds = list(COLLECTION_KINDS) if kinds is None else kinds
     if not isinstance(kinds, list) or any(kind not in COLLECTION_KINDS for kind in kinds):
         raise ByaxError('invalid_input', 'Unknown collection kind.', supported=list(COLLECTION_KINDS))
@@ -469,6 +471,9 @@ def export_settings(doc, kinds=None, *, styles=None, profiles=None, sources=None
         result['layout'] = copy.deepcopy(doc.get('layout', {}))
     if 'requirements' in kinds:
         result['requirements'] = copy.deepcopy(settings.get('requirements', {}))
+    # Compile presets (byax.compile) are listed only when the document saved some or they are asked for.
+    if 'compile' in kinds and (explicit or settings.get('compile_presets')):
+        result['compile'] = copy.deepcopy(settings.get('compile_presets', {}))
     if 'section_profiles' in kinds:
         headings = _headings(doc)
         result['section_profiles'] = {
@@ -534,6 +539,11 @@ def validate_collection(collection):
     for name, definition in values.get('fields', {}).items():
         if not isinstance(definition, dict) or definition.get('type', 'text') not in FIELD_TYPES:
             raise ByaxError('invalid_input', 'Unsupported field type', field='fields.' + name)
+    if values.get('compile'):
+        from .compile import validate_profile as validate_compile_profile
+
+        for name, preset in values['compile'].items():
+            values['compile'][name] = validate_compile_profile(preset, field='compile.' + str(name))
     return collection
 
 
@@ -658,6 +668,19 @@ def compile_collection(doc, collection, *, aliases=None, available_providers=Non
             requirement,
             {'type': 'set_requirement', 'id': key, 'values': requirement},
         )
+    presets = copy.deepcopy(doc.get('settings', {}).get('compile_presets', {}))
+    presets_changed = False
+    for key, preset in sorted(values.get('compile', {}).items()):
+        existing, label = presets.get(key), 'compile:' + key
+        if existing == preset:
+            report['kept'].append(label)
+        elif existing is not None and on_conflict != 'replace':
+            report['conflicts' if on_conflict == 'error' else 'kept'].append(label)
+        else:
+            report['added' if existing is None else 'replaced'].append(label)
+            presets[key], presets_changed = copy.deepcopy(preset), True
+    if presets_changed:
+        operations.append({'type': 'set_settings', 'values': {'compile_presets': presets}})
     headings = _headings(doc)
     for key, entry in values.get('section_profiles', {}).items():
         target = key if key in headings else None

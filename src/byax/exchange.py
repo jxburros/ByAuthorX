@@ -788,6 +788,7 @@ def _import_docx(doc, raw, losses):
                     value = getattr(pf, prop)
                     if value is not None:
                         values[key] = value.pt
+                values.update(_docx_read_extras(pf, alignment=True))
             doc['styles'][style.style_id] = values
         except (ValueError, AttributeError):
             _loss(
@@ -803,8 +804,7 @@ def _import_docx(doc, raw, losses):
         for key in ('top', 'right', 'bottom', 'left'):
             if getattr(section, f'{key}_margin') is not None:
                 doc['layout']['margins'][key] = getattr(section, f'{key}_margin').pt
-        doc['layout']['header'] = '\n'.join(p.text for p in section.header.paragraphs)
-        doc['layout']['footer'] = '\n'.join(p.text for p in section.footer.paragraphs)
+        _docx_read_regions(doc, section)
         if len(word.sections) > 1:
             _loss(
                 losses,
@@ -860,6 +860,7 @@ def _import_docx(doc, raw, losses):
             value = getattr(paragraph.paragraph_format, prop)
             if value is not None:
                 block['attrs'][target] = value.pt
+        block['attrs'].update(_docx_read_extras(paragraph.paragraph_format))
         state = {'inserted': [], 'deleted': [], 'fields': [], 'stack': [], 'notes': [], 'authors': set()}
 
         def add_run(node, hyperlink, change):
@@ -2250,6 +2251,142 @@ def _xml_safe(doc, losses):
     return cleaned
 
 
+_DOCX_ALIGN = ('left', 'center', 'right', 'justify')
+_DOCX_REGION_FIELDS = {'{page}': 'PAGE', '{pages}': 'NUMPAGES'}
+
+
+def _docx_paragraph_extras(paragraph_format, values):
+    """Line spacing (a multiple), page break before and style alignment, shared by styles and blocks."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    spacing = values.get('line_spacing')
+    if type(spacing) in (int, float) and 0.5 <= spacing <= 5:
+        paragraph_format.line_spacing = float(spacing)
+    if values.get('page_break_before') is True:
+        paragraph_format.page_break_before = True
+    if values.get('alignment') in _DOCX_ALIGN:
+        paragraph_format.alignment = getattr(WD_ALIGN_PARAGRAPH, values['alignment'].upper())
+
+
+def _docx_read_extras(paragraph_format, alignment=False):
+    """Read back what ``_docx_paragraph_extras`` writes (direct formatting only)."""
+    values = {}
+    spacing = paragraph_format.line_spacing
+    # A multiple is a float; exact and at-least spacing are lengths (int subclasses).
+    if isinstance(spacing, float) and 0.5 <= spacing <= 5:
+        values['line_spacing'] = round(spacing, 4)
+    if paragraph_format.page_break_before:
+        values['page_break_before'] = True
+    if alignment:
+        try:
+            name = {0: 'left', 1: 'center', 2: 'right', 3: 'justify'}.get(paragraph_format.alignment)
+        except ValueError:
+            name = None
+        if name:
+            values['alignment'] = name
+    return values
+
+
+def _docx_region_paragraph(paragraph, text, align):
+    """Write header/footer text; ``{page}`` and ``{pages}`` become Word PAGE and NUMPAGES fields."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+
+    paragraph.text = ''
+    for part in re.split(r'(\{page\}|\{pages\})', text):
+        if part in _DOCX_REGION_FIELDS:
+            field = OxmlElement('w:fldSimple')
+            field.set(qn('w:instr'), _DOCX_REGION_FIELDS[part])
+            run, value = OxmlElement('w:r'), OxmlElement('w:t')
+            value.text = '1'
+            run.append(value)
+            field.append(run)
+            paragraph._p.append(field)
+        elif part:
+            paragraph.add_run(part)
+    if align in _DOCX_ALIGN and align != 'left':
+        paragraph.alignment = getattr(WD_ALIGN_PARAGRAPH, align.upper())
+
+
+def _docx_write_regions(section, layout):
+    regions = {}
+    for region in ('header', 'footer'):
+        value = layout.get(region, '')
+        first = None
+        if isinstance(value, dict):
+            if isinstance(value.get('first'), str):
+                first = value['first']
+            value = value.get('text', '')
+        regions[region] = (str(value or ''), first)
+    # Word's distinct first page applies to both regions; a region without its own first-page
+    # variant repeats its usual text there.
+    distinct = any(first is not None for _text, first in regions.values())
+    for region, (text, first) in regions.items():
+        align = layout.get(region + '_align')
+        _docx_region_paragraph(getattr(section, region).paragraphs[0], text, align)
+        if distinct:
+            section.different_first_page_header_footer = True
+            first_text = text if first is None else first
+            _docx_region_paragraph(getattr(section, 'first_page_' + region).paragraphs[0], first_text, align)
+
+
+def _docx_region_text(paragraph):
+    """Header/footer text with PAGE and NUMPAGES fields read back as ``{page}`` and ``{pages}``."""
+    from docx.text.run import Run
+
+    w = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+    tokens = {value: key for key, value in _DOCX_REGION_FIELDS.items()}
+    parts, field, seen = [], None, []  # field: [instruction, in_result]; seen keeps lxml proxies alive
+    for run in paragraph._p.iter(w + 'r'):
+        simple = next((a for a in run.iterancestors(w + 'fldSimple')), None)
+        if simple is not None:
+            token = tokens.get((simple.get(w + 'instr') or '').strip().split(' ')[0].upper())
+            if token:
+                if not any(simple is other for other in seen):
+                    seen.append(simple)
+                    parts.append(token)
+                continue
+        for item in run:
+            if item.tag == w + 'fldChar':
+                kind = item.get(w + 'fldCharType')
+                if kind == 'begin':
+                    field = ['', False]
+                elif kind == 'separate' and field is not None:
+                    field[1] = True
+                elif kind == 'end' and field is not None:
+                    token = tokens.get(field[0].strip().split(' ')[0].upper())
+                    if token:
+                        parts.append(token)
+                    field = None
+            elif item.tag == w + 'instrText' and field is not None:
+                field[0] += item.text or ''
+        if field is not None and (not field[1] or tokens.get(field[0].strip().split(' ')[0].upper())):
+            continue
+        parts.append(Run(run, paragraph).text)
+    return ''.join(parts)
+
+
+def _docx_read_regions(doc, section):
+    """Header/footer text, alignment and a distinct first-page variant from the first section."""
+    for region in ('header', 'footer'):
+        paragraphs = getattr(section, region).paragraphs
+        text = '\n'.join(_docx_region_text(p) for p in paragraphs)
+        alignment = next((p.alignment for p in paragraphs if p.alignment is not None), None)
+        name = {0: 'left', 1: 'center', 2: 'right', 3: 'justify'}.get(alignment)
+        if name and name != 'left':
+            doc['layout'][region + '_align'] = name
+        first = None
+        if section.different_first_page_header_footer:
+            first = '\n'.join(
+                _docx_region_text(p) for p in getattr(section, 'first_page_' + region).paragraphs
+            )
+        if first is not None and first != text:
+            doc['layout'][region] = {'first': first, 'text': text}
+        else:
+            doc['layout'][region] = text
+
+
 def _export_docx(doc, path):
     from docx import Document
     from docx.shared import Pt, RGBColor
@@ -2287,6 +2424,7 @@ def _export_docx(doc, path):
             ):
                 if key in values:
                     setattr(style.paragraph_format, target, Pt(values[key]))
+            _docx_paragraph_extras(style.paragraph_format, values)
     for name, values in doc.get('styles', {}).items():
         if values.get('based_on') in named:
             named[name].base_style = named[values['based_on']]
@@ -2296,11 +2434,7 @@ def _export_docx(doc, path):
     for key, value in layout.get('margins', {}).items():
         if key in ('top', 'right', 'bottom', 'left'):
             setattr(section, key + '_margin', Pt(value))
-    for region in ('header', 'footer'):
-        value = layout.get(region, '')
-        getattr(section, region).paragraphs[0].text = (
-            value if isinstance(value, str) else value.get('text', '')
-        )
+    _docx_write_regions(section, layout)
     word.core_properties.title = doc.get('metadata', {}).get('title', '')
     word.core_properties.author = doc.get('metadata', {}).get('author', '')
     for block in doc['blocks']:
@@ -2358,6 +2492,9 @@ def _export_docx(doc, path):
         ):
             if name in attrs:
                 setattr(paragraph.paragraph_format, prop, Pt(attrs[name]))
+        _docx_paragraph_extras(
+            paragraph.paragraph_format, {k: v for k, v in attrs.items() if k != 'alignment'}
+        )
         text, marks = block.get('text', ''), block.get('marks', [])
         boundaries = sorted(
             {

@@ -67,6 +67,7 @@ Applications. To run from source see the [README](../README.md#run-from-source).
 | Edit Markdown directly | Markdown opens as an import by default; the first-open chooser or Tools → Markdown opening preference keeps `.md` as the working file |
 | Share a PDF or Word copy | File → Export. Exporting never replaces the master |
 | Publish an e-book | File → Export → EPUB. See [Exporting an EPUB](#exporting-an-epub) |
+| Turn a manuscript into a print book, e-book or submission | File → Compile…. See [Compiling a book](#compiling-a-book) |
 | See how a format will look | Toolbar **File view** selector (PDF, Word, OpenDocument, EPUB, RTF, HTML, Markdown, plain text). Word/ODT/RTF previews are approximate. The source toggle shows exact read-only export text |
 
 Hidden or unsupported content stays in the master; objects simplified in a view are locked there.
@@ -288,7 +289,8 @@ choose), then:
 - `set-status`, `set-target --words N` and `set-meta --input meta.json` (synopsis, label,
   `include_in_compile`) record your plan. Synopses are only what you write.
 
-Notes are left out of the compile list by default (`--action compile`). Comments, bookmarks and
+Notes are left out of the compile list by default (`--action compile`); see
+[Compiling a book](#compiling-a-book). Comments, bookmarks and
 tracked changes travel with the text through every binder change. If you delete a heading in the
 editor, its item is kept and reported as orphaned (`--action reconcile`) until you rebind or remove
 it. Word, Markdown and other exports keep the binder order as headings and list statuses and targets
@@ -367,6 +369,64 @@ document's existing branches and history, so they cost no extra files.
   to resolve, and nothing changes until you accept.
 
 The command line has the same operations (`byax drafts`, see the [CLI reference](cli-reference.md#named-drafts)).
+
+## Compiling a book
+
+**File → Compile…** (or `byax compile`) turns a manuscript into a finished book: a print-ready PDF,
+an EPUB, a Word document for submission or plain Markdown. Your `.byax` file is never changed; the
+compile works on a copy and every format reports what it could not carry.
+
+1. **Pick a preset.** Three ship with ByAuthorX:
+   - **Novel**: 5.5 × 8.5 in trade paperback, mirrored margins with a gutter, chapters opening a
+     third of the way down a new page with a drop cap and a small-caps lead-in, `* * *` between
+     scenes, running heads (your name on left pages, the title on right pages) with page numbers,
+     none on chapter openers, and a half title, title page, copyright page, dedication and contents.
+   - **Non-fiction**: 6 × 9 in, chapters on right-hand pages with a number and title, section
+     headings kept, the chapter title in the right-hand running head, page numbers at the foot.
+   - **Manuscript (standard format)**: Letter paper, 1 in margins, 12 pt Times New Roman,
+     double-spaced, ragged right with 0.5 in indents; a first page with your contact details and the
+     word count rounded to the nearest thousand (hundred for short works), your title and byline; a
+     `Surname / TITLE / page` header on every later page; chapters on a new page a third of the way
+     down; `#` between scenes and `END` at the end. Italics stay italic. It produces Word by default.
+2. **Choose the format and trim size.** Trim sizes include 5 × 8, 5.25 × 8, 5.5 × 8.5, 6 × 9,
+   6.14 × 9.21, 7 × 10 in, A5 and B5.
+3. **Choose what goes in.** The list shows your binder; untick anything to leave out. Notes are left
+   out unless you tick them. A document without a binder compiles each top-level heading as a chapter.
+4. **Run preflight.** It lists what to fix before you publish: a missing title, author or language;
+   fonts that are not installed or whose licence forbids embedding; pictures below 300 pixels per inch
+   at the printed size; pictures without alt text; empty chapters; headings with nothing under them;
+   headings or scene breaks stranded at the foot of a page; binder items that lost their heading.
+5. **Compile…** and choose where to save.
+
+What the compile builds from your metadata (Tools → Document properties, or `set_metadata`): `title`,
+`subtitle`, `author`, `publisher`, `year`, `rights`, `isbn`, `dedication`, `epigraph`,
+`acknowledgments`, `about_author`, `also_by`, and for manuscripts `contact` (`name`, `address`,
+`email`, `phone`), `surname`, `short_title` and `pen_name`. A page whose text is missing (an empty
+dedication, say) is skipped and listed in the report; binder items of kind `front` and `back` are
+compiled where they are. Chapter titles such as "Chapter 3" become the numbered label ("Chapter
+Three"); real titles keep a label line above them.
+
+**Your own presets.** *Save preset…* stores the current choices in the document;
+`byax compile novel.byax --action export-preset --out mine.json` writes them as a reusable settings
+collection that `--preset-file` (or Tools → Reusable settings…) brings into another manuscript. A
+preset file only needs what differs from the bundled preset it names in `extends`.
+
+**What to expect from each format.**
+
+- *PDF*: the same manuscript and preset always give the same page breaks; the report records the
+  layout signature and the block that opens every page. Bleed (up to 72 pt) and crop marks enlarge
+  each sheet around the trim (set `design.bleed` and `design.crop_marks`). The PDF is not PDF/X: trim
+  and bleed boxes are not written and fonts are embedded as Qt subsets. Drop caps print as an
+  enlarged raised initial (the text does not wrap around it), small capitals are synthesized by the
+  font engine and there is no hyphenation; the report says so where it applies.
+- *EPUB*: the same inputs give byte-identical files. Each part, chapter and front-matter page is its
+  own file and the contents come from the headings; the drop cap and small caps are CSS.
+- *Word*: compiled through the Word exporter, then opened again and compared with what was
+  compiled. Every difference (for example drop caps and small caps, which Word output does not keep)
+  is listed with its location. Page numbers in the header are real Word page fields.
+- *Markdown*: plain text with headings; styles and page design are listed as losses.
+
+Comments, tracked changes and proposals are not compiled (preflight notes how many there are).
 
 ## Libraries and citations
 
