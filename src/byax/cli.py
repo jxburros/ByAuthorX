@@ -67,6 +67,8 @@ COMMANDS = {
     'template-batch': 'Fill independent copies of a template from CSV field rows',
     'fonts': 'Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts',
     'sync': 'Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal',
+    'grammar': 'Grammar tiers: built-in rules and the optional local LanguageTool server (status, rules, check, setup)',
+    'languages': 'List, verify, install and remove language packs; report interface translation coverage',
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
@@ -309,6 +311,30 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'author': 'string',
         'expect_revision': 'string',
         'dry_run': 'boolean',
+    },
+    'grammar': {
+        'action': 'string',
+        'text': 'string',
+        'language': 'string',
+        'engine': 'string',
+        'group': 'string',
+        'port': 'integer',
+        'languagetool_dir': 'string',
+        'java': 'string',
+        'memory_mb': 'integer',
+        'autostart': 'boolean',
+        'include_spelling': 'boolean',
+        'sha256': 'string',
+    },
+    'languages': {
+        'action': 'string',
+        'id': 'string',
+        'language': 'string',
+        'pack_file': 'string',
+        'url': 'string',
+        'sha256': 'string',
+        'replace': 'boolean',
+        'verbose': 'boolean',
     },
     'proof': {
         'path': 'string',
@@ -1425,6 +1451,8 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .grammar import grammar_command
+from .language_packs import languages_command
 from .project import project_command
 from .sync_safety import sync_command
 
@@ -1471,6 +1499,8 @@ _HANDLERS: dict[str, Handler] = {
     'fonts': _cmd_fonts,
     'project': project_command,
     'sync': sync_command,
+    'grammar': grammar_command,
+    'languages': languages_command,
 }
 
 

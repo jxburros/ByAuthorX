@@ -1,0 +1,15 @@
+{
+  "note": "Minimum precision and recall per rule group on tests/fixtures/grammar/en.txt. Raise them when the rules improve; lowering one needs a reason in the pull request.",
+  "groups": {
+    "agreement": {"precision": 0.95, "recall": 0.9},
+    "confusion": {"precision": 0.95, "recall": 0.8},
+    "idiom": {"precision": 0.95, "recall": 0.9},
+    "pronoun_case": {"precision": 0.95, "recall": 0.6},
+    "punctuation": {"precision": 0.7, "recall": 0.8},
+    "quantity": {"precision": 0.95, "recall": 0.85},
+    "usage": {"precision": 0.95, "recall": 0.85},
+    "verb_form": {"precision": 0.95, "recall": 0.9}
+  },
+  "overall": {"precision": 0.97, "recall": 0.9},
+  "clean_sentence_findings_max": 2
+}

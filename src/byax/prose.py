@@ -1,36 +1,30 @@
 """Text primitives shared by the fiction checks and readability reports.
 
-Everything here is deterministic and offline. Word lists are data files under
-``resources/<kind>/<language>.json`` so another language is a new file, not new code.
+Everything here is deterministic and offline. Word lists are data: the built-in files under
+``resources/<kind>/<language>.json`` or an installed language pack (``language_packs``), so another
+language is a new pack, not new code.
 """
 
-import json
 import re
-from pathlib import Path
 
-RESOURCES = Path(__file__).parent / 'resources'
+from . import language_packs
+from .language_packs import RESOURCES  # noqa: F401 - re-exported for callers that read resources
+
 WORD = re.compile(r"[^\W\d_]+(?:['’][^\W\d_]+)*", re.UNICODE)
 _TERMINATOR = re.compile(r'[.!?…]+["”’»)\]]*(?=\s|$)')
 _OPENERS = '“«'
 _CLOSERS = '”»'
-_LISTS = {}
 
 
 def wordlist(kind, language):
     """Return the word-list data for ``kind`` and a language code, or None when no pack exists."""
-    key = (kind, language)
-    if key not in _LISTS:
-        path = RESOURCES / kind / f'{language}.json'
-        try:
-            _LISTS[key] = json.loads(path.read_text(encoding='utf-8')) if language.isalpha() else None
-        except (OSError, ValueError):
-            _LISTS[key] = None
-    return _LISTS[key]
+    data = language_packs.load_json(kind, language)
+    return data if isinstance(data, dict) else None
 
 
 def languages(kind):
-    """Language codes that ship a word list for ``kind``."""
-    return sorted(p.stem for p in (RESOURCES / kind).glob('*.json'))
+    """Language codes that have a word list for ``kind`` (built in or from an installed pack)."""
+    return language_packs.available_languages(kind)
 
 
 def words(text):

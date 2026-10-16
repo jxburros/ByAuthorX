@@ -91,6 +91,8 @@ command's flags.
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
 | `project` | List, reorder, split, merge and annotate manuscript binder items |
 | `sync` | Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal |
+| `grammar` | Grammar tiers: built-in rules and the optional local LanguageTool server (status, rules, check, setup) |
+| `languages` | List, verify, install and remove language packs; report interface translation coverage |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -215,6 +217,41 @@ byax sync Chapter.byax --action archive-conflict --copy-path "Chapter (Sam's con
 
 MCP exposes the same command as `byax_sync`; REST scopes both `path` and `copy_path` to its roots.
 
+## Grammar tiers and language packs
+
+`byax grammar` reports and configures the two grammar tiers and checks plain text; documents are
+checked with `byax check --suite grammar`. No document path is needed. See [grammar](grammar.md).
+
+```bash
+byax grammar --json                                           # status of both tiers, the pinned LanguageTool plan
+byax grammar --action rules [--language en] [--group idiom]   # the built-in rule catalogue
+byax grammar --action check --text "We could of gone." [--language en] [--engine builtin|languagetool|all]
+byax grammar --action configure --languagetool-dir ~/LanguageTool-6.6 [--port 8081] [--java PATH] [--memory-mb 1024] [--autostart] [--include-spelling]
+byax grammar --action enable | disable                        # use LanguageTool in grammar checks
+byax grammar --action start | stop                            # a local server from the configured folder
+byax grammar --action install-languagetool                    # prints source, size and SHA-256; downloads nothing
+byax grammar --action install-languagetool --sha256 <digest>  # explicit download of the pinned release
+```
+
+`install-languagetool` downloads only when `--sha256` equals the pinned digest shown by the plain
+command; the archive is verified for size and SHA-256 before it is unpacked. Over MCP and REST only
+`status`, `rules` and `check` are available; the other actions return `unsupported_feature`.
+
+`byax languages` manages language packs (dictionaries, grammar rules, word lists, interface strings).
+Install is from a local file or folder, or from an explicit `--url` that must come with the expected
+`--sha256`; it never reaches the network otherwise. See [translations](translations.md).
+
+```bash
+byax languages [--action list] [--verbose]
+byax languages --action install --pack-file de-core.byaxpack [--sha256 <digest>] [--replace]
+byax languages --action install --url https://example.org/de-core.byaxpack --sha256 <digest>
+byax languages --action verify [--id de-core]
+byax languages --action remove --id de-core
+byax languages --action coverage [--language de]
+```
+
+Over MCP and REST only `list`, `verify` and `coverage` are available.
+
 ## Library search syntax
 
 `library-search`, `library --action search` and `context --library-query` accept:
@@ -282,6 +319,9 @@ desktop confirmation (see [architecture](architecture.md#mutation-and-persistenc
 | `BYAX_SERVICE_TOKEN` | `byax serve` | Bearer token (at least 24 random characters). Rename with `--token-env`. |
 | `BYAX_LIBREOFFICE` | legacy `.doc` import | Absolute path of the LibreOffice executable to use for conversion. Unset means `.doc` is not converted. |
 | `BYAX_REDUCED_MOTION` | desktop | `1` disables all animation. |
+| `BYAX_GRAMMAR_DIR` | `grammar` | Folder for `grammar.json` and the LanguageTool download, log and process record, instead of the user config and data folders. |
+| `BYAX_LANGUAGES_DIR` | `languages` | Folder for installed language packs, instead of the user data folder. |
+| `BYAX_LANGUAGETOOL_URL` | tests | Local server address that enables `pytest -m languagetool`. |
 | `QT_QPA_PLATFORM` | rendering, tests | Set `offscreen` for headless PNG/PDF rendering and tests. |
 
 Provider keys are referenced as `env:NAME` or stored in the OS credential store; see

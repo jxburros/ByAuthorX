@@ -21,6 +21,7 @@ import copy
 import functools
 import re
 
+from .language_packs import data_signature, on_refresh
 from .model import object_hash
 from .prose import dialogue_spans, in_spans, is_adverb, languages, sentences, wordlist, words
 
@@ -144,7 +145,13 @@ def supported_languages():
 
 
 def versions():
-    return {lang: (wordlist('fiction', lang) or {}).get('version') for lang in supported_languages()}
+    """Word-list versions per language; an installed pack adds its identity so edits invalidate caches."""
+    result = {}
+    for lang in supported_languages():
+        version = (wordlist('fiction', lang) or {}).get('version')
+        signature = data_signature('fiction', lang)
+        result[lang] = version if signature in (None, 'builtin') else f'{version}+{signature}'
+    return result
 
 
 # Settings --------------------------------------------------------------------------
@@ -637,6 +644,10 @@ def _is_word(language, lower):
         checker = _speller(language)
         _KNOWN[key] = checker is None or not checker.unknown([lower])
     return _KNOWN[key]
+
+
+on_refresh(_KNOWN.clear)
+on_refresh(_PATTERNS.clear)
 
 
 def _word_echo(sink, info, chain, stream, last, stop, t):

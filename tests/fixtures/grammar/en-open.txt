@@ -1,0 +1,60 @@
+# Open-coverage fixture: ordinary learner and drafting errors that were NOT written with the built-in
+# rules in view. It measures breadth. The built-in rules are narrow by design, so low recall here is
+# expected; the number is published so nobody mistakes the built-in tier for a complete grammar checker.
+# Format as en.txt; every label uses the rule "open" and is scored by range overlap.
+
+The results of the experiment [[was|open]] surprising to everyone in the lab.
+Each of the students [[have|open]] a copy of the textbook.
+He suggested [[me|open]] to leave before the storm arrived.
+I look forward [[to see|open]] you at the wedding next month.
+She is [[more smarter|open]] than her brother in every subject.
+[[Despite of|open]] the rain, we walked to the harbour.
+The [[informations|open]] on the website are useful and current.
+He [[explained me|open]] the rules of the game twice.
+I [[am agree|open]] with most of what you said.
+The book [[who|open]] I read on the train was very long.
+A student who [[are|open]] tired should rest before the exam.
+Yesterday he [[goes|open]] to school with his sister.
+She [[don't|open]] know the answer to the question.
+We discussed [[about|open]] the budget for most of the afternoon.
+The team [[have|open]] been training since six in the morning.
+He is the [[most tallest|open]] boy in the class.
+I [[have saw|open]] that movie when I was a child.
+They [[doesn't|open]] want to join the committee this year.
+The number of applicants [[have|open]] doubled since last spring.
+There [[is|open]] two reasons for the delay.
+He gave [[a advice|open]] that nobody wanted to hear.
+She [[said me|open]] that the train was cancelled.
+If I [[would have|open]] known, I would have called you.
+I enjoy [[to read|open]] in the evening after work.
+We are looking [[forward to meet|open]] the new director.
+The meeting was [[postponed until|open]] to next week.
+He [[can to|open]] swim across the lake in ten minutes.
+My friends [[was|open]] waiting for me at the station.
+She has [[less|open]] books than her sister but reads more.
+He walked [[quick|open]] to the end of the corridor.
+It was [[a very unique|open]] opportunity for the whole town.
+I did [[a mistake|open]] on the form and had to start over.
+The children [[plays|open]] in the garden every afternoon.
+The police [[is|open]] searching the area near the river.
+Neither the manager nor the clerks [[was|open]] aware of the change.
+She [[have|open]] lived in Lisbon since 2019.
+He [[told that|open]] he would be late for dinner.
+The weather [[were|open]] cold during the whole week.
+The lamps in the hall [[is|open]] very old and very beautiful.
+
+The morning light fell across the table and warmed the tea.
+She has lived in Lisbon since 2019.
+Neither the manager nor the clerks were aware of the change.
+The police are searching the area near the river.
+There are two reasons for the delay.
+The children play in the garden every afternoon.
+He walked quickly to the end of the corridor.
+I enjoy reading in the evening after work.
+My friends were waiting for me at the station.
+The team has been training since six in the morning.
+We discussed the budget for most of the afternoon.
+If I had known, I would have called you.
+She told me that the train was cancelled.
+He suggested that I leave before the storm arrived.
+The results of the experiment were surprising to everyone in the lab.

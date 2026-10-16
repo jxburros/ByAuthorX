@@ -180,3 +180,21 @@ operation and run it through `engine.apply`, so `--expect-revision`, `--request-
 | Editing | binder status | `byax project --action set-status` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Editing | binder word target | `byax project --action set-target` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Editing | binder metadata | `byax project --action set-meta` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+
+## Grammar tiers and language packs
+
+The `grammar` command reports and configures the two grammar tiers (the built-in rules and the optional, local LanguageTool server) and checks plain text; `languages` manages dictionary, grammar and interface-string packs. Over MCP and REST only the read-only actions are available (`grammar` status, rules and check; `languages` list, verify and coverage). Configuring, installing, starting or stopping LanguageTool and installing or removing a pack are refused with `unsupported_feature`; use the local CLI or desktop. See [grammar](grammar.md) and [translations](translations.md).
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Checks | grammar tiers status | `byax grammar --action status` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.languagetool_status` | Inspector > Checks |
+| Checks | grammar rule catalogue | `byax grammar --action rules` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.rule_set` | Inspector > Checks |
+| Checks | check text with the grammar tiers | `byax grammar --action check` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.check_text` | — (headless) |
+| Checks | configure the LanguageTool tier | `byax grammar --action configure` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.save_config` | Inspector > Checks |
+| Checks | start or stop the local LanguageTool server | `byax grammar --action start` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.start_languagetool` | Inspector > Checks |
+| Checks | install LanguageTool (explicit download) | `byax grammar --action install-languagetool` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.install_languagetool` | Tools > Languages… |
+| Discovery | language packs | `byax languages --action list` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.list_packs` | Tools > Languages… |
+| Inspection | verify language packs | `byax languages --action verify` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.verify_packs` | Tools > Languages… |
+| Inspection | translation coverage | `byax languages --action coverage` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.coverage_report` | Tools > Languages… |
+| Files | install language pack | `byax languages --action install` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.install_pack` | Tools > Languages… |
+| Files | remove language pack | `byax languages --action remove` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.remove_pack` | Tools > Languages… |
