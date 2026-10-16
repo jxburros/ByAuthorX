@@ -50,7 +50,9 @@ def text_providers():
     from .providers import ProviderRegistry
 
     try:
-        return [config for config in ProviderRegistry().list() if config.get('kind') in TEXT_KINDS]
+        return [
+            config for config in ProviderRegistry().list_with_locality() if config.get('kind') in TEXT_KINDS
+        ]
     except Exception:
         return []
 
@@ -376,7 +378,10 @@ class AIPanel(QWidget):
         self.provider_box.blockSignals(True)
         self.provider_box.clear()
         for config in configs:
-            self.provider_box.addItem(f'{config["alias"]} · {config["model"]}', config['alias'])
+            label = f'{config["alias"]} · {config["model"]}'
+            if config.get('locality'):
+                label += ' · ' + config['locality'].capitalize()
+            self.provider_box.addItem(label, config['alias'])
         index = self.provider_box.findData(current)
         self.provider_box.setCurrentIndex(max(0, index))
         self.provider_box.blockSignals(False)
@@ -559,6 +564,7 @@ class AIPanel(QWidget):
             context = self.context(frozen)
             library_authorized = False
             if self.use_libraries.isChecked():
+                from .context_assembly import library_budget
                 from .gui_retrieval import select_passages
                 from .retrieval import augment_context, retrieve_context
 
@@ -569,6 +575,8 @@ class AIPanel(QWidget):
                     remote=remote,
                     profile=getattr(window, 'active_profile', None),
                     target=context.get('target'),
+                    max_tokens=library_budget(config).tokens,
+                    provider=config,
                 )
                 if retrieval['included']:
                     retrieval = select_passages(window, retrieval, alias, remote)

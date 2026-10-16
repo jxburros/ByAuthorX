@@ -22,6 +22,7 @@ from urllib.parse import urlparse
 
 import httpx
 
+from .context_assembly import estimate_tokens, ollama_context_plan
 from .errors import ByaxError
 
 _ENDPOINTS = {
@@ -90,6 +91,10 @@ def list_capabilities() -> list:
             else [],
             'max_input_chars': 100_000,
             'max_audio_bytes': 25_000_000,
+            'locality': endpoint_locality(_ENDPOINTS.get(kind), kind),
+            'locality_basis': 'runs a local process'
+            if kind == 'whisper.cpp'
+            else 'default endpoint; a configured provider is labelled from its own endpoint',
             'validation': 'adapter fixture tested; live credentials and selected model require connection test',
         }
         for kind in (*_ENDPOINTS, 'whisper.cpp')
@@ -107,6 +112,10 @@ class ProviderConfig:
     allow_remote: bool = False
     max_input_chars: int = 100_000
     max_audio_bytes: int = 25_000_000
+    # Ollama only: ceiling for options.num_ctx (memory grows with it) and the model's real context
+    # window when known (set by an explicit connection test or by hand). See context_assembly.py.
+    max_context_tokens: int = 8192
+    context_tokens: int | None = None
     executable: str | None = None
     retry_policy: str = 'never'
     max_retries: int = 0
@@ -150,6 +159,12 @@ class ProviderConfig:
             or not 0 < self.max_audio_bytes <= 100_000_000
         ):
             raise ByaxError('invalid_input', 'Provider input limits exceed supported bounds')
+        if type(self.max_context_tokens) is not int or not 256 <= self.max_context_tokens <= 4_000_000:
+            raise ByaxError('invalid_input', 'max_context_tokens must be between 256 and 4,000,000')
+        if self.context_tokens is not None and (
+            type(self.context_tokens) is not int or not 256 <= self.context_tokens <= 4_000_000
+        ):
+            raise ByaxError('invalid_input', 'context_tokens must be between 256 and 4,000,000')
         if self.credential_ref and (
             not isinstance(self.credential_ref, str)
             or not self.credential_ref.startswith(('keyring:', 'env:'))
@@ -195,6 +210,38 @@ def _loopback(endpoint):
         return False
 
 
+def endpoint_locality(endpoint, kind=None):
+    """``local`` when requests stay on this computer, else ``remote``.
+
+    Local means a loopback host (localhost, 127.0.0.0/8, ::1), a unix socket, or whisper.cpp,
+    which runs as a local process. This describes where the request goes, not whether the
+    service behind a custom loopback port forwards it elsewhere.
+    """
+    if kind == 'whisper.cpp':
+        return 'local'
+    if not endpoint:
+        return 'remote'
+    parsed = urlparse(endpoint)
+    if parsed.scheme in {'unix', 'http+unix', 'https+unix'}:
+        return 'local'
+    return 'local' if _loopback(endpoint) else 'remote'
+
+
+def provider_locality(config):
+    """Label data for one configured provider (a ProviderConfig or its dict)."""
+    get = config.get if isinstance(config, dict) else lambda key, default=None: getattr(config, key, default)
+    kind = get('kind')
+    endpoint = get('endpoint') or _ENDPOINTS.get(kind)
+    locality = endpoint_locality(endpoint, kind)
+    host = None if kind == 'whisper.cpp' else (urlparse(endpoint or '').hostname or endpoint)
+    label = 'Local · stays on this computer' if locality == 'local' else 'Remote · leaves this computer'
+    return {
+        'locality': locality,
+        'host': host,
+        'label': label + (f' ({host})' if host else ''),
+    }
+
+
 def _default_dir():
     from platformdirs import user_config_path
 
@@ -233,6 +280,20 @@ class ProviderRegistry:
 
     def list(self):
         return list(self._configs().values())
+
+    def list_with_locality(self):
+        """Saved configurations, each with where its requests go (``locality``) and a display label."""
+        return [
+            {
+                **config,
+                'locality': (info := provider_locality(config))['locality'],
+                'locality_label': info['label'],
+            }
+            for config in self.list()
+        ]
+
+    def locality(self, alias):
+        return provider_locality(self.get(alias))
 
     def save(self, config):
         if isinstance(config, dict):
@@ -384,6 +445,8 @@ class ProviderRegistry:
             'endpoint': config.endpoint or _ENDPOINTS.get(config.kind),
             'remote': config.kind != 'whisper.cpp'
             and not _loopback(config.endpoint or _ENDPOINTS[config.kind]),
+            'locality': provider_locality(config)['locality'],
+            'locality_label': provider_locality(config)['label'],
             'text': text,
             'context': normalize_review_context(context) if kind == 'review' else (context or {}),
             'automatic_retry': False,
@@ -403,7 +466,7 @@ class ProviderRegistry:
         result['automatic_retry'] = config.retry_policy == 'unsent_only' and config.max_retries > 0
         if kind == 'review' and config.kind in {'openai', 'anthropic', 'gemini', 'ollama'}:
             serialized = json.dumps({'text': text, 'context': result['context']}, ensure_ascii=False)
-            suffix, body, _ = _review_wire(config, serialized)
+            suffix, body, _ = _review_wire(config, serialized, enforce=False)
             result['request'] = {
                 'method': 'POST',
                 'path': suffix,
@@ -415,7 +478,18 @@ class ProviderRegistry:
                 'payload': len(serialized),
                 'maximum': config.max_input_chars,
                 'within_limit': len(serialized) <= config.max_input_chars,
+                'estimated_tokens': estimate_tokens(serialized, config),
             }
+            if config.kind == 'ollama':
+                plan = ollama_context_plan(
+                    config, _REVIEW_INSTRUCTION, [{'content': serialized}], enforce=False
+                )
+                result['limits'].update(
+                    tokens_needed=plan['tokens_needed'],
+                    tokens_available=plan['tokens_available'],
+                    num_ctx=plan['num_ctx'],
+                )
+                result['limits']['within_limit'] = result['limits']['within_limit'] and plan['fits']
         if audio_path:
             path = self._audio_path(config, audio_path)
             result['audio'] = {
@@ -610,12 +684,38 @@ class ProviderRegistry:
         if config.kind == 'elevenlabs':
             suffix = '/user'
         self._request(config, 'GET', suffix)
-        return {
+        result = {
             'status': 'connected',
             'provider': alias,
             'capability_verified': False,
             'note': 'Endpoint reached; selected model inference has not been exercised',
         }
+        if config.kind == 'ollama':
+            result.update(self._learn_context(config))
+        return result
+
+    def _learn_context(self, config):
+        """Ask Ollama for the model's real context length and remember it (only from an explicit test)."""
+        try:
+            shown = self._request(config, 'POST', '/api/show', json={'model': config.model})
+            lengths = [
+                value
+                for key, value in (shown.get('model_info') or {}).items()
+                if key.endswith('.context_length') and type(value) is int
+            ]
+        except ByaxError as exc:
+            return {
+                'context_tokens': config.context_tokens,
+                'context_note': 'Model details unavailable: ' + exc.message,
+            }
+        if not lengths or not 256 <= lengths[0] <= 4_000_000:
+            return {
+                'context_tokens': config.context_tokens,
+                'context_note': 'The server did not report a context length',
+            }
+        config.context_tokens = lengths[0]
+        self.save(config)
+        return {'context_tokens': lengths[0], 'context_note': 'Recorded from the Ollama model details'}
 
     def review(
         self, alias, text, *, context=None, authorized=False, library_authorized=False, cancel_event=None
@@ -1190,13 +1290,18 @@ _REVIEW_INSTRUCTION = (
 )
 
 
-def _review_wire(config, serialized):
+def _review_wire(config, serialized, *, enforce=True):
     """The exact path and JSON body each text adapter sends, shared by review and payload inspection."""
-    return _wire(config, _REVIEW_INSTRUCTION, [{'role': 'user', 'content': serialized}])
+    return _wire(config, _REVIEW_INSTRUCTION, [{'role': 'user', 'content': serialized}], enforce=enforce)
 
 
-def _wire(config, instruction, messages, json_output=True):
-    """Path, JSON body and text extractor for one completion over each adapter's own protocol."""
+def _wire(config, instruction, messages, json_output=True, *, enforce=True):
+    """Path, JSON body and text extractor for one completion over each adapter's own protocol.
+
+    Ollama requests carry options.num_ctx sized to the assembled payload. A payload that cannot fit
+    the model's window raises limit_exceeded here, before anything is sent (``enforce=False`` is for
+    payload previews, which report the plan instead).
+    """
     if config.kind == 'openai':
         return (
             '/chat/completions',
@@ -1230,6 +1335,9 @@ def _wire(config, instruction, messages, json_output=True):
         'model': config.model,
         'messages': [{'role': 'system', 'content': instruction}, *messages],
         'stream': False,
+        'options': {
+            'num_ctx': ollama_context_plan(config, instruction, messages, enforce=enforce)['num_ctx']
+        },
     }
     if json_output:
         body['format'] = 'json'

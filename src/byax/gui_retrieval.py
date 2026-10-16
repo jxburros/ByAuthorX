@@ -14,6 +14,17 @@ from PySide6.QtWidgets import (
 )
 
 
+def destination_label(provider, remote):
+    """Local or remote label for a provider alias, from its configured endpoint when it is saved."""
+    from .errors import ByaxError
+    from .providers import ProviderRegistry
+
+    try:
+        return ProviderRegistry().locality(provider)['label']
+    except (ByaxError, OSError):
+        return 'Remote · leaves this computer' if remote else 'Local · stays on this computer'
+
+
 def select_passages(window, retrieval, provider, remote):
     dialog = QDialog(window)
     dialog.setWindowTitle('Library passages for ' + provider)
@@ -27,6 +38,10 @@ def select_passages(window, retrieval, provider, remote):
     intro = QLabel(label)
     intro.setWordWrap(True)
     layout.addWidget(intro)
+    destination = QLabel('Provider: ' + provider + ' — ' + destination_label(provider, remote))
+    destination.setObjectName('passageDestination')
+    destination.setAccessibleName('Provider and whether it is local or remote')
+    layout.addWidget(destination)
     listing = QListWidget()
     listing.setAccessibleName('Library passages to include')
     preview = QPlainTextEdit()

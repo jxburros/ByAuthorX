@@ -2,6 +2,7 @@
 
 from .errors import ByaxError
 from .model import object_hash
+from .quote_match import describe_differences, infer_kind, locate, quoted_passage
 
 
 def evidence_key(source_id, mark):
@@ -83,13 +84,44 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
     return {**base, 'status': 'available', 'passages': passages, 'truncated': result.get('truncated', False)}
 
 
+def source_texts(source):
+    """Text a source carries inside the document: its excerpt, text, content and excerpt list."""
+    texts = [source[k] for k in ('text', 'excerpt', 'content') if isinstance(source.get(k), str)]
+    texts += [
+        e if isinstance(e, str) else e.get('text', '')
+        for e in source.get('excerpts', [])
+        if isinstance(e, (str, dict))
+    ]
+    return texts
+
+
+def infer_citation_kind(doc, op, *, registry=None, cache_dir=None):
+    """``{'kind', 'reason'}`` for a cite operation that names no kind.
+
+    ``quotation`` when the selected text is in quotation marks or is found in the cited source
+    (its stored excerpt, or the indexed passage the locator names); otherwise ``paraphrase``.
+    Reads only attached, authorized library passages, like the citation checks.
+    """
+    from .model import find_object
+
+    block = find_object(doc, op['target'])
+    selected = block.get('text', '')[op['start'] : op['end']]
+    source = doc.get('references', {}).get(op['source'], {})
+    texts = source_texts(source)
+    if source.get('library') and op.get('locator'):
+        snapshot = read_citation(
+            doc, op['source'], {'locator': op['locator']}, registry=registry, cache_dir=cache_dir
+        )
+        if snapshot and snapshot['status'] == 'available':
+            texts += [p['text'] for p in snapshot['passages']]
+    return infer_kind(selected, texts)
+
+
 def check_citation(sink, block, mark, source_id, snapshot):
     """Report located quotation outcomes. Stored excerpts never override live staleness."""
-    import re
-
     text = block.get('text', '')[mark['start'] : mark['end']]
-    quoted = re.fullmatch(r'\s*["“](.+?)["”]\s*', text, re.DOTALL)
-    passage = quoted.group(1) if quoted else (text if mark.get('kind') == 'quotation' else None)
+    quoted = quoted_passage(text)
+    passage = quoted if quoted is not None else (text if mark.get('kind') == 'quotation' else None)
     status = snapshot['status']
     if status != 'available':
         message = snapshot.get('reason', 'Library citation cannot be verified.')
@@ -116,7 +148,15 @@ def check_citation(sink, block, mark, source_id, snapshot):
             targets=[block['id']],
         )
         return
-    matches = [p for p in snapshot['passages'] if passage in p['text']]
+    # Exact and normalized matches (curly quotes, line-break hyphens, ligatures) verify the quotation.
+    # A near match is advisory only: it is shown with its differing characters, never confirmed.
+    located = [(p, locate(passage, p['text'])) for p in snapshot['passages']]
+    matches = [(p, found) for p, found in located if found['normalized_pass']]
+    near = max(
+        (item for item in located if item[1]['match'] == 'near'),
+        key=lambda item: item[1]['score'],
+        default=None,
+    )
     evidence = [
         {
             'source_id': source_id,
@@ -128,8 +168,14 @@ def check_citation(sink, block, mark, source_id, snapshot):
             'excerpt': passage,
             'relation': 'quotation',
             'source_version': {'content_hash': snapshot['content_hash']},
+            'quote_match': {
+                'match': found['match'],
+                'raw_pass': found['raw_pass'],
+                'normalized_pass': found['normalized_pass'],
+                'span': found['span'],
+            },
         }
-        for p in matches
+        for p, found in matches
     ]
     if matches:
         sink.coverage.append(
@@ -145,6 +191,38 @@ def check_citation(sink, block, mark, source_id, snapshot):
                     'evidence': evidence,
                 },
             }
+        )
+    elif near is not None:
+        passage_near, found = near
+        sink.add(
+            'factual.library_citation',
+            'factual',
+            'advisory',
+            'Quoted passage nearly matches the cited library passage but is not identical ('
+            + describe_differences(found['differences'])
+            + '). It is not confirmed.',
+            block['id'],
+            mark['start'],
+            mark['end'],
+            text,
+            outcome='not_established',
+            measured={
+                'source_id': source_id,
+                'verification': 'quote_near_match',
+                'match': 'near',
+                'score': found['score'],
+                'span': found['span'],
+                'differences': found['differences'],
+                'chunk_id': passage_near['chunk_id'],
+                'library_id': snapshot['library_id'],
+                'document_id': snapshot['document_id'],
+                'content_hash': snapshot['content_hash'],
+                'locator': snapshot['locator'],
+            },
+            repair={
+                'kind': 'manual',
+                'guidance': 'Compare the quotation with the source and correct it, or cite it as a paraphrase.',
+            },
         )
     else:
         message = (

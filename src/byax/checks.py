@@ -1005,6 +1005,7 @@ def _spelling(sink, ctx, block, target, text, language):
 
 def _factual(sink, ctx, block):
     from .profiles import source_hash
+    from .quote_match import describe_differences, locate, quoted_passage
 
     doc = ctx.doc
     config = ctx.config_for(block['id'])[0] or {}
@@ -1038,13 +1039,13 @@ def _factual(sink, ctx, block):
             if snapshot is not None:
                 check_citation(sink, block, mark, source_id, snapshot)
                 continue
-        quoted = re.fullmatch(r'\s*["“](.+?)["”]\s*', claim, re.DOTALL)
+        quoted = quoted_passage(claim)
         version = {
             'version': source.get('version'),
             'retrieved_at': source.get('retrieved_at'),
             'content_hash': source_hash(source),
         }
-        if not quoted:
+        if quoted is None:
             sink.cover(
                 'factual',
                 'factual.claim_interpretation',
@@ -1053,14 +1054,18 @@ def _factual(sink, ctx, block):
                 targets=[block['id']],
             )
             continue
-        passage = quoted.group(1)
+        passage = quoted
         materials = [source[k] for k in ('text', 'excerpt', 'content') if isinstance(source.get(k), str)]
         materials += [
             e if isinstance(e, str) else e.get('text', '')
             for e in source.get('excerpts', [])
             if isinstance(e, (str, dict))
         ]
-        if any(passage in material for material in materials):
+        # Exact and normalized matches support the quotation. A near match is advisory and never confirmed.
+        located = [locate(passage, material) for material in materials]
+        best = next((f for f in located if f['normalized_pass']), None)
+        near = max((f for f in located if f['match'] == 'near'), key=lambda f: f['score'], default=None)
+        if best is not None:
             record = {
                 'claim': claim,
                 'target': block['id'],
@@ -1072,6 +1077,11 @@ def _factual(sink, ctx, block):
                         'excerpt': passage,
                         'relation': 'quotation',
                         'source_version': version,
+                        'quote_match': {
+                            'match': best['match'],
+                            'raw_pass': best['raw_pass'],
+                            'normalized_pass': best['normalized_pass'],
+                        },
                     }
                 ],
                 'note': 'Exact quotation found in the selected source; this establishes consistency with that source, not universal truth.',
@@ -1079,6 +1089,33 @@ def _factual(sink, ctx, block):
             sink.coverage.append(
                 {'suite': 'factual', 'rule': 'factual.quotation', 'status': 'completed', 'evidence': record}
             )
+        elif near is not None:
+            sink.add(
+                'factual.quotation',
+                'factual',
+                'advisory',
+                'Quoted passage nearly matches the cited source but is not identical ('
+                + describe_differences(near['differences'])
+                + '). It is not confirmed.',
+                block['id'],
+                mark['start'],
+                mark['end'],
+                claim,
+                outcome='not_established',
+                measured={
+                    'source_id': source_id,
+                    'verification': 'quote_near_match',
+                    'match': 'near',
+                    'score': near['score'],
+                    'differences': near['differences'],
+                },
+                repair={
+                    'kind': 'manual',
+                    'guidance': 'Compare the quotation with the source and correct it, or cite it as a paraphrase.',
+                },
+            )
+            sink.findings[-1]['source_versions'] = {source_id: version}
+            sink.findings[-1]['claim'] = claim
         else:
             sink.add(
                 'factual.quotation',

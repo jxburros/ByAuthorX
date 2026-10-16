@@ -17,15 +17,31 @@ text changes require Apply/accept. Repository and factual reviews can use attach
 library passages, with a passage picker and separate consent before remote transfer.
 A factual review is evidence checking, not an automatic web fact-checking service.
 
+Every provider and embedder is labelled **Local** (stays on this computer) or **Remote**
+(leaves this computer, with its host) in the Libraries panel (the embedder line under the
+index status), the passage preview, the payload authorization dialog, Provider settings
+and the assistant's provider list. Local means a loopback address (`localhost`,
+`127.0.0.0/8`, `::1`), a unix socket, or whisper.cpp, which runs as a local process. A LAN
+address or any other host is Remote. The label describes where the request goes; it cannot
+see where a service behind a loopback port forwards it.
+
 Tools → Libraries manages local research folders. Add creates and attaches a library;
 Attach reuses an existing definition. Refresh/rebuild run as cancellable background
-jobs. Relink restores a missing definition on another machine. Remove removes the
+jobs. Relink restores a missing definition on another machine. **Preview extracted text…**
+opens a read-only view of each indexed file, with the text and locators exactly as
+indexed (page or heading path, offsets). Search, citations and AI passages use only that
+text, so it is the place to see why a PDF did not match: scanned pages and images have no
+text, and extractors break lines and words in their own way. The preview reads the
+index; it does not parse the file again and never changes it. Remove removes the
 local definition and current attachment, never the research files. Other documents
 keep their attachment and can relink it. Opening an attached document checks for
 changed files in the background.
 
 Select document text and choose Cite. Search existing sources or attached libraries,
-inspect the passage and locator, then insert. Stale results cannot be inserted.
+inspect the passage and locator, then insert. Stale results cannot be inserted. The
+picker preselects the evidence kind (Quotation, Paraphrase or Inference) and says why;
+you can change it, and your choice is kept when you pick another result. See
+[Quotations and evidence kinds](#quotations-and-evidence-kinds).
 Manual sources accept bibliographic fields, DOI or URL without fetching the network.
 Import/export supports CSL-JSON, BibTeX (including Zotero Better BibTeX) and RIS.
 Reimport uses stable origin keys. Library's Citation style control selects APA, MLA
@@ -65,6 +81,39 @@ authorizes filesystem reads, and library paths are confined to locally selected
 roots. Transports cannot assert manual/verified source status. Verification is
 computed against indexed content and current file state.
 
+## Quotations and evidence kinds
+
+A quotation is checked against the cited source text with `quote_match.locate`, in three
+steps, and the result says which step passed:
+
+| Result | Meaning | Reported as |
+| --- | --- | --- |
+| `exact` | The quote is a literal substring | verified; `raw_pass` true |
+| `normalized` | It matches after normalization: Unicode NFC, collapsed whitespace, curly quotes and apostrophes straightened, soft hyphens and zero-width characters removed, ligatures (`ﬁ`) expanded, a line-break hyphen joined (`exam-` + newline + `ple`), dashes folded, and `...`, `. . .`, `[...]` and `[…]` treated as one ellipsis. An elided quote (`first part ... last part`) matches when its segments occur in order | verified; `raw_pass` false, `normalized_pass` true. The span is mapped back to the original text |
+| `near` | No normalized match, but RapidFuzz `partial_ratio` alignment is at or above the threshold (provisionally 90, to be tuned by the Phase 0 harness; quotes shorter than 12 characters are never matched this way) | **`quote_near_match`**, advisory. It lists the differing characters and the score, and is never `confirmed` or `verified` |
+| `none` | Nothing close | `unconfirmed` (stored source) or a warning finding (document check) |
+
+Case is significant: a quote that differs only in capitalization is a near match, not a
+verified one. A quote that spans two indexed passages is not found, because each passage is
+checked on its own.
+
+The result of `verify_source_detail` and the evidence in a factual check record
+`quote_match` (`match`, `raw_pass`, `normalized_pass`), so the pass rate before and after
+normalization can be counted. The checks keep their rule IDs (`factual.quotation`,
+`factual.library_citation`); a near match is a finding of severity `advisory` whose
+`measured.verification` is `quote_near_match`.
+
+**Evidence kinds.** A citation records `kind`: `quotation`, `paraphrase` or `inference`.
+When the Cite picker or `byax cite` is not told a kind, it chooses `quotation` if the
+selected text is inside quotation marks or is found verbatim (exact or normalized, at
+least 12 characters) in the cited source, and `paraphrase` otherwise. `byax cite` returns
+the choice and its reason as `citation_kind` (`inferred: true`); pass `--kind` to set it
+yourself. Only quotations are checked word for word.
+
+**Anchors.** `quote_match.selectors` and `reanchor` implement the three selectors used by
+the planned re-anchoring (position, quote, 32 characters of prefix and suffix). Nothing
+stores them in documents yet.
+
 ## Optional embeddings
 
 Keyword search requires no model or network. Configure an existing Ollama or
@@ -78,7 +127,9 @@ byax library draft.byax --action embed --library-id lib_...
 byax library draft.byax --action hybrid --library-id lib_... --query moons
 ```
 
-The preview reports provider, documents, character count and exact passages.
+The preview reports provider, whether it is `local` or `remote`, documents, character
+count and exact passages. `byax library --action status` names the embedder and its
+locality (`embedder: null` when semantic search is off).
 A remote embedding call requires independent consent (`--allow-remote` for that
 explicit call, or the separate saved provider setting). Ordinary chat consent does
 not authorize it. A `local_only` library refuses remote embeddings and context.

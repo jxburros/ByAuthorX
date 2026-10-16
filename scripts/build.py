@@ -47,6 +47,8 @@ def main():
             'citeproc',
             '--collect-data',
             'citeproc_styles',
+            '--collect-submodules',
+            'rapidfuzz',
             '--exclude-module',
             'PySide6.QtWebEngineCore',
             '--exclude-module',

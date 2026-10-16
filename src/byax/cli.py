@@ -904,14 +904,14 @@ def _cmd_providers(a: Args, owner: str | None) -> Result:
     registry = ProviderRegistry(config_dir=a.get('config_dir'))
     action = a.get('action', 'list')
     if action == 'list':
-        return envelope({'providers': registry.list()})
+        return envelope({'providers': registry.list_with_locality()})
     if action == 'configure':
         try:
             config = ProviderConfig(**a.get('input', {}))
         except TypeError as exc:
             _error('invalid_input', str(exc), field='input')
         registry.save(config)
-        return envelope({'providers': registry.list()})
+        return envelope({'providers': registry.list_with_locality()})
     if not a.get('alias'):
         _error('invalid_input', 'Provider action requires --alias')
     if action == 'preview':

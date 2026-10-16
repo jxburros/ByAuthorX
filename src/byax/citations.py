@@ -12,7 +12,9 @@ from datetime import date
 
 from .errors import ByaxError
 
-STATUSES = {'verified', 'stale', 'unverifiable', 'unconfirmed', 'manual'}
+# quote_near_match is advisory: the quotation aligns closely but not exactly with the source, so it
+# is shown with its differing characters and is never reported as verified.
+STATUSES = {'verified', 'stale', 'unverifiable', 'unconfirmed', 'manual', 'quote_near_match'}
 STYLES = {'apa': 'apa', 'mla': 'modern-language-association', 'chicago': 'chicago-notes-bibliography'}
 MAX_IMPORT_BYTES = 8 * 1024 * 1024
 MAX_SOURCES = 10000
@@ -324,24 +326,45 @@ def source_from_hit(hit):
     return validate_source(source, ident)
 
 
-def verify_source(source, read, locator=None, quote=None):
-    """Compute status from a fresh authorized library read callback.
+def verify_source_detail(source, read, locator=None, quote=None):
+    """Status plus how a quotation matched: ``{'status', 'quote': {match, raw_pass, normalized_pass, ...}}``.
 
-    read(library_id, document_id, locator) returns text/content_hash/stale, or
-    raises ByaxError when unavailable. No stored status is trusted as evidence.
+    read(library_id, document_id, locator) returns text/content_hash/stale, or raises ByaxError
+    when unavailable. No stored status is trusted as evidence. A quotation that only matches
+    after normalization (curly quotes, line-break hyphenation, ligatures) is ``verified`` with
+    ``raw_pass`` false; a close but inexact alignment is the advisory ``quote_near_match``.
     """
+    from .quote_match import describe_differences, locate
+
     library = source.get('library')
     if not library:
-        return 'manual' if source.get('verification') == 'manual' else 'unconfirmed'
+        return {'status': 'manual' if source.get('verification') == 'manual' else 'unconfirmed'}
     try:
         current = read(library['library_id'], library['document_id'], locator or {})
     except (ByaxError, OSError, KeyError):
-        return 'unverifiable'
+        return {'status': 'unverifiable'}
     if current.get('stale') or current.get('content_hash') != library['content_hash']:
-        return 'stale'
-    if quote and quote not in current.get('text', ''):
-        return 'unconfirmed'
-    return 'verified'
+        return {'status': 'stale'}
+    if not quote:
+        return {'status': 'verified'}
+    found = locate(quote, current.get('text', ''))
+    detail = {
+        'match': found['match'],
+        'raw_pass': found['raw_pass'],
+        'normalized_pass': found['normalized_pass'],
+    }
+    if found['match'] == 'none':
+        return {'status': 'unconfirmed', 'quote': detail}
+    detail.update(span=found['span'], score=found['score'])
+    if found['match'] == 'near':
+        detail.update(differences=found['differences'], summary=describe_differences(found['differences']))
+        return {'status': 'quote_near_match', 'quote': detail}
+    return {'status': 'verified', 'quote': detail}
+
+
+def verify_source(source, read, locator=None, quote=None):
+    """Compute status from a fresh authorized library read callback (see verify_source_detail)."""
+    return verify_source_detail(source, read, locator, quote)['status']
 
 
 def _processor(references, style):

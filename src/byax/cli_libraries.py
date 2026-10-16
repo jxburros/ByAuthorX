@@ -141,7 +141,9 @@ def library_command(a, owner=None):
             doc,
         )
     if action == 'status':
-        return envelope(index.status(), doc)
+        from .embeddings import embedder_locality
+
+        return envelope({**index.status(), 'embedder': embedder_locality(library)}, doc)
     if action == 'search':
         return envelope(
             index.search(a.get('query', ''), limit=a.get('limit', 20), offset=a.get('offset', 0)), doc
@@ -176,7 +178,19 @@ def cite_command(a, owner=None):
     op.update(type='cite', **a.get('input', {}))
     if op['type'] != 'cite':
         raise ByaxError('invalid_input', 'Cite input cannot select another operation')
-    return execute(
+    inferred = None
+    if 'kind' not in op:
+        # No kind given: quotation if the selection is quoted or found in the source, else paraphrase.
+        from .cli import _load
+        from .library_checks import infer_citation_kind
+
+        try:
+            inferred = infer_citation_kind(_load(a['path']), op)
+        except (KeyError, TypeError, ByaxError):
+            inferred = None  # the apply below reports the invalid target, range or source
+        if inferred:
+            op['kind'] = inferred['kind']
+    result = execute(
         'apply',
         {
             'path': a['path'],
@@ -184,6 +198,9 @@ def cite_command(a, owner=None):
             **{k: a[k] for k in ('expect_revision', 'request_id', 'dry_run') if k in a},
         },
     )
+    if inferred and isinstance(result, dict):
+        result['citation_kind'] = {**inferred, 'inferred': True}
+    return result
 
 
 def _suggest(a, doc):

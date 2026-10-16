@@ -81,6 +81,8 @@ Each provider configuration also accepts:
 | `retry_policy` | `"never"` | `never`, or `unsent_only`: retry only when the request provably did not reach the provider (connection refused, TLS/connect failure) or the provider rejected it before processing (HTTP 429, honouring `Retry-After` up to 30 s) |
 | `max_retries` | `0` | 0–5; requires `unsent_only` |
 | `max_input_chars` / `max_audio_bytes` | `100000` / `25000000` | Checked before anything is sent; failures report the measured size and the limit |
+| `max_context_tokens` | `8192` | Ollama only: the largest `options.num_ctx` the app will request. Ollama allocates memory in proportion to it, so it is yours to raise or lower |
+| `context_tokens` | `null` | Ollama only: the model's real context window. Set by hand or recorded when you run **Test connection** (it reads `/api/show`; nothing is called in the background) |
 | `cost_rates` | `null` | Optional rates you supply, for example `{"input_per_million": 2.5, "output_per_million": 10, "currency": "USD", "source": "my plan, checked 2026-10"}`. `source` is required |
 
 Delivered requests are never retried: an HTTP error, a timeout after the request was sent, or an interrupted response stays `provider_failure` or `uncertain_external_outcome`, so a billed request is never repeated without you deciding to. Results include `transport.attempts`.
@@ -101,6 +103,23 @@ registry.resolve('review', check='factual')  # {'alias': 'fact-model', 'source':
 ```
 
 Resolution order is explicit choice, workflow override, check override, the active profile's `providers` mapping, then the default. An alias whose adapter lacks the role's capability is rejected. Example: an Anthropic alias cannot be the recognition provider. When no provider is configured, the error says that AI function is unavailable and `local_writing: "available"`. Writing, checking and export never depend on a provider.
+
+## Local or remote labels
+
+`byax providers --action list` returns `locality` (`local` or `remote`) and `locality_label` for every saved provider, and `capabilities` returns the default `locality` of each adapter kind. The label comes from the endpoint: loopback hosts (`localhost`, `127.0.0.0/8`, `::1`) and unix sockets are local, whisper.cpp is local, and everything else, including a LAN address, is remote. `preview` carries the same fields, and the GUI shows the label wherever it asks you to approve content: the passage picker, the payload authorization dialog, Provider settings, the assistant's provider list and the Libraries panel (for the embedder). The label is derived each time and never stored.
+
+## Token budgets and the Ollama context window
+
+The app estimates tokens offline (`context_assembly.estimate_tokens`). No provider tokenizer is bundled and none is downloaded, so the estimate is a conservative 3.5 characters per token, with one token per CJK character. It over-counts ordinary English. The character limits above (`max_input_chars`, the 12,000 character library passage budget) stay as hard caps; token budgets apply beside them, so a tokenizer that undercounts cannot lift a character cap. Retrieved library passages are limited to the smaller of the converted passage budget and half of the request budget, and passages that do not fit are reported as omitted ("Retrieval token budget exceeded"), not cut.
+
+Ollama silently truncates a prompt that is longer than its context window. The app does not allow that:
+
+- Every Ollama chat or review request sets `options.num_ctx` to the assembled payload plus room for the answer (up to 1,024 tokens, less in a small window), rounded up to a multiple of 256 and never above `max_context_tokens` or `context_tokens`, whichever is lower.
+- If the payload plus answer room does not fit, the request fails **before anything is sent** with `limit_exceeded` and the message `N tokens needed / M available`. The error details give `payload_tokens`, `response_headroom_tokens`, `tokens_available`, the model's reported window and guidance (select less text, or raise `max_context_tokens`). Nothing is truncated.
+- `preview` shows `estimated_tokens`, `tokens_needed`, `tokens_available` and `num_ctx` and marks `within_limit` false instead of raising.
+- Hosted providers have no `num_ctx`; their `max_input_chars` check is unchanged.
+
+Until you run Test connection, `context_tokens` is unknown and the cap alone sets the limit.
 
 ## Streaming recognition
 

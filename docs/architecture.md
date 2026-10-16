@@ -22,6 +22,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `cli` | Common command dispatcher and structured CLI envelopes |
 | `mcp`, `service` | Stdio MCP; separately enabled local REST transport |
 | `libraries`, `library_parser`, `library_checks`, `retrieval`, `embeddings` | Attached local research libraries, indexing, bounded retrieval, optional embeddings and library-backed review checks (see the [library guide](library-and-citations-guide.md)) |
+| `quote_match`, `context_assembly` | Quote normalization, exact/normalized/near alignment and three-selector anchors (RapidFuzz); offline token estimates, token budgets over the character caps, and the Ollama `num_ctx` plan with its `limit_exceeded` refusal |
 | `citations`, `citation_render` | Source records, CSL-JSON/BibTeX/RIS exchange, citation marks and APA/MLA/Chicago rendering |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |

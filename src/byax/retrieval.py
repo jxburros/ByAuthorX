@@ -19,8 +19,11 @@ def retrieve_context(
     cache_dir=None,
     limit=12,
     max_chars=12000,
+    max_tokens=None,
+    provider=None,
     remote=False,
 ):
+    from .context_assembly import estimate_tokens
     from .libraries import LibraryIndex, LibraryRegistry
     from .profiles import request_settings
 
@@ -28,11 +31,16 @@ def retrieve_context(
         raise ByaxError('invalid_input', 'Library retrieval requires an explicit query')
     if type(limit) is not int or not 1 <= limit <= 100 or type(max_chars) is not int or max_chars < 0:
         raise ByaxError('invalid_input', 'Invalid retrieval limits')
+    if max_tokens is not None and (type(max_tokens) is not int or max_tokens < 0):
+        raise ByaxError('invalid_input', 'Invalid retrieval token budget')
     registry = registry or LibraryRegistry()
     config = request_settings(doc, target, profile)['profile'] or {}
     attachments = doc.get('settings', {}).get('libraries', [])
     included, omitted = [], []
     remaining = max_chars
+    # An optional token budget (context_assembly.library_budget) applies beside the character cap,
+    # which stays a hard limit.
+    tokens_left = max_tokens
     # An exclusive profile permits only supplied authoritative library attachments.
     exclusive = config.get('source_authority') == 'exclusive'
     for attachment in attachments:
@@ -70,13 +78,22 @@ def retrieve_context(
                 omitted.append({'chunk_id': hit['chunk_id'], 'reason': 'Indexed passage is stale'})
             elif len(included) >= limit or len(hit.get('text', '')) > remaining:
                 omitted.append({'chunk_id': hit['chunk_id'], 'reason': 'Retrieval payload limit exceeded'})
+            elif tokens_left is not None and estimate_tokens(hit.get('text', ''), provider) > tokens_left:
+                omitted.append({'chunk_id': hit['chunk_id'], 'reason': 'Retrieval token budget exceeded'})
             else:
                 included.append(passage)
                 remaining -= len(hit.get('text', ''))
+                if tokens_left is not None:
+                    tokens_left -= estimate_tokens(hit.get('text', ''), provider)
     return {
         'included': included,
         'omitted': omitted,
         'remote_bound': remote,
+        **(
+            {'token_budget': {'maximum': max_tokens, 'used': max_tokens - tokens_left}}
+            if max_tokens is not None
+            else {}
+        ),
         'allowed_citation_ids': [p['chunk_id'] for p in included] + list(doc.get('references', {})),
     }
 

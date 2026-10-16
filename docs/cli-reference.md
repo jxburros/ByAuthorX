@@ -52,7 +52,7 @@ command's flags.
 | `library-search` | Search attached library passages (read only) |
 | `library-read` | Read an indexed attached library passage (read only) |
 | `source` | Search, import, export and suggest citation sources |
-| `cite` | Insert a citation referencing an existing source |
+| `cite` | Insert a citation referencing an existing source. Without `--kind` it infers `quotation` or `paraphrase` and reports `citation_kind` |
 | `statistics` | Count authored, publication and selected text |
 | `collection` | Inspect, export or apply reusable document settings |
 | `dependencies` | Inspect, explicitly refresh or embed linked assets |
@@ -78,7 +78,7 @@ command's flags.
 | `render` | Render pages through the desktop layout engine |
 | `pack` | Pack a readable native source folder |
 | `unpack` | Unpack a portable native package |
-| `providers` | Inspect, configure, test, or call explicitly selected providers |
+| `providers` | Inspect, configure, test, or call explicitly selected providers. `list` includes `locality` (`local` or `remote`) |
 | `transcribe` | Transcribe an explicitly selected audio file |
 | `jobs` | Inspect persistent job status, results, cancellation, and recovery |
 | `batch` | Convert inputs with individual outcomes and bounded workers |

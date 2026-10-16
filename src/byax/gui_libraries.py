@@ -29,6 +29,90 @@ from PySide6.QtWidgets import (
 )
 
 
+def format_extracted(page):
+    """Text and locators of one ``LibraryIndex.read`` page, exactly as indexed."""
+    blocks = []
+    for passage in page['results']:
+        header = json.dumps(passage['locator'], ensure_ascii=False, sort_keys=True)
+        note = '  [shown truncated by the read limit]' if passage.get('truncated') else ''
+        blocks.append(f'[{passage["ordinal"]}] {header}{note}\n{passage["text"]}')
+    return '\n\n'.join(blocks)
+
+
+class ExtractedTextDialog(QDialog):
+    """Read-only view of what the parser extracted from each file and how it was chunked.
+
+    Nothing here is parsed again: it reads the index, so it shows what search, citation and
+    retrieval will actually see (including text a parser could not extract, which is simply absent).
+    """
+
+    PAGE_CHARS = 20000
+
+    def __init__(self, parent, library, files, cache_dir=None):
+        from .libraries import LibraryIndex
+
+        super().__init__(parent)
+        self.setWindowTitle(self.tr('Extracted text'))
+        self.resize(760, 560)
+        self.index = LibraryIndex(library, cache_dir=cache_dir)
+        self.offset = 0
+        layout = QVBoxLayout(self)
+        note = QLabel(
+            self.tr(
+                'This is the text and the locators exactly as indexed from the file. Search, citations and AI passages use only this text. It is read-only.'
+            )
+        )
+        note.setWordWrap(True)
+        layout.addWidget(note)
+        self.files = QComboBox()
+        self.files.setObjectName('extractedFile')
+        self.files.setAccessibleName(self.tr('File to preview'))
+        for item in files:
+            self.files.addItem(f'{item["path"]} · {item["status"]}', item)
+        layout.addWidget(self.files)
+        self.summary = QLabel()
+        self.summary.setObjectName('extractedSummary')
+        layout.addWidget(self.summary)
+        self.view = QPlainTextEdit()
+        self.view.setObjectName('extractedText')
+        self.view.setReadOnly(True)
+        self.view.setAccessibleName(self.tr('Extracted text and locators'))
+        layout.addWidget(self.view)
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        self.more = buttons.addButton(self.tr('Load more'), QDialogButtonBox.ActionRole)
+        self.more.clicked.connect(lambda: self.load(append=True))
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+        self.files.currentIndexChanged.connect(lambda _: self.load())
+        self.load()
+
+    def load(self, append=False):
+        from .errors import ByaxError
+
+        item = self.files.currentData()
+        if not append:
+            self.offset = 0
+            self.view.clear()
+        self.more.setEnabled(False)
+        if not item or not item.get('document_id'):
+            self.summary.setText(self.tr('This file has no indexed text. Refresh the library to index it.'))
+            return
+        try:
+            page = self.index.read(item['document_id'], limit=self.PAGE_CHARS, offset=self.offset)
+        except ByaxError as exc:
+            self.summary.setText(str(exc))
+            return
+        text = format_extracted(page)
+        self.view.setPlainText((self.view.toPlainText() + '\n\n' if append else '') + text)
+        self.offset += len(page['results'])
+        self.more.setEnabled(bool(page['continuation']))
+        self.summary.setText(
+            self.tr('{0} of {1} passages shown{2}').format(
+                self.offset, page['total'], self.tr(' · file changed since indexing') if page['stale'] else ''
+            )
+        )
+
+
 class LibraryPanels:
     def library_inspector_widget(self):
         panel = QWidget()
@@ -146,6 +230,7 @@ class LibraryPanels:
         )
 
     def library_panel(self):
+        from .embeddings import embedder_locality
         from .libraries import LibraryIndex, LibraryRegistry
 
         registry = LibraryRegistry()
@@ -167,6 +252,10 @@ class LibraryPanels:
         details.setReadOnly(True)
         details.setAccessibleName(self.tr('Index status and file results'))
         layout.addWidget(details)
+        embedder = QLabel()
+        embedder.setObjectName('libraryEmbedder')
+        embedder.setWordWrap(True)
+        layout.addWidget(embedder)
         role = QComboBox()
         role.addItems(['supplementary', 'exclusive', 'open'])
         role.setAccessibleName(self.tr('Reference authority when attaching'))
@@ -196,8 +285,24 @@ class LibraryPanels:
                 library = registry.get(selected())
                 status = LibraryIndex(library).status() if library else {'state': 'unavailable'}
                 details.setPlainText(json.dumps(status, indent=2, ensure_ascii=False))
+                info = embedder_locality(library) if library else None
+                embedder.setText(
+                    self.tr('Semantic search: off. Keyword search runs on this computer.')
+                    if info is None
+                    else self.tr('Embedder: {0} · {1}').format(info['provider'], info['label'])
+                )
             except Exception as exc:
                 details.setPlainText(str(exc))
+
+        def preview_text():
+            library = registry.get(selected()) if selected() else None
+            if not library:
+                return
+            files = [f for f in LibraryIndex(library).status()['files'] if f.get('document_id')]
+            if not files:
+                self.status_label.setText(self.tr('No indexed files to preview yet.'))
+                return
+            ExtractedTextDialog(dialog, library, files).exec()
 
         def attach(library):
             records = copy.deepcopy(self.doc.get('settings', {}).get('libraries', []))
@@ -274,6 +379,7 @@ class LibraryPanels:
                 lambda: self._index_library(registry.get(selected()), rebuild=True) if selected() else None,
             ),
             ('Remove', remove),
+            ('Preview extracted text…', preview_text),
         ):
             button = QPushButton(self.tr(title))
             button.clicked.connect(guarded(callback))
@@ -335,6 +441,9 @@ class LibraryPanels:
     def cite_selection(self):
         from .citations import source_from_hit
         from .libraries import LibraryIndex, LibraryRegistry
+        from .library_checks import source_texts
+        from .model import find_object
+        from .quote_match import infer_kind
 
         if not self.flush_edits():
             return
@@ -365,11 +474,42 @@ class LibraryPanels:
         layout.addWidget(preview)
         manual = QPushButton(self.tr('Enter source manually / paste DOI or URL…'))
         layout.addWidget(manual)
+        kind_row = QHBoxLayout()
+        kind_row.addWidget(QLabel(self.tr('This citation is a')))
+        kind = QComboBox()
+        kind.setObjectName('citationKind')
+        kind.setAccessibleName(self.tr('Evidence kind: quotation, paraphrase or inference'))
+        for label, value in (
+            (self.tr('Quotation'), 'quotation'),
+            (self.tr('Paraphrase'), 'paraphrase'),
+            (self.tr('Inference'), 'inference'),
+        ):
+            kind.addItem(label, value)
+        kind_row.addWidget(kind)
+        kind_reason = QLabel()
+        kind_reason.setObjectName('citationKindReason')
+        kind_reason.setWordWrap(True)
+        kind_row.addWidget(kind_reason, 1)
+        layout.addLayout(kind_row)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.button(QDialogButtonBox.Ok).setText(self.tr('Insert citation'))
         buttons.button(QDialogButtonBox.Ok).setEnabled(False)
         layout.addWidget(buttons)
-        active = {'open': True, 'generation': 0}
+        active = {'open': True, 'generation': 0, 'kind_overridden': False}
+        selected_texts = [find_object(self.doc, target)['text'][start:end] for target, start, end in targets]
+
+        def suggest_kind(source=None):
+            """Preselect quotation when the text is quoted or found in the source, unless the user chose."""
+            if active['kind_overridden']:
+                return
+            texts = source_texts(source) if source else []
+            guesses = [infer_kind(text, texts) for text in selected_texts]
+            guess = next((g for g in guesses if g['kind'] == 'paraphrase'), guesses[0])
+            kind.setCurrentIndex(kind.findData(guess['kind']))
+            kind_reason.setText(self.tr(guess['reason']))
+
+        kind.activated.connect(lambda _: active.update(kind_overridden=True))
+        suggest_kind()
 
         def context_current():
             selection = [(t, start, end) for t, start, end in self.editor.selection_targets() if end > start]
@@ -439,6 +579,7 @@ class LibraryPanels:
             )
             if item:
                 source, locator = item.data(Qt.UserRole)
+                suggest_kind(source)
                 preview.setPlainText(
                     str(source.get('excerpt', source.get('text', '')))
                     + '\n\n'
@@ -503,6 +644,7 @@ class LibraryPanels:
                 )
             )
             return
+        kind_choice = kind.currentData()
         operations = []
         if existing.get(source['id']) != source:
             operations.append({'type': 'add_reference', 'id': source['id'], 'values': source})
@@ -514,7 +656,7 @@ class LibraryPanels:
                 'end': end,
                 'source': source['id'],
                 'locator': locator,
-                'kind': 'paraphrase',
+                'kind': kind_choice,
             }
             for target, start, end in targets
         )

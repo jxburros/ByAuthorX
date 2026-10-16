@@ -122,6 +122,7 @@ def embedding_preview(index, provider=None):
     return {
         'provider': getattr(getattr(provider, 'config', None), 'alias', provider.model_identity),
         'remote': getattr(provider, 'remote', False),
+        'locality': 'remote' if getattr(provider, 'remote', False) else 'local',
         'documents': len({r['document_id'] for r in rows}),
         'characters': sum(len(r['text']) for r in rows),
         'passages': rows,
@@ -257,3 +258,24 @@ def index_embedding_state(index):
         return 'rebuild_required' if missing else 'ready'
     except (ByaxError, OSError):
         return 'provider_unavailable'
+
+
+def embedder_locality(library, registry=None):
+    """Where a library's embedder sends text: ``None`` when embeddings are off, else a label dict.
+
+    Reads the saved provider configuration only; it makes no request and builds no adapter.
+    """
+    settings = library.get('embedding')
+    if not settings:
+        return None
+    from .providers import ProviderRegistry, provider_locality
+
+    try:
+        info = provider_locality((registry or ProviderRegistry()).get(settings['provider']))
+    except (ByaxError, KeyError, OSError):
+        return {
+            'provider': settings.get('provider'),
+            'locality': 'unknown',
+            'label': 'Provider not configured',
+        }
+    return {'provider': settings['provider'], **info}
