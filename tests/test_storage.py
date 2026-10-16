@@ -159,3 +159,15 @@ def test_save_preserves_existing_file_mode(tmp_path):
     )
     save_document(changed, path)
     assert stat.S_IMODE(path.stat().st_mode) == 0o644
+
+
+@pytest.mark.parametrize(
+    'manifest', ['[' * 1500 + '0' + ']' * 1500, '{"schema_versions": 1}'], ids=['deep-json', 'wrong-shape']
+)
+def test_save_can_replace_unreadable_existing_manifest(tmp_path, manifest):
+    path = tmp_path / 'broken.byax'
+    with zipfile.ZipFile(path, 'w') as archive:
+        archive.writestr('manifest.json', manifest)
+    doc = new_document(text='Recovered document')
+    save_document(doc, path)
+    assert load_document(path) == doc

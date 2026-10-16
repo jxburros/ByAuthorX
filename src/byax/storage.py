@@ -412,10 +412,20 @@ def _package_version(path):
             info = archive.getinfo('manifest.json')
             if info.file_size > 1024 * 1024:
                 return None
-            manifest = json.loads(archive.read(info).decode('utf-8'))
+            manifest = _json(archive.read(info), 'manifest.json')
         version = manifest['schema_versions']['document']
         return version if type(version) is int else None
-    except (OSError, KeyError, TypeError, ValueError, zipfile.BadZipFile, RuntimeError, zlib.error, EOFError):
+    except (
+        ByaxError,
+        OSError,
+        KeyError,
+        TypeError,
+        ValueError,
+        zipfile.BadZipFile,
+        RuntimeError,
+        zlib.error,
+        EOFError,
+    ):
         return None
 
 

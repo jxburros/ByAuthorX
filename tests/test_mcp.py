@@ -228,3 +228,35 @@ def test_mcp_skips_blank_lines_and_keeps_framing_for_parse_errors():
     header, body = out.getvalue().split(b'\r\n\r\n', 1)
     assert header.startswith(b'Content-Length: ')
     assert json.loads(body)['error']['code'] == -32700
+
+
+@pytest.mark.parametrize('name', [[], {}, 42, None])
+def test_mcp_malformed_tool_name_is_invalid_params(name):
+    response = handle({'jsonrpc': '2.0', 'id': 7, 'method': 'tools/call', 'params': {'name': name}})
+    assert response['id'] == 7
+    assert response['error']['code'] == -32602
+
+
+@pytest.mark.parametrize('command', [[], {}, 42, None])
+def test_malformed_command_has_stable_input_error(command):
+    from byax.cli import execute
+
+    with pytest.raises(ByaxError) as failure:
+        execute(command, {})
+    assert failure.value.code == 'invalid_input'
+
+
+def test_service_pack_rejects_reserved_state_ancestor_before_reading(tmp_path):
+    from byax.service import AccessPolicy
+
+    root = tmp_path / 'root'
+    root.mkdir()
+    state = root / '.byax'
+    state.mkdir()
+    (state / 'private.json').write_text('private service state')
+    policy = AccessPolicy([root])
+    with pytest.raises(ByaxError, match='ancestor'):
+        policy.check('pack', {'path': str(root), 'out': str(root / 'packed.byax')})
+    source = root / 'source'
+    source.mkdir()
+    policy.check('pack', {'path': str(source), 'out': str(root / 'packed.byax')})

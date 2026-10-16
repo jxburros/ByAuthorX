@@ -1403,13 +1403,21 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         """Process events until queued writes finish; returns whether the last write succeeded."""
         from PySide6.QtCore import QEventLoop
 
+        loop = QEventLoop()
+        poll = QTimer()
+        poll.setSingleShot(True)
+        poll.timeout.connect(loop.quit)
         while self._save_task is not None or self._save_again:
             if self._save_task is None:
                 self._save_again = False
                 if not (self.dirty and self.save()):
                     break
                 continue
-            QApplication.processEvents(QEventLoop.ExcludeUserInputEvents | QEventLoop.WaitForMoreEvents, 50)
+            # Let Qt sleep between completion checks. Repeated processEvents()
+            # calls spin when no events are ready and exercise a PySide refcount
+            # failure on Python 3.11 during nested close-event handling.
+            poll.start(10)
+            loop.exec(QEventLoop.ExcludeUserInputEvents)
         return bool(self._last_save_ok)
 
     def save_as(self, *, wait=False):

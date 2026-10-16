@@ -7,9 +7,27 @@ number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any 
 disagrees or if the version has no entry below. The release workflow publishes a version's
 entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
-## [Unreleased]
+## [0.3.0] - 2026-10-16
+
+### Fixed
+
+- Reject malformed command/tool names with stable input errors instead of internal failures.
+- Reject REST pack sources containing service-owned state before reading their files.
+- Handle deeply nested or malformed existing manifests when saving a replacement package.
+- Bound Qt save-wait CPU usage with a timer-driven event loop. Keep Python 3.11 on
+  PySide versions before 6.12 to avoid a native reference-count crash during save/close;
+  tolerate older Qt accessibility APIs when selecting reduced motion.
+- Decode local file URIs with the host platform's path rules, including Windows drive letters.
 
 ### Changed
+
+- Qt tests destroy closed editor windows between cases so theme changes do not revisit
+  accumulated widget trees.
+- CI runs static checks and the full suite once on Linux, audits runtime dependencies, measures branch coverage, and
+  validates installed wheels. Focused Windows and Python 3.11 regressions extend compatibility
+  coverage. Cached dependencies, superseded PR cancellation, conditional native builds and
+  installer-only artifacts reduce repeated work and storage. Releases and weekly checks still
+  build both installers.
 
 - The ribbon sits beside the logo in two rows matching its height, and each file view has
   its own ribbon showing only what that format supports; the ByAuthorX view carries every
@@ -144,4 +162,5 @@ limitations below before relying on it.
 [0.1.1]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.0
 
+[0.3.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.3.0
 [0.2.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.2.0

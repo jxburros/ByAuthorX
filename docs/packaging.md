@@ -32,7 +32,7 @@ The installer registers `.byax` and a Start menu shortcut. The installer adds th
 
 ## Continuous integration
 
-`.github/workflows/ci.yml` tests and freezes on Ubuntu 24.04 and a Windows Server 2022 x64 build runner, then prepares native installers; `release.yml` calls it unchanged on version tags. A Windows build runner is not evidence of physical Windows 11 acceptance. CI is configured but its remote execution results must be inspected after pushing; local test results do not establish remote CI success.
+`.github/workflows/ci.yml` runs full Linux tests with branch coverage, focused Windows and minimum-Python checks, and installed-wheel CLI/MCP smoke tests. Packaging/dependency/workflow changes, weekly and manual runs, and all release tags also freeze on Ubuntu 24.04 and Windows Server 2022, smoke-test the frozen CLI/MCP, and build native installers. Only installers are uploaded, with seven-day retention and no redundant compression; release publication downloads those artifacts. `release.yml` reuses these gates on every version tag. Ordinary source PRs defer native freezing to the weekly/release runs. A Windows build runner is not evidence of physical Windows 11 acceptance. CI is configured but its remote execution results must be inspected after pushing; local test results do not establish remote CI success.
 
 ## Verification still outstanding
 
