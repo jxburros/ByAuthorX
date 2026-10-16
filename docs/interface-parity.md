@@ -57,6 +57,9 @@ document drifts from it.
 | Review | comments | `byax review --action comment` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review > Add comment… |
 | Review | tracked changes | `byax review --action accept-change` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review > Track changes |
 | Review | merge conflicted copy | `byax sync --action merge-conflict` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.propose_conflicted_copy_merge` | Tools > Review conflicted copies… |
+| Review | send for review (Word) | `byax review-package` | `byax_review_package` | `POST /v1/execute` | `byax.docx_review.create_review_package` | File > Send for review (Word)… |
+| Review | list review packages | `byax review-package --action list` | `byax_review_package` | `POST /v1/execute` | `byax.docx_review.review_packages` | — (headless) |
+| Review | merge reviewed Word copy | `byax merge-review` | `byax_merge_review` | `POST /v1/execute` | `byax.docx_review.merge_reviewed_copy` | File > Merge reviewed copy… |
 | History | list | `byax history` | `byax_history` | `POST /v1/execute` | `byax.engine.inspect` | Review > Revision history… |
 | History | checkpoint | `byax history --action checkpoint` | `byax_history` | `POST /v1/execute` | `byax.engine.checkpoint` | Review > Checkpoint… |
 | History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Start alternate draft… |

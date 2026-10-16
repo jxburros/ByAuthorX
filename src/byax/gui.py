@@ -67,6 +67,7 @@ from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_codex import CodexPanels
 from .gui_compile import CompilePanels
+from .gui_docx_review import DocxReviewPanels
 from .gui_drafts import DraftPanels
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_goals import GoalPanels
@@ -119,6 +120,7 @@ class MainWindow(
     DraftPanels,
     CompilePanels,
     CodexPanels,
+    DocxReviewPanels,
     QMainWindow,
 ):
     def __init__(self, path=None):
@@ -217,6 +219,8 @@ class MainWindow(
             (self.tr('Save as…'), self.save_as, QKeySequence.SaveAs, 'save-as'),
             (self.tr('Export…'), self.export, 'Ctrl+Shift+E', 'export'),
             (self.tr('Compile…'), self.compile_book, None, None),
+            (self.tr('Send for review (Word)…'), lambda: self.send_for_review(), None, None),
+            (self.tr('Merge reviewed copy…'), lambda: self.merge_reviewed_word_copy(), None, None),
             (self.tr('Page setup…'), self.page_setup, None, None),
             (self.tr('Print preview…'), self.print_preview, None, None),
             (self.tr('Print…'), self.print_document, QKeySequence.Print, 'print'),

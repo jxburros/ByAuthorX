@@ -141,6 +141,44 @@ the safe pattern is one computer at a time, and a merge you review if two comput
 
 The same checks run headless as `byax sync` ([reference](cli-reference.md#sync-folder-safety)).
 
+## Working with an editor in Word
+
+Editors work in Microsoft Word. ByAuthorX sends them a Word copy and turns what comes back into
+proposals and comments you review. Nothing in your text changes until you accept a proposal.
+
+1. Save your document as a `.byax` file, then choose **File → Send for review (Word)…**. Name the
+   reviewer if you like and choose what Word allows: *tracked changes and comments only*
+   (recommended), *comments only*, or *no restriction*. Track Changes is on in every copy. Word
+   enforces the restriction through Restrict Editing with no password, so an editor can lift it.
+2. ByAuthorX remembers this version as the review snapshot, saves your document, and writes the
+   `.docx`. Your open comments and replies go with it, on their exact passages. Footnotes, the
+   contents block, section breaks and content excluded from output stay in ByAuthorX. They are listed
+   when the copy is written.
+3. Keep writing. When the editor returns the file, choose **File → Merge reviewed copy…**. ByAuthorX
+   compares three versions: the snapshot you sent, the returned file, and your document now. Only the
+   editor's changes become proposals, and your later edits are kept.
+4. **Proposed changes** opens with one proposal for each change, labelled with the editor's name and
+   date. These include insertions, deletions, replacements, moved paragraphs, new or deleted
+   paragraphs, split or joined paragraphs, bold/italic/underline changes, alignment and heading-level
+   changes, and table cell edits. Changes the editor made with Track Changes off are compared with
+   the snapshot. They are proposed as well, marked *edit made without Track Changes*. The editor's
+   comments and replies become comment threads on the same passages, and a comment the editor marked
+   done arrives resolved. Replies to your own comments join your threads.
+5. Accept or reject each proposal. If you rewrote a passage that the editor also changed, its
+   proposal starts with **Conflict:** and shows both versions. Accepting it replaces only that passage
+   with the editor's version. Rejecting keeps yours.
+
+The merge report lists what could not be merged, each with its paragraph: field codes (their visible
+result is still compared as text), SmartArt, charts, shapes and text boxes, content controls, ink,
+equations, embedded objects, footnotes added in Word, changes to headers and footers, table rows or
+columns added or removed, other kinds of tracked change, and paragraph formatting such as spacing or
+indentation. Review those in Word. Merging the same returned file twice changes nothing. The copy
+records which review it belongs to. If a file has lost that record, ByAuthorX asks which copy you
+sent.
+
+The same steps run headless as `byax review-package` and `byax merge-review`
+([reference](cli-reference.md#word-review-round-trip)).
+
 ## Reviewing your own text
 
 The Inspector's **Checks** tab lists every check with an active checkbox and its own **Run**

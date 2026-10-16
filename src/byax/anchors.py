@@ -175,9 +175,12 @@ def _mark_unresolved(proposal, edit, reason):
 def _move_edit(proposal, edit, operation, anchor, text):
     before = copy.deepcopy(edit['anchor'])
     edit['anchor'] = anchor
+    # The target changed, so its recorded object hash no longer applies even when this range did not
+    # move; acceptance then revalidates the exact anchored text instead.
+    if edit.get('state') == 'exact' or 'state' not in edit:
+        edit['state'] = 'remapped'
     if anchor != before:
         _set_operation_range(operation, anchor, text)
-        edit['state'] = 'remapped' if edit.get('state') == 'exact' or 'state' not in edit else edit['state']
         proposal['anchor_status'] = proposal.get('anchor_status', 'remapped')
         note(
             'anchor_mappings',

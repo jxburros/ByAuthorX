@@ -227,6 +227,11 @@ def main():
         action='store_true',
         help='With --project, skip the 100-page and 500-page fixtures and measure only the manuscript project.',
     )
+    parser.add_argument(
+        '--docx-review',
+        action='store_true',
+        help='Also measure the Word review round trip on the 100,000-word manuscript.',
+    )
     parser.add_argument('--samples', type=int, default=20)
     parser.add_argument('--no-gui', action='store_true', help='Skip GUI startup/latency/idle metrics.')
     parser.add_argument('--startup-samples', type=int, default=5)
@@ -346,6 +351,10 @@ def main():
             binder = binder_gui_metrics(make_fixture('project_100k'), max(3, args.samples // 2), measure)
             entry['binder'] = binder
             entry['target_comparison'].update(binder['target_comparison'])
+    if args.docx_review:
+        from benchmark_docx_review import docx_review_metrics
+
+        report['fixtures']['project_100k_docx_review'] = docx_review_metrics(measure, args.samples)
     if args.scaling:
         from benchmark_scaling import scaling_metrics
 

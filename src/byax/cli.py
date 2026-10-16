@@ -527,6 +527,28 @@ ARGUMENTS['entity'] = {
         'offset',
     )
 }
+# Word review round trip (byax.docx_review): send a review copy, merge the returned file as proposals.
+COMMANDS['review-package'] = (
+    'Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on'
+)
+COMMANDS['merge-review'] = 'Merge a returned Word review copy as pending proposals and comment threads'
+ARGUMENTS['review-package'] = {
+    'path': 'string',
+    'action': 'string',
+    'out': 'string',
+    'restrict': 'string',
+    'reviewer': 'string',
+    'overwrite': 'boolean',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
+ARGUMENTS['merge-review'] = {
+    'path': 'string',
+    'reviewed_path': 'string',
+    'review_id': 'string',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
 REQUIRED = {
     'compile': ['path'],
     'statistics': ['path'],
@@ -578,6 +600,7 @@ for _name in (
     REQUIRED[_name] = ['path']
 for _name in ('project-search', 'codex', 'entity'):
     REQUIRED[_name] = ['path']
+REQUIRED.update({'review-package': ['path'], 'merge-review': ['path', 'reviewed_path']})
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -1609,6 +1632,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 from .cli_codex import codex_command, entity_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
 from .compile import compile_command
+from .docx_review import merge_review_command, review_package_command
 from .drafts import drafts_command
 from .goals import goals_command
 from .grammar import grammar_command
@@ -1669,6 +1693,8 @@ _HANDLERS: dict[str, Handler] = {
     'project-search': project_search_command,
     'codex': codex_command,
     'entity': entity_command,
+    'review-package': review_package_command,
+    'merge-review': merge_review_command,
 }
 
 

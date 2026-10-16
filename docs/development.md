@@ -100,6 +100,22 @@ Match surrounding code (single quotes, type hints on public functions). Never cl
 does not support. Untrusted text (document content, model output) is data and must not select executables, enable
 retrieval or touch secrets. No network except explicit, user-selected provider calls.
 
+## Word review fixtures
+
+`tests/fixtures/docx-review` holds the round-trip fixture set used by `tests/test_docx_review.py`. It
+contains `sent.byax`, the review copy, two files edited the way Word saves them (emulated in
+`tests/docx_word.py`), and two files written by LibreOffice. Regenerate them all together, because
+`sent.byax` gets new identities on every run:
+
+```bash
+uv run python scripts/docx_review_fixtures.py --out tests/fixtures/docx-review --libreoffice
+```
+
+`--libreoffice` needs `soffice` and the system Python's UNO bridge (`python3-uno`). It re-saves the
+Word fixture through LibreOffice and runs `scripts/libreoffice_review_edit.py`, which edits the review
+copy in LibreOffice with change recording on. A file saved by Microsoft Word itself would be the next
+fixture to add. Add it beside these with its own test, and record the Word version.
+
 ## EPUBCheck
 
 `byax.epub.validate` (the built-in structural check) runs in the normal test suite. EPUBCheck, the

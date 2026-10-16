@@ -1,0 +1,263 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T22:16:56.523171+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "python": "3.13.16",
+    "engine": "0.3.0",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "file_view": "byax",
+  "provider_configuration": "None; local deterministic operations only.",
+  "definitions": {
+    "p95": "Nearest-rank percentile of wall-clock sample durations.",
+    "model_edit": "Canonical candidate transaction against original loaded fixture; includes validation/history; excludes GUI input and paint.",
+    "full_reflow": "After a canonical paragraph insertion, construct shared QTextDocument and resolve all physical display pages; includes full layout, excludes paint and the edit itself.",
+    "inspection": "Bounded semantic inspection against an already loaded document.",
+    "fixture_load": "Fixture construction excluded from every timed operation.",
+    "gui_startup_to_window": "Fresh interpreter process launch until MainWindow with the fixture is shown, exposed and its first paint processed; includes Python/Qt import and package load.",
+    "keystroke_to_paint": "QTest key press delivered through the event loop to the editor plus a synchronous viewport repaint; excludes the 300 ms idle commit.",
+    "typing_commit": "flush_edits after one keystroke: canonical transaction, history delta and sidebar/status refresh.",
+    "structural_edit_to_paint": "Paragraph style change from the GUI command through commit, editor document update and synchronous viewport repaint.",
+    "structural_full_rebuild_to_paint": "Same edit forced through a full shared-document rebuild, for comparison.",
+    "save_ui_block": "Time save() holds the UI thread before returning to the event loop; serialization continues on a worker.",
+    "save_completion": "Time until the worker save finishes and the window marks the document saved.",
+    "idle_cpu_percent": "Process CPU time divided by wall time while the loaded window runs its event loop without input."
+  },
+  "not_measured": [
+    "Cancellation acknowledgement",
+    "Physical Windows 11 / Ubuntu 24.04 desktop behavior",
+    "Remote provider latency"
+  ],
+  "fixtures": {
+    "mixed_100": {
+      "semantic_sha256": "b12dfb247fab34dc61beeb3384bf9922ee94764bfd14fd920f573f62e9c0ceb0",
+      "blocks": 379,
+      "text_characters": 87862,
+      "requested_pages": 100,
+      "measured_pages": 100,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 10,
+          "median_ms": 28.668115999607835,
+          "p95_ms": 118.19180000020424,
+          "min_ms": 21.828697999808355,
+          "max_ms": 118.19180000020424,
+          "raw_ms": [
+            118.19180000020424,
+            30.882903000019724,
+            31.430748000275344,
+            39.80408900042676,
+            44.50765599995066,
+            23.611781999534287,
+            23.905609999928856,
+            21.828697999808355,
+            23.482395999963046,
+            26.453328999195946
+          ]
+        },
+        "full_reflow": {
+          "samples": 10,
+          "median_ms": 681.2114960002873,
+          "p95_ms": 875.5357850004657,
+          "min_ms": 579.3946379999397,
+          "max_ms": 875.5357850004657,
+          "raw_ms": [
+            676.4238910000131,
+            659.7894280002947,
+            709.9382909991618,
+            649.2417059998843,
+            579.3946379999397,
+            875.5357850004657,
+            685.9991010005615,
+            645.8648479992917,
+            702.7925289994528,
+            831.1713969997072
+          ]
+        },
+        "inspection": {
+          "samples": 10,
+          "median_ms": 0.09602149975762586,
+          "p95_ms": 0.3100730000369367,
+          "min_ms": 0.06926799960638164,
+          "max_ms": 0.3100730000369367,
+          "raw_ms": [
+            0.3100730000369367,
+            0.1559570000608801,
+            0.09681899973656982,
+            0.13379600022744853,
+            0.0952239997786819,
+            0.12370700005703839,
+            0.06978900000831345,
+            0.06989499979681568,
+            0.07738100066490006,
+            0.06926799960638164
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    },
+    "long_500": {
+      "semantic_sha256": "19eaf708501d7246908836f99ace34916d427174fdc84ee110e5da300f6e8c14",
+      "blocks": 1499,
+      "text_characters": 861392,
+      "requested_pages": 500,
+      "measured_pages": 500,
+      "layout_findings_count": 0,
+      "pagination": "Explicit page breaks",
+      "metrics": {
+        "model_edit": {
+          "samples": 10,
+          "median_ms": 80.91662800006816,
+          "p95_ms": 102.31623199979367,
+          "min_ms": 74.70731700050237,
+          "max_ms": 102.31623199979367,
+          "raw_ms": [
+            95.2441200006433,
+            74.70731700050237,
+            79.75517999966542,
+            79.77104400015378,
+            81.51969099981216,
+            80.31356500032416,
+            93.90463500039914,
+            102.31623199979367,
+            96.3296009995247,
+            78.99160099987057
+          ]
+        },
+        "full_reflow": {
+          "samples": 10,
+          "median_ms": 1457.1349675002239,
+          "p95_ms": 1753.4200190002593,
+          "min_ms": 1238.7681689997407,
+          "max_ms": 1753.4200190002593,
+          "raw_ms": [
+            1572.7872799998295,
+            1369.2869759997848,
+            1358.4433410005659,
+            1238.7681689997407,
+            1519.1087420007534,
+            1395.1611929996943,
+            1698.5709079999651,
+            1689.6611239999402,
+            1393.718348999755,
+            1753.4200190002593
+          ]
+        },
+        "inspection": {
+          "samples": 10,
+          "median_ms": 0.1343160001852084,
+          "p95_ms": 3.870677999657346,
+          "min_ms": 0.12388400045892922,
+          "max_ms": 3.870677999657346,
+          "raw_ms": [
+            3.870677999657346,
+            1.0541150004428346,
+            0.20007099919894245,
+            0.1267219995497726,
+            0.12388899995130487,
+            0.13209500048105838,
+            0.12388400045892922,
+            0.12538400005723815,
+            0.15740300023026066,
+            0.1365369998893584
+          ]
+        }
+      },
+      "target_comparison": {
+        "typing_50ms": "not_measured: model transaction excludes GUI feedback",
+        "reflow_500ms": "full reflow proxy only; affected-region GUI feedback unmeasured",
+        "inspection_500ms": true
+      }
+    },
+    "project_100k_docx_review": {
+      "semantic_sha256": "681c6616598b3eceac8aec7cd24a12ea9c99fa5a073e25034ba64bb01118fb9c",
+      "blocks": 518,
+      "words": 103681,
+      "definitions": {
+        "review_copy_build": "prepare_review_package: projection, DOCX writing with identity bookmarks and comments, ZIP normalization; no I/O.",
+        "review_merge_plan": "plan_review_merge of the returned copy: bounded archive read, revisions, alignment, three-way placement.",
+        "review_merge_apply": "merge_reviewed_copy: the plan plus one canonical transaction registering every proposal and comment."
+      },
+      "metrics": {
+        "review_copy_build": {
+          "samples": 10,
+          "median_ms": 768.8489199999822,
+          "p95_ms": 971.0542729999361,
+          "min_ms": 663.685016999807,
+          "max_ms": 971.0542729999361,
+          "raw_ms": [
+            814.4852859995808,
+            830.7349560000148,
+            739.937736999309,
+            869.9365639995449,
+            781.6233160001502,
+            706.1228699994899,
+            690.2117219997308,
+            971.0542729999361,
+            663.685016999807,
+            756.0745239998141
+          ]
+        },
+        "review_merge_plan": {
+          "samples": 10,
+          "median_ms": 322.6410695001505,
+          "p95_ms": 400.38252799968177,
+          "min_ms": 277.5990179998189,
+          "max_ms": 400.38252799968177,
+          "raw_ms": [
+            339.5609240005797,
+            325.5655700004354,
+            277.5990179998189,
+            341.2634790001903,
+            288.2024239997918,
+            333.67947400074627,
+            400.38252799968177,
+            316.31974699939747,
+            319.71656899986556,
+            315.9477200006222
+          ]
+        },
+        "review_merge_apply": {
+          "samples": 10,
+          "median_ms": 492.3240045000057,
+          "p95_ms": 806.8540360000043,
+          "min_ms": 418.72701899956155,
+          "max_ms": 806.8540360000043,
+          "raw_ms": [
+            493.1165680000049,
+            418.72701899956155,
+            806.8540360000043,
+            659.2738280005506,
+            480.6485720000637,
+            489.52603799989447,
+            576.0365599999204,
+            511.29604899961123,
+            491.53144100000645,
+            476.0000520000176
+          ]
+        }
+      },
+      "review_copy_bytes": 63094,
+      "returned_copy_bytes": 68095,
+      "proposals": 201,
+      "comments": 50,
+      "conflicts": 0,
+      "target_comparison": {
+        "merge_plan_5s": true,
+        "note": "Interactive targets do not cover a one-off merge; 5 s is the working budget for a 100,000-word manuscript."
+      }
+    }
+  }
+}
