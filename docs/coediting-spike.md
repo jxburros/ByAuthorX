@@ -66,3 +66,10 @@ Reconsider only when the host can reject a stale lease, unauthenticated edits an
 partially valid batches; when dropped/reordered/duplicate messages converge; when
 per-author undo preserves other authors' changes; and when range marks, comments,
 tracked changes and IME composition pass the same tests on both desktop platforms.
+
+## Synced folders
+
+This decision stands for writers who keep one document in a cloud-synced folder and edit it from
+more than one computer. The safe substitute is detection after the fact: `byax sync` and the desktop
+notice bar find conflicted copies and merge them as a reviewable proposal through the same branch
+merge described above. See [working in synced folders](user-guide.md#working-in-synced-folders).

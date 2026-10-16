@@ -13,6 +13,22 @@ Someone (or another client) changed the document since you inspected it. Re-run 
 rebuild the envelope with the new `revision`, and retry. Reusing a `request_id` with a different
 payload is also a conflict; identical payloads simply report `already_committed`.
 
+## Synced folders: conflicted copies, empty files, `.icloud` placeholders
+
+- `Cannot read native package: The file is empty` or `incomplete or damaged`: the sync client has not
+  finished writing or downloading it. Wait, then retry; ByAuthorX never modifies such a file. If it stays
+  broken, restore the file from your sync service's version history or from a recovery copy
+  (File → Recover autosave…).
+- `.name.byax.icloud` or an online-only (Files On-Demand) file: download it in Finder or Explorer first.
+- Files named `… (…'s conflicted copy …).byax`, `…-HOSTNAME.byax`, `… 2.byax` or `….sync-conflict-….byax`
+  next to a document: another computer saved the same file. Run `byax sync DOC --action conflicts`, or
+  use Tools → Review conflicted copies…, to merge it as a reviewable proposal. See
+  [working in synced folders](user-guide.md#working-in-synced-folders).
+- Save says the file changed on disk: a sync client delivered a newer version after you opened it.
+  Nothing was overwritten. Use Save as, then merge the two versions.
+- Leftover `.name.byax.XXXX.tmp` files come from an interrupted save; delete them once no window has the
+  document open and sync has finished. `byax sync DOC --action status` lists them.
+
 ## Linux: app will not start, "xcb" / "EGL" / "libxkbcommon" errors
 
 Install the Qt runtime libraries: `sudo apt install libegl1 libgl1 libxkbcommon0 libdbus-1-3

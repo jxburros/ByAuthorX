@@ -255,14 +255,19 @@ The CLI and GUI search syntax is documented in `docs/cli-reference.md` and the u
 
 ```python
 GroundingRecord = {
-    'answer_span': [start, end],          # in the reply or proposed edit text
-    'chunk_id': str, 'document_id': str, 'library_id': str | None, 'block_id': str | None,
-    'source_span': [start, end] | None,   # within the chunk text
-    'quote': str, 'prefix': str, 'suffix': str,   # 32-character context, for re-anchoring
-    'content_hash': str,                  # source version at citation time
+    'answer_span': [start, end],  # in the reply or proposed edit text
+    'chunk_id': str,
+    'document_id': str,
+    'library_id': str | None,
+    'block_id': str | None,
+    'source_span': [start, end] | None,  # within the chunk text
+    'quote': str,
+    'prefix': str,
+    'suffix': str,  # 32-character context, for re-anchoring
+    'content_hash': str,  # source version at citation time
     'origin': 'native' | 'token' | 'user',
     'state': 'supported' | 'partial' | 'unsupported' | 'not_checkable' | 'unanchored' | 'unverified',
-    'checks': [{'stage': 'quote'|'fuzzy'|'entailment'|'judge', 'result': ..., 'model': ...}],
+    'checks': [{'stage': 'quote' | 'fuzzy' | 'entailment' | 'judge', 'result': ..., 'model': ...}],
 }
 ```
 

@@ -65,6 +65,7 @@ COMMANDS = {
     'table': 'Import or export CSV table values while preserving native identities and formatting',
     'template-batch': 'Fill independent copies of a template from CSV field rows',
     'fonts': 'Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts',
+    'sync': 'Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal',
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
@@ -285,6 +286,15 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'italic': 'boolean',
     },
     'redact': {'path': 'string', 'out': 'string', 'input': 'object', 'overwrite': 'boolean'},
+    'sync': {
+        'path': 'string',
+        'action': 'string',
+        'copy_path': 'string',
+        'name': 'string',
+        'author': 'string',
+        'expect_revision': 'string',
+        'dry_run': 'boolean',
+    },
     'proof': {
         'path': 'string',
         'out': 'string',
@@ -363,7 +373,7 @@ REQUIRED.update(
         'cite': ['path', 'target', 'start', 'end', 'source'],
     }
 )
-for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source'):
+for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source', 'sync'):
     REQUIRED[_name] = ['path']
 
 
@@ -1338,6 +1348,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .sync_safety import sync_command
 
 _HANDLERS: dict[str, Handler] = {
     'library': library_command,
@@ -1379,6 +1390,7 @@ _HANDLERS: dict[str, Handler] = {
     'redact': _cmd_redact,
     'reproduction': _cmd_reproduction,
     'fonts': _cmd_fonts,
+    'sync': sync_command,
 }
 
 

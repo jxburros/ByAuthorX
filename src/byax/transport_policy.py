@@ -19,6 +19,7 @@ PATH_KEYS = frozenset(
         'job_root',
         'csv',
         'reference_dir',
+        'copy_path',
     )
 )
 
@@ -134,6 +135,34 @@ INTERFACE_INVENTORY = (
     ('Files', 'conversion preview', 'convert --dry-run', 'byax.exchange.conversion_preview', None),
     ('Files', 'pack', 'pack', 'byax.storage.pack', None),
     ('Files', 'unpack', 'unpack', 'byax.storage.unpack', None),
+    (
+        'Files',
+        'synced-folder status',
+        'sync --action status',
+        'byax.sync_safety.sync_status',
+        'Tools > Synced folder safety…',
+    ),
+    (
+        'Files',
+        'conflicted copies',
+        'sync --action conflicts',
+        'byax.sync_safety.find_conflicted_copies',
+        'Tools > Review conflicted copies…',
+    ),
+    (
+        'Review',
+        'merge conflicted copy',
+        'sync --action merge-conflict',
+        'byax.sync_safety.propose_conflicted_copy_merge',
+        'Tools > Review conflicted copies…',
+    ),
+    (
+        'Files',
+        'archive merged conflicted copy',
+        'sync --action archive-conflict',
+        'byax.sync_safety.archive_conflicted_copy',
+        'Tools > Review conflicted copies…',
+    ),
     ('Inspection', 'outline', 'inspect --outline', 'byax.engine.inspect', 'View > Outline'),
     ('Inspection', 'selected content', 'inspect --target', 'byax.engine.inspect', 'View > Inspector'),
     (

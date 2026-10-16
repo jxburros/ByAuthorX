@@ -416,6 +416,18 @@ The complete open-issue audit is in [issue-audit-2026-10-14.md](issue-audit-2026
 Additional backlog evidence: `test_backlog_workflows.py` exercises native export-policy creation and collection/storage round-trips, staged DOCX publication, master region editing with artwork preservation and undo, section-profile override preservation/removal, and layer geometry/grouping/output policies. `test_file_views.py` checks the registered inline capabilities against all six import/export adapters, ODT direct spacing, and hidden-content randomized tail insert/delete sequences across all seven export views. These are bounded regressions, not the complete nine-scenario or physical-platform acceptance suite.
 
 
+## Sync-folder safety (competitiveness plan 5.3)
+
+| Requirement | Implemented behavior | Evidence / limits |
+| --- | --- | --- |
+| Detect cloud-synced folders | Provider, confidence and evidence from marker files, provider environment variables, Dropbox `info.json` and folder-name patterns; local only | `tests/test_sync_safety.py` (patterns for nine providers, markers, environment, no network). The Windows registry is not read; detection is a hint, and installed-client behavior on macOS and Windows is unverified |
+| Risky patterns | Placeholders, empty/incomplete files, leftover staging files, backup and other-application lock files, lock or recovery folders inside a synced folder, large package/history, open in another session | `tests/test_sync_safety.py`; open-file blocking is detectable only on Windows and is untested there |
+| Conflicted copies | Dropbox, OneDrive, iCloud, Google Drive/Box, Nextcloud, ownCloud and Syncthing names; offered only if the manifest `document_id` matches; unfinished files wait | `tests/test_sync_safety.py`; names follow English-language client defaults, other locales are not recognised |
+| Merge through review | Copy imported as a branch (`engine.import_branch`) and merged with `propose_merge`; different sections merge with no loss, same section conflicts and resolves with `resolve_conflict`; copy never deleted; explicit archive after an accepted merge | `test_edits_to_different_sections_merge_with_no_loss_through_review`, `test_edits_to_the_same_section_conflict_and_resolve_explicitly`. Comments and review items in the copy are reported as not merged; needs shared retained history |
+| Partial syncs and delayed appearance | Truncated, zero-byte, mixed and bit-flipped packages, `.icloud` placeholders, a file replaced after open (`expected_stamp`), failed or interrupted atomic replace | `tests/test_sync_partial.py`, `tests/test_gui_sync.py`; no real sync client was run |
+| GUI | Non-modal notice bar, "Review conflicted copy…", Tools entries, accessible names | `tests/test_gui_sync.py` (offscreen); physical screen-reader pass unverified |
+| Interfaces | `sync` through CLI, MCP and REST with path scoping | `tests/test_sync_safety.py`, `tests/test_interface_parity.py` |
+
 ## Reference libraries, citations and editor workspace
 
 | Requirement | Implemented behavior | Evidence / limits |

@@ -27,6 +27,9 @@ document drifts from it.
 | Files | conversion preview | `byax convert --dry-run` | `byax_convert` | `POST /v1/execute` | `byax.exchange.conversion_preview` | — (headless) |
 | Files | pack | `byax pack` | `byax_pack` | `POST /v1/execute` | `byax.storage.pack` | — (headless) |
 | Files | unpack | `byax unpack` | `byax_unpack` | `POST /v1/execute` | `byax.storage.unpack` | — (headless) |
+| Files | synced-folder status | `byax sync --action status` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.sync_status` | Tools > Synced folder safety… |
+| Files | conflicted copies | `byax sync --action conflicts` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.find_conflicted_copies` | Tools > Review conflicted copies… |
+| Files | archive merged conflicted copy | `byax sync --action archive-conflict` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.archive_conflicted_copy` | Tools > Review conflicted copies… |
 | Inspection | outline | `byax inspect --outline` | `byax_inspect` | `POST /v1/execute` | `byax.engine.inspect` | View > Outline |
 | Inspection | selected content | `byax inspect --target` | `byax_inspect` | `POST /v1/execute` | `byax.engine.inspect` | View > Inspector |
 | Inspection | styles | `byax inspect --section styles` | `byax_inspect` | `POST /v1/execute` | `byax.engine.inspect` | Format > Define named style… |
@@ -50,6 +53,7 @@ document drifts from it.
 | Review | accept or reject | `byax review --action accept` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review panel |
 | Review | comments | `byax review --action comment` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review > Add comment… |
 | Review | tracked changes | `byax review --action accept-change` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review > Track changes |
+| Review | merge conflicted copy | `byax sync --action merge-conflict` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.propose_conflicted_copy_merge` | Tools > Review conflicted copies… |
 | History | list | `byax history` | `byax_history` | `POST /v1/execute` | `byax.engine.inspect` | Review > Revision history… |
 | History | checkpoint | `byax history --action checkpoint` | `byax_history` | `POST /v1/execute` | `byax.engine.checkpoint` | Review > Checkpoint… |
 | History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Create branch… |

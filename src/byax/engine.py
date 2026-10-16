@@ -3057,6 +3057,111 @@ def switch_branch(
     return switched, _result(switched, doc['revision'], [b['id'] for b in switched['blocks']])
 
 
+def revision_ancestors(doc: dict[str, Any], revision: str | None = None) -> list[str]:
+    """Revisions reachable from ``revision`` (default: the head) through recorded parents.
+
+    Documents written before ancestry was recorded fall back to their retained linear history.
+    """
+    history = doc['history']
+    parents = history.get('parents', {})
+    start = revision or doc['revision']
+    order, pending, seen = [], [start], set()
+    while pending:
+        current = pending.pop(0)
+        if current in seen or current is None:
+            continue
+        seen.add(current)
+        order.append(current)
+        pending.extend(parents.get(current, []))
+    if start == doc['revision'] and start not in parents:
+        order.extend(r['revision'] for r in history.get('revisions', []) if r['revision'] not in seen)
+    return order
+
+
+def import_branch(
+    doc: dict[str, Any], other: dict[str, Any], name: str
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Bring another copy of this document into its history as a branch, without a new revision.
+
+    ``other`` is a diverged copy with the same document identity (for example a sync conflicted
+    copy). Its head and the retained revisions this document has not seen become reachable, so
+    ``propose_merge`` can find the common ancestor and plan a reviewable three-way merge. Nothing
+    in the working document changes and neither input is modified.
+    """
+    if not isinstance(name, str) or not name.strip():
+        _error('Branch name cannot be empty.', 'name')
+    if other.get('id') != doc['id']:
+        raise ByaxError(
+            'conflict', 'The other file is a different document and cannot be merged.', target=other.get('id')
+        )
+    if name in doc['history']['branches']:
+        raise ByaxError('conflict', 'Branch already exists.', target=name)
+    candidate = _candidate(doc)
+    history = candidate['history']
+    theirs = other['history']
+    records = history['revisions']
+    known = {r['revision'] for r in records} | {doc['revision']}
+    names = {r['name'] for r in records if r.get('name')}
+    limit = candidate['settings'].get('history_limit', 1000)
+    unseen = [r for r in theirs.get('revisions', []) if r['revision'] not in known]
+    # Foreign intermediate revisions are kept only while the history limit allows it, so an import
+    # never blocks the writer's next edit; the head and merge ancestry are always imported.
+    keep_intermediate = len(records) + len(unseen) + 1 <= limit
+    if doc['revision'] not in history.get('parents', {}) and records:
+        # Written before ancestry was recorded: the retained history is linear.
+        history['parents'] = {**history.get('parents', {}), doc['revision']: [records[-1]['revision']]}
+    previous = None
+    imported = 0
+    for record in theirs.get('revisions', []):
+        revision = record['revision']
+        if revision not in known and keep_intermediate:
+            copied = {
+                k: copy.deepcopy(v) for k, v in record.items() if k not in ('snapshot', 'delta', 'name')
+            }
+            if record.get('name') and record['name'] not in names:
+                copied['name'] = record['name']
+                names.add(record['name'])
+            if 'snapshot' in record:
+                copied['snapshot'] = copy.deepcopy(record['snapshot'])
+            elif records and previous == records[-1]['revision'] and 'delta' in record:
+                # Same predecessor state in this list, so the stored delta still applies.
+                copied['delta'] = copy.deepcopy(record['delta'])
+            else:
+                copied['snapshot'] = _revision(other, revision)
+            copied['bytes'] = len(canonical_json(copied.get('snapshot', copied.get('delta'))))
+            records.append(copied)
+            known.add(revision)
+            imported += 1
+        previous = revision
+    head = other['revision']
+    if head not in known:
+        state = snapshot(other)
+        records.append(
+            {
+                'revision': head,
+                'snapshot': state,
+                'bytes': len(canonical_json(state)),
+                'timestamp': datetime.now(UTC).isoformat(),
+                'origin': 'imported_copy',
+                'operations': [],
+            }
+        )
+        imported += 1
+    theirs_parents = {k: list(v) for k, v in theirs.get('parents', {}).items()}
+    if head not in theirs_parents and theirs.get('revisions'):
+        theirs_parents[head] = [theirs['revisions'][-1]['revision']]
+    history['parents'] = {**theirs_parents, **history.get('parents', {})}
+    history['provenance'] = {**theirs.get('provenance', {}), **history.get('provenance', {})}
+    history['branches'].setdefault(history['current_branch'], doc['revision'])
+    history['branches'][name] = head
+    base = _merge_base(candidate, doc['revision'], head, name)
+    history['forks'] = {**history.get('forks', {}), name: base}
+    validate_document(candidate, include_history=True)
+    result = _result(candidate, doc['revision'])
+    result.update(branch=name, merge_base=base, imported_revisions=imported)
+    return candidate, result
+
+
 def compare_documents(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:
     """Readable semantic comparison of two documents or revisions."""
     return {

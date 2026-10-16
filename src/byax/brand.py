@@ -195,6 +195,8 @@ def stylesheet(colors=None, theme='light'):
         QWidget#emptyPanel {{ background: {c['surface']}; }}
         QLabel#emptyHeading {{ font-family: {display}; font-size: 18px; color: {c['ink']}; }}
         QLabel#emptyDescription {{ font-family: {annotation}; color: {c['ink']}; font-size: 16px; }}
+        QFrame#syncInfoBar {{ background: {c['surface']}; border: 1px solid {c['control']}; border-radius: {panel}px; }}
+        QLabel#syncInfoText {{ color: {c['ink']}; }}
         QLabel#checkDescription {{ color: {c['muted']}; font-size: 12px; }}
         QLabel#statusCounter {{ font-family: {counter}; color: {c['ink']}; font-size: 13px; }}
     """

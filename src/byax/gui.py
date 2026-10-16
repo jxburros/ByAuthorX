@@ -70,6 +70,7 @@ from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
 from .gui_ribbon import RibbonPanels
+from .gui_sync import SyncPanels
 from .gui_views import FileViews
 from .gui_workflows import WorkflowPanels
 from .gui_workspace import InspectorTabBar, WorkspacePanels
@@ -96,7 +97,9 @@ class Worker(QRunnable):
             self.signals.failed.emit(str(exc))
 
 
-class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, QMainWindow):
+class MainWindow(
+    FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, SyncPanels, QMainWindow
+):
     def __init__(self, path=None):
         super().__init__()
         self.setWindowTitle(self.tr('ByAuthorX'))
@@ -241,6 +244,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         self.view_label.setObjectName('workspaceView')
         document_bar.addWidget(self.view_label)
         workspace_layout.addLayout(document_bar)
+        self.build_sync_bar(workspace_layout)
         workspace_layout.addWidget(self.stack, 1)
         self.setCentralWidget(workspace)
         for title, slot, key, icon in [
@@ -561,6 +565,8 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         for label, slot in (
             ('Linked assets…', self.linked_assets),
             ('Reusable settings…', self.reusable_settings),
+            ('Synced folder safety…', self.sync_safety_details),
+            ('Review conflicted copies…', self.review_conflicted_copies),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
         self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
@@ -1237,6 +1243,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self._undo.clear()
             self._redo.clear()
             self.refresh(0)
+            self.refresh_sync_bar()
 
     def open_file(self):
         path, _ = QFileDialog.getOpenFileName(self, self.tr('Open document'), '', FILE_FILTER)
@@ -1279,6 +1286,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self.refresh(0)
             self.add_recent(selected)
             self.refresh_attached_libraries()
+            self.refresh_sync_bar()
             if report and report.get('losses'):
                 self.report(self.tr('Import compatibility report'), report)
             return True
@@ -1372,7 +1380,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         # is a stable model for the worker while editing continues.
         doc = copy.copy(self.doc)
         task = {'path': path, 'revision': doc['revision'], 'ok': None}
-        worker = Worker(lambda: storage.save_document(doc, path, owner=self.owner))
+        # The open file's stamp is rechecked under the lock right before replacing it, so a file a
+        # sync client delivered meanwhile is never overwritten unseen.
+        stamp = self._disk_stamp if path == self.path else storage.UNCHECKED
+        worker = Worker(lambda: storage.save_document(doc, path, owner=self.owner, expected_stamp=stamp))
         self._save_task = task
         self._workers.add(worker)
         if not quiet:
@@ -1462,6 +1473,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self.sync_file_view()
             self._disk_stamp = self.file_stamp(target)
             self.add_recent(target)
+            self.refresh_sync_bar()
             self._mark_saved(task['revision'])
 
         self._start_save(target, finished)

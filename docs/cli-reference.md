@@ -88,6 +88,7 @@ command's flags.
 | `table` | Import or export CSV table values while preserving native identities and formatting |
 | `template-batch` | Fill independent copies of a template from CSV field rows |
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
+| `sync` | Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -131,6 +132,39 @@ Conversion always returns a compatibility/loss report:
 byax import draft.docx --out draft.byax --json
 byax convert draft.byax --out draft.odt --json
 ```
+
+## Sync-folder safety
+
+`byax sync PATH --action …` works on a document or a folder. It never uses the network and never
+deletes anything. Flags: `--action`, `--copy-path`, `--name`, `--author`, `--expect-revision`,
+`--dry-run`.
+
+```bash
+byax sync Chapter.byax --action status --json            # provider, confidence, evidence, risks
+byax sync Chapter.byax --action conflicts --json         # copies with identity and relation
+byax sync Chapter.byax --action merge-conflict --copy-path "Chapter (Sam's conflicted copy 2026-10-14).byax" --json
+byax sync Chapter.byax --action archive-conflict --copy-path "Chapter (Sam's conflicted copy 2026-10-14).byax"
+```
+
+- `status` reports the detected provider (`dropbox`, `icloud`, `onedrive`, `google_drive`, `box`,
+  `nextcloud`, `owncloud`, `syncthing`, `pcloud`), its `confidence` and `evidence`, and `risks`
+  (`severity` `warning` or `info`): placeholders and empty or incomplete files, leftover temporary
+  files, backup and other-application lock files, lock or recovery folders inside a synced folder,
+  large packages or histories, and a document open in another session. Given a folder it summarizes
+  every document with conflicted copies.
+- `conflicts` lists complete packages with the same `document_id` (`copies`), unfinished candidates
+  (`pending`) and look-alikes of other documents (`skipped`). Each copy has a `relation`: `diverged`,
+  `ahead`, `behind`, `identical` or `unrelated_history`.
+- `merge-conflict` imports the copy as a branch (named from its revision, so repeating it reuses it)
+  and registers a pending merge proposal. Different sections merge cleanly; the same section yields
+  `conflicts` to resolve with the `resolve_conflict` operation (`byax apply`). Accept with
+  `byax review --action accept`. Copies with nothing new or no shared history are refused unchanged.
+  `--dry-run` reports the plan without saving.
+- `archive-conflict` moves a copy whose latest revision is already part of the document into a
+  `ByAuthorX conflicted copies` folder beside it. It refuses before the merge is accepted and never
+  overwrites an archived file.
+
+MCP exposes the same command as `byax_sync`; REST scopes both `path` and `copy_path` to its roots.
 
 ## Edit envelopes
 
