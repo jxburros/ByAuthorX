@@ -41,6 +41,12 @@ on disk behind you, the app tells you rather than overwriting.
 
 ## Reviewing your own text
 
+For a complete guided example, open **Help → Research to publication…**. It can
+create an offline sample with fictional research in a fresh directory you choose.
+The blank-document introduction links to the same guide and can be dismissed.
+See [Research to publication](research-workflow.md) for evidence inspection,
+voice/preservation choices and **File → Prepare to share…**.
+
 The Inspector's **AI** tab checks spelling locally (selection or whole document) with
 suggestions, exact replacements, a document dictionary and session-only ignore. Review's check
 dropdown + **Go** runs:

@@ -7,6 +7,8 @@
 
 **Your words. Your call.**
 
+Write with AI. Keep your voice, your sources, and the final say.
+
 A native desktop word processor with a shared, programmable document engine. Write in a Qt desktop editor, save editable `.byax` documents, inspect and edit through the CLI or MCP, and export through the same typography engine.
 
 **Version 0.2.0** (see the [changelog](CHANGELOG.md)). Installers are unsigned and have not been verified on physical Windows 11 or Ubuntu 24.04 desktops.
@@ -47,6 +49,16 @@ python -m venv .venv
 On Ubuntu, install the native Qt dependencies documented in [compatibility](docs/compatibility.md). For headless PNG/PDF rendering set `QT_QPA_PLATFORM=offscreen`. Ordinary CLI editing and inspection need no desktop session.
 
 ## Desktop workflows
+
+Start with **Help → Research to publication…** (also offered on a blank document)
+for an offline sample report and research folder, or follow the guide with your
+own sources. **Review → Claims and evidence…** shows current cited passages,
+locators, changed-source status and the distinction between quotation matching
+and claim interpretation. AI review offers light copyediting, voice preservation,
+structure-only findings and enforced preservation choices for numbers, quotations,
+cited text and terminology. **File → Prepare to share…** previews a separate clean
+publication copy, its private-material inclusion choices, required checks and
+located format limitations. See [the workflow guide](docs/research-workflow.md).
 
 The editor includes a continuous writing view, a paginated preview, semantic outline, review and layer inspectors, native file dialogs/printing, formatting, tables/images, find/replace, undo/history, templates, local checks, and provider/dictation controls. `.byax` packages retain semantic identities, assets, review, source information, and history. Exporting does not replace the master. Imports and lossy exports return compatibility reports.
 

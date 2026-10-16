@@ -151,6 +151,7 @@ def test_focus_chain_reaches_core_workspace_controls(window):
 
 
 DIALOG_METHODS = [
+    'prepare_to_share',
     'edit_export_policies',
     'edit_page_masters',
     'edit_section_profiles',

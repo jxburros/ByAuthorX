@@ -87,6 +87,13 @@ def _check_source_claims(value):
 # action, or None when the operation is headless-only. Kept in sync with
 # docs/interface-parity.md by tests/test_interface_parity.py.
 INTERFACE_INVENTORY = (
+    (
+        'Inspection',
+        'claims and evidence',
+        'evidence',
+        'byax.authoring.citation_evidence',
+        'Review > Claims and evidence…',
+    ),
     ('Inspection', 'attached libraries', 'library', 'byax.cli_libraries.library_command', None),
     ('Search and targeting', 'library search', 'library-search', 'byax.cli_libraries.library_search', None),
     ('Inspection', 'library passage', 'library-read', 'byax.cli_libraries.library_read', None),

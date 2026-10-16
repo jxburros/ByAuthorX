@@ -3,6 +3,9 @@
 | If you want to… | Read |
 | --- | --- |
 | Install and write your first document | [User guide](user-guide.md) |
+| Research, review and prepare a deliverable | [Research workflow](research-workflow.md) |
+| Verify an installed release on real desktops | [Desktop acceptance checklist](desktop-release-checklist.md) |
+| Evaluate usefulness with five target authors | [Author workflow evaluation](author-workflow-evaluation.md) |
 | Script or automate the engine | [CLI reference](cli-reference.md) |
 | Attach research libraries and cite sources | [Library and citations guide](library-and-citations-guide.md) |
 | Configure AI review, chat and dictation | [Providers](providers.md) |

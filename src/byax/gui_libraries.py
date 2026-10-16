@@ -39,6 +39,7 @@ class LibraryPanels:
         for label, slot in (
             ('Libraries…', self.library_panel),
             ('Cite selected text…', self.cite_selection),
+            ('Claims and evidence…', self.inspect_evidence),
             ('Citation style…', self.citation_settings),
             ('Import sources…', self.import_sources),
             ('Export sources…', self.export_sources),

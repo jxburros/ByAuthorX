@@ -25,6 +25,7 @@ Handler = Callable[[Args, str | None], Result]
 
 SCHEMA_VERSION = 1
 COMMANDS = {
+    'evidence': 'Inspect current cited passages and interpretation status without model calls',
     'library': 'Manage attached local libraries and indexing jobs',
     'library-search': 'Search attached library passages (read only)',
     'library-read': 'Read an indexed attached library passage (read only)',
@@ -68,6 +69,7 @@ COMMANDS = {
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
+    'evidence': {'path': 'string', 'profile': 'string', 'limit': 'integer', 'offset': 'integer'},
     'library': {
         'path': 'string',
         'action': 'string',
@@ -331,6 +333,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
 REQUIRED = {
+    'evidence': ['path'],
     'statistics': ['path'],
     'collection': ['path'],
     'dependencies': ['path'],
@@ -511,6 +514,18 @@ def _execute(command: str, arguments: Args | None = None, *, output_owner: str |
     if handler is None:
         _error('unsupported_feature', f'Command is unavailable: {command}')
     return handler(dict(a), output_owner)
+
+
+def _cmd_evidence(a: Args, owner: str | None) -> Result:
+    from .authoring import citation_evidence
+
+    doc = _load(a['path'])
+    return envelope(
+        citation_evidence(
+            doc, profile=a.get('profile'), limit=a.get('limit', 100), offset=a.get('offset', 0)
+        ),
+        doc,
+    )
 
 
 def _cmd_statistics(a: Args, owner: str | None) -> Result:
@@ -1340,6 +1355,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
 
 _HANDLERS: dict[str, Handler] = {
+    'evidence': _cmd_evidence,
     'library': library_command,
     'library-search': library_search,
     'library-read': library_read,

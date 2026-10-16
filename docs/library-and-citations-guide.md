@@ -2,6 +2,13 @@
 
 ## Desktop
 
+**Review → Claims and evidence…**, also available from the Library sidebar,
+explicitly reads current indexed citations and shows their passages and locators.
+Exact quotation matches, paraphrases requiring interpretation, manual citations,
+changed sources and unavailable evidence have distinct statuses. Active and
+section source policies apply; missing current evidence never falls back to an
+old stored excerpt. This inspection does not call a model or browse the web.
+
 The ribbon has two rows. Font family/size, alignment, list/indent controls,
 superscript/subscript, colors, paragraph formatting and Cite are available there.
 Each side panel has a selector: Outline or Inspector, Bookmarks, Writing statistics,

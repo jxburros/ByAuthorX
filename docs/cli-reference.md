@@ -16,6 +16,13 @@ byax capabilities --json                 # supported features and provider adapt
 
 ## Conventions
 
+`byax evidence report.byax --limit 100 --offset 0 --json` inspects current cited
+passages and their interpretation status without indexing, network or a model.
+Use `--profile ID` to apply a saved profile (section source policies also apply).
+The read-only `byax_evidence` MCP tool and REST `evidence` command return the same
+result. Limits are 1–100 citations per call; `total`, `offset`, `truncated` and
+`next_offset` disclose continuation. Follow `next_offset` for the remaining citations.
+
 - Add `--json` for machine output. Stdout then carries only the JSON result; progress and
   diagnostics go to stderr.
 - `--input FILE` reads UTF-8 JSON (at most 16 MiB); `--input -` reads stdin.

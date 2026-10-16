@@ -59,6 +59,16 @@ uv run python scripts/build.py --bundle-only
 
 CI runs on Ubuntu 24.04 and Windows Server 2022; see [packaging](packaging.md).
 
+CI writes `artifacts/tests.xml` and runs
+`uv run python scripts/check_test_report.py artifacts/tests.xml`. The gate rejects
+missing, skipped, failed or errored results in the required desktop workflow suites,
+including authoring, AI, libraries, review, workspace and accessibility. JUnit
+evidence is retained even when a gate fails. Release builds also generate GitHub
+artifact attestations for installers/checksums; these do not replace OS signing.
+Use the [physical desktop checklist](desktop-release-checklist.md) for installed
+acceptance. Author workflows live in `authoring.py` and `gui_authoring.py` and reuse
+provider edit validation and the shared publication-copy builder.
+
 ## Common changes
 
 - **New canonical operation** – implement in `engine`, add it to the operation schema surfaced by

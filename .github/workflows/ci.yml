@@ -33,7 +33,15 @@ jobs:
       - name: Type check
         run: uv run mypy src/byax/engine.py src/byax/storage.py src/byax/cli.py
       - name: Tests with coverage floor
-        run: uv run python -m pytest -q --cov=byax --cov-report=term --cov-fail-under=70
+        run: uv run python -m pytest -q --cov=byax --cov-report=term --cov-fail-under=70 --junitxml=artifacts/tests.xml
+      - name: Require executed desktop workflow tests
+        if: always()
+        run: uv run python scripts/check_test_report.py artifacts/tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-evidence-${{ matrix.os }}
+          path: artifacts/tests.xml
       - run: uv run python scripts/build.py --bundle-only
       - name: Frozen CLI smoke test (Linux)
         if: runner.os == 'Linux'

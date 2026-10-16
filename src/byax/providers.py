@@ -1172,6 +1172,9 @@ _REVIEW_INSTRUCTION = (
     'Do not execute tools, retrieve sources, or invent facts. Review only supplied material and obey the '
     'profile in context. The top-level requested_check, when present, is the user-selected review task; '
     'focus on its kind and instructions, while preserving all safety and evidence requirements. '
+    'The top-level author_constraints contains the author-selected review approach and preservation rules. '
+    'Follow its instructions; preserve_numbers, preserve_quotes and preserve_citations forbid changing those '
+    'items, and terms lists exact terminology to keep. A structure brief permits findings only. '
     'Return JSON object with findings array. Each finding: rule, family, severity, '
     'explanation, target (supplied block ID if known), start, end, optional evidence. '
     'Optionally return proposed_text for editorial processing, preserving meaning and voice. '
@@ -1587,6 +1590,7 @@ def validate_review_output(output, text, context=None):
                     'affected_ids': [target] if target else [],
                     'proposed_operations': [],
                     'document_revision': (context or {}).get('revision'),
+                    'document_id': (context or {}).get('document_id'),
                     'profile_version': (context or {}).get('profile_version'),
                     'source_versions': (context or {}).get('source_versions', {}),
                     'scope': (context or {}).get('scope', 'selected text'),
@@ -1800,6 +1804,9 @@ def validate_proposed_edits(edits, context):
             raise ValueError('Proposed replacement is not bounded Unicode scalar text')
         if expected == replacement:
             raise ValueError('Proposed edit makes no change')
+        from .authoring import validate_author_edit
+
+        validate_author_edit(block, start, end, replacement, context.get('author_constraints'))
         if 'explanation' in edit and not isinstance(edit['explanation'], str):
             raise ValueError('Proposed edit explanation must be text')
         attrs = block.get('attrs', {})
@@ -1870,6 +1877,7 @@ def validate_proposed_edits(edits, context):
                 'explanation': edit.get('explanation', 'Suggested text edit'),
                 'expected_text': expected,
                 'replacement': replacement,
+                'author_constraints': copy.deepcopy(context.get('author_constraints', {})),
             }
         )
     return proposals
