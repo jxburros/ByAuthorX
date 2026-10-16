@@ -165,3 +165,20 @@ def test_rapid_view_changes_settle_and_typing_does_not_animate(qtbot, monkeypatc
     assert not window.motion._fades
     assert window.doc['blocks'][0]['text'] == 'Keep my voice.'
     window.dirty = False
+
+
+def test_older_qt_accessibility_without_motion_api(qtbot, monkeypatch, tmp_path):
+    from byax import gui_motion
+
+    hints = SimpleNamespace(accessibility=lambda: SimpleNamespace())
+    monkeypatch.setattr(
+        gui_motion,
+        'QApplication',
+        SimpleNamespace(instance=lambda: SimpleNamespace(styleHints=lambda: hints)),
+    )
+    settings = QSettings(str(tmp_path / 'older-qt.ini'), QSettings.IniFormat)
+    monkeypatch.delenv('BYAX_REDUCED_MOTION', raising=False)
+    motion = gui_motion.MotionController(settings)
+    assert motion.reduced is False
+    motion.set_reduced(True)
+    assert motion.reduced is True

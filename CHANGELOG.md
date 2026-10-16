@@ -14,6 +14,9 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 - Reject malformed command/tool names with stable input errors instead of internal failures.
 - Reject REST pack sources containing service-owned state before reading their files.
 - Handle deeply nested or malformed existing manifests when saving a replacement package.
+- Bound Qt save-wait CPU usage with a timer-driven event loop. Keep Python 3.11 on
+  PySide versions before 6.12 to avoid a native reference-count crash during save/close;
+  tolerate older Qt accessibility APIs when selecting reduced motion.
 - Decode local file URIs with the host platform's path rules, including Windows drive letters.
 
 ### Changed

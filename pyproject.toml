@@ -10,8 +10,11 @@ readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
-    "PySide6-Essentials>=6.8,<7",
-    "PySide6-Addons>=6.8,<7",
+    # PySide 6.12 corrupts None references in nested save/close callbacks on CPython 3.11.
+    "PySide6-Essentials>=6.8,<6.12; python_version < '3.12'",
+    "PySide6-Essentials>=6.8,<7; python_version >= '3.12'",
+    "PySide6-Addons>=6.8,<6.12; python_version < '3.12'",
+    "PySide6-Addons>=6.8,<7; python_version >= '3.12'",
     "regex>=2024.11",
     "httpx>=0.28,<1",
     "keyring>=25,<26",

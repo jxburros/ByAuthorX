@@ -24,6 +24,9 @@ class MotionController(QObject):
         self._accessibility = (
             self._style_hints.accessibility() if hasattr(self._style_hints, 'accessibility') else None
         )
+        # accessibility() predates the motion-preference API on supported Qt.
+        if self._accessibility is not None and not hasattr(self._accessibility, 'motionPreference'):
+            self._accessibility = None
         if self._accessibility is not None:
             self._accessibility.motionPreferenceChanged.connect(self._preference_changed)
 
