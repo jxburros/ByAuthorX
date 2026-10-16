@@ -217,6 +217,11 @@ def main():
         action='store_true',
         help='Also measure 100/500/2000 flowing pages and up to 15000 blocks.',
     )
+    parser.add_argument(
+        '--project',
+        action='store_true',
+        help='Also measure the 100,000-word manuscript project: open, reorder a chapter, save.',
+    )
     parser.add_argument('--samples', type=int, default=20)
     parser.add_argument('--no-gui', action='store_true', help='Skip GUI startup/latency/idle metrics.')
     parser.add_argument('--startup-samples', type=int, default=5)
@@ -314,6 +319,21 @@ def main():
                     'typing_50ms': entry['metrics']['keystroke_to_paint']['p95_ms'] <= 50,
                     'reflow_500ms': entry['metrics']['structural_edit_to_paint']['p95_ms'] <= 500,
                     'startup_3s': entry['metrics']['gui_startup_to_window']['p95_ms'] <= 3000,
+                }
+            )
+    if args.project:
+        from benchmark_project import project_metrics
+
+        report['fixtures']['project_100k'] = project_metrics(measure, args.samples)
+        if not args.no_gui:
+            gui = gui_metrics(make_fixture('project_100k'), args)
+            entry = report['fixtures']['project_100k']
+            entry['metrics'].update(gui.pop('metrics'))
+            entry['gui'] = gui
+            entry['target_comparison'].update(
+                {
+                    'typing_50ms': entry['metrics']['keystroke_to_paint']['p95_ms'] <= 50,
+                    'structural_500ms': entry['metrics']['structural_edit_to_paint']['p95_ms'] <= 500,
                 }
             )
     if args.scaling:

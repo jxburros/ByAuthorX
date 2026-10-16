@@ -90,7 +90,7 @@ The view list is generated from the registry, not hand-written, so a format adde
 6. **Review state** is carried only if the view's format carries it (section 5.7).
 7. The projection is pure and deterministic and has no Qt dependency. Rendering is done afterwards by the existing `layout.build_document`.
 
-The report lists, with located targets, everything hidden or degraded, using the same loss codes the exporters use (`inline_formatting`, `structural_object`, `paragraph_format`, `table_flattened`, `heading_flattened`, `image_not_embedded`, `list_subset`, `named_styles`, `page_layout`, and so on). It must agree with `conversion_preview` for the same document and format (section 12).
+The report lists, with located targets, everything hidden or degraded, using the same loss codes the exporters use (`inline_formatting`, `structural_object`, `paragraph_format`, `table_flattened`, `heading_flattened`, `image_not_embedded`, `list_subset`, `named_styles`, `page_layout`, `binder_metadata`, and so on). It must agree with `conversion_preview` for the same document and format (section 12).
 
 ### 5.3 Authored output policies
 

@@ -565,6 +565,8 @@ def export_clean(doc, path, format=None, profile=None, *, owner=None, overwrite=
         clean['requests'] = {}
     original_asset = clean.get('metadata', {}).get('import', {}).get('original_asset')
     if not settings['include_metadata']:
+        # Binder statuses, targets and synopses are authoring metadata.
+        clean.pop('project', None)
         clean['metadata'] = {
             'title': 'Published document',
             'author': '',

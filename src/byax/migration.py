@@ -82,9 +82,40 @@ def _v1_to_v2(state):
     return transformations
 
 
+def _v2_to_v3(state):
+    """Schema 3 adds the optional manuscript ``project`` binder (CP A1) and optional
+    ``prefix``/``suffix`` text on citation marks (CE 6.5). No data changes: the
+    binder is absent until created, and existing citation affixes are already text.
+    """
+    if 'project' in state:
+        raise ByaxError(
+            'unsupported_feature',
+            'A version 2 document already contains an unknown "project" construct; '
+            'it cannot be upgraded without risking loss.',
+            field='project',
+        )
+    citations = 0
+    for block in state.get('blocks', []):
+        for mark in block.get('marks', []):
+            if not isinstance(mark, dict) or mark.get('type') != 'citation':
+                continue
+            if any(not isinstance(mark.get(key, ''), str) for key in ('prefix', 'suffix')):
+                raise ByaxError(
+                    'unsupported_feature',
+                    'A citation mark has a non-text prefix or suffix; it cannot be upgraded without risking loss.',
+                    target=block.get('id'),
+                )
+            citations += any(key in mark for key in ('prefix', 'suffix'))
+    return [
+        {'kind': 'added_optional_structure', 'field': 'project', 'count': 0},
+        {'kind': 'citation_context_fields', 'field': 'marks.prefix/suffix', 'count': citations},
+    ]
+
+
 # from_version: (to_version, description, transition)
 TRANSITIONS = {
     1: (2, 'Explicit external dependency records for linked images', _v1_to_v2),
+    2: (3, 'Optional manuscript project binder and citation prefix/suffix text', _v2_to_v3),
 }
 SUPPORTED_VERSIONS = frozenset(TRANSITIONS) | {SCHEMA_VERSION}
 
@@ -133,6 +164,11 @@ def reference_problems(doc):
     for name, bookmark in doc.get('settings', {}).get('bookmarks', {}).items():
         if bookmark.get('target') not in ids and bookmark.get('status') != 'orphaned':
             problems.add(('bookmark', name, bookmark.get('target')))
+    project = doc.get('project')
+    if isinstance(project, dict) and isinstance(project.get('items'), dict):
+        for identity, item in project['items'].items():
+            if isinstance(item, dict) and item.get('heading') not in ids:
+                problems.add(('project_item', identity, item.get('heading')))
     return problems
 
 

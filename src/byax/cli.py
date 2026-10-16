@@ -330,6 +330,33 @@ ARGUMENTS: dict[str, dict[str, str]] = {
     },
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
+# Manuscript project binder (byax.project); mutating actions are canonical project_* operations.
+COMMANDS['project'] = 'List, reorder, split, merge and annotate manuscript binder items'
+ARGUMENTS['project'] = {
+    'path': 'string',
+    'action': 'string',
+    'target': 'string',
+    'after': 'string',
+    'before': 'string',
+    'parent': 'string',
+    'next': 'string',
+    'at': 'string',
+    'offset': 'integer',
+    'text': 'string',
+    'expected_text': 'string',
+    'kind': 'string',
+    'status': 'string',
+    'words': 'integer',
+    'clear': 'boolean',
+    'level': 'integer',
+    'id': 'string',
+    'heading': 'string',
+    'delete_content': 'boolean',
+    'input': 'object',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
 REQUIRED = {
     'statistics': ['path'],
     'collection': ['path'],
@@ -363,7 +390,7 @@ REQUIRED.update(
         'cite': ['path', 'target', 'start', 'end', 'source'],
     }
 )
-for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source'):
+for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source', 'project'):
     REQUIRED[_name] = ['path']
 
 
@@ -1338,6 +1365,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .project import project_command
 
 _HANDLERS: dict[str, Handler] = {
     'library': library_command,
@@ -1379,6 +1407,7 @@ _HANDLERS: dict[str, Handler] = {
     'redact': _cmd_redact,
     'reproduction': _cmd_reproduction,
     'fonts': _cmd_fonts,
+    'project': project_command,
 }
 
 

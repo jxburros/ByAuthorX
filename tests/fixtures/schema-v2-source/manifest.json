@@ -1,0 +1,15 @@
+{
+  "document_id": "doc_schema2_manuscript",
+  "format": "ByAuthorX",
+  "format_version": 1,
+  "resources": {
+    "document.json": {
+      "bytes": 7316,
+      "sha256": "a21af7c335c2de8e1d8981d1622f616107adeb5a0c617518fdd508a99a9bfb45"
+    }
+  },
+  "revision": "rev_4d8a60952adb4f748f9ef8bfb1321de4",
+  "schema_versions": {
+    "document": 2
+  }
+}

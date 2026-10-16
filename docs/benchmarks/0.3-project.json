@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T20:45:56.554029+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "python": "3.13.16",
+    "engine": "0.3.0",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "file_view": "byax",
+  "provider_configuration": "None; local deterministic operations only.",
+  "definitions": {
+    "p95": "Nearest-rank percentile of wall-clock sample durations.",
+    "model_edit": "Canonical candidate transaction against original loaded fixture; includes validation/history; excludes GUI input and paint.",
+    "full_reflow": "After a canonical paragraph insertion, construct shared QTextDocument and resolve all physical display pages; includes full layout, excludes paint and the edit itself.",
+    "inspection": "Bounded semantic inspection against an already loaded document.",
+    "fixture_load": "Fixture construction excluded from every timed operation.",
+    "gui_startup_to_window": "Fresh interpreter process launch until MainWindow with the fixture is shown, exposed and its first paint processed; includes Python/Qt import and package load.",
+    "keystroke_to_paint": "QTest key press delivered through the event loop to the editor plus a synchronous viewport repaint; excludes the 300 ms idle commit.",
+    "typing_commit": "flush_edits after one keystroke: canonical transaction, history delta and sidebar/status refresh.",
+    "structural_edit_to_paint": "Paragraph style change from the GUI command through commit, editor document update and synchronous viewport repaint.",
+    "structural_full_rebuild_to_paint": "Same edit forced through a full shared-document rebuild, for comparison.",
+    "save_ui_block": "Time save() holds the UI thread before returning to the event loop; serialization continues on a worker.",
+    "save_completion": "Time until the worker save finishes and the window marks the document saved.",
+    "idle_cpu_percent": "Process CPU time divided by wall time while the loaded window runs its event loop without input.",
+    "project_open": "load_document of the saved 100,000-word project package: unzip, hashes, validation.",
+    "project_typing_transaction": "One canonical insert_text in a scene paragraph, including validation and history.",
+    "project_reorder_chapter": "One canonical project_move of a chapter with its scenes, including anchor reporting.",
+    "project_save": "save_document of the reordered project to an existing path (atomic replacement).",
+    "project_binder_query": "project.items: binder rows with nesting and authored word counts."
+  },
+  "commands": [
+    "QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py --no-gui --project --samples 20",
+    "GUI metrics: benchmark.gui_metrics(project_100k) with samples=10, startup_samples=3, idle_seconds=3, save_edits=50 (reduced from the defaults for this run)"
+  ],
+  "not_measured": [
+    "Cancellation acknowledgement",
+    "Physical Windows 11 / Ubuntu 24.04 desktop behavior",
+    "Remote provider latency",
+    "GUI paint after a binder move (no binder view until A2)"
+  ],
+  "fixtures": {
+    "project_100k": {
+      "semantic_sha256": "681c6616598b3eceac8aec7cd24a12ea9c99fa5a073e25034ba64bb01118fb9c",
+      "blocks": 518,
+      "words": 103681,
+      "binder_items": 155,
+      "metrics": {
+        "project_open": {
+          "samples": 20,
+          "median_ms": 12.212015999921277,
+          "p95_ms": 17.253319000019474,
+          "min_ms": 11.567706000050748,
+          "max_ms": 19.529090000105498,
+          "raw_ms": [
+            13.205778999918039,
+            12.38927600002171,
+            12.252178999915486,
+            12.46060500011481,
+            12.327835999940362,
+            12.285400000109803,
+            12.022766000200136,
+            11.832935000029465,
+            11.795015000188869,
+            11.790916999871115,
+            11.725148999857993,
+            11.933533999808787,
+            11.567706000050748,
+            11.859616000037931,
+            12.198582999872087,
+            11.955030000081024,
+            12.225448999970467,
+            17.253319000019474,
+            14.102266999998392,
+            19.529090000105498
+          ]
+        },
+        "project_typing_transaction": {
+          "samples": 20,
+          "median_ms": 39.58513900010985,
+          "p95_ms": 53.96167499998228,
+          "min_ms": 35.75788100010868,
+          "max_ms": 60.089657999924384,
+          "raw_ms": [
+            60.089657999924384,
+            40.57186099998944,
+            42.714495000154784,
+            39.26958200008812,
+            39.900696000131575,
+            38.43292999999903,
+            36.65301800015186,
+            38.287725000145656,
+            41.01413299986234,
+            50.36430800009839,
+            45.69289200003368,
+            48.722415000156616,
+            36.19136099996467,
+            38.15585799998189,
+            38.092650999942634,
+            35.75788100010868,
+            38.69357000007767,
+            51.809980000143696,
+            53.96167499998228,
+            38.37236999993365
+          ]
+        },
+        "project_reorder_chapter": {
+          "samples": 20,
+          "median_ms": 79.39741849997972,
+          "p95_ms": 96.69476300018687,
+          "min_ms": 54.160190999937186,
+          "max_ms": 125.74538600006235,
+          "raw_ms": [
+            78.23334599993359,
+            91.74541100014721,
+            94.10354099986762,
+            86.90518700018401,
+            86.43502399991121,
+            78.40928399991753,
+            95.65908400008993,
+            96.69476300018687,
+            94.29771400004938,
+            69.48551100003897,
+            63.95868499998869,
+            56.55509700000039,
+            80.38555300004191,
+            125.74538600006235,
+            91.28550000014002,
+            60.413336999999956,
+            59.99907399996118,
+            62.345622000066214,
+            60.11654000008093,
+            54.160190999937186
+          ]
+        },
+        "project_save": {
+          "samples": 20,
+          "median_ms": 47.052378499984115,
+          "p95_ms": 86.98594400016191,
+          "min_ms": 36.01225800002794,
+          "max_ms": 123.25599899986628,
+          "raw_ms": [
+            38.19424799985427,
+            36.823269000024084,
+            36.01225800002794,
+            43.37162699994224,
+            61.02455300015208,
+            86.98594400016191,
+            50.49474300017209,
+            47.92240799997671,
+            62.503319000143165,
+            44.54669900019326,
+            40.299490000052174,
+            46.18234899999152,
+            65.64049300004626,
+            123.25599899986628,
+            66.44180100010999,
+            65.27156700008163,
+            45.04571600000418,
+            50.60958599983678,
+            42.22430200002236,
+            45.6282730001476
+          ]
+        },
+        "project_binder_query": {
+          "samples": 20,
+          "median_ms": 24.034600000049977,
+          "p95_ms": 27.08081800005857,
+          "min_ms": 23.325465000198164,
+          "max_ms": 28.913267999996606,
+          "raw_ms": [
+            28.913267999996606,
+            24.798912999813183,
+            24.497752000115725,
+            24.73622799993791,
+            23.533270999905653,
+            23.519179999993867,
+            24.55680000002758,
+            27.08081800005857,
+            23.861781999812592,
+            25.106884000024365,
+            24.131914999998116,
+            26.91855300008683,
+            23.325465000198164,
+            23.75896500007002,
+            23.6908700001095,
+            23.937285000101838,
+            24.468439999964176,
+            23.906289000024117,
+            23.380981999935102,
+            23.630479000075866
+          ]
+        },
+        "gui_startup_to_window": {
+          "samples": 3,
+          "median_ms": 1739.5635440000206,
+          "p95_ms": 1849.6008259999144,
+          "min_ms": 1696.7650630001572,
+          "max_ms": 1849.6008259999144,
+          "raw_ms": [
+            1696.7650630001572,
+            1849.6008259999144,
+            1739.5635440000206
+          ]
+        },
+        "keystroke_to_paint": {
+          "samples": 10,
+          "median_ms": 8.953282999982548,
+          "p95_ms": 20.955097000069145,
+          "min_ms": 5.895160000136457,
+          "max_ms": 20.955097000069145,
+          "raw_ms": [
+            20.955097000069145,
+            10.514063000073293,
+            9.241548999852967,
+            6.327191000082166,
+            6.099756999901729,
+            8.84767100001227,
+            9.058894999952827,
+            14.501963999919099,
+            5.94193400002041,
+            5.895160000136457
+          ]
+        },
+        "typing_commit": {
+          "samples": 10,
+          "median_ms": 76.5114915001277,
+          "p95_ms": 134.07421500005512,
+          "min_ms": 51.54871799982175,
+          "max_ms": 134.07421500005512,
+          "raw_ms": [
+            134.07421500005512,
+            87.48407799998859,
+            61.89909899990198,
+            64.72341600010623,
+            97.89196499991704,
+            84.12189600016973,
+            90.74577700016562,
+            68.90108700008568,
+            53.89836800009107,
+            51.54871799982175
+          ]
+        },
+        "structural_edit_to_paint": {
+          "samples": 10,
+          "median_ms": 107.68472599988854,
+          "p95_ms": 161.910220999971,
+          "min_ms": 74.6136050001951,
+          "max_ms": 161.910220999971,
+          "raw_ms": [
+            83.43156199998703,
+            88.71611599988682,
+            143.4465470001669,
+            112.70106999995733,
+            160.19681600005242,
+            142.91239099998165,
+            80.0093929999548,
+            102.66838199981976,
+            74.6136050001951,
+            161.910220999971
+          ]
+        },
+        "structural_full_rebuild_to_paint": {
+          "samples": 3,
+          "median_ms": 1210.9716110001045,
+          "p95_ms": 1274.1377170000305,
+          "min_ms": 1202.940738000052,
+          "max_ms": 1274.1377170000305,
+          "raw_ms": [
+            1210.9716110001045,
+            1202.940738000052,
+            1274.1377170000305
+          ]
+        },
+        "save_ui_block": {
+          "samples": 3,
+          "median_ms": 11.277303000042593,
+          "p95_ms": 15.351473999999143,
+          "min_ms": 9.414084000127332,
+          "max_ms": 15.351473999999143,
+          "raw_ms": [
+            15.351473999999143,
+            9.414084000127332,
+            11.277303000042593
+          ]
+        },
+        "save_completion": {
+          "samples": 3,
+          "median_ms": 251.7905750000864,
+          "p95_ms": 342.65402999994876,
+          "min_ms": 173.12817199990604,
+          "max_ms": 342.65402999994876,
+          "raw_ms": [
+            342.65402999994876,
+            251.7905750000864,
+            173.12817199990604
+          ]
+        }
+      },
+      "package_bytes": 13877,
+      "reorder_anchor_mappings": 1,
+      "target_comparison": {
+        "typing_50ms": true,
+        "reorder_500ms": true,
+        "reorder_note": "Engine transaction only; GUI paint after a binder move is measured with the A2 views.",
+        "structural_500ms": true,
+        "startup_3s": true
+      },
+      "gui": {
+        "idle": {
+          "seconds": 3.007,
+          "cpu_seconds": 0.0082,
+          "idle_cpu_percent": 0.274
+        },
+        "history_after_edits": {
+          "edits": 50,
+          "history_json_bytes": 1350884
+        },
+        "errors": [],
+        "parameters": {
+          "samples": 10,
+          "startup_samples": 3,
+          "idle_seconds": 3.0,
+          "save_edits": 50,
+          "file_view": "byax"
+        },
+        "wall_seconds": 22.8
+      }
+    }
+  }
+}

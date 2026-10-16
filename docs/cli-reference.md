@@ -88,6 +88,7 @@ command's flags.
 | `table` | Import or export CSV table values while preserving native identities and formatting |
 | `template-batch` | Fill independent copies of a template from CSV field rows |
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
+| `project` | List, reorder, split, merge and annotate manuscript binder items |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -131,6 +132,28 @@ Conversion always returns a compatibility/loss report:
 byax import draft.docx --out draft.byax --json
 byax convert draft.byax --out draft.odt --json
 ```
+
+Manuscript binder (`--action` defaults to `list`; read actions are `list`, `tree`, `reconcile`,
+`blocks` and `compile`; mutating actions accept `--expect-revision`, `--request-id` and `--dry-run`):
+
+```bash
+byax project novel.byax --action init --json
+byax project novel.byax --action tree --json
+byax project novel.byax --action move --target item_… --before item_… --json   # or --after / --parent
+byax project novel.byax --action split --target item_… --at p_… --offset 120 --text "Night" --json
+byax project novel.byax --action merge --target item_… --next item_… --json
+byax project novel.byax --action add --kind note --text "Character sheets" --json
+byax project novel.byax --action set-status --target item_… --status draft --json
+byax project novel.byax --action set-target --target item_… --words 2500 --json   # --clear removes it
+byax project novel.byax --action set-meta --target item_… --input meta.json --json
+byax project novel.byax --action remove --target item_… --json   # --delete-content also deletes the text
+```
+
+`move` without a placement moves the item to the end. `set-target` without `--target` sets the
+document target. `set-meta` input keys: `kind`, `status`, `synopsis`, `target_words`, `label`,
+`include_in_compile` (`null` clears) and `heading` (rebind an orphaned item). Each mutating action is
+one `project_*` canonical operation, also usable in `apply` envelopes
+(`byax schema --topic operations`).
 
 ## Edit envelopes
 
