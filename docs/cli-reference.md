@@ -132,6 +132,12 @@ byax import draft.docx --out draft.byax --json
 byax convert draft.byax --out draft.odt --json
 ```
 
+EPUB is an export and an import format. `byax export draft.byax --out draft.epub --json` writes a reflowable
+EPUB 3 and returns the located-loss report plus an `epub` section (identifier, chapters, navigation, fonts,
+accessibility metadata). Chapter splits, extra CSS, the cover and other options come from the `epub` section of
+a saved export profile (`--profile NAME`); see the [user guide](user-guide.md#exporting-an-epub). `--dry-run`
+returns the same losses without writing. `byax import book.epub --out book.byax` and `convert` read EPUB like HTML.
+
 ## Edit envelopes
 
 ```json

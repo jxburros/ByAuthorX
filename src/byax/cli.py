@@ -1090,7 +1090,7 @@ def _cmd_template_batch(a: Args, owner: str | None) -> Result:
         template, a['csv'], **{key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
     )
     fmt = a.get('format', 'byax')
-    if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf'):
+    if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf', 'epub'):
         _error('invalid_input', 'Unsupported template batch output format')
     outcomes = []
     for index, (doc, result) in enumerate(rows, start=1):

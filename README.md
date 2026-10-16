@@ -56,7 +56,7 @@ The Inspector has four tabs. **Proposed changes** lists pending edits, comments 
 
 ## File views and appearance
 
-The toolbar's File view selector shows the master as PDF, Word, OpenDocument, RTF, HTML,
+The toolbar's File view selector shows the master as PDF, Word, OpenDocument, EPUB, RTF, HTML,
 Markdown or plain text. Format limits appear in the status bar; the source toggle shows exact,
 read-only export text. Hidden content stays in the master, and edits to simplified objects are
 locked. Word/OpenDocument/RTF previews are approximate. Save keeps the ByAuthorX master and

@@ -75,7 +75,7 @@ from .gui_workflows import WorkflowPanels
 from .gui_workspace import InspectorTabBar, WorkspacePanels
 
 TEMPLATE_CHOICES = ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…']
-FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm);;ByAuthorX (*.byax *.BYAX);;All files (*)'
+FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm *.epub);;ByAuthorX (*.byax *.BYAX);;All files (*)'
 
 
 class WorkerSignals(QObject):
@@ -3187,6 +3187,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             ('pdf', 'PDF (*.pdf)'),
             ('docx', 'Word (*.docx)'),
             ('odt', 'OpenDocument (*.odt)'),
+            ('epub', 'EPUB e-book (*.epub)'),
             ('md', 'Markdown (*.md)'),
             ('html', 'HTML (*.html)'),
             ('rtf', 'Rich text (*.rtf)'),
@@ -3355,12 +3356,26 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         ]:
             controls[key] = QLineEdit(self.doc['metadata'].get(key, ''))
             form.addRow(label, controls[key])
+        # The EPUB cover is a metadata key naming an embedded image (see docs/user-guide.md).
+        cover = QComboBox()
+        cover.setAccessibleName(self.tr('EPUB cover image'))
+        cover.setToolTip(self.tr('The image an exported EPUB uses as its cover'))
+        cover.addItem(self.tr('None'), '')
+        for digest, asset in sorted(self.doc['assets'].items()):
+            if asset.get('mime') in ('image/png', 'image/jpeg', 'image/gif', 'image/webp'):
+                cover.addItem(f'{asset.get("name") or self.tr("Image")} ({digest[:8]})', digest)
+        current = cover.findData(self.doc['metadata'].get('cover', ''))
+        cover.setCurrentIndex(max(current, 0))
+        form.addRow(self.tr('EPUB cover image'), cover)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         form.addRow(buttons)
         if dialog.exec():
-            self.commit([{'type': 'set_metadata', 'values': {k: v.text() for k, v in controls.items()}}])
+            values = {k: v.text() for k, v in controls.items()}
+            if cover.currentData() != self.doc['metadata'].get('cover', ''):
+                values['cover'] = cover.currentData()
+            self.commit([{'type': 'set_metadata', 'values': values}])
 
     def statistics(self):
         from .statistics import counts, document_statistics
