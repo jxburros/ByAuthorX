@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import sys
+from typing import Any
 
 from .cli import COMMANDS, command_schema, error_result, execute, result_exit_code
 from .transport_policy import check_provider_admin
@@ -39,7 +40,7 @@ def handle(request: dict) -> dict | None:
     if method == 'initialize':
         from . import __version__
 
-        result = {
+        result: dict[str, Any] = {
             'protocolVersion': PROTOCOL_VERSION,
             'capabilities': {'tools': {'listChanged': False}},
             'serverInfo': {'name': 'byauthorx', 'version': __version__},
@@ -77,7 +78,7 @@ def handle(request: dict) -> dict | None:
     elif method == 'tools/call':
         tool = params.get('name', '')
         names = {'byax_' + name.replace('-', '_'): name for name in COMMANDS}
-        if tool not in names:
+        if not isinstance(tool, str) or tool not in names:
             return dict(response, error={'code': -32602, 'message': f'Unknown tool: {tool}'})
         args = params.get('arguments', {})
         try:
@@ -97,7 +98,7 @@ def handle(request: dict) -> dict | None:
     return dict(response, result=result)
 
 
-def _read(stream):
+def _read(stream: Any) -> tuple[bytes | None, bool]:
     line = stream.readline(MAX_MESSAGE + 1)
     if not line:
         return None, False
@@ -125,7 +126,7 @@ def _read(stream):
     return raw, framed
 
 
-def run(input_stream, output_stream) -> int:
+def run(input_stream: Any, output_stream: Any) -> int:
     while True:
         framed = False
         try:

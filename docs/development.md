@@ -52,12 +52,18 @@ QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py --out artifacts/ben
 ```bash
 uv run ruff format --check .      # single quotes, line length 110
 uv run ruff check src tests
-uv run mypy                        # engine.py, storage.py, cli.py
-uv run python -m pytest -q --cov=byax --cov-fail-under=70
+uv run mypy                        # engine, storage, CLI, MCP, REST, transport policy, citations
+uv run python -m pytest -q --cov=byax --cov-branch --cov-fail-under=70
 uv run python scripts/build.py --bundle-only
 ```
 
-CI runs on Ubuntu 24.04 and Windows Server 2022; see [packaging](packaging.md).
+CI runs the full suite, static checks, a locked runtime dependency audit and branch coverage on Ubuntu/Python 3.12. Focused
+storage, transports, jobs, security and GUI regressions also run on Windows/Python 3.12
+and Ubuntu/Python 3.11. Wheels and source distributions are built every code run, with
+CLI document roundtrip and MCP smoke checks against an isolated wheel installation.
+Native builds run for packaging/dependency/workflow changes, manual runs, weekly checks
+and every release; see [packaging](packaging.md). Dependency caches and superseded-PR
+cancellation and prompt Qt window teardown reduce repeated work; documentation/art-only changes skip app CI.
 
 ## Common changes
 

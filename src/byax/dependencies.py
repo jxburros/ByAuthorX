@@ -9,7 +9,8 @@ operations, which update hashes and invalidate dependent checks atomically.
 import base64
 import mimetypes
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
+from urllib.parse import urlsplit
+from urllib.request import url2pathname
 
 from .engine import dependency_report
 from .errors import ByaxError
@@ -22,7 +23,7 @@ def _local_path(uri, base_dir):
     if parts.scheme.lower() == 'file':
         if parts.netloc not in ('', 'localhost'):
             raise ByaxError('unsupported_feature', 'Remote file shares are not retrieved.', target=uri)
-        return Path(unquote(parts.path))
+        return Path(url2pathname(parts.path))
     path = Path(uri)
     if not path.is_absolute():
         if base_dir is None:

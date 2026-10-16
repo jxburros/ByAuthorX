@@ -2,48 +2,135 @@ name: Native build and tests
 on:
   push:
     branches: [main]
+    paths-ignore: ['docs/**', 'design/**', 'assets/**', '**.md']
   pull_request:
+    paths-ignore: ['docs/**', 'design/**', 'assets/**', '**.md']
+  schedule:
+    - cron: '23 8 * * 1'
   workflow_dispatch:
   workflow_call:
 permissions:
   contents: read
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 jobs:
-  tests:
+  plan:
+    runs-on: ubuntu-24.04
+    outputs:
+      packages: ${{ steps.changes.outputs.packages }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - id: changes
+        name: Select native packaging checks
+        env:
+          FULL_BUILD: ${{ github.event_name != 'pull_request' && github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') }}
+          BASE: ${{ github.event.pull_request.base.sha || github.event.before }}
+        run: |
+          python - <<'PY'
+          import os, subprocess
+          from pathlib import Path
+          base = os.environ['BASE']
+          full = os.environ['FULL_BUILD'] == 'true' or not base or set(base) == {'0'}
+          if not full:
+              paths = subprocess.check_output(['git', 'diff', '--name-only', base, 'HEAD'], text=True).splitlines()
+              full = any(p.startswith(('packaging/', '.github/workflows/')) or p in
+                         ('scripts/build.py', 'scripts/build_deb.py', 'scripts/smoke_distribution.py', 'pyproject.toml', 'uv.lock') for p in paths)
+          with Path(os.environ['GITHUB_OUTPUT']).open('a') as output:
+              output.write(f'packages={str(full).lower()}\n')
+          PY
+  quality:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: '3.12'
+      - run: uv sync --frozen --extra dev
+      - name: Static checks (once per run)
+        run: |
+          uv run --no-sync ruff format --check .
+          uv run --no-sync ruff check src tests
+          uv run --no-sync mypy
+      - name: Audit locked runtime dependencies
+        run: |
+          uv export --frozen --no-dev --no-emit-project -o /tmp/byax-requirements.txt
+          uvx pip-audit==2.10.1 -r /tmp/byax-requirements.txt --no-deps --disable-pip
+      - name: Full app tests with branch coverage
+        run: uv run --no-sync pytest -q --cov=byax --cov-branch --cov-report=term --cov-report=xml --cov-fail-under=70 --durations=15
+      - name: Build wheel and sdist
+        run: uv build
+      - name: Installed wheel smoke (outside source tree)
+        run: |
+          uv venv /tmp/byax-wheel
+          uv pip install --python /tmp/byax-wheel/bin/python dist/*.whl
+          uv run --no-sync python scripts/smoke_distribution.py /tmp/byax-wheel/bin/byax /tmp/byax-wheel/bin/byax-mcp
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+          retention-days: 7
+  compatibility:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            python: '3.11'
+          - os: windows-2022
+            python: '3.12'
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    env:
+      QT_QPA_PLATFORM: offscreen
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: ${{ matrix.python }}
+      - run: uv sync --frozen --extra dev
+      - name: Platform and minimum-Python regression tests
+        run: >-
+          uv run --no-sync pytest -q tests/test_storage.py tests/test_history_save.py
+          tests/test_cli.py tests/test_mcp.py tests/test_service_boundary.py
+          tests/test_jobs.py tests/test_jobs_recovery.py tests/test_libraries.py
+          tests/test_security_acceptance.py tests/test_release_metadata.py
+          tests/test_gui_workspace.py tests/test_gui_review.py tests/test_formatting_dependencies.py
+  packages:
+    needs: [plan, quality, compatibility]
+    if: needs.plan.outputs.packages == 'true'
     strategy:
       fail-fast: false
       matrix:
         os: [ubuntu-24.04, windows-2022]
     runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-      - name: Install Linux native libraries
-        if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libegl1 libgl1 libxkbcommon0 libdbus-1-3 libxcb-cursor0 libasound2t64
       - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: '3.12'
       - run: uv sync --frozen --extra dev
-      - name: Format check
-        run: uv run ruff format --check .
-      - name: Lint
-        run: uv run ruff check src tests
-      - name: Type check
-        run: uv run mypy src/byax/engine.py src/byax/storage.py src/byax/cli.py
-      - name: Tests with coverage floor
-        run: uv run python -m pytest -q --cov=byax --cov-report=term --cov-fail-under=70
-      - run: uv run python scripts/build.py --bundle-only
+      - run: uv run --no-sync python scripts/build.py --bundle-only
       - name: Frozen CLI smoke test (Linux)
         if: runner.os == 'Linux'
-        run: dist/ByAuthorX/byax capabilities --json
+        run: uv run --no-sync python scripts/smoke_distribution.py dist/ByAuthorX/byax dist/ByAuthorX/byax-mcp
       - name: Frozen CLI smoke test (Windows)
         if: runner.os == 'Windows'
-        run: dist/ByAuthorX/byax.exe capabilities --json
+        run: uv run --no-sync python scripts/smoke_distribution.py dist/ByAuthorX/byax.exe dist/ByAuthorX/byax-mcp.exe
       - name: Build Ubuntu package
         if: runner.os == 'Linux'
-        run: uv run python scripts/build_deb.py
+        run: uv run --no-sync python scripts/build_deb.py
       - name: Build Windows installer
         if: runner.os == 'Windows'
         run: |
@@ -54,6 +141,8 @@ jobs:
         with:
           name: ByAuthorX-${{ matrix.os }}-x64
           path: |
-            dist/ByAuthorX/
             dist/*.deb
             dist/*setup.exe
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7

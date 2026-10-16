@@ -394,7 +394,7 @@ def _error(code: str, message: str, **details: Any) -> NoReturn:
 
 
 def _validate(command: str, args: Args) -> None:
-    if command not in COMMANDS:
+    if not isinstance(command, str) or command not in COMMANDS:
         _error('invalid_input', f'Unknown command: {command}')
     if not isinstance(args, dict):
         _error('invalid_input', 'Arguments must be a JSON object')

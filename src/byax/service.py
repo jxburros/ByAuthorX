@@ -68,6 +68,10 @@ class AccessPolicy:
         # Service-owned configuration and job state stay in a reserved folder
         # inside the first root; clients cannot select or write to it.
         owned = self._owned(command, args)
+        if command == 'pack' and isinstance(args.get('path'), str):
+            source = Path(args['path']).resolve()
+            if any(source in reserved.parents for reserved in self.reserved):
+                _error('invalid_input', 'Cannot pack an ancestor of the service-reserved .byax folder')
 
         # Provider configuration may name executable adapters or endpoints and is
         # an administrative local action. Existing aliases remain callable.
@@ -91,7 +95,9 @@ class AccessPolicy:
         args.update(owned)
 
 
-def make_server(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765):
+def make_server(
+    roots: list[str | Path], *, token: str, host: str = '127.0.0.1', port: int = 8765
+) -> ThreadingHTTPServer:
     try:
         local = ipaddress.ip_address(host).is_loopback
     except ValueError:
@@ -177,7 +183,7 @@ def make_server(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765)
     return server
 
 
-def serve(roots, *, token: str, host: str = '127.0.0.1', port: int = 8765):
+def serve(roots: list[str | Path], *, token: str, host: str = '127.0.0.1', port: int = 8765) -> None:
     server = make_server(roots, token=token, host=host, port=port)
     print(f'ByAuthorX local service listening at http://{host}:{server.server_port}', file=sys.stderr)
     try:

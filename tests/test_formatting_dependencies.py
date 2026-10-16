@@ -326,3 +326,21 @@ def test_html_import_records_external_images_as_located_dependencies(tmp_path):
     assert dependency['uri'] == 'https://example.com/remote.png' and dependency['status'] == 'unresolved'
     rules = [(f['rule'], f['affected_ids']) for f in run_checks(doc, ['structure'])['findings']]
     assert ('dependency.unresolved', [image['id']]) in rules
+
+
+def test_file_uri_decodes_escaped_local_filename(tmp_path):
+    path = tmp_path / 'linked name #1.txt'
+    path.write_bytes(b'linked text')
+    data, mime = retrieve({'id': 'linked', 'uri': path.as_uri()}, authorize=True)
+    assert data == b'linked text'
+    assert mime == 'text/plain'
+
+
+@pytest.mark.skipif(__import__('sys').platform != 'win32', reason='Windows file URI drive syntax')
+def test_windows_file_uri_uses_native_drive_path(tmp_path):
+    from byax.dependencies import _local_path
+
+    path = tmp_path / 'linked.txt'
+    path.write_bytes(b'Windows linked file')
+    assert _local_path(path.as_uri(), None) == path
+    assert retrieve({'id': 'linked', 'uri': path.as_uri()}, authorize=True)[0] == path.read_bytes()
