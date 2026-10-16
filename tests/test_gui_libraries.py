@@ -464,3 +464,18 @@ def test_provider_dialog_saves_the_context_cap_and_keeps_the_learned_window(wind
     dialog.model.setText('other-model')
     assert dialog.save_config()
     assert ProviderRegistry().get('big').context_tokens is None  # a different model: learn again
+
+
+def test_provider_dialog_saves_the_citation_retry_setting(window, indexed_library):
+    from byax.gui_providers import ProviderDialog
+    from byax.providers import ProviderConfig, ProviderRegistry
+
+    ProviderRegistry().save(ProviderConfig('cloud', 'openai', 'model', credential_ref='env:X'))
+    dialog = ProviderDialog(window)
+    dialog.saved.setCurrentIndex(dialog.saved.findData('cloud'))
+    assert not dialog.citation_retry.isChecked()
+    dialog.citation_retry.setChecked(True)
+    assert dialog.save_config()
+    assert ProviderRegistry().get('cloud').citation_retry is True
+    dialog.load_config('cloud')
+    assert dialog.citation_retry.isChecked()

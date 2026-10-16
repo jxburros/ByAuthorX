@@ -154,9 +154,84 @@ least 12 characters) in the cited source, and `paraphrase` otherwise. `byax cite
 the choice and its reason as `citation_kind` (`inferred: true`); pass `--kind` to set it
 yourself. Only quotations are checked word for word.
 
-**Anchors.** `quote_match.selectors` and `reanchor` implement the three selectors used by
-the planned re-anchoring (position, quote, 32 characters of prefix and suffix). Nothing
-stores them in documents yet.
+**Anchors.** A citation mark can carry an optional `anchor` object with three selectors on
+the *source* side: `quote` (the source text), `prefix` and `suffix` (up to 32 characters of
+source text either side) and `position` (`{start, end}` in the cited chunk), plus the
+`content_hash` of the source version it was anchored to and a `state` (`anchored` or
+`unanchored`). It is separate from the mark's own `prefix`/`suffix`, which remain rendering
+affixes such as `see `. "Insert as citation" (below) fills it; `byax cite --input` accepts
+it; older readers ignore it (document schema 3).
+
+## Grounding, citation chips and the citation audit
+
+Every citation, whatever made it, becomes one grounding record
+(`byax.grounding.GroundingRecord`): the answer span, the cited chunk and the span inside it,
+the source quote with its 32-character prefix and suffix, the source content hash at
+citation time, the origin (`native`, `token` or `user`) and a state. Records come from:
+
+- **Native citations.** In CHAT mode an Anthropic provider receives the attached library
+  passages as custom-content documents, one content block per chunk, with citations
+  enabled; the reply's citations are mapped back to chunks. Gemini grounding supports and
+  Cohere citation spans are mapped the same way (`from_gemini`, `from_cohere`; tested on
+  shape fixtures, no adapter requests them yet).
+- **`[[cite:ID]]` tokens.** WORK mode and every other adapter keep the token protocol. The
+  source span is the claim's quotation located in the chunk, or the cited sentence aligned
+  with it (`quote_match.align`).
+- **Your own citation marks** (the audit below).
+
+A cited ID that was not supplied with the request no longer rejects the reply: the token is
+removed and its record is `unverified`. For a local provider the request is retried once
+with a corrective note; for a remote one only when the provider setting **Retry once when a
+remote model cites an unknown source** (`citation_retry`) is on, because the retry is a
+second transmission.
+
+**States.** Stage 1 of the verification cascade is deterministic and local:
+
+| State | Meaning |
+| --- | --- |
+| `supported` | The claimed quotation (or a near-verbatim claim) is in the cited chunk, exactly or after normalization |
+| `partial` | A near match, or a claim that shares part of the chunk's wording |
+| `unsupported` | The claimed quotation is not in the cited chunk |
+| `not_checkable` | A paraphrase: wording does not show meaning, so stage 1 cannot judge it |
+| `unanchored` | The cited source text is not available, or was not found again after the source changed |
+| `unverified` | The ID was not supplied with the request |
+
+Stage 2 (local entailment) and stage 3 (an optional judge using a different provider) plug
+into the same cascade later (`grounding.register_stage`); until then a request for them is
+reported as `not_run`. Support for a paraphrase is never inferred from word overlap.
+
+**Chips.** In the AI tab each citation shows as a numbered chip after the claim it
+supports: `[1]` found or not checkable (the hover card says which), `[1~]` partial, `[1!]` not found, `[1×]` unanchored, `[1?]`
+unverified. Hovering a chip shows the source title, the locator (page, heading path,
+block, paragraph, offsets) and the chunk text with the cited span highlighted. Clicking
+opens the library reader at the locator with the span selected; if the source changed since
+the answer, the reader re-anchors and says so. **Insert as citation** in the reader cites
+the selected document text with that source, its locator, the quotation and the anchor, so
+ordinary checks and the audit cover it afterwards.
+
+**Audit your own citations.** `byax check --citations` (MCP `byax_check` with
+`citations: true`, REST, or Checks tab → **Citation audit**) runs stage 1 over every
+citation mark:
+
+| Status | Meaning |
+| --- | --- |
+| `quote_found` | The quotation is at the cited locator (exact or normalized) |
+| `near_match` | Close but not identical; the differences are listed |
+| `quote_not_found` | Not at the locator; `found_elsewhere` lists other places in the source with the exact text |
+| `source_changed` | The source's content hash differs from citation time; when the quotation is found again, `reanchor` gives the new locator and a proposed update |
+| `unanchored` | The source changed and every re-anchoring step failed. The citation is kept, shown with its quote struck through |
+| `source_unavailable` | The library is not attached or cannot be read, or a manual source has no text to compare |
+| `not_checkable` | A paraphrase without a quotation |
+
+Re-anchoring tries structure first (the same page, block, paragraph or heading path), then
+the recorded position, a fuzzy search near it, and a fuzzy search anywhere in the source.
+The audit is read-only, deterministic and local: it reads the document and the attached
+library indexes, needs no consent and makes no network request. Its `operations` propose a
+source pointer update and `reanchor_citation` operations (new locator and anchor, or state
+`unanchored`); nothing changes until you apply them (`byax apply --input`, or **Apply
+proposed anchor updates** in the dialog). `validation` is `failed` when a quotation is not
+found or a citation is unanchored (exit code 4); `review` is `required` for any other
+outcome that needs a look.
 
 ## Optional embeddings
 

@@ -426,15 +426,26 @@ def augment_context(context, retrieval):
     return result
 
 
-def validate_citations(text, context):
-    """Reject machine citation tokens that were not supplied in this request."""
+def allowed_citation_ids(context):
+    """IDs a reply may cite: the request's library chunk IDs and its supplied reference IDs."""
     allowed = set(context.get('references', {}))
-    allowed.update(p['chunk_id'] for p in context.get('library_passages', []))
-    for identity in re.findall(r'\[\[cite:([^\]]+)\]\]', text):
-        if identity not in allowed:
-            raise ByaxError(
-                'invalid_input', 'Assistant cited an unavailable source or chunk', target=identity
-            )
+    allowed.update(p['chunk_id'] for p in context.get('library_passages', []) if p.get('chunk_id'))
+    return allowed
+
+
+def validate_citations(text, context):
+    """Strip machine citation tokens that were not supplied in this request (context engine plan 6.1).
+
+    An invalid ID no longer rejects the whole reply. Returns ``{'text', 'invalid'}``: the text with
+    each unknown ``[[cite:ID]]`` token removed (valid tokens kept) and the removed IDs, which the
+    caller marks ``unverified`` and may retry once with a corrective note.
+    """
+    from .grounding import strip_invalid_tokens
+
+    if not isinstance(text, str):
+        raise ByaxError('invalid_input', 'Citation text must be a string')
+    cleaned, invalid = strip_invalid_tokens(text, allowed_citation_ids(context))
+    return {'text': cleaned, 'invalid': invalid}
 
 
 class ConsentRegistry:

@@ -310,6 +310,39 @@ def locate(quote, source_text, threshold=None):
     return dict(_NONE)
 
 
+def align(text, source_text, threshold=0.0):
+    """Best fuzzy alignment of ``text`` (a claim sentence, not a quotation) inside ``source_text``.
+
+    Returns ``{'span', 'score'}`` with the span in ``source_text`` coordinates, or None when the
+    score is below ``threshold`` (0-100) or either side is empty. Used to recover the source span a
+    ``[[cite:ID]]`` token points at; the score is lexical overlap, never evidence of support.
+    """
+    from rapidfuzz import fuzz
+
+    if not isinstance(text, str) or not isinstance(source_text, str):
+        return None
+
+    def fold(value):
+        # Length-preserving lower case, so offsets into the normalized text stay valid.
+        return ''.join(c.lower() if len(c.lower()) == 1 else c for c in value)
+
+    nt = fold(normalize(text)[0].strip())
+    ns, mapping = normalize(source_text)
+    if not nt or not ns.strip():
+        return None
+    alignment = fuzz.partial_ratio_alignment(nt, fold(ns))
+    if alignment is None or alignment.score < threshold or alignment.dest_end <= alignment.dest_start:
+        return None
+    start, end = alignment.dest_start, alignment.dest_end
+    while start < end and ns[start] == ' ':
+        start += 1
+    while end > start and ns[end - 1] == ' ':
+        end -= 1
+    if end <= start:
+        return None
+    return {'span': list(map_span(mapping, start, end)), 'score': round(alignment.score, 2)}
+
+
 _QUOTED = re.compile(r'\s*["\u201c\u201e\u00ab](.+?)["\u201d\u201f\u00bb]\s*', re.DOTALL)
 
 

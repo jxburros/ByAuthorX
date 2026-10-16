@@ -1,0 +1,33 @@
+{
+  "_fixture": "Gemini generateContent response with groundingMetadata (groundingChunks, groundingSupports). Segment offsets are UTF-8 byte offsets, as Gemini reports them; the answer contains a non-ASCII character before the second segment. Shape written from the public API reference; not a live recording.",
+  "candidates": [
+    {
+      "content": {
+        "role": "model",
+        "parts": [
+          {"text": "The café roof was lost when the storm reached the harbour at dawn. The lamp burned all night."}
+        ]
+      },
+      "groundingMetadata": {
+        "groundingChunks": [
+          {"retrievedContext": {"uri": "byax:chunk/chunk_harbour_1", "title": "harbour.pdf"}},
+          {"retrievedContext": {"uri": "byax:chunk/chunk_log_1", "title": "logbook.txt", "text": "the lamp burned all night"}},
+          {"retrievedContext": {"uri": "https://example.invalid/unknown", "title": "unknown"}}
+        ],
+        "groundingSupports": [
+          {
+            "segment": {"startIndex": 0, "endIndex": 67, "text": "The café roof was lost when the storm reached the harbour at dawn."},
+            "groundingChunkIndices": [0],
+            "confidenceScores": [0.91]
+          },
+          {
+            "segment": {"startIndex": 68, "endIndex": 94, "text": "The lamp burned all night."},
+            "groundingChunkIndices": [1, 2],
+            "confidenceScores": [0.88, 0.2]
+          }
+        ]
+      }
+    }
+  ],
+  "usageMetadata": {"promptTokenCount": 400, "candidatesTokenCount": 20, "cachedContentTokenCount": 256}
+}

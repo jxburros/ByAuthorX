@@ -61,6 +61,61 @@ def describe_edit(proposal):
     return f'“{proposal["expected_text"]}” → “{proposal["replacement"]}”  ({proposal.get("explanation", "")})'
 
 
+# Citation chips (context engine plan 6.2): one label and colour per grounding state.
+CHIP_STATES = {
+    'supported': ('', '#2f6f4f', 'Quote found in the cited passage'),
+    'partial': ('~', '#8a6d1f', 'Close to the cited passage, not exact'),
+    'unsupported': ('!', '#a33a2b', 'The quoted words are not in the cited passage'),
+    'not_checkable': ('', '#4a5a78', 'A paraphrase: the words were not checked for meaning'),
+    'unanchored': ('×', '#a33a2b', 'The cited text could not be found in the source'),
+    'unverified': ('?', '#a33a2b', 'This ID was not supplied with the request; the citation was removed'),
+}
+
+
+def chip_html(index, record):
+    """One chip: a numbered link (``cite:<index>``) whose colour and suffix give the state."""
+    suffix, colour, _ = CHIP_STATES.get(record.get('state'), CHIP_STATES['unverified'])
+    label = f'[{index + 1}{suffix}]'
+    return (
+        f'<a href="cite:{index}" style="color:{colour}; text-decoration:none; font-weight:600;">'
+        f'{html.escape(label)}</a>'
+    )
+
+
+def chip_tooltip(record, source_text=''):
+    """Hover card: source title, locator and state, then the chunk text with the cited span marked."""
+    from .gui_libraries import describe_locator
+
+    _, colour, meaning = CHIP_STATES.get(record.get('state'), CHIP_STATES['unverified'])
+    status = f'<span style="color:{colour}">{html.escape(meaning)}</span>'
+    if not record.get('valid_id', True):
+        cited = html.escape(str(record.get('citation_id')))
+        return f'<p><b>Unknown source</b><br>{status}</p><p>Cited ID: {cited}</p>'
+    title = html.escape(str(record.get('title') or record.get('citation_id') or 'Source'))
+    where = html.escape(describe_locator(record.get('locator')))
+    head = f'<p><b>{title}</b><br>{where}<br>{status}</p>'
+    text = source_text or record.get('quote') or ''
+    span = record.get('source_span') if source_text else None
+    if len(text) > 900:
+        # Long chunks are cropped around the cited span so the card stays readable.
+        low = max(0, (span[0] if span else 0) - 300)
+        high = min(len(text), max(low + 600, (span[1] if span else 0) + 300))
+        span = [span[0] - low, span[1] - low] if span else None
+        text = ('…' if low else '') + text[low:high] + ('…' if high < len(text) else '')
+        span = [span[0] + 1, span[1] + 1] if span and low else span
+    if span and 0 <= span[0] < span[1] <= len(text):
+        body = (
+            html.escape(text[: span[0]])
+            + '<span style="background-color:#ffe58a; color:#000;">'
+            + html.escape(text[span[0] : span[1]])
+            + '</span>'
+            + html.escape(text[span[1] :])
+        )
+    else:
+        body = html.escape(text)
+    return head + '<p>' + body.replace('\n', '<br>') + '</p>'
+
+
 class AIPanel(QWidget):
     def __init__(self, window):
         super().__init__()
@@ -457,6 +512,11 @@ class AIPanel(QWidget):
         self.history.setAccessibleName(self.tr('Assistant conversation'))
         self.history.setOpenLinks(False)
         self.history.setMinimumHeight(180)
+        # Citation chips: hover shows the cited passage, click opens the source at its locator.
+        self.citations = []
+        self.last_chip_tooltip = None
+        self.history.highlighted.connect(self._chip_hovered)
+        self.history.anchorClicked.connect(self._chip_clicked)
         self.history_stack.addWidget(
             EmptyPanel(
                 self.tr('Ask about your writing'),
@@ -524,11 +584,232 @@ class AIPanel(QWidget):
         ready = bool(self.provider_box.currentData()) and self._pending is None
         self.send_button.setEnabled(ready and bool(self.input.toPlainText().strip()))
 
-    def _append(self, role, text):
+    def _append(self, role, text, records=None, texts=None):
         colors = {'user': 'You', 'assistant': 'Assistant', 'note': 'Note'}
-        escaped = html.escape(text).replace('\n', '<br>')
+        if records:
+            escaped = self._with_chips(text, records, texts or {})
+        else:
+            escaped = html.escape(text).replace('\n', '<br>')
         self.history.append(f'<p><b>{colors[role]}:</b> {escaped}</p>')
         self.history_stack.setCurrentIndex(1)
+
+    # Citation chips ------------------------------------------------------
+
+    def _append_grounded(self, reply, result, context):
+        """Show a reply with a chip per citation (native records, or ``[[cite:ID]]`` tokens)."""
+        from .grounding import ground_reply, source_texts
+
+        passages = context.get('library_passages') or []
+        references = context.get('references') or {}
+        grounded = result.get('grounding')
+        if not isinstance(grounded, dict) or not isinstance(grounded.get('records'), list):
+            grounded = ground_reply(reply, passages=passages, references=references)
+        texts = source_texts(passages, references)
+        text = grounded.get('text', reply)
+        if not grounded['records']:
+            self._append('assistant', text.strip() or reply)
+            return
+        lead = len(text) - len(text.lstrip())
+        records = [dict(r, marker=max(0, int(r.get('marker') or 0) - lead)) for r in grounded['records']]
+        self._append('assistant', text.strip(), records=records, texts=texts)
+        invalid = grounded.get('invalid') or []
+        retry = result.get('citation_retry') or {}
+        if retry.get('attempted'):
+            self._append(
+                'note',
+                'The assistant cited sources that were not supplied, so it was asked once to correct the reply.',
+            )
+        if invalid:
+            self._append(
+                'note',
+                f'{len(invalid)} citation(s) named sources that were not supplied with the request. '
+                'They were removed and are marked unverified [?].',
+            )
+
+    def _with_chips(self, text, records, texts):
+        """Reply HTML with a chip at each record's marker; records join ``self.citations``."""
+        placed = sorted(
+            (min(max(0, int(r.get('marker') or 0)), len(text)), position, r)
+            for position, r in enumerate(records)
+        )
+        out, cursor = [], 0
+        for marker, _, record in placed:
+            out.append(html.escape(text[cursor:marker]).replace('\n', '<br>'))
+            index = len(self.citations)
+            self.citations.append(
+                {'record': record, 'text': texts.get(record.get('chunk_id') or record.get('citation_id'), '')}
+            )
+            out.append(chip_html(index, record))
+            cursor = marker
+        out.append(html.escape(text[cursor:]).replace('\n', '<br>'))
+        return ''.join(out).strip()
+
+    def _chip_index(self, url):
+        value = url.toString() if hasattr(url, 'toString') else str(url)
+        if not value.startswith('cite:'):
+            return None
+        try:
+            index = int(value.split(':', 1)[1])
+        except ValueError:
+            return None
+        return index if 0 <= index < len(self.citations) else None
+
+    def chip_tooltip(self, index):
+        entry = self.citations[index]
+        return chip_tooltip(entry['record'], entry['text'])
+
+    def _chip_hovered(self, url):
+        from PySide6.QtGui import QCursor
+        from PySide6.QtWidgets import QToolTip
+
+        index = self._chip_index(url)
+        if index is None:
+            QToolTip.hideText()
+            return
+        self.last_chip_tooltip = self.chip_tooltip(index)
+        QToolTip.showText(QCursor.pos(), self.last_chip_tooltip, self.history)
+
+    def _chip_clicked(self, url):
+        index = self._chip_index(url)
+        if index is not None:
+            self.open_citation(index)
+
+    def open_citation(self, index):
+        """Open the cited source at its locator in the library reader (PDF page, block or offset)."""
+        from .gui_libraries import ExtractedTextDialog
+
+        record = self.citations[index]['record']
+        if not record.get('valid_id', True):
+            self.window.status_label.setText(self.tr('This citation names a source that was not supplied.'))
+            return None
+        if record.get('library_id') and record.get('document_id'):
+            from .grounding import locate_record
+            from .libraries import LibraryIndex
+
+            located = locate_record(record)
+            if located['status'] in ('available', 'reanchored'):
+                try:
+                    files = LibraryIndex(located['library']).status()['files']
+                except Exception:
+                    files = []
+                focus = {
+                    'document_id': located['document_id'],
+                    'chunk': located['chunk'],
+                    'span': located['span'],
+                    'title': record.get('title'),
+                }
+                dialog = ExtractedTextDialog(
+                    self.window,
+                    located['library'],
+                    files,
+                    focus=focus,
+                    on_insert=lambda: self.insert_citation(index),
+                )
+                if located['status'] == 'reanchored':
+                    dialog.summary.setText(
+                        self.tr('The source changed since this answer; the quotation was found again. ')
+                        + dialog.summary.text()
+                    )
+                self.last_citation_dialog = dialog
+                dialog.exec()
+                return dialog
+            self.window.status_label.setText(
+                self.tr('The cited source cannot be opened: ') + str(located.get('reason', located['status']))
+            )
+            return None
+        # A supplied reference (not a library chunk): show what the request carried.
+        box = QMessageBox(self.window)
+        box.setWindowTitle(self.tr('Cited source'))
+        box.setTextFormat(Qt.RichText)
+        box.setText(self.chip_tooltip(index))
+        insert = box.addButton(self.tr('Insert as citation'), QMessageBox.ActionRole)
+        box.addButton(QMessageBox.Close)
+        self.last_citation_dialog = box
+        box.exec()
+        if box.clickedButton() is insert:
+            self.insert_citation(index)
+        return box
+
+    def citation_operations(self, index, target, start, end):
+        """``add_reference`` (when needed) and ``cite`` operations for a chip, filled from its record."""
+        from .citations import source_from_hit
+        from .grounding import LOCATOR_KEYS
+        from .quote_match import infer_kind
+
+        entry = self.citations[index]
+        record = entry['record']
+        operations = []
+        if record.get('chunk_id') and record.get('library_id') and record.get('origin') != 'user':
+            source = source_from_hit(
+                {
+                    'library_id': record['library_id'],
+                    'document_id': record['document_id'],
+                    'content_hash': record.get('content_hash') or '',
+                    'title': record.get('title'),
+                    'path': record.get('path') or '',
+                    'chunk_id': record['chunk_id'],
+                    'text': entry['text'],
+                }
+            )
+            if source['id'] not in self.window.doc.get('references', {}):
+                operations.append({'type': 'add_reference', 'id': source['id'], 'values': source})
+            source_id = source['id']
+        else:
+            source_id = record.get('citation_id')
+        selected = model.find_object(self.window.doc, target).get('text', '')[start:end]
+        quoted = record.get('claimed_quote') and record.get('state') == 'supported'
+        kind = (
+            'quotation'
+            if quoted or infer_kind(selected, [entry['text']])['kind'] == 'quotation'
+            else 'paraphrase'
+        )
+        op = {
+            'type': 'cite',
+            'target': target,
+            'start': start,
+            'end': end,
+            'source': source_id,
+            'kind': kind,
+            'locator': {k: v for k, v in (record.get('locator') or {}).items() if k in LOCATOR_KEYS},
+        }
+        if record.get('quote'):
+            op['quote'] = record['quote']
+        span = record.get('source_span')
+        if span and record.get('quote'):
+            op['anchor'] = {
+                'quote': record['quote'],
+                'prefix': record.get('prefix', '')[-32:],
+                'suffix': record.get('suffix', '')[:32],
+                'position': {'start': span[0], 'end': span[1]},
+                'content_hash': record.get('content_hash') or '',
+                'state': 'anchored',
+            }
+        operations.append(op)
+        return operations
+
+    def insert_citation(self, index):
+        """ "Insert as citation": cite the editor selection with the chip's source, locator and quote."""
+        window = self.window
+        if not window.flush_edits():
+            return False
+        targets = [(t, s, e) for t, s, e in window.editor.selection_targets() if e > s]
+        if not targets:
+            window.status_label.setText(
+                self.tr('Select the text this source supports, then choose Insert as citation.')
+            )
+            return False
+        target, start, end = targets[0]
+        try:
+            operations = self.citation_operations(index, target, start, end)
+        except Exception as exc:
+            window.error(exc)
+            return False
+        if window.commit(operations):
+            window.status_label.setText(
+                self.tr('Citation inserted. Checks verify it like any other citation.')
+            )
+            return True
+        return False
 
     def context(self, frozen):
         selected = [(t, s, e) for t, s, e in self.window.editor.selection_targets() if s != e]
@@ -646,10 +927,10 @@ class AIPanel(QWidget):
         window.background(
             self.tr('Asking {0}…').format(alias),
             work,
-            lambda result: self._answered(token, mode, frozen, result),
+            lambda result: self._answered(token, mode, frozen, result, context),
         )
 
-    def _answered(self, token, mode, frozen, result):
+    def _answered(self, token, mode, frozen, result, context=None):
         if token is not self._pending:
             return
         self._pending = None
@@ -662,7 +943,7 @@ class AIPanel(QWidget):
             return
         reply = result.get('reply') or '(No reply text.)'
         self.messages.append({'role': 'assistant', 'content': reply})
-        self._append('assistant', reply)
+        self._append_grounded(reply, result, context or {})
         self.verify_absence(reply, frozen)
         if mode != 'work':
             # Chat mode never edits, whatever the model returned.

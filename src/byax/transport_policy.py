@@ -270,6 +270,9 @@ INTERFACE_INVENTORY = (
         'Inspector > Checks',
     ),
     ('Checks', 'inspect findings', 'inspect --section findings', 'byax.engine.inspect', 'Review panel'),
+    # Context engine plan 6.4/6.5: the writer's own citations, stage 1, local and deterministic.
+    ('Checks', 'citation audit', 'check --citations', 'byax.grounding.audit_citations', 'Inspector > Checks'),
+    ('Editing', 're-anchor citation', 'apply', 'byax.engine.apply', 'Inspector > Checks'),
     (
         'Checks',
         'propose repairs',

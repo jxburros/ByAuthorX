@@ -1,0 +1,70 @@
+{
+  "_fixture": "Anthropic Messages API response with custom-content document citations (content_block_location). Shape written from the public API reference for the request built from passages.json (document 0 = logbook.txt blocks 0-1, document 1 = harbour.pdf block 0). Not a live recording.",
+  "id": "msg_fixture_citations_01",
+  "type": "message",
+  "role": "assistant",
+  "model": "fixture-model",
+  "content": [
+    {"type": "text", "text": "The keeper's log says "},
+    {
+      "type": "text",
+      "text": "the lamp burned all night",
+      "citations": [
+        {
+          "type": "content_block_location",
+          "cited_text": "Night of 3 March: the lamp burned all night and the glass held.",
+          "document_index": 0,
+          "document_title": "logbook.txt",
+          "start_block_index": 0,
+          "end_block_index": 1
+        }
+      ]
+    },
+    {"type": "text", "text": ". "},
+    {
+      "type": "text",
+      "text": "The storm reached the harbour at dawn",
+      "citations": [
+        {
+          "type": "content_block_location",
+          "cited_text": "The storm reached the harbour at dawn, and the café roof was lost.",
+          "document_index": 1,
+          "document_title": "harbour.pdf",
+          "start_block_index": 0,
+          "end_block_index": 1
+        }
+      ]
+    },
+    {"type": "text", "text": ", and supplies came over "},
+    {
+      "type": "text",
+      "text": "before the gale",
+      "citations": [
+        {
+          "type": "content_block_location",
+          "cited_text": "Night of 3 March: the lamp burned all night and the glass held.Mrs. Wren rowed the supplies across before the gale.",
+          "document_index": 0,
+          "document_title": "logbook.txt",
+          "start_block_index": 0,
+          "end_block_index": 2
+        },
+        {
+          "type": "content_block_location",
+          "cited_text": "Invented passage.",
+          "document_index": 7,
+          "document_title": "missing",
+          "start_block_index": 0,
+          "end_block_index": 1
+        }
+      ]
+    },
+    {"type": "text", "text": "."}
+  ],
+  "stop_reason": "end_turn",
+  "usage": {
+    "input_tokens": 312,
+    "output_tokens": 41,
+    "cache_creation_input_tokens": 1536,
+    "cache_read_input_tokens": 2048
+  }
+}

@@ -6,12 +6,16 @@ authorization, one request per check. Results land in Proposed changes; nothing 
 
 from __future__ import annotations
 
+import copy
+import html
 import json
 import uuid
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
+    QDialog,
+    QDialogButtonBox,
     QFrame,
     QGroupBox,
     QHBoxLayout,
@@ -20,9 +24,79 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
+
+AUDIT_LABELS = {
+    'quote_found': 'Quote found',
+    'near_match': 'Near match',
+    'quote_not_found': 'Quote not found',
+    'source_changed': 'Source changed since citation',
+    'source_unavailable': 'Source unavailable',
+    'not_checkable': 'Not checkable (paraphrase without a quote)',
+    'unanchored': 'Unanchored',
+}
+
+
+def audit_html(report):
+    """The audit as rich text; an unanchored citation's quote is struck through, never hidden."""
+    from .grounding import describe_audit
+
+    rows = [f'<p><b>{html.escape(describe_audit(report)[0])}</b></p>']
+    for item in report['citations']:
+        quote = html.escape(item.get('quote') or item['text'])
+        if item['status'] == 'unanchored':
+            quote = f'<s>{quote}</s>'
+        message = f'<br>{html.escape(item["message"])}' if item.get('message') else ''
+        rows.append(
+            f'<p><b>{html.escape(AUDIT_LABELS[item["status"]])}</b> · {html.escape(str(item["title"]))}'
+            f'<br>“{quote}”{message}</p>'
+        )
+    rows.append(f'<p><i>{html.escape(report["note"])}</i></p>')
+    return ''.join(rows)
+
+
+class CitationAuditDialog(QDialog):
+    """Read-only audit report; proposed re-anchoring is applied only when the author asks."""
+
+    def __init__(self, window, report, revision):
+        super().__init__(window)
+        self.window = window
+        self.report = report
+        self.revision = revision
+        self.setWindowTitle(self.tr('Citation audit'))
+        self.resize(720, 520)
+        layout = QVBoxLayout(self)
+        self.browser = QTextBrowser()
+        self.browser.setAccessibleName(self.tr('Citation audit report'))
+        self.browser.setHtml(audit_html(report))
+        layout.addWidget(self.browser)
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        self.apply_button = buttons.addButton(
+            self.tr('Apply proposed anchor updates'), QDialogButtonBox.ActionRole
+        )
+        self.apply_button.setEnabled(bool(report['operations']))
+        self.apply_button.setToolTip(
+            self.tr('Record re-anchored locators and mark citations that could not be found as unanchored')
+        )
+        self.apply_button.clicked.connect(self.apply)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def apply(self):
+        window = self.window
+        window.flush_edits()
+        if window.doc['revision'] != self.revision:
+            window.status_label.setText(self.tr('The document changed since the audit. Run it again.'))
+            return False
+        if window.commit(copy.deepcopy(self.report['operations'])):
+            self.apply_button.setEnabled(False)
+            window.status_label.setText(self.tr('Citation anchors updated.'))
+            return True
+        return False
+
 
 MODEL_CHECKS = {
     'repository': 'Check claims against the supplied information repository and source excerpts. '
@@ -41,6 +115,12 @@ LOCAL_CHECKS = (
         'Document health',
         'Structure, accessibility, requirements and print readiness.',
         True,
+    ),
+    (
+        'citations',
+        'Citation audit',
+        'Checks every citation’s quotation against its source, and whether the source changed. No AI.',
+        False,
     ),
 )
 AI_CHECKS = (
@@ -274,10 +354,27 @@ class ChecksPanel(QWidget):
     def run_all(self):
         self.run(self.active_checks())
 
+    def run_citation_audit(self):
+        """Stage 1 over every citation mark (plan 6.4): same report as ``byax check --citations``."""
+        from .grounding import audit_citations
+
+        window = self.window
+        window.flush_edits()
+        frozen = copy.deepcopy(window.doc)
+
+        def done(report):
+            self.last_audit = report
+            self.audit_dialog = CitationAuditDialog(window, report, frozen['revision'])
+            self.audit_dialog.show()
+
+        window.background(self.tr('Auditing citations…'), lambda: audit_citations(frozen), done)
+
     def run(self, kinds):
         """Run local checks in the background, then each AI check with its own authorization."""
         if 'spelling' in kinds:
             self.window.ai_panel.check_spelling()
+        if 'citations' in kinds:
+            self.run_citation_audit()
         suites = (['grammar'] if 'grammar' in kinds else []) + (HEALTH_SUITES if 'health' in kinds else [])
         groups = [kind.split(':', 1)[1] for kind in kinds if kind.startswith('fiction:')]
         if groups:

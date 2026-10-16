@@ -144,6 +144,8 @@ verification items.
 | Inspection | readability report | `readability` | `byax_readability` | execute | `byax.readability.readability_report` | Tools > Readability report… |
 | Inspection | chapter pacing series | `readability` | `byax_readability` | execute | `byax.fiction_checks.pacing_series` | Tools > Readability report… |
 | Checks | fiction analysis families | `check --family fiction` | `byax_check` | execute | `byax.fiction_checks.RULES` | Inspector > Checks |
+| Checks | citation audit | `check --citations` | `byax_check` (`citations: true`) | execute | `byax.grounding.audit_citations` | Inspector > Checks (Citation audit) |
+| Editing | re-anchor citation | `apply` (`reanchor_citation`, proposed by the audit) | `byax_apply` | execute | `byax.engine.apply` | Inspector > Checks (Apply proposed anchor updates) |
 | Inspection | linked dependencies | `dependencies` | `byax_dependencies` | execute | `byax.engine.dependency_report` | Tools > Linked assets… |
 | Files | settings collections | `collection` | `byax_collection` | execute | `byax.profiles.export_settings` | Tools > Reusable settings… |
 

@@ -57,7 +57,8 @@ OP_SCHEMAS = {
     'add_comment': ('target text', 'start end author'),
     'resolve_comment': ('target', ''),
     'add_reference': ('id values', ''),
-    'cite': ('target start end source', 'locator quote kind prefix suffix'),
+    'cite': ('target start end source', 'locator quote kind prefix suffix anchor'),
+    'reanchor_citation': ('target start end source anchor', 'locator'),
     'fill_fields': ('values', ''),
     'add_layer': ('values', ''),
     'update_layer': ('target values', ''),
@@ -909,19 +910,7 @@ def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
     citation_kind = op.get('kind', 'paraphrase')
     if citation_kind not in ('quotation', 'paraphrase', 'inference'):
         _error('Unknown citation evidence kind.', 'kind')
-    locator = op.get('locator', {})
-
-    def valid_locator(key, value):
-        if key == 'heading_path':
-            return isinstance(value, list) and all(isinstance(part, str) for part in value)
-        if key in ('start', 'end', 'ordinal'):
-            return type(value) is int and value >= 0
-        if key in ('page', 'paragraph'):
-            return isinstance(value, str) or (type(value) is int and value >= 0)
-        return key in ('block', 'chunk', 'label', 'text') and isinstance(value, str)
-
-    if not isinstance(locator, dict) or any(not valid_locator(key, value) for key, value in locator.items()):
-        _error('Citation locator contains unsupported fields or invalid values.', 'locator')
+    _citation_locator(op.get('locator', {}))
     for key in ('quote', 'prefix', 'suffix'):
         if key in op and not isinstance(op[key], str):
             _error('Expected citation text.', key)
@@ -933,11 +922,62 @@ def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
         'kind': citation_kind,
         'quote': op.get('quote', obj['text'][op['start'] : op['end']]),
     }
-    for key in ('locator', 'prefix', 'suffix'):
+    if 'anchor' in op:
+        _citation_anchor(op['anchor'])
+    for key in ('locator', 'prefix', 'suffix', 'anchor'):
         if key in op:
             mark[key] = copy.deepcopy(op[key])
     if mark not in obj.setdefault('marks', []):
         obj['marks'].append(mark)
+    changed.append(obj['id'])
+
+
+def _citation_locator(locator):
+    def valid_locator(key, value):
+        if key == 'heading_path':
+            return isinstance(value, list) and all(isinstance(part, str) for part in value)
+        if key in ('start', 'end', 'ordinal'):
+            return type(value) is int and value >= 0
+        if key in ('page', 'paragraph'):
+            return isinstance(value, str) or (type(value) is int and value >= 0)
+        return key in ('block', 'chunk', 'label', 'text') and isinstance(value, str)
+
+    if not isinstance(locator, dict) or any(not valid_locator(key, value) for key, value in locator.items()):
+        _error('Citation locator contains unsupported fields or invalid values.', 'locator')
+
+
+def _citation_anchor(anchor):
+    from .model import citation_anchor_problem
+
+    problem = citation_anchor_problem(anchor)
+    if problem:
+        _error(problem, 'anchor')
+
+
+def _op_reanchor_citation(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Record a citation mark's re-anchoring result (context engine plan 6.5).
+
+    The mark is identified by target, range and source. Only its source-side ``anchor`` and,
+    optionally, its ``locator`` change; an ``unanchored`` state keeps the mark and its quote.
+    """
+    obj = _target(doc, op)
+    _citation_anchor(op['anchor'])
+    marks = [
+        m
+        for m in obj.get('marks', [])
+        if m.get('type') == 'citation'
+        and m.get('value') == op['source']
+        and (m.get('start'), m.get('end')) == (op['start'], op['end'])
+    ]
+    if not marks:
+        raise ByaxError('missing_target', 'No citation mark matches this target, range and source.')
+    locator = op.get('locator')
+    if locator is not None:
+        _citation_locator(locator)
+    for mark in marks:
+        mark['anchor'] = copy.deepcopy(op['anchor'])
+        if locator is not None:
+            mark['locator'] = copy.deepcopy(locator)
     changed.append(obj['id'])
 
 
@@ -2185,6 +2225,7 @@ _HANDLERS = {
     'resolve_comment': _op_resolve_comment,
     'add_reference': _op_document_record,
     'cite': _op_cite,
+    'reanchor_citation': _op_reanchor_citation,
     'set_profile': _op_document_record,
     'set_requirement': _op_document_record,
     'add_layer': _op_add_layer,

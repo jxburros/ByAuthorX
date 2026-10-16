@@ -249,8 +249,11 @@ without any AI and understands `"exact phrases"`, `-excluded` words, `prefix*`,
 `NEAR(a b)` and `heading:`/`title:`/`path:` filters, and suggests spellings when a word
 matches nothing ([search syntax](cli-reference.md#library-search-syntax)). When an assistant
 says something is not in your sources, ByAuthorX searches your libraries and this document
-literally and shows any matches. See the
-[library and citations guide](library-and-citations-guide.md).
+literally and shows any matches. The assistant's citations appear as numbered chips: hover to
+see the cited passage, click to open the source at that page or block, and **Insert as
+citation** to cite it in your text. Checks → **Citation audit** (or `byax check --citations`)
+checks every citation you made against its source on this computer, without AI. See the
+[library and citations guide](library-and-citations-guide.md#grounding-citation-chips-and-the-citation-audit).
 
 ## Keyboard and accessibility
 

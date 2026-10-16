@@ -1,0 +1,26 @@
+{
+  "_fixture": "Cohere v2 chat response with message.citations (character spans, document sources whose ids are the chunk IDs sent as document ids). Shape written from the public API reference; not a live recording.",
+  "id": "cohere_fixture_01",
+  "finish_reason": "COMPLETE",
+  "message": {
+    "role": "assistant",
+    "content": [{"type": "text", "text": "Mrs. Wren rowed the supplies across. The glass held."}],
+    "citations": [
+      {
+        "start": 0,
+        "end": 35,
+        "text": "Mrs. Wren rowed the supplies across",
+        "sources": [{"type": "document", "id": "chunk_log_2", "document": {"id": "chunk_log_2", "title": "logbook.txt"}}]
+      },
+      {
+        "start": 37,
+        "end": 51,
+        "text": "The glass held",
+        "sources": [
+          {"type": "document", "id": "chunk_log_1", "document": {"id": "chunk_log_1"}},
+          {"type": "document", "id": "doc_not_supplied", "document": {"id": "doc_not_supplied"}}
+        ]
+      }
+    ]
+  }
+}
