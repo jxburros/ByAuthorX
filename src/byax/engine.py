@@ -11,7 +11,7 @@ from typing import Any, NoReturn
 
 import regex as unicode_regex
 
-from . import anchors, formatting, project
+from . import anchors, codex, formatting, project, project_index
 from .checks import run_checks
 from .compare import compare as semantic_compare
 from .compare import plan_merge
@@ -116,6 +116,9 @@ OP_SCHEMAS.update(
 )
 # Manuscript project (binder) operations; handlers live in ``project``.
 OP_SCHEMAS.update(project.OP_SCHEMAS)
+# Codex entries and saved project searches; handlers live in ``codex`` and ``project_index``.
+OP_SCHEMAS.update(codex.OP_SCHEMAS)
+OP_SCHEMAS.update(project_index.SAVED_OP_SCHEMAS)
 # Source corrections stay separate from document corrections (spec 13.2).
 SOURCE_OPERATIONS = {'add_reference', 'remove_reference'}
 CONTENT_OPERATIONS = {
@@ -1176,11 +1179,11 @@ def _plan_edits(doc, operations, explicit=None, existing=None):
 
 
 def _find_reviewable(doc, target):
-    """A body object, or a binder item (``project_*`` operations target item IDs)."""
+    """A body object, a binder item or a codex entry (``project_*``/``codex_*`` operations)."""
     try:
         return find_object(doc, target)
     except ByaxError:
-        item = project.find_item(doc, target)
+        item = project.find_item(doc, target) or codex.find_entry(doc, target)
         if item is None:
             raise
         return item
@@ -2270,6 +2273,8 @@ _HANDLERS = {
     'insert_cross_reference': _op_insert_cross_reference,
 }
 _HANDLERS.update(project.HANDLERS)
+_HANDLERS.update(codex.HANDLERS)
+_HANDLERS.update(project_index.SAVED_HANDLERS)
 
 
 def _operation(doc, op, base_revision, *, allow_policy_changes=False):

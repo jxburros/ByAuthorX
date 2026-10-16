@@ -83,19 +83,21 @@ def _v1_to_v2(state):
 
 
 def _v2_to_v3(state):
-    """Schema 3 adds the optional manuscript ``project`` binder (CP A1) and the optional
-    citation ``anchor`` object (CE 6.5: quote, 32-character source prefix and suffix,
-    position, content hash and anchored/unanchored state). No data changes: the binder
-    and anchors are absent until created. Citation ``prefix``/``suffix`` stay what they
-    always were, rendering affixes such as ``see ``; they are only checked to be text.
+    """Schema 3 adds the optional manuscript ``project`` binder (CP A1), the optional
+    ``codex`` (CE 8.2) and the optional citation ``anchor`` object (CE 6.5: quote,
+    32-character source prefix and suffix, position, content hash and anchored/unanchored
+    state). No data changes: the binder, codex and anchors are absent until created.
+    Citation ``prefix``/``suffix`` stay what they always were, rendering affixes such as
+    ``see ``; they are only checked to be text.
     """
-    if 'project' in state:
-        raise ByaxError(
-            'unsupported_feature',
-            'A version 2 document already contains an unknown "project" construct; '
-            'it cannot be upgraded without risking loss.',
-            field='project',
-        )
+    for field in ('project', 'codex'):
+        if field in state:
+            raise ByaxError(
+                'unsupported_feature',
+                f'A version 2 document already contains an unknown "{field}" construct; '
+                'it cannot be upgraded without risking loss.',
+                field=field,
+            )
     affixes = anchors = 0
     for block in state.get('blocks', []):
         for mark in block.get('marks', []):
@@ -119,6 +121,7 @@ def _v2_to_v3(state):
             anchors += 'anchor' in mark
     return [
         {'kind': 'added_optional_structure', 'field': 'project', 'count': 0},
+        {'kind': 'added_optional_structure', 'field': 'codex', 'count': 0},
         {'kind': 'citation_anchor_fields', 'field': 'marks.anchor', 'count': anchors},
         {'kind': 'citation_affixes_checked', 'field': 'marks.prefix/suffix', 'count': affixes},
     ]
@@ -127,7 +130,7 @@ def _v2_to_v3(state):
 # from_version: (to_version, description, transition)
 TRANSITIONS = {
     1: (2, 'Explicit external dependency records for linked images', _v1_to_v2),
-    2: (3, 'Optional manuscript project binder and citation anchors', _v2_to_v3),
+    2: (3, 'Optional manuscript project binder, codex and citation anchors', _v2_to_v3),
 }
 SUPPORTED_VERSIONS = frozenset(TRANSITIONS) | {SCHEMA_VERSION}
 

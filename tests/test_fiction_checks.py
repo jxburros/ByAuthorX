@@ -371,6 +371,7 @@ def test_name_spelling_stays_quiet_when_names_are_distinct(text):
 
 def test_name_source_seam_flags_variants_of_known_names_whatever_the_counts():
     doc = prose('Quillan arrived. Quillan left. Quilan stayed.')
+    registered = list(fiction_checks.NAME_SOURCES)  # the codex source is registered at import
     fiction_checks.NAME_SOURCES.clear()
     try:
         fiction_checks.register_name_source(lambda document: ['Quillan'])
@@ -379,7 +380,7 @@ def test_name_source_seam_flags_variants_of_known_names_whatever_the_counts():
         assert finding['text'] == 'Quilan' and 'known name' in finding['explanation']
         assert finding['measured']['canonical_occurrences'] is None
     finally:
-        fiction_checks.NAME_SOURCES.clear()
+        fiction_checks.NAME_SOURCES[:] = registered
 
 
 def test_only_name_findings_propose_edits_and_protected_text_blocks_them():

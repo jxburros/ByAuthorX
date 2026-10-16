@@ -32,6 +32,8 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `goals`, `drafts` | Writing goals, sessions and streaks (local preferences keyed by document identity, never in the document) and named drafts built on branches with scene-level comparison |
 | `gui_project`, `gui_goals`, `gui_drafts` | Binder panel (outline and corkboard, drag and keyboard reordering, synopsis editing), writing-goals button and dialog, draft save, compare and bring-changes dialogs |
 | `compile`, `gui_compile` | Compile pipeline: compile profiles (presets in `resources/compile` are settings collections), the transient compiled document built by `engine.apply` on a copy, per-target export through the existing exporters, Word/Markdown round-trip verification, preflight findings; File → Compile… |
+| `project_index` | The manuscript as a corpus: one block-level index (schema 2 conventions) of the open document, sibling `.byax` files and series members, shared with the binder (block map, item, chapter, kind); incremental by block hash, in the user cache; project find, saved searches (`saved_search_*` operations), backlinks and unlinked mentions, optional vectors |
+| `codex`, `series`, `cli_codex` | Codex entries (aliases, excluded phrases, case sensitivity, traits, hide from AI) and the `codex_*` operations; Aho-Corasick mention scan, heatmap, AI-visible views and redaction, fact proposals; `.byaxseries` files shared by several projects; the `codex` and read-only `entity` commands |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `grammar`, `language_packs`, `gui_languages` | Offline grammar tiers behind one engine interface: data-driven built-in rules (`resources/grammar`) and an adapter for a local LanguageTool server (loopback only, explicit pinned download, UTF-16 to scalar offset mapping); versioned, checksummed language packs for spelling dictionaries, grammar rules, word lists and interface strings (installed under the user data folder, verified before use, built-in English packs), the translation catalogue and the `QTranslator` plumbing; the Languages dialog and the Checks tab tier status |
@@ -59,7 +61,7 @@ Packages declare `format_version` (package layout, currently 1) and `schema_vers
 | Transition | Change |
 | --- | --- |
 | 1 → 2 | Adds the required `dependencies` object. Image blocks whose `source` is an external URI (and Markdown `external_images` entries) become explicit linked dependency records (`status: unresolved`) referenced by `attrs.link`; the original `source` value is kept. |
-| 2 → 3 | Adds the optional top-level `project` binder (absent until created; a version 2 document that already uses `project` for something else is rejected), the optional `history.drafts` records of named drafts (draft name to note, save time, revision and words; absent until a draft is saved, so nothing is rewritten) and the optional citation-mark `anchor` object (context engine 6.5): `{quote, prefix, suffix, position: {start, end}, content_hash?, state?}`, the source-side selectors for re-anchoring (`prefix`/`suffix` up to 32 characters of source text, `position` in the cited chunk, `state` `anchored` or `unanchored`). The mark's own `prefix`/`suffix` keep their meaning, rendering affixes such as `see `, and are only checked to be text (a non-text affix is rejected rather than rewritten). No data changes; a version 2 mark that already uses `anchor` for something else is rejected. The report counts marks with an anchor and marks with affixes. |
+| 2 → 3 | Adds the optional top-level `project` binder and `codex` (both absent until created; a version 2 document that already uses either name for something else is rejected), the optional `history.drafts` records of named drafts (draft name to note, save time, revision and words; absent until a draft is saved, so nothing is rewritten) and the optional citation-mark `anchor` object (context engine 6.5): `{quote, prefix, suffix, position: {start, end}, content_hash?, state?}`, the source-side selectors for re-anchoring (`prefix`/`suffix` up to 32 characters of source text, `position` in the cited chunk, `state` `anchored` or `unanchored`). The mark's own `prefix`/`suffix` keep their meaning, rendering affixes such as `see `, and are only checked to be text (a non-text affix is rejected rather than rewritten). No data changes; a version 2 mark that already uses `anchor` for something else is rejected. The report counts marks with an anchor and marks with affixes. |
 
 Policy:
 
@@ -159,6 +161,23 @@ sequence they complete), a block `sink` (space above a block that opens a page),
 PDF report adds `page_starts` (the block that opens each page body). The Word adapter now writes and
 reads `{page}`/`{pages}` as PAGE/NUMPAGES fields, a distinct first-page header or footer, region
 alignment, line spacing, style alignment and page break before.
+
+## Codex and the project index
+
+The optional `codex` object is `{"entries": {entry_id: entry}}`; an entry is
+`{id, kind, name, aliases?, excluded?, case_sensitive?, description?, traits, hide_from_ai?, tags?,
+created, updated, provenance?}` with `kind` one of `character`, `place`, `item`, `term`, and each
+trait `{id, name, value, hide_from_ai?, provenance?, created, updated}`. Entry identities may not
+collide with body objects or binder items, so proposals can target them (`engine._find_reviewable`)
+with hash preconditions. Edits are the canonical operations `codex_add`, `codex_update`,
+`codex_remove`, `codex_add_trait`, `codex_update_trait` and `codex_remove_trait`; dates come from
+the edit envelope's timestamp. `settings.series` (`{"path": "<relative>.byaxseries"}`) and
+`settings.saved_searches` (`{name: {query, scope, kind?, item?, created, updated}}`) are validated
+settings; saved searches change only through `saved_search_set` and `saved_search_remove`.
+
+`project_index` is derived data in the user cache keyed by the project folder. It never writes to
+the project or a document, reads only local files, and is refreshed explicitly (CLI calls refresh
+before answering; the desktop after the first project search and on save).
 
 ## Review anchors, proposals and branches
 

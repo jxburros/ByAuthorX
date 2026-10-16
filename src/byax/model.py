@@ -312,6 +312,11 @@ def validate_document(doc, *, include_history=True):
     from .project import validate_project
 
     validate_project(doc, fail)
+    from .codex import validate_codex
+    from .project_index import validate_saved_searches
+
+    validate_codex(doc, fail)
+    validate_saved_searches(doc, fail)
     history = doc['history']
     if (
         not isinstance(history.get('revisions'), list)

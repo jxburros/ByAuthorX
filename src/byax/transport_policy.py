@@ -20,6 +20,7 @@ PATH_KEYS = frozenset(
         'csv',
         'reference_dir',
         'copy_path',
+        'series_path',
     )
 )
 
@@ -45,6 +46,14 @@ def check_provider_admin(command, arguments):
         raise ByaxError(
             'unsupported_feature',
             'Manage library attachments and configuration through the local CLI or desktop',
+        )
+    if command == 'codex' and arguments.get('include_hidden'):
+        raise ByaxError(
+            'unsupported_feature', 'Codex entries hidden from AI are shown only in the local CLI and desktop'
+        )
+    if command == 'codex' and arguments.get('action') in ('series-attach', 'series-detach'):
+        raise ByaxError(
+            'unsupported_feature', 'Attach a series (and its libraries) through the local CLI or desktop'
         )
     if command == 'dependencies' and arguments.get('action') == 'refresh':
         raise ByaxError(
@@ -86,10 +95,11 @@ def _check_source_claims(value):
         if (
             value.get('type', value.get('op')) == 'set_settings'
             and isinstance(value.get('values'), dict)
-            and 'libraries' in value['values']
+            and ('libraries' in value['values'] or 'series' in value['values'])
         ):
             raise ByaxError(
-                'unsupported_feature', 'Manage library attachments through the local CLI or desktop'
+                'unsupported_feature',
+                'Manage library and series attachments through the local CLI or desktop',
             )
         if value.get('type', value.get('op')) == 'add_reference':
             source = value.get('values', {})
@@ -641,4 +651,84 @@ INTERFACE_INVENTORY = (
         'byax.compile.preset_collection',
         None,
     ),
+    # Manuscript corpus and codex (context engine 8.1, 8.2).
+    (
+        'Search and targeting',
+        'project find',
+        'project-search --action find',
+        'byax.project_index.ProjectIndex.search',
+        'Edit > Find in project…',
+    ),
+    (
+        'Inspection',
+        'project index status',
+        'project-search --action status',
+        'byax.project_index.ProjectIndex.status',
+        None,
+    ),
+    (
+        'Search and targeting',
+        'project index refresh',
+        'project-search --action refresh',
+        'byax.project_index.ProjectIndex.refresh',
+        'Edit > Find in project…',
+    ),
+    (
+        'Search and targeting',
+        'saved searches',
+        'project-search --action saved-list',
+        'byax.project_index.saved_searches',
+        'Edit > Find in project…',
+    ),
+    (
+        'Search and targeting',
+        'run saved search',
+        'project-search --action saved-run',
+        'byax.project_index.run_saved',
+        'Edit > Find in project…',
+    ),
+    (
+        'Editing',
+        'save search',
+        'project-search --action saved-add',
+        'byax.engine.apply',
+        'Edit > Find in project…',
+    ),
+    (
+        'Editing',
+        'remove saved search',
+        'project-search --action saved-remove',
+        'byax.engine.apply',
+        'Edit > Find in project…',
+    ),
+    (
+        'Search and targeting',
+        'backlinks',
+        'project-search --action backlinks',
+        'byax.project_index.links',
+        'Edit > Find in project…',
+    ),
+    (
+        'Search and targeting',
+        'unlinked mentions',
+        'project-search --action unlinked-mentions',
+        'byax.project_index.links',
+        'Edit > Find in project…',
+    ),
+    ('Inspection', 'codex entries', 'codex --action list', 'byax.codex.list_entries', 'Tools > Codex…'),
+    ('Inspection', 'codex lookup', 'codex --action lookup', 'byax.codex.lookup', 'Tools > Codex…'),
+    ('Inspection', 'codex mentions', 'codex --action mentions', 'byax.codex.mentions', 'Tools > Codex…'),
+    ('Inspection', 'codex mention heatmap', 'codex --action heatmap', 'byax.codex.heatmap', 'Tools > Codex…'),
+    ('Inspection', 'codex series', 'codex --action series', 'byax.series.resolve', 'Tools > Codex…'),
+    ('Editing', 'add codex entry', 'codex --action add', 'byax.engine.apply', 'Tools > Codex…'),
+    ('Editing', 'edit codex entry', 'codex --action update', 'byax.engine.apply', 'Tools > Codex…'),
+    ('Editing', 'remove codex entry', 'codex --action remove', 'byax.engine.apply', 'Tools > Codex…'),
+    ('Editing', 'add codex trait', 'codex --action add-trait', 'byax.engine.apply', 'Tools > Codex…'),
+    ('Editing', 'edit codex trait', 'codex --action update-trait', 'byax.engine.apply', 'Tools > Codex…'),
+    ('Editing', 'remove codex trait', 'codex --action remove-trait', 'byax.engine.apply', 'Tools > Codex…'),
+    ('Review', 'propose codex fact', 'codex --action propose-fact', 'byax.codex.propose_fact', None),
+    ('Files', 'attach series', 'codex --action series-attach', 'byax.series.reference_for', None),
+    ('Files', 'detach series', 'codex --action series-detach', 'byax.engine.apply', None),
+    ('Files', 'export series codex', 'codex --action series-export', 'byax.series.save', None),
+    ('Inspection', 'entity lookup (read only)', 'entity', 'byax.cli_codex.entity_command', None),
 )

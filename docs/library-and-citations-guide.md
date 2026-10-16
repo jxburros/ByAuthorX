@@ -290,3 +290,71 @@ weights, outside DOI/catalog lookup and Zotero local API remain future capabilit
 (the specification's optional installer work and phase 5). PDFs require an extractable
 text layer; OCR is not included. Citation processing dependency licenses are recorded
 in [citation-licenses.md](citation-licenses.md).
+
+## The manuscript as a corpus
+
+`byax.project_index.ProjectIndex(document_path, doc=...)` indexes a project at block granularity:
+one row per text object (paragraph, heading, footnote, table cell) of the open document, its sibling
+`.byax` packages and its series' member documents. It is the one index shared with the binder: each
+row records the stable block identity (`block_id`, and `target` for a table cell), the owning binder
+item, chapter and kind from `project.block_map`/`project.item_for_block`, and the heading path. The
+schema follows library index schema 2 (porter FTS5 with a weighted heading column and prefix indexes,
+a trigram table, an `fts5vocab` view for suggestions) and the same query syntax, so hits are
+`ranking.Hit`-compatible (`corpus: "manuscript"`) and can be fused with library hits by RRF.
+
+The index file is derived data in the user cache (`…/ByAuthorX/projects/project_<hash>.sqlite3`); a
+cache inside the project folder is refused. `refresh()` rewrites only blocks whose content hash
+changed, reparses a sibling only when its size or modification time changed, and drops documents
+that left the folder; `update_document(doc)` indexes the in-memory document (the desktop does this
+on save once an index exists). Nothing runs in the background and nothing uses the network.
+Optional vectors use `vector_store` with the same model-signature and fingerprint rules as
+libraries, but only when a caller passes an embedding provider (`rebuild_vectors(provider)`,
+`search(..., method="hybrid", provider=...)`); the CLI and desktop search the project by keyword.
+On the 100,000-word project fixture the slowest keyword query took 8.2 ms at p95 on an
+unqualified CI-class host ([benchmark](benchmarks/0.3-codex.json)).
+
+## Codex and hide from AI
+
+`byax.codex` holds entries (`character`, `place`, `item`, `term`) with aliases, excluded phrases,
+case sensitivity, a description, traits and `hide_from_ai` flags. Mention detection builds one
+Aho-Corasick automaton over every name and alias (pure Python; `pyahocorasick`, BSD-3-Clause, is used
+instead when it is installed, and is not a dependency). Matches are word-bounded, case-sensitive by
+default, resolve overlaps leftmost-longest ("Elizabeth Bennet" before "Elizabeth"), ignore
+occurrences inside an entry's excluded phrases and treat curly and straight apostrophes and
+no-break spaces alike. On chapters I–VI of *Pride and Prejudice* (268 labelled name-form mentions)
+the fixture codex scored precision 1.0 and recall 1.0; the same entries without aliases reach
+recall 0.53 ([benchmark](benchmarks/0.3-codex.json)). The labels cover name forms only, so this
+measures the matcher against a writer's codex, not coreference.
+
+Hidden entries and traits are removed wherever AI context is assembled: `codex.ai_visible_entries`,
+`codex.ai_context` (selection and nearby mentions for route R1, counting but never naming hidden
+hits), and `codex.redact_for_ai`, which the assistant, model review and `byax context` apply to their
+payloads. MCP and REST cannot request hidden entries. Model-suggested facts go through
+`codex.propose_fact`, which returns a `propose` operation with provenance; nothing is written
+until the author accepts the proposal.
+
+## Series files
+
+A series file (`*.byaxseries`, UTF-8 JSON, version 1) shares a codex, library attachments and member
+documents between books:
+
+```json
+{
+  "format": "byax-series",
+  "version": 1,
+  "id": "series_…",
+  "title": "The Longbourn Novels",
+  "codex": {"entries": {"cx_…": {"id": "cx_…", "kind": "place", "name": "Longbourn"}}},
+  "libraries": [{"library_id": "lib_…", "role": "supplementary"}],
+  "documents": ["book-1/book-1.byax", "book-2/book-2.byax"]
+}
+```
+
+A document refers to it with `settings.series = {"path": "../longbourn.byaxseries"}`. The file must
+be in the document's folder or its parent; member documents must be inside the series file's
+folder. Precedence: a document entry overrides a series entry with the same identity or name
+(compared without case), and a document library attachment overrides the series attachment of the
+same library; `local_only` and other retrieval policies still come from the library registry.
+`series.with_series(doc, path)` gives the merged, read-only view that retrieval and codex queries
+use. Attaching a series attaches libraries, so `series-attach`/`series-detach` (and `set_settings`
+with `series`) are local CLI or desktop actions; MCP and REST refuse them.

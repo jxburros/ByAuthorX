@@ -460,6 +460,73 @@ ARGUMENTS['compile'] = {
     'expect_revision': 'string',
     'request_id': 'string',
 }
+# Manuscript corpus and codex (context engine 8.1, 8.2); see byax.project_index and byax.cli_codex.
+COMMANDS['project-search'] = (
+    'Find across the project folder, run saved searches, and list backlinks and unlinked mentions'
+)
+ARGUMENTS['project-search'] = {
+    'path': 'string',
+    'action': 'string',
+    'query': 'string',
+    'name': 'string',
+    'target': 'string',
+    'bookmark': 'string',
+    'scope': 'string',
+    'kind': 'string',
+    'item': 'string',
+    'documents': 'array',
+    'limit': 'integer',
+    'offset': 'integer',
+    'expand': 'boolean',
+    'rebuild': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+COMMANDS['codex'] = 'List, look up, edit and scan for codex entries; propose facts for review'
+ARGUMENTS['codex'] = {
+    'path': 'string',
+    'action': 'string',
+    'target': 'string',
+    'name': 'string',
+    'kind': 'string',
+    'id': 'string',
+    'text': 'string',
+    'trait': 'string',
+    'value': 'string',
+    'start': 'integer',
+    'end': 'integer',
+    'radius': 'integer',
+    'limit': 'integer',
+    'offset': 'integer',
+    'include_hidden': 'boolean',
+    'hide_from_ai': 'boolean',
+    'input': 'object',
+    'out': 'string',
+    'overwrite': 'boolean',
+    'series_path': 'string',
+    'author': 'string',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+COMMANDS['entity'] = 'Read-only codex lookup, mentions and heatmap (entries hidden from AI are never shown)'
+ARGUMENTS['entity'] = {
+    key: ARGUMENTS['codex'][key]
+    for key in (
+        'path',
+        'action',
+        'target',
+        'name',
+        'kind',
+        'text',
+        'start',
+        'end',
+        'radius',
+        'limit',
+        'offset',
+    )
+}
 REQUIRED = {
     'compile': ['path'],
     'statistics': ['path'],
@@ -508,6 +575,8 @@ for _name in (
     'goals',
     'drafts',
 ):
+    REQUIRED[_name] = ['path']
+for _name in ('project-search', 'codex', 'entity'):
     REQUIRED[_name] = ['path']
 
 
@@ -856,9 +925,11 @@ def _cmd_context(a: Args, owner: str | None) -> Result:
     )
     if a.get('library_query'):
         from .retrieval import augment_context, retrieve_context
+        from .series import with_series
 
+        # Series-level library attachments take part; the document's own attachments win.
         retrieval = retrieve_context(
-            doc,
+            with_series(doc, a['path']),
             a['library_query'],
             target=a.get('target'),
             profile=a.get('profile'),
@@ -869,7 +940,9 @@ def _cmd_context(a: Args, owner: str | None) -> Result:
             pinned=a.get('library_pinned'),
         )
         result = augment_context(result, retrieval)
-    return envelope(result, doc)
+    from .codex import redact_for_ai
+
+    return envelope(redact_for_ai(doc, result), doc)
 
 
 def _cmd_find(a: Args, owner: str | None) -> Result:
@@ -1533,6 +1606,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
     _error('invalid_input', 'Use fonts --action inspect, glyphs or embed')
 
 
+from .cli_codex import codex_command, entity_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
 from .compile import compile_command
 from .drafts import drafts_command
@@ -1540,6 +1614,7 @@ from .goals import goals_command
 from .grammar import grammar_command
 from .language_packs import languages_command
 from .project import project_command
+from .project_index import project_search_command
 from .sync_safety import sync_command
 
 _HANDLERS: dict[str, Handler] = {
@@ -1591,6 +1666,9 @@ _HANDLERS: dict[str, Handler] = {
     'goals': goals_command,
     'drafts': drafts_command,
     'compile': compile_command,
+    'project-search': project_search_command,
+    'codex': codex_command,
+    'entity': entity_command,
 }
 
 

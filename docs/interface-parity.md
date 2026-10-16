@@ -258,3 +258,43 @@ operation, so `--expect-revision`, `--request-id` and `--dry-run` behave as for 
 | Inspection | effective compile profile | `byax compile PATH --action show` | `byax_compile` | `POST /v1/execute` | `byax.compile.resolve_profile` | — (headless) |
 | Editing | save compile preset | `byax compile PATH --action save-preset --name NAME` | `byax_compile` | `POST /v1/execute` | `byax.compile.save_preset_operations` | File > Compile… |
 | Files | export compile preset | `byax compile PATH --action export-preset --out FILE.json` | `byax_compile` | `POST /v1/execute` | `byax.compile.preset_collection` | — (headless) |
+
+## Manuscript corpus and codex
+
+`project-search` searches the project folder (the open document, its sibling `.byax` packages and
+its series' member documents) through the shared block-level index in the user cache. Every call
+refreshes that index incrementally from local files before answering, so results are live; no
+call uses the network. `saved-add` and `saved-remove` are canonical `saved_search_*` operations.
+`codex` reads and edits codex entries (canonical `codex_*` operations, `propose-fact` records a
+review proposal instead). Its reads omit entries and traits hidden from AI unless the local CLI
+passes `--include-hidden`; MCP and REST refuse that flag, and refuse `series-attach` and
+`series-detach` (a series attaches libraries). `entity` (`byax_entity`) is the read-only,
+always AI-visible view for model clients. All lists are bounded with `offset` continuations.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Search and targeting | project find | `byax project-search --action find` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.ProjectIndex.search` | Edit > Find in project… |
+| Inspection | project index status | `byax project-search --action status` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.ProjectIndex.status` | — (headless) |
+| Search and targeting | project index refresh | `byax project-search --action refresh` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.ProjectIndex.refresh` | Edit > Find in project… |
+| Search and targeting | saved searches | `byax project-search --action saved-list` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.saved_searches` | Edit > Find in project… |
+| Search and targeting | run saved search | `byax project-search --action saved-run` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.run_saved` | Edit > Find in project… |
+| Editing | save search | `byax project-search --action saved-add` | `byax_project_search` | `POST /v1/execute` | `byax.engine.apply` | Edit > Find in project… |
+| Editing | remove saved search | `byax project-search --action saved-remove` | `byax_project_search` | `POST /v1/execute` | `byax.engine.apply` | Edit > Find in project… |
+| Search and targeting | backlinks | `byax project-search --action backlinks` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.links` | Edit > Find in project… |
+| Search and targeting | unlinked mentions | `byax project-search --action unlinked-mentions` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.links` | Edit > Find in project… |
+| Inspection | codex entries | `byax codex --action list` | `byax_codex` | `POST /v1/execute` | `byax.codex.list_entries` | Tools > Codex… |
+| Inspection | codex lookup | `byax codex --action lookup` | `byax_codex` | `POST /v1/execute` | `byax.codex.lookup` | Tools > Codex… |
+| Inspection | codex mentions | `byax codex --action mentions` | `byax_codex` | `POST /v1/execute` | `byax.codex.mentions` | Tools > Codex… |
+| Inspection | codex mention heatmap | `byax codex --action heatmap` | `byax_codex` | `POST /v1/execute` | `byax.codex.heatmap` | Tools > Codex… |
+| Inspection | codex series | `byax codex --action series` | `byax_codex` | `POST /v1/execute` | `byax.series.resolve` | Tools > Codex… |
+| Editing | add codex entry | `byax codex --action add` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | edit codex entry | `byax codex --action update` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | remove codex entry | `byax codex --action remove` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | add codex trait | `byax codex --action add-trait` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | edit codex trait | `byax codex --action update-trait` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | remove codex trait | `byax codex --action remove-trait` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Review | propose codex fact | `byax codex --action propose-fact` | `byax_codex` | `POST /v1/execute` | `byax.codex.propose_fact` | — (headless) |
+| Files | attach series | `byax codex --action series-attach` | `byax_codex` | `POST /v1/execute` | `byax.series.reference_for` | — (headless) |
+| Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
+| Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
