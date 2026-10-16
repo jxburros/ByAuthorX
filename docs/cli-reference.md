@@ -54,6 +54,7 @@ command's flags.
 | `source` | Search, import, export and suggest citation sources |
 | `cite` | Insert a citation referencing an existing source |
 | `statistics` | Count authored, publication and selected text |
+| `readability` | Per-chapter readability indices, style statistics and pacing; optionally export a report |
 | `collection` | Inspect, export or apply reusable document settings |
 | `dependencies` | Inspect, explicitly refresh or embed linked assets |
 | `view` | Read a format projection and its located losses without changing the master |
@@ -102,6 +103,25 @@ byax apply report.byax --input edits.json --json
 byax check report.byax --suite structure --suite requirements --json
 byax export report.byax --out report.pdf --json
 ```
+
+Fiction checks and readability (deterministic, advisory, local; see the
+[user guide](user-guide.md#fiction-checks-and-readability)):
+
+```bash
+byax check story.byax --family fiction --json                 # the fiction suite, default sensitivity
+byax check story.byax --suite fiction --profile Editing --json  # rules and thresholds from a profile
+byax readability story.byax --json                            # indices, style and pacing per chapter
+byax readability story.byax --target h_chapter2 --json        # one chapter (top-level heading ID)
+byax readability story.byax --out report.docx --json          # also write the report as a document
+```
+
+`check --family` takes rule families (`spelling`, `grammar`, `editorial`, `style`, `factual`,
+`accessibility`, `print`, `fiction`) and adds their suites to any `--suite` values. Fiction rules,
+sensitivity and thresholds are tuned through the profile's `fiction` setting, which a section
+profile can override; `byax schema --topic operations` documents `set_profile` and
+`set_section_profile`. `readability --out` accepts any export format (`.byax`, `.docx`, `.odt`,
+`.md`, `.html`, `.rtf`, `.txt`, `.pdf`); the result carries the exporter's `losses`, `fidelity` and
+`review` fields, and `--overwrite` is required to replace a file.
 
 Look at the document as another format without changing the master:
 

@@ -13,6 +13,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `storage`, `migration` | Versioned ZIP packages, content hashes, atomic replacement, process locks, source folders, schema transitions |
 | `anchors`, `formatting`, `compare`, `dependencies` | Review-anchor remapping and tracked changes; style inheritance and lists; semantic comparison and merge planning; authorized dependency retrieval |
 | `checks` | Located findings, actual coverage, deterministic requirements |
+| `fiction_checks`, `readability`, `prose` | Advisory fiction analysis suite with word lists as data (`resources/fiction`, `resources/readability`) and its incremental dependency units; per-chapter readability indices, style statistics and pacing data; shared sentence, dialogue and syllable primitives |
 | `layout` | Qt typography, pagination and shared page drawing for previews/PDF/images/printing |
 | `exchange` | Safe imports, editable exports, explicit compatibility/loss reports |
 | `publication` | Selected publication policies, serialized redaction verification, reproduction inventory |
@@ -24,7 +25,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `libraries`, `library_parser`, `library_checks`, `retrieval`, `embeddings` | Attached local research libraries, indexing, bounded retrieval, optional embeddings and library-backed review checks (see the [library guide](library-and-citations-guide.md)) |
 | `citations`, `citation_render` | Source records, CSL-JSON/BibTeX/RIS exchange, citation marks and APA/MLA/Chicago rendering |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
-| `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
+| `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `brand`, `resources/` | Bundled identity, fonts, tokens and baked UI art |
 
 ## Mutation and persistence

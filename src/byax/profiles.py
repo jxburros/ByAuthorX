@@ -17,7 +17,18 @@ from .providers import _atomic_json
 SENSITIVITY = ('conservative', 'balanced', 'broad')
 EDITING_FREEDOM = ('minimal', 'moderate', 'broad')
 VOICE_PRESERVATION = ('strict', 'balanced', 'flexible')
-RULE_FAMILIES = ('spelling', 'grammar', 'editorial', 'style', 'factual', 'accessibility', 'print')
+RULE_FAMILIES = ('spelling', 'grammar', 'editorial', 'style', 'factual', 'accessibility', 'print', 'fiction')
+# Rule family -> check suites; shared by profiles and the CLI --family option.
+FAMILY_SUITES = {
+    'spelling': ('spelling',),
+    'grammar': ('grammar',),
+    'editorial': ('editorial', 'consistency'),
+    'style': ('editorial',),
+    'factual': ('factual',),
+    'accessibility': ('accessibility',),
+    'print': ('print',),
+    'fiction': ('fiction',),
+}
 SOURCE_AUTHORITY = ('exclusive', 'supplementary', 'open')
 APPLICATION_POLICY = ('suggestions_only', 'automatic_direct', 'automatic_cleanup')
 PROVIDER_ROLES = ('review', 'recognition', 'cleanup')
@@ -67,7 +78,9 @@ def validate_profile(profile, *, strict=True):
     from .publication import PUBLICATION_CATEGORIES
 
     allowed = (
-        set(defaults) | {'minimum_dpi', 'format', 'clean', 'required_suites'} | set(PUBLICATION_CATEGORIES)
+        set(defaults)
+        | {'minimum_dpi', 'format', 'clean', 'required_suites', 'fiction'}
+        | set(PUBLICATION_CATEGORIES)
     )
     unknown = set(profile) - allowed
     if strict and unknown:
@@ -88,6 +101,10 @@ def validate_profile(profile, *, strict=True):
         suites = result['required_suites']
         if not isinstance(suites, list) or any(not isinstance(s, str) or s not in SUITES for s in suites):
             _fail('Required checks must name supported check suites', 'required_suites')
+    if 'fiction' in result:
+        from .fiction_checks import validate_settings
+
+        result['fiction'] = validate_settings(result['fiction'])
     if type(result['schema_version']) is not int or result['schema_version'] != 1:
         _fail('Unsupported profile schema version', 'schema_version')
     if type(result['version']) is not int or result['version'] < 1:
@@ -147,17 +164,8 @@ def validate_profile(profile, *, strict=True):
 def check_suites(profile):
     config = validate_profile(profile, strict=False)
     suites = {'structure', 'requirements'}
-    mapping = {
-        'spelling': ('spelling',),
-        'grammar': ('grammar',),
-        'editorial': ('editorial', 'consistency'),
-        'style': ('editorial',),
-        'factual': ('factual',),
-        'accessibility': ('accessibility',),
-        'print': ('print',),
-    }
     for family in config['rule_families']:
-        suites.update(mapping[family])
+        suites.update(FAMILY_SUITES[family])
     return sorted(suites)
 
 
@@ -224,6 +232,7 @@ SECTION_FIELDS = (
     'intentional_exceptions',
     'minimum_dpi',
     'application_policy',
+    'fiction',
 )
 ADDITIVE_FIELDS = ('dictionary', 'intentional_exceptions')
 

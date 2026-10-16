@@ -1,0 +1,23 @@
+{
+  "note": "Hand-authored from the seeds in seeded.md before any run: one entry per intended finding. text_starts matches the start of a whole-paragraph range.",
+  "findings": [
+    {"rule": "fiction.filter_words", "text": "saw"},
+    {"rule": "fiction.filter_words", "text": "felt"},
+    {"rule": "fiction.filter_words", "text": "noticed"},
+    {"rule": "fiction.tag_bookism", "text": "hissed"},
+    {"rule": "fiction.tag_adverb", "text": "quietly"},
+    {"rule": "fiction.show_tell", "text": "was furious"},
+    {"rule": "fiction.word_echo", "text": "whispered"},
+    {"rule": "fiction.word_echo", "text": "whispered"},
+    {"rule": "fiction.tag_repetition", "text": "whispered"},
+    {"rule": "fiction.sentence_opening", "text": "He"},
+    {"rule": "fiction.word_echo", "text": "silver"},
+    {"rule": "fiction.sentence_rhythm", "text": "The baker opened his shutters to the morning."},
+    {"rule": "fiction.paragraph_length", "text_starts": "The market spread across the square"},
+    {"rule": "fiction.phrase_echo", "text": "counted the broken stairs"},
+    {"rule": "fiction.paragraph_rhythm", "text_starts": "Travelers who stayed through the winter"},
+    {"rule": "fiction.adverb_density", "text": "The Tide Tables"},
+    {"rule": "fiction.sensory_balance", "text": "The Glass Room"},
+    {"rule": "fiction.name_spelling", "text": "Aldrick"}
+  ]
+}

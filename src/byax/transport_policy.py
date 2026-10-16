@@ -168,6 +168,20 @@ INTERFACE_INVENTORY = (
         'Tools > Document properties…',
     ),
     ('Inspection', 'statistics', None, None, 'Tools > Document statistics'),
+    (
+        'Inspection',
+        'readability report',
+        'readability',
+        'byax.readability.readability_report',
+        'Tools > Readability report…',
+    ),
+    (
+        'Inspection',
+        'chapter pacing series',
+        'readability',
+        'byax.fiction_checks.pacing_series',
+        'Tools > Readability report…',
+    ),
     ('Search and targeting', 'find text', 'find', 'byax.engine.find', 'Edit > Find and replace…'),
     (
         'Search and targeting',
@@ -211,6 +225,13 @@ INTERFACE_INVENTORY = (
     ('History', 'restore', 'history --action restore', 'byax.engine.restore', 'Review > Revision history…'),
     ('History', 'diff and changes since revision', 'diff', 'byax.engine.diff', 'Review > Revision history…'),
     ('Checks', 'run suites', 'check', 'byax.checks.run_checks', 'Review > Run document checks'),
+    (
+        'Checks',
+        'fiction analysis families',
+        'check --family fiction',
+        'byax.fiction_checks.RULES',
+        'Inspector > Checks',
+    ),
     ('Checks', 'inspect findings', 'inspect --section findings', 'byax.engine.inspect', 'Review panel'),
     (
         'Checks',

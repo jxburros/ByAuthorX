@@ -9,6 +9,7 @@ only units whose fingerprints still match and re-evaluate everything else.
 import copy
 import re
 
+from . import fiction_checks
 from .errors import ByaxError
 from .model import object_hash, text_of, validate_document
 
@@ -25,10 +26,11 @@ SUITES = (
     'spelling',
     'factual',
     'publication',
+    'fiction',
 )
 DEFAULT_SUITES = ['structure', 'accessibility', 'requirements', 'print']
 PUBLICATION_SUITES = ('structure', 'accessibility', 'requirements', 'print', 'editorial')
-BLOCK_SUITES = {'spelling', 'grammar', 'editorial', 'factual', 'accessibility'}
+BLOCK_SUITES = {'spelling', 'grammar', 'editorial', 'factual', 'accessibility', 'fiction'}
 STATUSES = ('open', 'accepted edit', 'dismissed', 'intentional exception', 'stale', 'needs review')
 # Manual transitions. "accepted edit" is reached only by applying a repair and
 # "stale" only by dependency invalidation; a recheck replaces stale findings.
@@ -63,6 +65,7 @@ RULES = {
     'factual.quotation': ('factual', 'factual', 'conservative', None, 'warning'),
     'factual.library_citation': ('factual', 'factual', 'conservative', None, 'warning'),
 }
+RULES.update(fiction_checks.RULES)
 # Coverage that deterministic rules never provide; always reported for the suite.
 UNMEASURED = {
     'grammar': (
@@ -76,6 +79,10 @@ UNMEASURED = {
     'consistency': (
         'consistency.statements',
         'Conflicting dates, numbers, names and statements require semantic interpretation by a configured reviewer.',
+    ),
+    'fiction': (
+        'fiction.craft_judgement',
+        'Word lists and counts cannot judge voice, intent or effect; these advisory flags only point at places to reread.',
     ),
     'factual': (
         'factual.uncited_claims',
@@ -475,6 +482,7 @@ class _Context:
         )
         self.sections = section_map(doc)
         self._profiles = {}
+        self._fiction = None
         self.library_evidence = {}
         self.library_fingerprints = {}
         settings = doc.get('settings', {})
@@ -486,6 +494,11 @@ class _Context:
                 'protections': settings.get('protections', []),
                 'background': doc.get('layout', {}).get('background'),
                 'base': self.base_config,
+                **(
+                    {'fiction': [fiction_checks.VERSION, fiction_checks.versions()]}
+                    if 'fiction' in suites
+                    else {}
+                ),
             }
         )
 
@@ -564,6 +577,8 @@ class _Context:
                     'profiles': doc.get('profiles', {}),
                 }
             )
+        if 'fiction' in self.suites:
+            result.update(fiction_checks.unit_fingerprints(self))
         if self.selection['kind'] == 'document' and set(self.suites) - BLOCK_SUITES - {'consistency'}:
             result['document'] = document_fingerprint(doc, self.base_config)
         return result
@@ -599,6 +614,10 @@ class _Context:
             return _evaluate_structure(self, key)
         if key == 'context:consistency':
             return _evaluate_consistency(self, key)
+        if key.startswith(('fiction:', 'context:fiction_')):
+            sink = _Sink(self, key)
+            fiction_checks.evaluate(self, sink, key)
+            return sink.findings, sink.coverage
         return _evaluate_document(self, key)
 
     def config_for(self, identity):
@@ -787,6 +806,8 @@ def _evaluate_block(ctx, block, key):
     if 'factual' in suites:
         for obj in objects:
             _factual(sink, ctx, obj)
+    if 'fiction' in suites:
+        fiction_checks.evaluate_block(ctx, sink, block)
     if 'accessibility' in suites:
         _accessibility_block(sink, ctx, block, attrs)
     return sink.findings, sink.coverage

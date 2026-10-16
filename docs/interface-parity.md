@@ -137,6 +137,9 @@ verification items.
 | Inspection | file view | `view --as FORMAT [--source]` | `byax_view` | `POST /v1/execute` | `byax.formats.project` | View > File view |
 
 | Inspection | document statistics | `statistics` | `byax_statistics` | execute | `byax.statistics.document_statistics` | Tools > Document statistics |
+| Inspection | readability report | `readability` | `byax_readability` | execute | `byax.readability.readability_report` | Tools > Readability report… |
+| Inspection | chapter pacing series | `readability` | `byax_readability` | execute | `byax.fiction_checks.pacing_series` | Tools > Readability report… |
+| Checks | fiction analysis families | `check --family fiction` | `byax_check` | execute | `byax.fiction_checks.RULES` | Inspector > Checks |
 | Inspection | linked dependencies | `dependencies` | `byax_dependencies` | execute | `byax.engine.dependency_report` | Tools > Linked assets… |
 | Files | settings collections | `collection` | `byax_collection` | execute | `byax.profiles.export_settings` | Tools > Reusable settings… |
 

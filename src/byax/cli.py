@@ -31,6 +31,7 @@ COMMANDS = {
     'source': 'Search, import, export and suggest citation sources',
     'cite': 'Insert a citation referencing an existing source',
     'statistics': 'Count authored, publication and selected text',
+    'readability': 'Per-chapter readability indices, style statistics and pacing; optionally export a report',
     'collection': 'Inspect, export or apply reusable document settings',
     'dependencies': 'Inspect, explicitly refresh or embed linked assets',
     'view': 'Read a format projection and its located losses without changing the master',
@@ -136,6 +137,13 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'start': 'integer',
         'end': 'integer',
     },
+    'readability': {
+        'path': 'string',
+        'target': 'string',
+        'out': 'string',
+        'format': 'string',
+        'overwrite': 'boolean',
+    },
     'collection': {
         'path': 'string',
         'action': 'string',
@@ -208,6 +216,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
     'check': {
         'path': 'string',
         'suite': 'array',
+        'family': 'array',
         'profile': 'string',
         'limit': 'integer',
         'strict': 'boolean',
@@ -332,6 +341,7 @@ ARGUMENTS: dict[str, dict[str, str]] = {
 ARGUMENTS['transact'] = ARGUMENTS['apply']
 REQUIRED = {
     'statistics': ['path'],
+    'readability': ['path'],
     'collection': ['path'],
     'dependencies': ['path'],
     'view': ['path', 'as'],
@@ -525,6 +535,30 @@ def _cmd_statistics(a: Args, owner: str | None) -> Result:
     )
 
 
+def _cmd_readability(a: Args, owner: str | None) -> Result:
+    from .readability import readability_document, readability_report
+
+    doc = _load(a['path'])
+    report = readability_report(doc, target=a.get('target'))
+    result: Result = {'readability': report}
+    if a.get('out'):
+        from .exchange import export_document
+
+        _destination(a['out'], a.get('overwrite', False), a['path'])
+        title = 'Readability report: ' + (doc.get('metadata', {}).get('title') or 'Untitled')
+        exported = export_document(
+            readability_document(report, title),
+            a['out'],
+            format=a.get('format'),
+            owner=owner,
+            overwrite=a.get('overwrite', False),
+        )
+        for key in ('format', 'outputs', 'losses', 'findings', 'coverage', 'fidelity', 'review'):
+            if key in exported:
+                result[key] = exported[key]
+    return envelope(result, doc)
+
+
 def _cmd_collection(a: Args, owner: str | None) -> Result:
     from . import engine, profiles
 
@@ -716,7 +750,15 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
     from .checks import run_checks
 
     doc = _load(a['path'])
-    result = run_checks(doc, suites=a.get('suite'), limit=a.get('limit', 100), profile=a.get('profile'))
+    suites = a.get('suite')
+    if a.get('family'):
+        from .profiles import FAMILY_SUITES
+
+        unknown = sorted(set(a['family']) - set(FAMILY_SUITES))
+        if unknown:
+            _error('invalid_input', 'Unknown rule family', field='family', supported=sorted(FAMILY_SUITES))
+        suites = list(dict.fromkeys([*(suites or []), *(x for f in a['family'] for x in FAMILY_SUITES[f])]))
+    result = run_checks(doc, suites=suites, limit=a.get('limit', 100), profile=a.get('profile'))
     if a.get('strict'):
         result = dict(result, strict=True)
     return envelope(result, doc)
@@ -1346,6 +1388,7 @@ _HANDLERS: dict[str, Handler] = {
     'source': source_command,
     'cite': cite_command,
     'statistics': _cmd_statistics,
+    'readability': _cmd_readability,
     'collection': _cmd_collection,
     'dependencies': _cmd_dependencies,
     'view': _cmd_view,
