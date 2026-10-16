@@ -205,7 +205,12 @@ def test_schema_v2_fixture_opens_migrated_with_history_restorable(tmp_path):
     assert doc['schema_version'] == SCHEMA_VERSION == 3
     assert report['from_version'] == 2 and [s['from'] for s in report['steps']] == [2]
     kinds = {t['kind']: t for t in report['steps'][0]['transformations']}
-    assert kinds['citation_context_fields']['count'] == 1 and kinds['added_optional_structure']['count'] == 0
+    assert kinds['citation_affixes_checked']['count'] == 1 and kinds['added_optional_structure']['count'] == 0
+    assert kinds['citation_anchor_fields'] == {
+        'kind': 'citation_anchor_fields',
+        'field': 'marks.anchor',
+        'count': 0,
+    }
     assert 'project' not in doc  # the binder is optional and created explicitly
     assert doc['x_extension'] == {'vendor': 'future-tool', 'payload': [4, 5, 6]}
     assert report['history_revisions_migrated'] == len(doc['history']['revisions']) == 8
@@ -279,6 +284,38 @@ def test_v2_unmigratable_constructs_are_rejected_without_writes(tmp_path):
     with pytest.raises(ByaxError) as error:
         validate_document(current)
     assert error.value.code == 'schema_error'
+
+
+def test_v2_citation_anchor_is_kept_when_valid_and_rejected_when_it_means_something_else(tmp_path):
+    """CE 6.5 selectors live in the optional ``anchor`` object, never in the rendering affixes."""
+    anchor = {
+        'quote': 'Fresnel lenses',
+        'prefix': 'the ',
+        'suffix': ' turned',
+        'position': {'start': 4, 'end': 18},
+    }
+
+    def with_anchor(value):
+        def mutate(manifest, document):
+            mark = next(m for b in document['blocks'] for m in b['marks'] if m['type'] == 'citation')
+            mark['anchor'] = value
+
+        return mutate
+
+    valid = _v2_copy(tmp_path, 'anchored.byax')
+    _rewrite(valid, with_anchor(anchor))
+    doc, report = open_document(valid)
+    kinds = {t['kind']: t for t in report['steps'][0]['transformations']}
+    assert kinds['citation_anchor_fields']['count'] == 1
+    mark = next(m for b in doc['blocks'] for m in b['marks'] if m['type'] == 'citation')
+    assert mark['anchor'] == anchor and (mark['prefix'], mark['suffix']) == ('see ', ', ch. 2')
+    clash = _v2_copy(tmp_path, 'clash-anchor.byax')
+    _rewrite(clash, with_anchor('page 4'))
+    before = clash.read_bytes()
+    with pytest.raises(ByaxError) as error:
+        load_document(clash)
+    assert error.value.code == 'unsupported_feature' and error.value.details['field'] == 'marks.anchor'
+    assert clash.read_bytes() == before
 
 
 def test_newer_schema_is_refused_and_older_build_cannot_overwrite(tmp_path):

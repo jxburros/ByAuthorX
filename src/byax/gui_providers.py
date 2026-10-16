@@ -98,6 +98,14 @@ class ProviderDialog(QDialog):
         self.locality = QLabel()
         self.locality.setObjectName('providerLocality')
         self.policy = QCheckBox(self.tr('Allow remote calls without repeated authorization'))
+        self.citation_retry = QCheckBox(self.tr('Retry once when a remote model cites an unknown source'))
+        self.citation_retry.setObjectName('citationRetry')
+        self.citation_retry.setToolTip(
+            self.tr(
+                'Local models always get one corrective retry. For a remote model the retry is a second '
+                'request with the same content, so it is off unless you allow it.'
+            )
+        )
         for label, control in [
             (self.tr('Alias'), self.alias),
             (self.tr('Provider'), self.kind),
@@ -116,6 +124,7 @@ class ProviderDialog(QDialog):
             signal.connect(lambda *_: self.show_locality())
         self.show_locality()
         form.addRow(self.policy)
+        form.addRow(self.citation_retry)
         self.data_policies = {}
         for category, label in (
             ('library_passages', 'Allow library passages for this provider'),
@@ -158,6 +167,7 @@ class ProviderDialog(QDialog):
         self.timeout.setValue(config.timeout)
         self.context_cap.setValue(config.max_context_tokens)
         self.policy.setChecked(config.allow_remote)
+        self.citation_retry.setChecked(config.citation_retry)
         from .retrieval import ConsentRegistry
 
         consent = ConsentRegistry(self.registry.config_dir)
@@ -183,6 +193,7 @@ class ProviderDialog(QDialog):
                     executable=self.executable.text().strip() or None,
                     timeout=self.timeout.value(),
                     allow_remote=self.policy.isChecked(),
+                    citation_retry=self.citation_retry.isChecked(),
                 )
             )
             from .retrieval import ConsentRegistry

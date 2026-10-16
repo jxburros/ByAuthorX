@@ -48,14 +48,18 @@ class ExtractedTextDialog(QDialog):
 
     PAGE_CHARS = 20000
 
-    def __init__(self, parent, library, files, cache_dir=None):
+    def __init__(self, parent, library, files, cache_dir=None, *, focus=None, on_insert=None):
+        """``focus`` opens the reader at a citation: ``{document_id, chunk, span}`` from
+        ``grounding.locate_record``. ``on_insert`` adds an "Insert as citation" button."""
         from .libraries import LibraryIndex
 
         super().__init__(parent)
-        self.setWindowTitle(self.tr('Extracted text'))
+        self.setWindowTitle(self.tr('Extracted text') if focus is None else self.tr('Cited source'))
         self.resize(760, 560)
         self.index = LibraryIndex(library, cache_dir=cache_dir)
         self.offset = 0
+        self.focus = focus
+        self.focused = None
         layout = QVBoxLayout(self)
         note = QLabel(
             self.tr(
@@ -81,8 +85,31 @@ class ExtractedTextDialog(QDialog):
         buttons = QDialogButtonBox(QDialogButtonBox.Close)
         self.more = buttons.addButton(self.tr('Load more'), QDialogButtonBox.ActionRole)
         self.more.clicked.connect(lambda: self.load(append=True))
+        self.insert_button = None
+        if on_insert is not None:
+            self.insert_button = buttons.addButton(self.tr('Insert as citation'), QDialogButtonBox.ActionRole)
+            self.insert_button.setObjectName('insertCitation')
+            self.insert_button.setToolTip(
+                self.tr('Cite the selected document text with this source, locator and quotation')
+            )
+            self.insert_button.clicked.connect(on_insert)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
+        if focus is not None:
+            index = next(
+                (
+                    i
+                    for i in range(self.files.count())
+                    if self.files.itemData(i).get('document_id') == focus['document_id']
+                ),
+                -1,
+            )
+            if index < 0:
+                self.files.addItem(
+                    focus.get('title') or focus['document_id'], {**focus, 'path': '', 'status': ''}
+                )
+                index = self.files.count() - 1
+            self.files.setCurrentIndex(index)
         self.files.currentIndexChanged.connect(lambda _: self.load())
         self.load()
 
@@ -90,8 +117,14 @@ class ExtractedTextDialog(QDialog):
         from .errors import ByaxError
 
         item = self.files.currentData()
+        focus = (
+            self.focus
+            if self.focus and item and item.get('document_id') == self.focus['document_id']
+            else None
+        )
         if not append:
-            self.offset = 0
+            # A citation opens at its chunk: reading starts there and "Load more" continues after it.
+            self.offset = int(focus['chunk'].get('ordinal', 0)) if focus else 0
             self.view.clear()
         self.more.setEnabled(False)
         if not item or not item.get('document_id'):
@@ -111,6 +144,52 @@ class ExtractedTextDialog(QDialog):
                 self.offset, page['total'], self.tr(' · file changed since indexing') if page['stale'] else ''
             )
         )
+        if focus and not append:
+            self._show_focus(page, focus)
+
+    def _show_focus(self, page, focus):
+        """Select the cited span inside the first shown passage (the cited chunk)."""
+        from PySide6.QtGui import QTextCursor
+
+        first = page['results'][0] if page['results'] else None
+        if not first or first['chunk_id'] != focus['chunk']['chunk_id']:
+            return
+        header = json.dumps(first['locator'], ensure_ascii=False, sort_keys=True)
+        note = '  [shown truncated by the read limit]' if first.get('truncated') else ''
+        base = len(f'[{first["ordinal"]}] {header}{note}\n')
+        start, end = focus.get('span') or [0, 0]
+        start, end = max(0, min(start, len(first['text']))), max(0, min(end, len(first['text'])))
+        cursor = QTextCursor(self.view.document())
+        cursor.setPosition(base + start)
+        cursor.setPosition(base + (end if end > start else len(first['text'])), QTextCursor.KeepAnchor)
+        self.view.setTextCursor(cursor)
+        self.view.centerCursor()
+        locator = {**first['locator'], 'chunk': first['chunk_id']}
+        self.focused = {
+            'document_id': page['document_id'],
+            'chunk_id': first['chunk_id'],
+            'locator': locator,
+            'selected': cursor.selectedText().replace(' ', '\n'),
+        }
+        where = describe_locator(locator)
+        self.summary.setText(self.tr('Opened at {0}').format(where) + ' · ' + self.summary.text())
+
+
+def describe_locator(locator):
+    """Short human description of a library locator: page, block, paragraph or offset."""
+    locator = locator or {}
+    parts = []
+    if locator.get('page') is not None:
+        parts.append(f'page {locator["page"]}')
+    if locator.get('heading_path'):
+        parts.append(' > '.join(str(part) for part in locator['heading_path']))
+    if locator.get('block'):
+        parts.append(f'block {locator["block"]}')
+    elif locator.get('ordinal') is not None and locator.get('page') is None:
+        parts.append(f'paragraph {int(locator["ordinal"]) + 1}')
+    if locator.get('start') is not None and locator.get('end') is not None:
+        parts.append(f'characters {locator["start"]}–{locator["end"]}')
+    return ', '.join(parts) or 'the cited passage'
 
 
 class LibraryPanels:

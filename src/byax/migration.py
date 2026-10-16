@@ -10,7 +10,7 @@ without rewriting anything.
 import copy
 
 from .errors import ByaxError
-from .model import SCHEMA_VERSION, dependency_id, validate_document
+from .model import SCHEMA_VERSION, citation_anchor_problem, dependency_id, validate_document
 
 
 def _v1_to_v2(state):
@@ -83,9 +83,11 @@ def _v1_to_v2(state):
 
 
 def _v2_to_v3(state):
-    """Schema 3 adds the optional manuscript ``project`` binder (CP A1) and optional
-    ``prefix``/``suffix`` text on citation marks (CE 6.5). No data changes: the
-    binder is absent until created, and existing citation affixes are already text.
+    """Schema 3 adds the optional manuscript ``project`` binder (CP A1) and the optional
+    citation ``anchor`` object (CE 6.5: quote, 32-character source prefix and suffix,
+    position, content hash and anchored/unanchored state). No data changes: the binder
+    and anchors are absent until created. Citation ``prefix``/``suffix`` stay what they
+    always were, rendering affixes such as ``see ``; they are only checked to be text.
     """
     if 'project' in state:
         raise ByaxError(
@@ -94,7 +96,7 @@ def _v2_to_v3(state):
             'it cannot be upgraded without risking loss.',
             field='project',
         )
-    citations = 0
+    affixes = anchors = 0
     for block in state.get('blocks', []):
         for mark in block.get('marks', []):
             if not isinstance(mark, dict) or mark.get('type') != 'citation':
@@ -105,17 +107,27 @@ def _v2_to_v3(state):
                     'A citation mark has a non-text prefix or suffix; it cannot be upgraded without risking loss.',
                     target=block.get('id'),
                 )
-            citations += any(key in mark for key in ('prefix', 'suffix'))
+            if 'anchor' in mark and citation_anchor_problem(mark['anchor']):
+                raise ByaxError(
+                    'unsupported_feature',
+                    'A version 2 citation mark already uses "anchor" for something else; '
+                    'it cannot be upgraded without risking loss.',
+                    target=block.get('id'),
+                    field='marks.anchor',
+                )
+            affixes += any(key in mark for key in ('prefix', 'suffix'))
+            anchors += 'anchor' in mark
     return [
         {'kind': 'added_optional_structure', 'field': 'project', 'count': 0},
-        {'kind': 'citation_context_fields', 'field': 'marks.prefix/suffix', 'count': citations},
+        {'kind': 'citation_anchor_fields', 'field': 'marks.anchor', 'count': anchors},
+        {'kind': 'citation_affixes_checked', 'field': 'marks.prefix/suffix', 'count': affixes},
     ]
 
 
 # from_version: (to_version, description, transition)
 TRANSITIONS = {
     1: (2, 'Explicit external dependency records for linked images', _v1_to_v2),
-    2: (3, 'Optional manuscript project binder and citation prefix/suffix text', _v2_to_v3),
+    2: (3, 'Optional manuscript project binder and citation anchors', _v2_to_v3),
 }
 SUPPORTED_VERSIONS = frozenset(TRANSITIONS) | {SCHEMA_VERSION}
 

@@ -231,6 +231,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'profile': 'string',
         'limit': 'integer',
         'strict': 'boolean',
+        # Context engine plan 6.4: audit every citation mark (stage 1; local, no consent).
+        'citations': 'boolean',
     },
     'review': {
         'path': 'string',
@@ -834,6 +836,13 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
     from .checks import run_checks
 
     doc = _load(a['path'])
+    if a.get('citations'):
+        from .grounding import audit_citations
+
+        if a.get('suite') or a.get('family'):
+            _error('invalid_input', 'Run --citations on its own; it is a separate audit', field='citations')
+        report = audit_citations(doc)
+        return envelope(report, doc, **({'strict': True} if a.get('strict') else {}))
     suites = a.get('suite')
     if a.get('family'):
         from .profiles import FAMILY_SUITES

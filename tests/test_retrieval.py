@@ -51,9 +51,13 @@ def test_independent_consent_and_local_only(tmp_path):
 
 def test_citations_only_resolve_to_supplied_material():
     context = {'references': {'ref_known': {}}, 'library_passages': [{'chunk_id': 'chunk_known'}]}
-    validate_citations('Claim [[cite:chunk_known]] and [[cite:ref_known]]', context)
+    known = 'Claim [[cite:chunk_known]] and [[cite:ref_known]]'
+    assert validate_citations(known, context) == {'text': known, 'invalid': []}
+    # Plan 6.1: an invented ID no longer rejects the reply; only its token is stripped.
+    checked = validate_citations('Invented [[cite:chunk_unknown]]. Real [[cite:chunk_known]].', context)
+    assert checked == {'text': 'Invented. Real [[cite:chunk_known]].', 'invalid': ['chunk_unknown']}
     with pytest.raises(ByaxError):
-        validate_citations('Invented [[cite:chunk_unknown]]', context)
+        validate_citations(None, context)
 
 
 def test_review_library_evidence_retains_locator_and_rejects_unknown_tokens():

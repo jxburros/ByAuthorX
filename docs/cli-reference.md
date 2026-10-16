@@ -52,7 +52,7 @@ command's flags.
 | `library-search` | Search attached library passages (read only) |
 | `library-read` | Read an indexed attached library passage (read only) |
 | `source` | Search, import, export and suggest citation sources |
-| `cite` | Insert a citation referencing an existing source. Without `--kind` it infers `quotation` or `paraphrase` and reports `citation_kind` |
+| `cite` | Insert a citation referencing an existing source. Without `--kind` it infers `quotation` or `paraphrase` and reports `citation_kind`. An optional `anchor` (source-side quote, 32-character prefix/suffix, position, content hash) goes in `--input` |
 | `statistics` | Count authored, publication and selected text |
 | `readability` | Per-chapter readability indices, style statistics and pacing; optionally export a report |
 | `collection` | Inspect, export or apply reusable document settings |
@@ -70,7 +70,7 @@ command's flags.
 | `fill` | Fill document fields using a JSON values object |
 | `history` | List revisions, checkpoint, branch, or restore |
 | `diff` | Compare semantic content against a saved revision |
-| `check` | Run deterministic validation suites |
+| `check` | Run deterministic validation suites. `--citations` audits every citation mark instead |
 | `review` | Inspect, propose, accept, or reject changes and comments |
 | `import` | Import an exchange document into a native package |
 | `save-as` | Save an existing document under another path |
@@ -127,6 +127,21 @@ profile can override; `byax schema --topic operations` documents `set_profile` a
 `set_section_profile`. `readability --out` accepts any export format (`.byax`, `.docx`, `.odt`,
 `.md`, `.html`, `.rtf`, `.txt`, `.pdf`); the result carries the exporter's `losses`, `fidelity` and
 `review` fields, and `--overwrite` is required to replace a file.
+
+Audit your own citations (deterministic, local, no consent; see the
+[library guide](library-and-citations-guide.md#grounding-citation-chips-and-the-citation-audit)):
+
+```bash
+byax check essay.byax --citations --json           # stage 1 over every citation mark
+byax check essay.byax --citations --strict --json  # exit 5 when any citation needs review
+```
+
+The result lists each citation with a `status` (`quote_found`, `near_match`, `quote_not_found`,
+`source_changed`, `unanchored`, `source_unavailable`, `not_checkable`), its grounding `record`,
+a `summary`, and proposed `operations` (`add_reference` pointer updates and `reanchor_citation`)
+that change nothing until applied with `byax apply --input`. `validation` is `failed` (exit 4) when a
+quotation is not found or a citation is unanchored. `--citations` cannot be combined with
+`--suite` or `--family`. MCP: `byax_check` with `"citations": true`.
 
 Look at the document as another format without changing the master:
 
