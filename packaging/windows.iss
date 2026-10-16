@@ -1,4 +1,13 @@
 #define MyAppVersion "0.3.0"
+; Build with `iscc /DLean packaging/windows.iss` for the lean installer (no model files); the default is the
+; standard installer, which packages dist\ByAuthorX-standard (see scripts/build.py --variant standard).
+#ifdef Lean
+  #define Edition "-lean"
+  #define FrozenDir "..\dist\ByAuthorX"
+#else
+  #define Edition ""
+  #define FrozenDir "..\dist\ByAuthorX-standard"
+#endif
 [Setup]
 AppId={{405848A2-B0A7-41AD-9879-BA490F248A52}
 AppName=ByAuthorX
@@ -6,7 +15,7 @@ AppVersion={#MyAppVersion}
 DefaultDirName={autopf}\ByAuthorX
 DefaultGroupName=ByAuthorX
 OutputDir=..\dist
-OutputBaseFilename=ByAuthorX-{#MyAppVersion}-windows-x64-setup
+OutputBaseFilename=ByAuthorX-{#MyAppVersion}-windows-x64{#Edition}-setup
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 MinVersion=10.0.22000
@@ -19,7 +28,7 @@ LicenseFile=..\LICENSE
 SetupIconFile=..\src\byax\resources\brand\byauthorx.ico
 UninstallDisplayIcon={app}\ByAuthorX.exe
 [Files]
-Source: "..\dist\ByAuthorX\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#FrozenDir}\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 [Icons]
 Name: "{group}\ByAuthorX"; Filename: "{app}\ByAuthorX.exe"
 [Registry]

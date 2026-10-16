@@ -104,7 +104,10 @@ def _span(locator):
 
 
 def _place(locator):
-    return tuple(sorted((k, str(v)) for k, v in (locator or {}).items() if k not in ('start', 'end')))
+    # ``parent`` identifies a section within one library's index, so it is not part of the place.
+    return tuple(
+        sorted((k, str(v)) for k, v in (locator or {}).items() if k not in ('start', 'end', 'parent'))
+    )
 
 
 def overlapping(first: Hit, second: Hit, threshold: float = 0.5) -> bool:

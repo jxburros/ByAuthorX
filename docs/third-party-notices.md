@@ -15,3 +15,30 @@ The supplied Manrope (Regular and Semibold, the interface fallback), IM FELL Eng
 The six brand fonts (Irongall, Scholium, Tenuis, Brobdingnag, Onionskin and Decussate) are original ByAuthorX designs under the project's MIT license, recorded in each font's name table. They are bundled in `src/byax/resources/fonts` beside the fonts above, and their sources and build are in `assets/brand-fonts`.
 
 EPUBCheck 5.3.0 (W3C, BSD-3-Clause) is used only by the optional `epubcheck` CI job to validate exported EPUB fixtures. It is downloaded in CI from its release page, verified against the SHA-256 pinned in `.github/workflows/ci.yml`, and is not bundled with, imported by or redistributed with ByAuthorX. It needs a Java runtime, which the CI job installs; the application does not.
+
+## On-device search (context engine Phase 3)
+
+Licences below were read from the primary sources on 16 October 2026; the licence text shipped by the pinned version controls.
+
+Runtime and optional extras (not part of the core install):
+
+| Component | Use | Licence | Where it is verified |
+| --- | --- | --- | --- |
+| onnxruntime 1.31 | `byauthorx[local-models]`: runs the embedder and rerankers on the CPU; frozen into both installer variants | MIT | PyPI metadata and the project's `LICENSE` |
+| tokenizers 0.23 | `byauthorx[local-models]`: model tokenizers | Apache-2.0 | PyPI classifiers and the project's `LICENSE` |
+| numpy | installed by onnxruntime; speeds exact vector search | BSD-3-Clause (the wheel also records 0BSD, MIT, Zlib and CC0 components) | PyPI metadata |
+| sqlite-vec 0.1.9 | `byauthorx[sqlite-vec]`: optional vector backend (binary quantization with float re-scoring) | MIT or Apache-2.0 (dual), `LICENSE-MIT` and `LICENSE-APACHE` in the repository | github.com/asg017/sqlite-vec |
+| Docling 2.140 | `byauthorx[docling]`: optional PDF engine, run only in the parser subprocess; never bundled in installers | MIT | github.com/docling-project/docling `LICENSE` and PyPI |
+
+The Docling extra pulls PyTorch. On Linux the default PyTorch wheels depend on NVIDIA CUDA runtime packages under NVIDIA's own licence terms; these are installed by the user's package manager, never redistributed by ByAuthorX. Install a CPU build of PyTorch first to avoid them. No GPL or AGPL package was found in the Docling dependency tree on Linux (checked from installed package metadata). **PyMuPDF is deliberately not used**: its AGPL licence conflicts with the project's MIT licence, and pypdf (BSD-3-Clause) stays the default PDF reader.
+
+Models (downloaded on request or bundled in the standard installers; catalogue in `src/byax/resources/models.json`; each model's card is saved next to its files as `MODEL-CARD.md` and the Apache-2.0 text in `models/licences`):
+
+| Model | Licence | Source of the licence statement |
+| --- | --- | --- |
+| Qwen3-Embedding-0.6B, int8 ONNX export of onnx-community, 512 dimensions by Matryoshka truncation | Apache-2.0 | `license: apache-2.0` in the model card of `Qwen/Qwen3-Embedding-0.6B` (the export repository carries no licence of its own and names the model as `base_model`) |
+| bge-reranker-v2-m3, int8 ONNX export of onnx-community | Apache-2.0 | `license: apache-2.0` in the model card of `BAAI/bge-reranker-v2-m3` |
+| answerai-colbert-small-v1 (the repository's `vespa_colbert.onnx`, which includes the projection layer) | Apache-2.0 | `license: apache-2.0` in the model card of `answerdotai/answerai-colbert-small-v1` |
+| docling-layout-heron | Apache-2.0 | `license: apache-2.0` in the model card of `docling-project/docling-layout-heron` |
+
+Downloading a model is not a licence to anything beyond these terms; weights are not covered by the repository's MIT licence. Entailment models (Phase 5) and Qwen3-Reranker have not passed the dependency gate and are not in the catalogue.

@@ -68,6 +68,7 @@ from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
+from .gui_local_models import LocalModelPanels
 from .gui_motion import MotionController, PenLineAnimation
 from .gui_ribbon import RibbonPanels
 from .gui_sync import SyncPanels
@@ -98,7 +99,14 @@ class Worker(QRunnable):
 
 
 class MainWindow(
-    FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, SyncPanels, QMainWindow
+    FileViews,
+    WorkflowPanels,
+    WorkspacePanels,
+    RibbonPanels,
+    LibraryPanels,
+    LocalModelPanels,
+    SyncPanels,
+    QMainWindow,
 ):
     def __init__(self, path=None):
         super().__init__()
@@ -567,6 +575,7 @@ class MainWindow(
             ('Reusable settings…', self.reusable_settings),
             ('Readability report…', self.readability_report),
             ('Synced folder safety…', self.sync_safety_details),
+            ('On-device search…', self.local_models_dialog),
             ('Review conflicted copies…', self.review_conflicted_copies),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))

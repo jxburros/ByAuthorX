@@ -52,11 +52,19 @@ jobs:
       - name: Collect installers and checksums
         run: |
           mkdir release
-          find artifacts \( -name '*_amd64.deb' -o -name '*-windows-x64-setup.exe' \) -exec cp {} release/ \;
+          find artifacts \( -name '*_amd64.deb' -o -name '*-windows-x64-setup.exe' -o -name '*-windows-x64-lean-setup.exe' \) -exec cp {} release/ \;
           ls -l release
-          if [ "$(ls release | wc -l)" -ne 2 ]; then
-            echo "::error::Expected exactly one .deb and one Windows installer"
+          total="$(ls release | wc -l)"
+          lean="$(ls release | grep -c -- '-lean' || true)"
+          # Lean installers are always built. The standard installers (bundled on-device models) exist only
+          # once the models-v1 mirror release is populated, so a release has 2 files, or 4 with both variants.
+          if [ "$lean" -ne 2 ] || { [ "$total" -ne 2 ] && [ "$total" -ne 4 ]; }; then
+            echo "::error::Expected the lean .deb and Windows installer, plus both standard installers or neither"
             exit 1
+          fi
+          if [ "$total" -eq 2 ]; then
+            echo "::warning::The models-v1 mirror is not populated: publishing the lean variants only"
+            echo "LEAN_ONLY=true" >> "$GITHUB_ENV"
           fi
           (cd release && sha256sum * > SHA256SUMS.txt)
           cat release/SHA256SUMS.txt
@@ -73,7 +81,12 @@ jobs:
             echo "::error::Could not extract release notes for $version"
             exit 1
           fi
-          printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt`.\n' >> release-notes.md
+          printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt` (they cover every variant).\n' >> release-notes.md
+          if [ "${LEAN_ONLY:-}" = "true" ]; then
+            printf '\nThis release has the lean installers only (no bundled on-device search models). Models can be downloaded on request from the app or with `byax models`.\n' >> release-notes.md
+          else
+            printf '\nThe standard installers bundle the on-device search models; the `-lean` installers leave them out.\n' >> release-notes.md
+          fi
           cat release-notes.md
       - name: Publish the release
         run: |

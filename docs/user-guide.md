@@ -252,6 +252,15 @@ says something is not in your sources, ByAuthorX searches your libraries and thi
 literally and shows any matches. See the
 [library and citations guide](library-and-citations-guide.md).
 
+**On-device semantic search** finds passages by meaning as well as by words, with no AI account and no
+Ollama. It is off until you turn it on for a library: choose **Enable on-device semantic search…** in
+Tools → Libraries and answer *Enable on-device semantic search? Nothing leaves this computer.* The
+model runs on your computer. The standard installer includes it; with the lean installer, Tools →
+On-device search… shows the source, size and checksum of each model and downloads one only when you
+press Download. Nothing is downloaded in the background. The same dialog sets **Fast** (the default) or
+**Accurate** search, which also reorders the best results with a second on-device model. See
+[on-device semantic search](library-and-citations-guide.md#on-device-semantic-search).
+
 ## Keyboard and accessibility
 
 Controls are native, with accessible names; motion respects **View → Reduce motion**, system

@@ -4,6 +4,7 @@ import base64
 import copy
 import difflib
 import hashlib
+import math
 import re
 import threading
 from datetime import UTC, datetime
@@ -914,11 +915,17 @@ def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
     def valid_locator(key, value):
         if key == 'heading_path':
             return isinstance(value, list) and all(isinstance(part, str) for part in value)
-        if key in ('start', 'end', 'ordinal'):
+        if key in ('start', 'end', 'ordinal', 'ordinal_end'):
             return type(value) is int and value >= 0
+        if key == 'bbox':
+            return (
+                isinstance(value, list)
+                and len(value) == 4
+                and all(type(n) in (int, float) and math.isfinite(n) for n in value)
+            )
         if key in ('page', 'paragraph'):
             return isinstance(value, str) or (type(value) is int and value >= 0)
-        return key in ('block', 'chunk', 'label', 'text') and isinstance(value, str)
+        return key in ('block', 'chunk', 'label', 'text', 'parent', 'note') and isinstance(value, str)
 
     if not isinstance(locator, dict) or any(not valid_locator(key, value) for key, value in locator.items()):
         _error('Citation locator contains unsupported fields or invalid values.', 'locator')

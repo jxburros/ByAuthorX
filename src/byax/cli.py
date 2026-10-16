@@ -355,6 +355,23 @@ ARGUMENTS: dict[str, dict[str, str]] = {
     },
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
+# On-device search models (byax.local_models): list/status/verify are read-only; download, remove and
+# configure are administrative (transport_policy.check_provider_admin).
+COMMANDS['models'] = 'List, download, verify and remove on-device search models; set Fast or Accurate search'
+ARGUMENTS['models'] = {
+    'action': 'string',
+    'name': 'string',
+    'source': 'string',
+    'confirm': 'boolean',
+    'input': 'object',
+    'models_dir': 'string',
+    'config_dir': 'string',
+}
+ARGUMENTS['library'].update(
+    {'confirm': 'boolean', 'rerank': 'string', 'model': 'string', 'section': 'boolean'}
+)
+ARGUMENTS['library-search'].update({'rerank': 'string'})
+ARGUMENTS['library-read'].update({'section': 'boolean'})
 # Manuscript project binder (byax.project); mutating actions are canonical project_* operations.
 COMMANDS['project'] = 'List, reorder, split, merge and annotate manuscript binder items'
 ARGUMENTS['project'] = {
@@ -1425,6 +1442,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .local_models import models_command
 from .project import project_command
 from .sync_safety import sync_command
 
@@ -1471,6 +1489,7 @@ _HANDLERS: dict[str, Handler] = {
     'fonts': _cmd_fonts,
     'project': project_command,
     'sync': sync_command,
+    'models': models_command,
 }
 
 

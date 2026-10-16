@@ -294,7 +294,9 @@ def indexed_library(window, tmp_path, monkeypatch):
     monkeypatch.setattr(platformdirs, 'user_cache_path', lambda *a, **k: tmp_path / 'cache')
     root = tmp_path / 'research'
     root.mkdir()
-    (root / 'notes.txt').write_text('Mars has two moons.\n\nPhobos is the larger moon.', encoding='utf-8')
+    (root / 'notes.md').write_text(
+        '# Moons\n\nMars has two moons.\n\n# Phobos\n\nPhobos is the larger moon.', encoding='utf-8'
+    )
     registry = LibraryRegistry()
     library = registry.create('Research', [str(root)])
     LibraryIndex(library).refresh()
@@ -359,7 +361,7 @@ def test_extracted_text_preview_shows_text_and_locators_as_indexed(window, monke
     seen = run_library_panel(window, monkeypatch, open_preview)
     text = seen['preview_text']
     assert 'Mars has two moons.' in text and 'Phobos is the larger moon.' in text
-    assert '"ordinal": 0' in text and '"heading_path": []' in text
+    assert '"ordinal": 0' in text and '"heading_path": ["Moons"]' in text
     assert seen['preview_read_only'] is True
     assert '2 of 2 passages shown' in seen['preview_summary']
     assert 'Preview extracted text…' in seen['buttons']
@@ -372,7 +374,7 @@ def test_extracted_text_preview_pages_and_never_writes(window, tmp_path, indexed
     _, library = indexed_library
     index = LibraryIndex(library)
     files = [f for f in index.status()['files'] if f.get('document_id')]
-    source = tmp_path / 'research' / 'notes.txt'
+    source = tmp_path / 'research' / 'notes.md'
     before = source.read_bytes()
     dialog = ExtractedTextDialog(window, library, files)
     dialog.PAGE_CHARS = 15  # a deliberately tiny page

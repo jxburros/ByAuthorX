@@ -91,6 +91,7 @@ command's flags.
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
 | `project` | List, reorder, split, merge and annotate manuscript binder items |
 | `sync` | Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal |
+| `models` | List, download, verify and remove on-device search models; choose Fast or Accurate search. See [On-device models](#on-device-models) |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -251,6 +252,61 @@ any `notice`. `verify-absence` takes terms from `--query` (quote phrases) or
 match in the attached libraries and the document. See the
 [library guide](library-and-citations-guide.md#search-syntax-and-methods).
 
+## On-device models
+
+`byax models` manages the pinned catalogue of on-device search models (`src/byax/resources/models.json`):
+the Qwen3-Embedding-0.6B embedder, two rerankers (answerai-colbert-small-v1 and bge-reranker-v2-m3) and
+the Docling layout model. Every entry lists its licence, upstream source at a pinned commit, mirror URL,
+size and SHA-256. It needs the optional runtime (`pip install byauthorx[local-models]`; the installers
+include it) and reports `not installed` without it. Nothing downloads in the background: only the
+commands below, run by you, fetch a model.
+
+```bash
+byax models --json                                   # catalogue, state of each model, runtime, settings
+byax models --action status --name qwen3-embedding-0.6b-int8 --json   # one model with its download plan
+byax models --action download --name qwen3-embedding-0.6b-int8 --json            # shows source, size, SHA-256; downloads nothing
+byax models --action download --name qwen3-embedding-0.6b-int8 --confirm --json  # downloads, resumes, verifies
+byax models --action verify --name qwen3-embedding-0.6b-int8 --json              # re-hash every file
+byax models --action remove --name qwen3-embedding-0.6b-int8 --json              # delete the downloaded copy
+byax models --action configure --input - --json <<< '{"rerank": "accurate", "rerank_depth": 40}'
+```
+
+`download` without `--confirm` returns `confirmation_required` and the plan (each file's URL, size and
+SHA-256, the destination and the licence) and makes no request. `--source auto|mirror|upstream`
+chooses where from: `auto` is the project's `models-v1` mirror release once it is published and
+the pinned upstream revision until then. Files resume from a `.part` file, are checked against the
+pinned size and SHA-256 before they are renamed into place, and are checked again when loaded. Models
+live in the user data directory (`BYAX_MODELS_DIR` overrides it); a model that came with the standard
+installer lives beside the application and `remove` never deletes it. `--models-dir` and
+`--config-dir` select other folders for one call.
+
+`download`, `remove` and `configure` are administrative: MCP and REST refuse them. `list`, `status` and
+`verify` are allowed there. `configure` sets Fast (`rerank: "fast"`, the default) or Accurate
+(`"accurate"`) search, the reranker and the number of fused results it reorders (5 to 100).
+
+Turn on on-device semantic search for a library (the prompt is *Enable on-device semantic search?
+Nothing leaves this computer.*), then search:
+
+```bash
+byax library draft.byax --action semantic-enable --library-id lib_… --json            # shows the prompt, model state; indexes nothing
+byax library draft.byax --action semantic-enable --library-id lib_… --confirm --json  # configure and embed as one job
+byax library-search draft.byax --library-id lib_… --query "who flees by night" --method hybrid --rerank accurate --json
+byax library draft.byax --action semantic-disable --library-id lib_… --json           # off; drops the vectors
+byax library draft.byax --action chunking-configure --library-id lib_… --input - <<< '{"target_tokens": 600}'
+byax library-read draft.byax --library-id lib_… --document-id doc_… --chunk-id chunk_… --section --json
+byax library draft.byax --action contextualize-preview --library-id lib_… --input - <<< '{"provider": "my-ollama"}'
+byax library draft.byax --action contextualize --library-id lib_… --input - <<< '{"provider": "my-ollama"}'
+byax library draft.byax --action pdf-engine --library-id lib_… --input - <<< '{"engine": "docling"}'
+```
+
+`--rerank fast|accurate` overrides the saved setting for one search; the result's `rerank` entry names the
+model, the number of candidates and, for each moved hit, `prior_rank`, `rerank_rank` and `rerank_score`. If
+Accurate cannot run (runtime or model missing) the search falls back to Fast and says why in
+`rerank.notice`. `--section` on `library-read` returns the whole section of a hit (every chunk sharing its
+`parent` pointer). `semantic-enable`, `semantic-disable`, `chunking-configure`, `contextualize*`,
+`pdf-engine`, `embed` and `embedding-configure` are local CLI/desktop actions; MCP and REST refuse them.
+Details: [library guide](library-and-citations-guide.md#on-device-semantic-search).
+
 ## Edit envelopes
 
 ```json
@@ -283,6 +339,9 @@ desktop confirmation (see [architecture](architecture.md#mutation-and-persistenc
 | `BYAX_LIBREOFFICE` | legacy `.doc` import | Absolute path of the LibreOffice executable to use for conversion. Unset means `.doc` is not converted. |
 | `BYAX_REDUCED_MOTION` | desktop | `1` disables all animation. |
 | `QT_QPA_PLATFORM` | rendering, tests | Set `offscreen` for headless PNG/PDF rendering and tests. |
+| `BYAX_MODELS_DIR` | `models`, semantic search | Folder for downloaded on-device models (default: `models` in the user data directory). |
+| `BYAX_BUNDLED_MODELS` | `models` | Folder holding the models that came with an installer (default: `models` beside the frozen application). |
+| `BYAX_MODELS_CATALOGUE` | `models`, tests | Another catalogue file for a mirror trial or tests. It is validated like the shipped one: https URLs and pinned SHA-256 values only. |
 
 Provider keys are referenced as `env:NAME` or stored in the OS credential store; see
 [providers](providers.md). Live provider smoke tests use `BYAX_SMOKE_*` variables documented in

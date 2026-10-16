@@ -102,6 +102,128 @@ def _embed(library, a, doc, index):
         manager.close()
 
 
+def _pdf_engine(library, a, doc, registry):
+    """Choose the PDF reader: ``pypdf`` (default) or the optional offline ``docling`` quality path."""
+    import importlib.util
+
+    from . import local_models
+    from .cli import envelope
+    from .library_parser import DOCLING_LAYOUT_MODEL
+
+    spec = a.get('input') or {}
+    if not isinstance(spec, dict) or set(spec) - {'engine'} or not spec.get('engine'):
+        raise ByaxError('invalid_input', 'PDF engine input is {"engine": "pypdf" or "docling"}')
+    engine = spec['engine']
+    if engine == 'docling':
+        if importlib.util.find_spec('docling') is None:
+            raise ByaxError(
+                'missing_dependency',
+                'The Docling PDF engine needs the optional extra: install byauthorx[docling]',
+                extra='byauthorx[docling]',
+            )
+        if local_models.model_status(DOCLING_LAYOUT_MODEL)['state'] != 'installed':
+            raise ByaxError(
+                'model_missing',
+                f'Install the layout model first: byax models --action download --name {DOCLING_LAYOUT_MODEL} --confirm',
+                name=DOCLING_LAYOUT_MODEL,
+            )
+    updated = registry.configure_pdf_engine(library['library_id'], engine)
+    return envelope(
+        {'library': updated, 'pdf_engine': engine, 'next_step': 'Run refresh; every PDF is read again.'}, doc
+    )
+
+
+def contextual_worker(payload, cancel):
+    from .contextual import ProviderNoteWriter, contextualize
+    from .libraries import LibraryIndex, LibraryRegistry
+
+    library = LibraryRegistry().get(payload['library_id'])
+    writer = ProviderNoteWriter(
+        payload['provider'],
+        authorized=payload.get('allow_remote', False),
+        local_only=library.get('retrieval_policy') == 'local_only',
+    )
+    return contextualize(LibraryIndex(library), writer, limit=payload.get('limit'), cancel_event=cancel)
+
+
+def _contextual(library, a, doc, index, *, run):
+    """Contextual-note preview (what would be sent) or the opt-in job that writes the notes."""
+    from .cli import envelope
+    from .contextual import ProviderNoteWriter, preview
+    from .jobs import JobManager
+
+    spec = a.get('input') or {}
+    if not isinstance(spec, dict) or set(spec) - {'provider', 'limit'} or not spec.get('provider'):
+        raise ByaxError(
+            'invalid_input', 'Contextual notes need input {"provider": alias, "limit": n (optional)}'
+        )
+    writer = ProviderNoteWriter(
+        spec['provider'],
+        authorized=a.get('allow_remote', False),
+        local_only=library.get('retrieval_policy') == 'local_only',
+    )
+    report = preview(index, writer, limit=spec.get('limit'))
+    if not run:
+        return envelope(report, doc)
+    # Refuse before queueing, so a missing consent is reported rather than hidden in a job record.
+    writer.authorize()
+    manager = JobManager()
+    try:
+        job = manager.submit(
+            'library-contextualize',
+            {
+                'library_id': library['library_id'],
+                'provider': spec['provider'],
+                'limit': spec.get('limit'),
+                'allow_remote': a.get('allow_remote', False),
+            },
+            contextual_worker,
+        )
+        result = manager.wait(job['id'])
+        return envelope(
+            {'job': result, 'contextual': result.get('result'), 'sent': report},
+            doc,
+            execution=result['state'],
+        )
+    finally:
+        manager.close()
+
+
+def _semantic_enable(library, a, doc):
+    """Turn on on-device semantic search for one library, after the user confirmed the prompt.
+
+    Nothing is indexed until ``confirm`` is true; the model must already be installed (downloading
+    is a separate explicit ``models`` action), and text never leaves this computer.
+    """
+    from . import local_models
+    from .cli import envelope
+    from .libraries import LibraryIndex
+
+    if not a.get('confirm'):
+        return envelope(
+            {
+                **local_models.semantic_offer(library['library_id'], a.get('model')),
+                'message': 'Nothing was indexed. Repeat with --confirm to enable it for this library.',
+            },
+            doc,
+        )
+    updated = local_models.enable_semantic_search(library['library_id'], a.get('model'))
+    result = _embed(updated, a, doc, LibraryIndex(updated))
+    result['library'] = updated
+    result['prompt'] = local_models.PROMPT
+    return result
+
+
+def _semantic_disable(library, doc, registry):
+    from .cli import envelope
+    from .libraries import LibraryIndex
+    from .vector_store import open_store
+
+    updated = registry.configure_embedding(library['library_id'], None)
+    removed = open_store(LibraryIndex(updated)).discard_other_signatures('')
+    return envelope({'library': updated, 'vectors_removed': removed}, doc)
+
+
 def library_command(a, owner=None):
     from .cli import _load, envelope
     from .libraries import LibraryIndex, LibraryRegistry
@@ -160,10 +282,28 @@ def library_command(a, owner=None):
     library = attached_library(doc, a.get('library_id'))
     if action == 'refresh':
         return _refresh(library, a, doc)
+    if action == 'semantic-enable':
+        return _semantic_enable(library, a, doc)
+    if action == 'pdf-engine':
+        return _pdf_engine(library, a, doc, registry)
+    if action == 'chunking-configure':
+        spec = a.get('input') or {}
+        if not isinstance(spec, dict) or set(spec) - {'target_tokens'}:
+            raise ByaxError('invalid_input', 'Chunking input accepts only {"target_tokens": n or null}')
+        updated = registry.configure_chunking(library['library_id'], spec.get('target_tokens'))
+        return envelope({'library': updated, 'next_step': 'Run refresh; every file is re-chunked.'}, doc)
+    if action == 'semantic-disable':
+        return _semantic_disable(library, doc, registry)
     if action == 'embedding-configure':
         config = a.get('input') or None
         return envelope({'library': registry.configure_embedding(library['library_id'], config)}, doc)
     index = LibraryIndex(library)
+    if action == 'contextualize-preview':
+        return _contextual(library, a, doc, index, run=False)
+    if action == 'contextualize':
+        return _contextual(library, a, doc, index, run=True)
+    if action == 'contextualize-clear':
+        return envelope({'notes_removed': index.clear_contexts()}, doc)
     if action == 'embedding-preview':
         return envelope(index.embedding_preview(), doc)
     if action == 'embed':
@@ -193,10 +333,23 @@ def library_command(a, owner=None):
                 limit=a.get('limit', 20),
                 offset=a.get('offset', 0),
                 expand=a.get('expand', False),
+                rerank=a.get('rerank'),
             ),
             doc,
         )
     if action == 'read':
+        if a.get('section'):
+            if not a.get('chunk_id'):
+                raise ByaxError('invalid_input', 'Reading a section needs the chunk_id of a passage in it')
+            return envelope(
+                index.read_section(
+                    a.get('document_id'),
+                    a['chunk_id'],
+                    limit=a.get('limit', 20000),
+                    offset=a.get('offset', 0),
+                ),
+                doc,
+            )
         return envelope(
             index.read(
                 a.get('document_id'),

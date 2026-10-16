@@ -51,6 +51,11 @@ def check_provider_admin(command, arguments):
             'unsupported_feature',
             'Retrieve document-linked files through the local CLI or desktop; transport path scope does not authorize embedded URIs',
         )
+    if command == 'models' and arguments.get('action', 'list') not in ('list', 'status', 'verify'):
+        raise ByaxError(
+            'unsupported_feature',
+            'Download, remove and configure on-device models through the local CLI or desktop',
+        )
     if command == 'providers' and arguments.get('action') == 'configure':
         raise ByaxError('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
     if command == 'jobs' and arguments.get('action') == 'submit':
@@ -98,6 +103,27 @@ INTERFACE_INVENTORY = (
         'library --action verify-absence',
         'byax.retrieval.verify_absence',
         'AI tab (assistant replies)',
+    ),
+    (
+        'Discovery',
+        'on-device model catalogue',
+        'models',
+        'byax.local_models.models_command',
+        'Tools > On-device search…',
+    ),
+    (
+        'Providers',
+        'download or remove on-device models',
+        'models --action download',
+        'byax.local_models.download_model',
+        'Tools > On-device search…',
+    ),
+    (
+        'Search and targeting',
+        'enable on-device semantic search',
+        'library --action semantic-enable',
+        'byax.cli_libraries.library_command',
+        'Library panel (Enable on-device semantic search)',
     ),
     ('Review', 'citation sources', 'source', 'byax.cli_libraries.source_command', None),
     ('Editing', 'insert citation', 'cite', 'byax.cli_libraries.cite_command', None),

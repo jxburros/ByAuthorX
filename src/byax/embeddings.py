@@ -36,6 +36,7 @@ def validate_config(config):
         'dimension',
         'max_input_chars',
         'max_batch',
+        'vector_backend',
     }:
         raise ByaxError(
             'invalid_input',
@@ -43,6 +44,12 @@ def validate_config(config):
         )
     if not isinstance(config.get('provider'), str) or not config['provider'].strip():
         raise ByaxError('invalid_input', 'Embedding provider alias is required')
+    if config['provider'].startswith('local:'):
+        # On-device model from the pinned catalogue (byax.local_models); never a provider alias.
+        from .local_models import get_model
+
+        if get_model(config['provider'][len('local:') :])['kind'] != 'embedder':
+            raise ByaxError('invalid_input', 'Local model is not an embedder', provider=config['provider'])
     if type(config.get('dimension')) is not int or not 1 <= config['dimension'] <= 65536:
         raise ByaxError('invalid_input', 'Embedding dimension must be between 1 and 65536')
     maximum = config.get('max_input_chars', 8000)
@@ -51,6 +58,8 @@ def validate_config(config):
     batch = config.get('max_batch', DEFAULT_BATCH)
     if type(batch) is not int or not 1 <= batch <= MAXIMUM_BATCH:
         raise ByaxError('invalid_input', f'Embedding batch size must be between 1 and {MAXIMUM_BATCH}')
+    if config.get('vector_backend', 'auto') not in ('auto', 'sqlite-blob', 'sqlite-vec'):
+        raise ByaxError('invalid_input', 'Vector backend must be auto, sqlite-blob or sqlite-vec')
     return {**config, 'max_input_chars': maximum, 'max_batch': batch}
 
 
@@ -137,8 +146,19 @@ def cosine(first, second):
     return sum(a * b for a, b in zip(first, second, strict=True)) / denominator if denominator else 0.0
 
 
-def _library_provider(index, *, authorized=False):
+def provider_for_settings(settings, *, registry=None, authorized=False, local_only=False):
+    """The embedder named by a library's embedding settings: an on-device model or a configured alias."""
+    if isinstance(settings, dict) and str(settings.get('provider', '')).startswith('local:'):
+        from .local_inference import provider_for
+
+        return provider_for(validate_config(settings))
     return ConfiguredEmbeddingProvider(
+        settings, registry=registry, authorized=authorized, local_only=local_only
+    )
+
+
+def _library_provider(index, *, authorized=False):
+    return provider_for_settings(
         index.library['embedding'],
         authorized=authorized,
         local_only=index.library.get('retrieval_policy') == 'local_only',
@@ -159,17 +179,16 @@ def embedding_state(index, provider=None):
     States: ``disabled``, ``provider_unavailable``, ``rebuild_required`` (no vectors),
     ``stale`` (only vectors from another model or chunking), ``partial`` and ``ready``.
     """
-    from .libraries import CHUNKING
     from .vector_store import open_store
 
     if provider is None:
         if not index.library.get('embedding'):
             return {'state': 'disabled'}
         try:
-            provider = ConfiguredEmbeddingProvider(index.library['embedding'])
+            provider = provider_for_settings(index.library['embedding'])
         except (ByaxError, OSError):
             return {'state': 'provider_unavailable'}
-    signature = fingerprint(provider, CHUNKING)
+    signature = fingerprint(provider, index.chunking)
     coverage = open_store(index).coverage(signature)
     return {'state': _state(coverage), 'model_signature': signature, **coverage}
 
@@ -182,25 +201,40 @@ def index_embedding_state(index):
         return 'provider_unavailable'
 
 
+def embedded_text(heading, text, note=''):
+    """What the model reads for a chunk: heading path, contextual note (if any), then the stored text.
+
+    Only this indexed form carries the heading path and the note; the stored text is unchanged, so
+    quotes still verify against it and the note is never shown or cited as source text.
+    """
+    # The first chunk of a section already starts with its heading text; do not say it twice.
+    if heading and text.lstrip().startswith(heading.rsplit(' > ', 1)[-1]):
+        heading = ' > '.join(heading.split(' > ')[:-1])
+    return '\n\n'.join(part for part in (heading, note, text) if part)
+
+
 def _passages(index):
     with index._db() as db:
         rows = [
             dict(row)
-            for row in db.execute('SELECT chunk_id,document_id,text,fingerprint FROM chunks ORDER BY rowid')
+            for row in db.execute(
+                """SELECT c.chunk_id, c.document_id, c.heading, c.text, c.fingerprint, COALESCE(x.note, '') AS note
+                   FROM chunks c LEFT JOIN contexts x ON x.chunk_id=c.chunk_id ORDER BY c.rowid"""
+            )
             if any(not p['stale'] for p in index._paths(db, row['document_id']))
         ]
     for row in rows:
         row['fingerprint'] = row['fingerprint'] or ''
+        row['embedded_text'] = embedded_text(row.pop('heading') or '', row['text'], row.pop('note'))
     return rows
 
 
 def embedding_preview(index, provider=None):
     """Exactly what the next rebuild would send: changed or new passages only."""
-    from .libraries import CHUNKING
     from .vector_store import open_store
 
     provider = provider or _library_provider(index)
-    signature = fingerprint(provider, CHUNKING)
+    signature = fingerprint(provider, index.chunking)
     current = open_store(index).fingerprints(signature)
     rows = _passages(index)
     pending = [r for r in rows if not r['fingerprint'] or current.get(r['chunk_id']) != r['fingerprint']]
@@ -209,7 +243,7 @@ def embedding_preview(index, provider=None):
         'remote': getattr(provider, 'remote', False),
         'locality': 'remote' if getattr(provider, 'remote', False) else 'local',
         'documents': len({r['document_id'] for r in pending}),
-        'characters': sum(len(r['text']) for r in pending),
+        'characters': sum(len(r['embedded_text']) for r in pending),
         'passages': pending,
         'skipped': len(rows) - len(pending),
         'model_fingerprint': signature,
@@ -266,11 +300,11 @@ def rebuild_vectors(
     store.prune()
     limit = int(getattr(provider, 'max_input_chars', 8000))
     batch_size = max(1, min(int(getattr(provider, 'max_batch', DEFAULT_BATCH)), MAXIMUM_BATCH))
-    queue = [p for p in preview['passages'] if len(p['text']) <= limit]
+    queue = [p for p in preview['passages'] if len(p['embedded_text']) <= limit]
     errors = [
         {'chunk_id': p['chunk_id'], 'reason': 'Passage exceeds the model input limit'}
         for p in preview['passages']
-        if len(p['text']) > limit
+        if len(p['embedded_text']) > limit
     ]
     failed, done, cancelled = len(errors), 0, False
     total = len(preview['passages']) + preview['skipped']
@@ -280,7 +314,9 @@ def rebuild_vectors(
             break
         batch = queue[start : start + batch_size]
         try:
-            vectors = _embed_batch(provider, [p['text'] for p in batch], cancel_event, sleep, retries)
+            vectors = _embed_batch(
+                provider, [p['embedded_text'] for p in batch], cancel_event, sleep, retries
+            )
             validate_vectors(vectors, len(batch), provider.dimension)
         except ByaxError as exc:
             if exc.code == 'cancelled':
@@ -329,7 +365,6 @@ def _notice(info):
 
 def hybrid_search(index, query, *, limit=20, offset=0, authorized=False, provider=None, expand=False):
     """Keyword and dense rankings fused with RRF. Partial vector sets are used and disclosed."""
-    from .libraries import CHUNKING
     from .ranking import Hit, rrf
     from .search_query import Query
     from .search_query import parse as parse_query
@@ -358,9 +393,11 @@ def hybrid_search(index, query, *, limit=20, offset=0, authorized=False, provide
     text = parsed.semantic_text()[: provider.max_input_chars]
     dense = []
     if text:
-        query_vector = provider.embed([text])[0]
+        # Models that distinguish queries from documents (instruction prefix) offer embed_query.
+        embed_query = getattr(provider, 'embed_query', None)
+        query_vector = embed_query(text) if embed_query else provider.embed([text])[0]
         validate_vectors([query_vector], 1, provider.dimension)
-        signature = fingerprint(provider, CHUNKING)
+        signature = fingerprint(provider, index.chunking)
         ranked = open_store(index).search(signature, query_vector, limit=int(index.limits['results']))
         similarity = dict(ranked)
         with index._db() as db:
@@ -434,6 +471,22 @@ def embedder_locality(library, registry=None):
     settings = library.get('embedding')
     if not settings:
         return None
+    if str(settings.get('provider', '')).startswith('local:'):
+        from .local_models import model_status
+
+        name = settings['provider'][len('local:') :]
+        try:
+            state = model_status(name)['state']
+        except ByaxError:
+            state = 'unknown'
+        return {
+            'provider': settings['provider'],
+            'locality': 'local',
+            'host': None,
+            'label': 'On-device model \u00b7 stays on this computer',
+            'model': name,
+            'model_state': state,
+        }
     from .providers import ProviderRegistry, provider_locality
 
     try:

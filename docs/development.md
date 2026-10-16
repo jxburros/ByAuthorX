@@ -10,6 +10,14 @@ uv run byauthorx          # desktop app
 uv run byax capabilities --json
 ```
 
+Optional extras (their tests skip when the package is missing; CI installs the first two):
+
+```bash
+uv sync --extra dev --extra local-models --extra sqlite-vec   # on-device models runtime; sqlite-vec backend
+# --extra docling pulls PyTorch (several GB); the Docling tests use a fake package, so you rarely need it
+BYAX_REAL_MODELS_DIR=/path/to/models uv run pytest tests/test_local_inference.py -k real   # real models, maintainers
+```
+
 Ubuntu needs the Qt libraries listed in [troubleshooting](troubleshooting.md#linux-app-will-not-start-xcb--egl--libxkbcommon-errors).
 
 ## Layout

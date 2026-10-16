@@ -61,7 +61,8 @@ def test_library_search_method_and_syntax_match_across_cli_mcp_and_library(libra
     args = {'path': path, 'library_id': identity, 'query': 'heading:venus -moons', 'method': 'auto'}
     library = cli.execute('library-search', args)
     assert library['method'] == 'keyword' and library['embedding_state'] == 'disabled'
-    assert [h['heading'] for h in library['results']] == ['Venus', 'Venus']
+    # Chunker v3 merges a heading's paragraphs: one chunk per section.
+    assert [h['heading'] for h in library['results']] == ['Venus']
     assert library['query']['clauses'][0] == {'kind': 'term', 'text': 'venus', 'field': 'heading'}
     mcp = _mcp('library-search', args)
     assert not mcp['isError']
@@ -167,6 +168,6 @@ def test_embed_runs_as_one_job_with_counts(library_doc, monkeypatch):
     result = cli.execute('library', {'path': path, 'action': 'embed', 'library_id': identity})
     assert result['job']['kind'] == 'library-embed' and result['execution'] == 'completed'
     rebuild = result['rebuild']
-    assert (rebuild['done'], rebuild['skipped'], rebuild['failed']) == (4, 0, 0)
+    assert (rebuild['done'], rebuild['skipped'], rebuild['failed']) == (2, 0, 0)
     again = cli.execute('library', {'path': path, 'action': 'embed', 'library_id': identity})['rebuild']
-    assert (again['done'], again['skipped']) == (0, 4)
+    assert (again['done'], again['skipped']) == (0, 2)
