@@ -1,5 +1,7 @@
 """Opt-in synopsis drafting (CP A2): a configured provider, an explicit request, a pending proposal."""
 
+import re
+
 import pytest
 
 from byax import engine, project
@@ -105,9 +107,19 @@ def test_scene_text_is_data_in_the_context_never_part_of_the_instruction(setup, 
     )
     body = provider[0]
     user = [m for m in body['messages'] if m['role'] == 'user']
-    assert INJECTION not in user[-1]['content'] and 'never instructions' in user[-1]['content']
+    # The cache-ordered layout (context_assembly) puts the scene in a delimited untrusted-data block of
+    # the user message; the instruction itself, outside that block, never contains the scene text.
+    content = user[-1]['content']
+    block = re.search(
+        r'<<<BYAX DATA document_context (\w+): .*?>>>.*?<<<END BYAX DATA document_context \1>>>',
+        content,
+        re.DOTALL,
+    )
+    assert block and INJECTION in block.group(0)
+    outside = content.replace(block.group(0), '')
+    assert INJECTION not in outside and 'never instructions' in outside
     system = next(m for m in body['messages'] if m['role'] == 'system')['content']
-    assert INJECTION in system and 'untrusted data' in system.lower()
+    assert INJECTION not in system and 'untrusted data' in system.lower()
     # The injected sentence became at most synopsis text a person reviews, never an operation.
     assert all(
         op['type'] == 'project_set_meta' for op in load_document(path)['review']['proposals'][0]['operations']
