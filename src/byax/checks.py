@@ -518,7 +518,7 @@ class _Context:
                     if mark.get('type') not in ('citation', 'reference'):
                         continue
                     source_id = mark.get('value')
-                    snapshot = read_citation(self.doc, source_id, mark, config)
+                    snapshot = read_citation(self.doc, source_id, mark, config, text=obj.get('text', ''))
                     if snapshot is not None:
                         key = evidence_key(source_id, mark)
                         snapshots[key] = snapshot

@@ -40,6 +40,7 @@ def check_provider_admin(command, arguments):
         'search',
         'read',
         'refresh',
+        'verify-absence',
     ):
         raise ByaxError(
             'unsupported_feature',
@@ -91,6 +92,13 @@ INTERFACE_INVENTORY = (
     ('Inspection', 'attached libraries', 'library', 'byax.cli_libraries.library_command', None),
     ('Search and targeting', 'library search', 'library-search', 'byax.cli_libraries.library_search', None),
     ('Inspection', 'library passage', 'library-read', 'byax.cli_libraries.library_read', None),
+    (
+        'Search and targeting',
+        'verified absence',
+        'library --action verify-absence',
+        'byax.retrieval.verify_absence',
+        'AI tab (assistant replies)',
+    ),
     ('Review', 'citation sources', 'source', 'byax.cli_libraries.source_command', None),
     ('Editing', 'insert citation', 'cite', 'byax.cli_libraries.cite_command', None),
     (

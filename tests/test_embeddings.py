@@ -32,7 +32,9 @@ def test_hybrid_retains_exact_and_semantic_matches_and_invalidates(tmp_path):
         'Mercury' in hit['text'] for hit in index.hybrid_search('Mercury', provider=provider)['results']
     )
     provider.model_identity = 'fixture-v2'
-    assert index.hybrid_search('lunar', provider=provider)['embedding_state'] == 'rebuild_required'
+    # A changed model signature marks vectors stale; they are never compared with the new model.
+    stale = index.hybrid_search('lunar', provider=provider)
+    assert stale['embedding_state'] == 'stale' and stale['method'] == 'keyword'
 
 
 def test_remote_embeddings_require_separate_consent_and_validate_shape(tmp_path, monkeypatch):

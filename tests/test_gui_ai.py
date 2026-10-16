@@ -293,6 +293,28 @@ def test_provider_failure_is_reported_in_conversation(window, qtbot, monkeypatch
     assert panel.thinking.isHidden()
 
 
+def test_absence_reply_is_checked_against_literal_matches(window, qtbot, monkeypatch, tmp_path):
+    """Q14: a "not found" reply triggers an exhaustive lexical pass and offers literal matches."""
+    configure(tmp_path)
+    panel = window.ai_panel
+    panel.refresh_providers()
+    mock_chat(monkeypatch, {'reply': 'The phrase is not found in your sources.'})
+    panel.input.setPlainText('Where does "brwn fox" appear?')
+    panel.send()
+    qtbot.waitUntil(lambda: getattr(panel, 'last_absence_report', None) is not None)
+    report = panel.last_absence_report
+    assert report['found'] == ['brwn fox']
+    assert report['matches'][0]['scope'] == 'manuscript'
+    history = panel.history.toPlainText()
+    assert 'literal matches exist' in history and 'Searched 0 libraries and this document' in history
+    panel.last_absence_report = None
+    mock_chat(monkeypatch, {'reply': 'The fox jumps in the first line.'})
+    panel.input.setPlainText('Where does "brwn fox" appear?')
+    panel.send()
+    qtbot.waitUntil(lambda: panel._pending is None)
+    assert panel.last_absence_report is None  # no absence claim, no extra search
+
+
 CHAT_RESPONSES = {
     'openai': ('/chat/completions', lambda text: {'choices': [{'message': {'content': text}}]}),
     'anthropic': ('/messages', lambda text: {'content': [{'type': 'text', 'text': text}]}),

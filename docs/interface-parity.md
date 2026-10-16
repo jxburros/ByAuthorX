@@ -154,6 +154,7 @@ Linked asset retrieval requires explicit authorization in the local CLI or deskt
 | Inspection | attached libraries | `byax library` | `byax_library` | `POST /v1/execute` | `byax.cli_libraries.library_command` | Library / Cite |
 | Search and targeting | library search | `byax library-search` | `byax_library_search` | `POST /v1/execute` | `byax.cli_libraries.library_search` | Library / Cite |
 | Inspection | library passage | `byax library-read` | `byax_library_read` | `POST /v1/execute` | `byax.cli_libraries.library_read` | Library / Cite |
+| Search and targeting | verified absence | `byax library --action verify-absence` | `byax_library` | `POST /v1/execute` | `byax.retrieval.verify_absence` | AI tab (assistant replies) |
 | Review | citation sources | `byax source` | `byax_source` | `POST /v1/execute` | `byax.cli_libraries.source_command` | Library / Cite |
 | Editing | insert citation | `byax cite` | `byax_cite` | `POST /v1/execute` | `byax.cli_libraries.cite_command` | Library / Cite |
 

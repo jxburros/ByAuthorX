@@ -84,6 +84,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'allow_remote': 'boolean',
         'rebuild': 'boolean',
         'expect_revision': 'string',
+        'method': 'string',
+        'expand': 'boolean',
     },
     'library-search': {
         'path': 'string',
@@ -91,6 +93,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'query': 'string',
         'limit': 'integer',
         'offset': 'integer',
+        'method': 'string',
+        'expand': 'boolean',
     },
     'library-read': {
         'offset': 'integer',
@@ -187,6 +191,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'library_query': 'string',
         'library_limit': 'integer',
         'library_chars': 'integer',
+        'library_method': 'string',
+        'library_pinned': 'array',
         'remote_bound': 'boolean',
     },
     'apply': {
@@ -757,6 +763,8 @@ def _cmd_context(a: Args, owner: str | None) -> Result:
             limit=a.get('library_limit', 12),
             max_chars=a.get('library_chars', 12000),
             remote=a.get('remote_bound', False),
+            method=a.get('library_method', 'auto'),
+            pinned=a.get('library_pinned'),
         )
         result = augment_context(result, retrieval)
     return envelope(result, doc)

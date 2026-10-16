@@ -244,7 +244,12 @@ CLI, MCP and REST.
 ## Libraries and citations
 
 Tools → Libraries attaches local research folders for retrieval; **Cite** inserts a citation from
-existing or attached sources, with APA, MLA or Chicago presentation. See the
+existing or attached sources, with APA, MLA or Chicago presentation. Library search works
+without any AI and understands `"exact phrases"`, `-excluded` words, `prefix*`,
+`NEAR(a b)` and `heading:`/`title:`/`path:` filters, and suggests spellings when a word
+matches nothing ([search syntax](cli-reference.md#library-search-syntax)). When an assistant
+says something is not in your sources, ByAuthorX searches your libraries and this document
+literally and shows any matches. See the
 [library and citations guide](library-and-citations-guide.md).
 
 ## Keyboard and accessibility

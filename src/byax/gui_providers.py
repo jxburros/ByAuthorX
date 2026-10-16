@@ -357,6 +357,7 @@ def review_document(window, *, check=None, instructions=None):
                 remote=remote,
                 max_tokens=library_budget(config).tokens,
                 provider=config,
+                method='auto',
             )
             if retrieval['included']:
                 retrieval = select_passages(window, retrieval, alias, remote)
