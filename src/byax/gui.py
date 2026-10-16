@@ -66,6 +66,7 @@ from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_authoring import AuthorWorkflows
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
@@ -96,7 +97,7 @@ class Worker(QRunnable):
             self.signals.failed.emit(str(exc))
 
 
-class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMainWindow):
+class MainWindow(AuthorWorkflows, FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMainWindow):
     def __init__(self, path=None):
         super().__init__()
         self.setWindowTitle(self.tr('ByAuthorX'))
@@ -564,7 +565,14 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
         from .gui_review import ReviewChecks
 
         self.review_checks = ReviewChecks(self)
-        rv.insertWidget(0, self.review_checks)
+        review_controls = QScrollArea()
+        review_controls.setAccessibleName(self.tr('Review checks and preservation settings'))
+        review_controls.setWidgetResizable(True)
+        review_controls.setFrameShape(QScrollArea.NoFrame)
+        review_controls.setMinimumHeight(150)
+        review_controls.setMaximumHeight(340)
+        review_controls.setWidget(self.review_checks)
+        rv.insertWidget(0, review_controls)
         inspector_dock = QDockWidget(self.tr('Inspector'), self)
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(260)
@@ -622,8 +630,12 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             self.action(self.tr('Resolve selected merge conflicts…'), self.resolve_merge_conflicts)
         )
         menus['&Help'].addAction(self.action(self.tr('Download updates…'), self.open_releases))
+        menus['&Help'].addAction(self.action(self.tr('Research to publication…'), self.research_walkthrough))
+        menus['&Review'].addAction(self.action(self.tr('Claims and evidence…'), self.inspect_evidence))
+        menus['&File'].addAction(self.action(self.tr('Prepare to share…'), self.prepare_to_share))
         self.build_file_views(toolbar, menus, workspace_layout)
         self.build_format_ribbon(toolbar, menus)
+        self.build_author_start(workspace_layout)
         theme_menu = menus['&View'].addMenu(self.tr('Theme'))
         for key, label in (('system', 'System'), ('light', 'Light'), ('dark', 'Dark')):
             theme_menu.addAction(self.action(self.tr(label), lambda checked=False, t=key: self.set_theme(t)))
@@ -1083,6 +1095,11 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             self.projection()
             self.sync_file_view()
         text = model.text_of(self.doc)
+        self.author_start.setVisible(
+            not self.path
+            and not text.strip()
+            and not self.settings.value('onboarding/dismissed', False, type=bool)
+        )
         words = len(text.split())
         self.word_label.setText(
             self.tr('{0:,} words   ·   {1:,} characters   ·   {2} min read').format(
@@ -2536,7 +2553,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             target = record.get('target')
             if target:
                 self.navigate_target(target)
-            self.report(kind.replace('_', ' ').title(), record)
+            if kind in ('proposals', 'findings'):
+                self.show_readable_review(record)
+            else:
+                self.report(kind.replace('_', ' ').title(), record)
 
     def accept_item(self):
         if self.resolve_selected_changes(True):
@@ -2551,7 +2571,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
         if kind == 'comments':
             self.commit([{'type': 'resolve_comment', 'target': record['id']}])
         elif kind in ('proposals', 'tracked_changes'):
-            self.report(self.tr('Review exact changes before accepting'), record)
+            if kind == 'proposals':
+                self.show_readable_review(record)
+            else:
+                self.report(self.tr('Review exact changes before accepting'), record)
             if (
                 QMessageBox.question(
                     self,

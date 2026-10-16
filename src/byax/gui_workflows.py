@@ -1,6 +1,7 @@
 # ruff: noqa: BLE001
 """Native access to reusable settings, dependencies, styles and branch workflows."""
 
+import json
 from pathlib import Path
 
 from PySide6.QtCore import Qt
@@ -14,6 +15,7 @@ from PySide6.QtWidgets import (
     QInputDialog,
     QLabel,
     QListWidget,
+    QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
 )
@@ -288,6 +290,8 @@ class WorkflowPanels:
             self.export()
 
     def review_proposal_edits(self, record, accept=True):
+        from .gui_authoring import readable_review
+
         dialog = QDialog(self)
         dialog.setWindowTitle(self.tr('Select proposed changes'))
         layout = QVBoxLayout(dialog)
@@ -317,6 +321,28 @@ class WorkflowPanels:
             item.setFlags(item.flags() | Qt.ItemIsUserCheckable)
             item.setCheckState(Qt.Checked)
         layout.addWidget(items)
+        details = QPlainTextEdit()
+        details.setReadOnly(True)
+        details.setAccessibleName(self.tr('Exact proposed edit, reason and preservation instructions'))
+
+        def show_selected(item, _=None):
+            if not item:
+                return
+            edit = next(e for e in record['edits'] if e['id'] == item.data(Qt.UserRole))
+            operation = record['operations'][edit['index']]
+            details.setPlainText(
+                readable_review(record)
+                + '\n\n'
+                + self.tr('Selected operation')
+                + '\n'
+                + json.dumps(operation, ensure_ascii=False, indent=2)
+            )
+
+        items.currentItemChanged.connect(show_selected)
+        layout.addWidget(details)
+        if items.count():
+            items.setCurrentRow(0)
+        dialog.resize(760, 620)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)

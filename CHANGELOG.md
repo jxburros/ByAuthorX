@@ -7,6 +7,28 @@ number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any 
 disagrees or if the version has no entry below. The release workflow publishes a version's
 entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
+## [Unreleased]
+
+### Added
+
+- Research-to-publication guide, dismissible blank-document introduction and an
+  offline sample project with a locally indexed research library.
+- Claims and evidence viewer showing current passages, locators, quotation-match
+  versus interpretation outcomes, manual sources and stale/unavailable evidence.
+- Bounded evidence inspection through the shared CLI, read-only MCP tool and REST
+  dispatcher, with continuation and section source-policy enforcement.
+- Review approaches and enforced preservation of numbers, quotations, cited text
+  and terminology, with readable before/after wording and author instructions.
+- Prepare to share: exact publication-copy preview, explicit private-material
+  inclusion, required checks, located format losses and separate clean export.
+- CI gate requiring executed desktop workflow tests, release build provenance,
+  physical desktop acceptance checklist and five-author evaluation protocol.
+
+### Fixed
+
+- Model review stops when pending editor changes cannot be committed and refuses
+  late registration after the active document or revision changes.
+
 ## [0.2.0] - 2026-10-14
 
 ### Added

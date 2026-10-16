@@ -516,12 +516,8 @@ def save_sanitized(doc, out_path, targets, *, terms=None, preserve=None):
     return report
 
 
-def export_clean(doc, path, format=None, profile=None, *, owner=None, overwrite=True):
-    import tempfile
-
-    from .checks import run_checks
-    from .exchange import export_document, publish_file
-
+def prepare_publication(doc, profile=None):
+    """Build the exact publication copy without writing or changing the master."""
     settings = {
         'include_comments': False,
         'include_tracked_changes': False,
@@ -623,6 +619,32 @@ def export_clean(doc, path, format=None, profile=None, *, owner=None, overwrite=
             for key, value in clean['assets'].items()
             if key in referenced or (settings['include_audio'] and value.get('mime', '').startswith('audio/'))
         }
+    return clean, settings, residue_terms
+
+
+def publication_preview(doc, format, profile=None):
+    """Inspect the same filtered copy that export_clean will serialize."""
+    from .checks import run_checks
+    from .exchange import conversion_preview
+
+    clean, settings, _ = prepare_publication(doc, profile)
+    report = conversion_preview(clean, format, profile=settings)
+    report['revision'] = doc['revision']
+    report['inclusion'] = {
+        'included': sorted(key for key in PUBLICATION_CATEGORIES if settings[key]),
+        'excluded': sorted(key for key in PUBLICATION_CATEGORIES if not settings[key]),
+    }
+    report['checks'] = run_checks(clean, settings['required_suites']) if settings['required_suites'] else None
+    return report
+
+
+def export_clean(doc, path, format=None, profile=None, *, owner=None, overwrite=True):
+    import tempfile
+
+    from .checks import run_checks
+    from .exchange import export_document, publish_file
+
+    clean, settings, residue_terms = prepare_publication(doc, profile)
     check = run_checks(clean, settings['required_suites']) if settings['required_suites'] else None
     if check and check.get('validation') != 'passed':
         raise ByaxError(

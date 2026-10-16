@@ -13,6 +13,7 @@ document drifts from it.
 
 | Family | Operation | CLI | MCP tool | REST | Library | GUI |
 | --- | --- | --- | --- | --- | --- | --- |
+| Inspection | claims and evidence | `byax evidence` | `byax_evidence` | `POST /v1/execute` | `byax.authoring.citation_evidence` | Review > Claims and evidence… |
 | Discovery | version | `byax version` | `byax_version` | `POST /v1/execute` | `byax.__version__` | Help > About ByAuthorX |
 | Discovery | capabilities | `byax capabilities` | `byax_capabilities` | `POST /v1/execute` | `byax.providers.list_capabilities` | — (headless) |
 | Discovery | command schema | `byax schema` | `byax_schema` | `POST /v1/execute` | `byax.cli.command_schema` | — (headless) |

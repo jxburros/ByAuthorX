@@ -2,6 +2,35 @@
 
 This matrix maps the complete product specification to the implementation and its remaining verification. **This implementation is not a completed acceptance of the entire specification.** A feature represented in the document schema is not necessarily rendered or operable in the GUI. Passing serialization is not publication validation.
 
+## Author workflow additions (unreleased)
+
+`tests/test_authoring_workflow.py` covers an offline sample project's save/reopen,
+current quotation evidence, changed-source invalidation without excerpt fallback,
+manual/paraphrase interpretation, preservation rules (including partial selections),
+proposal-only registration followed by explicit acceptance, private metadata/comment
+exclusion in serialized DOCX, outbound author instructions, failed editor flushes
+and stale publication previews. `tests/test_ci_evidence.py` checks missing/skipped/
+failed desktop-suite rejection. The existing accessibility dialog audit includes
+Prepare to share. See [the workflow](research-workflow.md) and
+[physical checklist](desktop-release-checklist.md).
+
+These additions do not establish live semantic review quality, qualified desktop
+performance, target-application layout fidelity, OS signing or physical acceptance.
+The new publication preview reuses the export copy builder; the original master
+is not modified. Existing broader acceptance limits below continue to apply.
+
+Local validation on Linux/Python 3.12.14 with Qt offscreen: the full suite passed
+**864 tests**, with **2 optional font-design tests skipped** because `fontTools`
+is absent. After the final refinements, **183 desktop tests** passed in a fresh
+process. Coverage for the refined modules was refreshed and combined with the
+unchanged modules' full-suite evidence: **82.81%**, above the 70% CI floor.
+Both JUnit reports passed the required-desktop-suite gate. Ruff lint/format,
+the configured mypy gate and `git diff --check` passed. The three frozen Linux
+executables built successfully; CLI evidence inspection, MCP read-only discovery
+and offscreen GUI startup passed smoke checks. No live model calls or physical
+desktop qualification are claimed.
+
+
 Statuses: **verified subset** means a named automated test exercises the stated behavior; **partial** means implemented behavior has material limits or incomplete scenario coverage; **missing / unverified** means no implementation or no relevant end-to-end evidence. Physical Windows/Linux and credentialed provider acceptance remain unverified.
 
 ## Feature coverage

@@ -1,9 +1,11 @@
 """Explicit, suggestion-only review tasks in one keyboard-accessible control."""
 
 from PySide6.QtWidgets import (
+    QCheckBox,
     QComboBox,
     QHBoxLayout,
     QLabel,
+    QLineEdit,
     QPlainTextEdit,
     QPushButton,
     QVBoxLayout,
@@ -51,6 +53,26 @@ class ReviewChecks(QWidget):
         self.instructions.setMaximumHeight(90)
         self.instructions.textChanged.connect(self.sync)
         layout.addWidget(self.instructions)
+        from .authoring import REVIEW_BRIEFS
+
+        self.brief = QComboBox()
+        self.brief.setAccessibleName(self.tr('Review approach'))
+        for key, (label, _) in REVIEW_BRIEFS.items():
+            self.brief.addItem(self.tr(label), key)
+        layout.addWidget(self.brief)
+        self.preservation = {}
+        for key, label in (
+            ('preserve_numbers', 'Keep numbers unchanged'),
+            ('preserve_quotes', 'Keep quotations unchanged'),
+            ('preserve_citations', 'Keep cited text unchanged'),
+        ):
+            box = QCheckBox(self.tr(label))
+            self.preservation[key] = box
+            layout.addWidget(box)
+        self.terms = QLineEdit()
+        self.terms.setAccessibleName(self.tr('Terminology to preserve'))
+        self.terms.setPlaceholderText(self.tr('Keep these terms (comma separated)'))
+        layout.addWidget(self.terms)
         self.hint = QLabel()
         self.hint.setWordWrap(True)
         layout.addWidget(self.hint)
@@ -64,6 +86,9 @@ class ReviewChecks(QWidget):
     def sync(self, *_):
         kind = self.options.currentData()
         self.instructions.setVisible(kind == 'custom')
+        remote = kind not in ('spelling', 'grammar', 'health')
+        for control in [self.brief, self.terms, *self.preservation.values()]:
+            control.setVisible(remote)
         self.spelling.setVisible(kind == 'spelling')
         self.go.setEnabled(kind != 'custom' or bool(self.instructions.toPlainText().strip()))
         self.hint.setText(
@@ -74,6 +99,17 @@ class ReviewChecks(QWidget):
                 'nothing is changed automatically.'
             )
         )
+
+    def author_constraints(self):
+        from .authoring import REVIEW_BRIEFS
+
+        key = self.brief.currentData()
+        return {
+            'brief': key,
+            'instructions': REVIEW_BRIEFS[key][1],
+            **{key: box.isChecked() for key, box in self.preservation.items()},
+            'terms': [term.strip() for term in self.terms.text().split(',') if term.strip()],
+        }
 
     def run(self):
         kind = self.options.currentData()

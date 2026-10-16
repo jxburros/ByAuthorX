@@ -233,7 +233,8 @@ def authorize_payload(window, title, preview):
 
 
 def review_document(window, *, check=None, instructions=None):
-    window.flush_edits()
+    if not window.flush_edits():
+        return
     from .profiles import filter_findings, validate_profile
 
     frozen = copy.deepcopy(window.doc)
@@ -260,6 +261,9 @@ def review_document(window, *, check=None, instructions=None):
     if not alias:
         return
     selected = window.editor.textCursor().selectedText().replace('\u2029', '\n')
+    from .authoring import protected_spans
+
+    constraints = window.review_checks.author_constraints()
     text = selected or model.text_of(frozen)
     selected_sources = profile['references'] if profile else list(frozen['references'])
     blocks = copy.deepcopy(frozen['blocks'])
@@ -283,9 +287,13 @@ def review_document(window, *, check=None, instructions=None):
                     'text': original.get('text', '')[start:end],
                     'source_offset': start,
                     'attrs': copy.deepcopy(original.get('attrs', {})),
+                    'style': original.get('style'),
+                    'marks': copy.deepcopy(original.get('marks', [])),
+                    'author_protected_spans': protected_spans(original, constraints),
                 }
             )
     context = {
+        'document_id': frozen['id'],
         'revision': frozen['revision'],
         'scope': 'selection' if selected else 'document',
         'profile': profile or {},
@@ -298,6 +306,7 @@ def review_document(window, *, check=None, instructions=None):
         'source_authority': profile['source_authority'] if profile else 'exclusive',
         'blocks': blocks,
         'protections': copy.deepcopy(frozen.get('settings', {}).get('protections', [])),
+        'author_constraints': constraints,
     }
     if check:
         context['requested_check'] = {'kind': check, 'instructions': instructions or ''}
@@ -327,8 +336,10 @@ def review_document(window, *, check=None, instructions=None):
     def finished(result):
         if profile:
             result = filter_findings(result, profile)
-        window.flush_edits()
-        if window.doc['revision'] != frozen['revision']:
+        if not window.flush_edits() or (window.doc['id'], window.doc['revision']) != (
+            frozen['id'],
+            frozen['revision'],
+        ):
             result['stale'] = True
         else:
             proposals = result.get('proposals', [])
