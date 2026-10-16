@@ -9,7 +9,7 @@ only units whose fingerprints still match and re-evaluate everything else.
 import copy
 import re
 
-from . import fiction_checks, language_packs
+from . import extensions, fiction_checks, language_packs
 from . import grammar as grammar_tiers
 from .errors import ByaxError
 from .model import object_hash, text_of, validate_document
@@ -28,6 +28,7 @@ SUITES = (
     'factual',
     'publication',
     'fiction',
+    'extension',
 )
 DEFAULT_SUITES = ['structure', 'accessibility', 'requirements', 'print']
 PUBLICATION_SUITES = ('structure', 'accessibility', 'requirements', 'print', 'editorial')
@@ -181,7 +182,12 @@ def run_checks(doc, suites=None, *, limit=100, profile=None, scope=None, previou
         )
     for key, fingerprint in ctx.unit_fingerprints().items():
         prior = (previous or {}).get('units', {}).get(key) if compatible else None
-        if prior is not None and prior.get('fingerprint') == fingerprint:
+        if (
+            prior is not None
+            and prior.get('fingerprint') == fingerprint
+            # A unit that failed (a script timed out or crashed) is retried, not remembered.
+            and not any(c.get('status') == 'failed' for c in prior.get('coverage', []))
+        ):
             units[key] = {
                 'fingerprint': fingerprint,
                 'findings': copy.deepcopy(prior['findings']),
@@ -238,8 +244,10 @@ def run_checks(doc, suites=None, *, limit=100, profile=None, scope=None, previou
         )
     if 'grammar' in expanded:
         coverage.append({**grammar_tiers.tier_coverage(), 'scope': selection['label']})
+    if 'extension' in expanded:
+        coverage.extend(extensions.report_coverage(selection['label']))
     if selection['kind'] != 'document':
-        document_suites = sorted(expanded - BLOCK_SUITES - {'consistency'})
+        document_suites = sorted(expanded - BLOCK_SUITES - {'consistency', 'extension'})
         if document_suites:
             coverage.append(
                 {
@@ -585,7 +593,12 @@ class _Context:
             )
         if 'fiction' in self.suites:
             result.update(fiction_checks.unit_fingerprints(self))
-        if self.selection['kind'] == 'document' and set(self.suites) - BLOCK_SUITES - {'consistency'}:
+        if 'extension' in self.suites:
+            result.update(extensions.unit_fingerprints(self))
+        if self.selection['kind'] == 'document' and set(self.suites) - BLOCK_SUITES - {
+            'consistency',
+            'extension',
+        }:
             result['document'] = document_fingerprint(doc, self.base_config)
         return result
 
@@ -623,6 +636,10 @@ class _Context:
         if key.startswith(('fiction:', 'context:fiction_')):
             sink = _Sink(self, key)
             fiction_checks.evaluate(self, sink, key)
+            return sink.findings, sink.coverage
+        if key.startswith('context:extension:'):
+            sink = _Sink(self, key)
+            extensions.evaluate(self, sink, key)
             return sink.findings, sink.coverage
         return _evaluate_document(self, key)
 
@@ -694,7 +711,9 @@ class _Sink:
         f = {
             'rule': rule,
             'family': family,
-            'suite': RULES.get(rule, (family,))[0],
+            'suite': extensions.SUITE
+            if family.startswith(extensions.FAMILY_PREFIX)
+            else RULES.get(rule, (family,))[0],
             'severity': severity,
             'policy': 'strict' if severity == 'error' else 'advisory',
             'explanation': message,

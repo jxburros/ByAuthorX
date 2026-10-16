@@ -1,0 +1,26 @@
+{
+  "id": "long-sentences",
+  "name": "Sentences over N words",
+  "version": "1.0.0",
+  "api_version": 1,
+  "description": "A script check written in Python. Receives the text of each paragraph on stdin and reports sentences longer than a limit you can change in the manifest options.",
+  "author": "ByAuthorX project",
+  "licence": "MIT",
+  "kinds": ["check"],
+  "scopes": ["read", "checks"],
+  "entry_points": {
+    "checks": [
+      {
+        "id": "sentence-length",
+        "type": "script",
+        "path": "checks/long_sentences.py",
+        "runtime": "python",
+        "timeout": 20,
+        "title": "Long sentences",
+        "description": "Flags sentences over the configured number of words.",
+        "options": {"max_words": 40},
+        "rules": ["too-long"]
+      }
+    ]
+  }
+}

@@ -301,3 +301,34 @@ always AI-visible view for model clients. All lists are bounded with `offset` co
 | Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
 | Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
+
+## Extensions and macros
+
+`extensions` lists, inspects, verifies and runs extension checks and export hooks; `macro` lists, saves,
+runs (or dry-runs) and removes saved command macros. See [extensions](extensions.md). Reading and
+running are open to MCP and REST. Installing, package inspection, enabling, disabling, removing and
+issuing a scoped REST token change what code may run on this computer, so they are refused over MCP
+and REST with `unsupported_feature` (use the local CLI or desktop), as are `macro --allow-admin` and
+saving or removing macros in the user config (macros stored in a document are an ordinary revision and
+are allowed). Every macro step is checked with `check_provider_admin`, and behind REST with the
+service's path policy after placeholder substitution. `export --hooks` runs enabled export hooks and
+reports them under `hooks`; `--hooks-dir` is a path argument scoped like `--out`. A scoped extension
+token (`bxe1.…`, from `extensions --action token`) can call only the read-only commands and
+`review --action propose` with text-edit operations (`403 forbidden` otherwise).
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Discovery | list extensions | `byax extensions --action list` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.summaries` | Tools > Extensions… |
+| Inspection | extension details | `byax extensions --action info` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.describe` | Tools > Extensions… |
+| Inspection | verify installed extensions | `byax extensions --action verify` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.verify` | Tools > Extensions… |
+| Checks | run extension checks | `byax extensions --action run-check` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.evaluate` | Tools > Extensions… |
+| Output | run an export hook | `byax extensions --action run-hook` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.run_hook` | Tools > Extensions… |
+| Output | export with hooks | `byax export --hooks` | `byax_export` | `POST /v1/execute` | `byax.extensions.run_export_hooks` | Tools > Extensions… |
+| Files | install extension | `byax extensions --action install` | refused | refused | `byax.extensions.install` | Tools > Extensions… |
+| Files | enable or disable extension | `byax extensions --action enable` | refused | refused | `byax.extensions.set_enabled` | Tools > Extensions… |
+| Files | remove extension | `byax extensions --action remove` | refused | refused | `byax.extensions.remove` | Tools > Extensions… |
+| Files | scoped extension token | `byax extensions --action token` | refused | refused | `byax.service.issue_extension_token` | — (headless) |
+| Inspection | list macros | `byax macro --action list` | `byax_macro` | `POST /v1/execute` | `byax.macros.user_macros` | Tools > Macros… |
+| Editing | run or dry-run a macro | `byax macro --action run` | `byax_macro` | `POST /v1/execute` | `byax.macros.run_macro` | Tools > Macros… |
+| Files | save macro | `byax macro --action save` | document store only | document store only | `byax.macros.validate_macro` | Tools > Macros… |
+| Files | remove macro | `byax macro --action remove` | document store only | document store only | `byax.macros.find` | Tools > Macros… |

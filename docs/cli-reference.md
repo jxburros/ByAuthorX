@@ -102,6 +102,8 @@ command's flags.
 | `entity` | Read-only codex lookup, mentions and heatmap (entries hidden from AI are never shown) |
 | `review-package` | Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on; `--action list` lists packages |
 | `merge-review` | Merge a returned Word review copy as pending proposals and comment threads |
+| `extensions` | List, inspect, install, enable, disable, remove and run extensions (custom checks and export hooks, out of process). Install, enable, disable, remove and `token` are refused over MCP and REST |
+| `macro` | List, save, run (or `--dry-run`) and remove saved command macros; steps get the same administrative refusals as transports unless `--allow-admin` is given on the local CLI |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -380,6 +382,52 @@ byax languages --action coverage [--language de]
 
 Over MCP and REST only `list`, `verify` and `coverage` are available.
 
+## Extensions and macros
+
+See [extensions](extensions.md) for the manifest, scopes, protocols and limits.
+
+```bash
+byax extensions                                              # list installed (--action list)
+byax extensions --action scopes                              # what each scope allows
+byax extensions --action install --source-path DIR_OR_ZIP    # shows SHA-256 and scopes; installs nothing
+byax extensions --action install --source-path DIR_OR_ZIP --sha256 HASH --scopes checks --scopes read [--enable] [--replace]
+byax extensions --action info --id ID
+byax extensions --action enable|disable|remove --id ID
+byax extensions --action verify [--id ID]                    # recompute installed file hashes
+byax extensions --action run-check --id ID --document FILE [--check CHECK_ID] [--limit N]
+byax extensions --action run-hook --id ID --hook HOOK_ID --exported-file FILE [--hooks-dir DIR] [--format FMT] [--input LOSS_REPORT.json] [--overwrite]
+byax extensions --action token --id ID [--scopes read] [--scopes propose] [--ttl SECONDS] [--token-env VAR]
+byax check FILE --suite extension                             # every enabled extension check (or --family extension)
+byax export FILE --out OUT.docx --hooks [--hooks-dir DIR] [--overwrite]
+```
+
+| Flag | Meaning |
+| --- | --- |
+| `--action` | `list` (default), `scopes`, `info`, `verify`, `run-check`, `run-hook`; local only: `inspect-package`, `install`, `enable`, `disable`, `remove`, `token` |
+| `--source-path` | Extension folder or ZIP to install |
+| `--sha256`, `--scopes` | The hash and scopes shown by the first `install` call; both must be repeated to install |
+| `--enable`, `--replace` | Enable straight after installing; install over an installed extension (older versions are refused) |
+| `--document` | Document for `run-check` |
+| `--exported-file`, `--hooks-dir`, `--format`, `--input`, `--overwrite` | Export hook run: the file, the folder for hook outputs (default `<file>.hooks`), its format, the loss report as JSON, replace existing outputs |
+| `--ttl`, `--token-env` | Token lifetime (60 to 2,592,000 seconds, default 3,600) and the environment variable holding the service token (default `BYAX_SERVICE_TOKEN`) |
+
+`install` without `--sha256`/`--scopes` returns `installed: false`, `review: required` and the package
+description, and exits 0. `run-check` and `run-hook` need an enabled, intact extension that was granted
+the scope. A failed hook returns `execution: failed` with `hook.status` `failed` or `timeout`.
+
+```bash
+byax macro                                                    # list (--document adds the document's macros)
+byax macro --action show --name NAME [--store user|document] [--document FILE]
+byax macro --action save --input MACRO.json [--store user|document] [--document FILE] [--replace]
+byax macro --action run --name NAME --document FILE [--params '{"suite": ["grammar"]}'] [--dry-run] [--expect-revision REV] [--verbose] [--allow-admin]
+byax macro --action run --input MACRO.json --document FILE   # run without saving
+byax macro --action remove --name NAME [--store user|document] [--document FILE]
+```
+
+`--params` is an inline JSON object. A failed run exits with the failing step's exit code and the error
+carries `step` and `transcript`; a completed run returns `transcript`, `steps_run`, `steps_total` and
+`dry_run`. `--allow-admin` is accepted only on the local CLI.
+
 ## Project search and codex
 
 `byax project-search PATH --action …` searches the project: the folder of `PATH` (the document
@@ -539,6 +587,7 @@ desktop confirmation (see [architecture](architecture.md#mutation-and-persistenc
 | `BYAX_NO_TOUR` | desktop | `1` suppresses the first-run tour; Help → Take the tour still opens it. |
 | `BYAX_GRAMMAR_DIR` | `grammar` | Folder for `grammar.json` and the LanguageTool download, log and process record, instead of the user config and data folders. |
 | `BYAX_LANGUAGES_DIR` | `languages` | Folder for installed language packs, instead of the user data folder. |
+| `BYAX_EXTENSIONS_DIR` | `extensions`, `check --suite extension`, `export --hooks` | Folder for installed extensions and their enabled state, instead of the user data folder. |
 | `BYAX_LANGUAGETOOL_URL` | tests | Local server address that enables `pytest -m languagetool`. |
 | `QT_QPA_PLATFORM` | rendering, tests | Set `offscreen` for headless PNG/PDF rendering and tests. |
 
@@ -556,6 +605,11 @@ byax serve --root /absolute/authorized/folder [--port 8765]
 POST `{"command": "inspect", "arguments": {"path": "…"}}` to `http://127.0.0.1:8765/v1/execute`
 with `Authorization: Bearer <token>`. The service refuses non-loopback binding, browser origins,
 unauthenticated calls and paths outside its roots.
+
+An installed, enabled extension can be given a **scoped token** (`byax extensions --action token`)
+signed with the service token: it carries `read` and/or `propose`, expires, and only reaches the
+read-only commands and `review --action propose` with text-edit operations; everything else is
+`403 forbidden`. See [extensions](extensions.md#scoped-rest-tokens).
 
 ## MCP
 

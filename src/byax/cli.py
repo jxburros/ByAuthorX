@@ -264,6 +264,9 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'dry_run': 'boolean',
         'require_suite': 'array',
         'strict': 'boolean',
+        # Extension export hooks (byax.extensions): run after the export on a read-only copy.
+        'hooks': 'boolean',
+        'hooks_dir': 'string',
     },
     'render': {'path': 'string', 'out': 'string', 'pages': 'array', 'overwrite': 'boolean'},
     'pack': {'path': 'string', 'out': 'string', 'overwrite': 'boolean'},
@@ -548,6 +551,46 @@ ARGUMENTS['merge-review'] = {
     'review_id': 'string',
     'expect_revision': 'string',
     'dry_run': 'boolean',
+}
+# Extension layer (byax.extensions, byax.macros): out-of-process checks and export hooks; saved macros.
+COMMANDS['extensions'] = (
+    'List, inspect, install, enable and run extensions (custom checks and export hooks, out of process)'
+)
+COMMANDS['macro'] = 'List, save, run (or dry-run) and remove saved command macros'
+ARGUMENTS['extensions'] = {
+    'action': 'string',
+    'id': 'string',
+    'check': 'string',
+    'hook': 'string',
+    'document': 'string',
+    'source_path': 'string',
+    'sha256': 'string',
+    'scopes': 'array',
+    'enable': 'boolean',
+    'replace': 'boolean',
+    'overwrite': 'boolean',
+    'exported_file': 'string',
+    'hooks_dir': 'string',
+    'format': 'string',
+    'input': 'object',
+    'token_env': 'string',
+    'ttl': 'integer',
+    'limit': 'integer',
+}
+ARGUMENTS['macro'] = {
+    'action': 'string',
+    'name': 'string',
+    'store': 'string',
+    'document': 'string',
+    'input': 'object',
+    'params': 'object',
+    'dry_run': 'boolean',
+    'allow_admin': 'boolean',
+    'replace': 'boolean',
+    'verbose': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'config_dir': 'string',
 }
 REQUIRED = {
     'compile': ['path'],
@@ -1149,6 +1192,16 @@ def _exchange(command: str) -> Handler:
             )
         if imported:
             result['import_report'] = imported
+        if command == 'export' and a.get('hooks') and not a.get('dry_run'):
+            from .extensions import run_export_hooks
+
+            result['hooks'] = run_export_hooks(
+                a['out'],
+                fmt=(a.get('format') or Path(a['out']).suffix.lstrip('.')).lower(),
+                loss_report={'losses': result.get('losses', []), 'fidelity': result.get('fidelity')},
+                output_dir=a.get('hooks_dir') or a['out'] + '.hooks',
+                overwrite=a.get('overwrite', False),
+            )
         if gate:
             result['required_checks'] = gate
             result['validation'] = gate['validation']
@@ -1634,9 +1687,11 @@ from .cli_libraries import cite_command, library_command, library_read, library_
 from .compile import compile_command
 from .docx_review import merge_review_command, review_package_command
 from .drafts import drafts_command
+from .extensions import extensions_command
 from .goals import goals_command
 from .grammar import grammar_command
 from .language_packs import languages_command
+from .macros import macro_command
 from .project import project_command
 from .project_index import project_search_command
 from .sync_safety import sync_command
@@ -1695,6 +1750,8 @@ _HANDLERS: dict[str, Handler] = {
     'entity': entity_command,
     'review-package': review_package_command,
     'merge-review': merge_review_command,
+    'extensions': extensions_command,
+    'macro': macro_command,
 }
 
 
@@ -1817,6 +1874,8 @@ def main(argv: list[str] | None = None) -> int:
             if len(raw) > 16 * 1024 * 1024:
                 _error('limit_exceeded', 'JSON input exceeds 16 MiB')
             ns['input'] = json.loads(raw)
+        if isinstance(ns.get('params'), str):
+            ns['params'] = json.loads(ns['params'])  # macro parameters: inline JSON object
         if 'pages' in ns and ns['pages'] != 'affected':
             pages: list[int] = []
             for token in ns['pages'].split(','):
