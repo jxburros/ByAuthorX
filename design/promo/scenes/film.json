@@ -1,0 +1,67 @@
+{
+ "output": "byauthorx-promo.mp4",
+ "spec": {
+  "version": 1,
+  "width": 1920,
+  "height": 1080,
+  "fps": 30,
+  "shots": [
+   {
+    "source": "scenes/01-blank.vixl",
+    "duration": 8000
+   },
+   {
+    "source": "scenes/02-friction.vixl",
+    "duration": 10000,
+    "transition": 600
+   },
+   {
+    "source": "scenes/03-logo.vixl",
+    "duration": 7500,
+    "transition": 600
+   },
+   {
+    "source": "scenes/04-editor.vixl",
+    "duration": 11000,
+    "transition": 600
+   },
+   {
+    "source": "scenes/05-review.vixl",
+    "duration": 11000,
+    "transition": 600
+   },
+   {
+    "source": "scenes/06-ai.vixl",
+    "duration": 11500,
+    "transition": 600
+   },
+   {
+    "source": "scenes/07-marks.vixl",
+    "duration": 9000,
+    "transition": 600
+   },
+   {
+    "source": "scenes/08-formats.vixl",
+    "duration": 10500,
+    "transition": 600
+   },
+   {
+    "source": "scenes/09-engine.vixl",
+    "duration": 11000,
+    "transition": 600
+   },
+   {
+    "source": "scenes/10-end.vixl",
+    "duration": 9000,
+    "transition": 600
+   }
+  ],
+  "audio": [
+   {
+    "source": "scenes/score.wav",
+    "start": 0,
+    "volume": 2.0
+   }
+  ]
+ }
+}

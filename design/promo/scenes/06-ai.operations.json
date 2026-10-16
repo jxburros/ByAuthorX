@@ -1,0 +1,538 @@
+[
+ {
+  "type": "timeline-set",
+  "duration": 11500,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "text",
+  "name": "eyebrow",
+  "text": "OPTIONAL AI",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 26,
+  "color": "#367B6C",
+  "x": "center",
+  "y": 110,
+  "align": "left",
+  "tracking": 4
+ },
+ {
+  "type": "animate-preset",
+  "target": "eyebrow",
+  "preset": "fade-in",
+  "start": 200,
+  "duration": 500
+ },
+ {
+  "type": "align",
+  "target": "eyebrow",
+  "alignment": "center-x"
+ },
+ {
+  "type": "text",
+  "name": "head",
+  "text": "Help when you ask. Silence when you don't.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 66,
+  "color": "#252927",
+  "x": "center",
+  "y": 160,
+  "align": "center"
+ },
+ {
+  "type": "align",
+  "target": "head",
+  "alignment": "center-x"
+ },
+ {
+  "type": "text-animate",
+  "target": "head",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 400,
+  "duration": 600,
+  "stagger": 70,
+  "mode": "in"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "switch",
+  "x": 760,
+  "y": 300,
+  "width": 400,
+  "height": 76,
+  "radius": 38,
+  "fill": "#FFFCF7",
+  "stroke": "#D7D0C3",
+  "stroke_width": 2
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "knob",
+  "x": 766,
+  "y": 306,
+  "width": 194,
+  "height": 64,
+  "radius": 32,
+  "fill": "#367B6C"
+ },
+ {
+  "type": "text",
+  "name": "chat-label",
+  "text": "Chat",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 760,
+  "y": 318,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "chat-label",
+  "width": 200
+ },
+ {
+  "type": "text",
+  "name": "work-label",
+  "text": "Work",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 960,
+  "y": 318,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "work-label",
+  "width": 200
+ },
+ {
+  "type": "keyframe",
+  "target": "chat-label",
+  "property": "color",
+  "time": 0,
+  "value": "#FFFCF7",
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "chat-label",
+  "property": "color",
+  "time": 5000,
+  "value": "#FFFCF7",
+  "easing": "ease-in-out"
+ },
+ {
+  "type": "keyframe",
+  "target": "chat-label",
+  "property": "color",
+  "time": 5400,
+  "value": "#252927"
+ },
+ {
+  "type": "keyframe",
+  "target": "work-label",
+  "property": "color",
+  "time": 0,
+  "value": "#252927",
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "work-label",
+  "property": "color",
+  "time": 5000,
+  "value": "#252927",
+  "easing": "ease-in-out"
+ },
+ {
+  "type": "keyframe",
+  "target": "work-label",
+  "property": "color",
+  "time": 5400,
+  "value": "#FFFCF7"
+ },
+ {
+  "type": "keyframe",
+  "target": "knob",
+  "property": "translate-x",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "knob",
+  "property": "translate-x",
+  "time": 5000,
+  "value": 0,
+  "easing": "ease-in-out-cubic"
+ },
+ {
+  "type": "keyframe",
+  "target": "knob",
+  "property": "translate-x",
+  "time": 5400,
+  "value": 194
+ },
+ {
+  "type": "group",
+  "name": "switcher",
+  "targets": [
+   "switch",
+   "knob",
+   "chat-label",
+   "work-label"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "switcher",
+  "preset": "slide-in-up",
+  "start": 1100,
+  "duration": 600,
+  "distance": 16,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "chat-card",
+  "x": 300,
+  "y": 430,
+  "width": 640,
+  "height": 400,
+  "radius": 14,
+  "fill": "#FFFCF7",
+  "stroke": "#D7D0C3",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "chat-card",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "add",
+  "name": "chat-art",
+  "path": "/home/user/ByAuthorX/assets/logo-companion-library/illustrations/idea-on-paper-light@2x.png",
+  "x": 310,
+  "y": 520,
+  "width": 300,
+  "height": 225
+ },
+ {
+  "type": "text",
+  "name": "chat-title",
+  "text": "Chat answers.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 46,
+  "color": "#252927",
+  "x": 610,
+  "y": 500,
+  "align": "left"
+ },
+ {
+  "type": "text",
+  "name": "chat-line",
+  "text": "Ask about your draft. It never touches the page.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 32,
+  "color": "#52615B",
+  "x": 610,
+  "y": 580,
+  "align": "left"
+ },
+ {
+  "type": "text-layout",
+  "target": "chat-line",
+  "width": 300,
+  "wrap": "pretty"
+ },
+ {
+  "type": "group",
+  "name": "chat",
+  "targets": [
+   "chat-card",
+   "chat-art",
+   "chat-title",
+   "chat-line"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "chat",
+  "preset": "slide-in-up",
+  "start": 1700,
+  "duration": 750,
+  "distance": 40,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "work-card",
+  "x": 980,
+  "y": 430,
+  "width": 640,
+  "height": 400,
+  "radius": 14,
+  "fill": "#FFFCF7",
+  "stroke": "#D7D0C3",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "work-card",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "add",
+  "name": "work-art",
+  "path": "/home/user/ByAuthorX/assets/logo-companion-library/illustrations/margin-notes-light@2x.png",
+  "x": 990,
+  "y": 520,
+  "width": 300,
+  "height": 225
+ },
+ {
+  "type": "text",
+  "name": "work-title",
+  "text": "Work proposes.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 46,
+  "color": "#252927",
+  "x": 1290,
+  "y": 500,
+  "align": "left"
+ },
+ {
+  "type": "text",
+  "name": "work-line",
+  "text": "Exact edits go to Review. You approve each one.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 32,
+  "color": "#52615B",
+  "x": 1290,
+  "y": 580,
+  "align": "left"
+ },
+ {
+  "type": "text-layout",
+  "target": "work-line",
+  "width": 300,
+  "wrap": "pretty"
+ },
+ {
+  "type": "group",
+  "name": "work",
+  "targets": [
+   "work-card",
+   "work-art",
+   "work-title",
+   "work-line"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "work",
+  "preset": "slide-in-up",
+  "start": 5300,
+  "duration": 750,
+  "distance": 40,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "chip0-bg",
+  "x": 199.0,
+  "y": 900,
+  "width": 220,
+  "height": 64,
+  "radius": 32,
+  "fill": "#F4EEE3",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "text",
+  "name": "chip0-t",
+  "text": "No account",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 28,
+  "color": "#246052",
+  "x": 199.0,
+  "y": 914,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "chip0-t",
+  "width": 220
+ },
+ {
+  "type": "group",
+  "name": "chip0",
+  "targets": [
+   "chip0-bg",
+   "chip0-t"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "chip0",
+  "preset": "pop-in",
+  "start": 7300,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "chip1-bg",
+  "x": 443.0,
+  "y": 900,
+  "width": 250,
+  "height": 64,
+  "radius": 32,
+  "fill": "#F4EEE3",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "text",
+  "name": "chip1-t",
+  "text": "No telemetry",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 28,
+  "color": "#246052",
+  "x": 443.0,
+  "y": 914,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "chip1-t",
+  "width": 250
+ },
+ {
+  "type": "group",
+  "name": "chip1",
+  "targets": [
+   "chip1-bg",
+   "chip1-t"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "chip1",
+  "preset": "pop-in",
+  "start": 7560,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "chip2-bg",
+  "x": 717.0,
+  "y": 900,
+  "width": 505,
+  "height": 64,
+  "radius": 32,
+  "fill": "#F4EEE3",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "text",
+  "name": "chip2-t",
+  "text": "Keys stay in your OS keychain",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 28,
+  "color": "#246052",
+  "x": 717.0,
+  "y": 914,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "chip2-t",
+  "width": 505
+ },
+ {
+  "type": "group",
+  "name": "chip2",
+  "targets": [
+   "chip2-bg",
+   "chip2-t"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "chip2",
+  "preset": "pop-in",
+  "start": 7820,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "chip3-bg",
+  "x": 1246.0,
+  "y": 900,
+  "width": 475,
+  "height": 64,
+  "radius": 32,
+  "fill": "#F4EEE3",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "text",
+  "name": "chip3-t",
+  "text": "Spelling checks run locally",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 28,
+  "color": "#246052",
+  "x": 1246.0,
+  "y": 914,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "chip3-t",
+  "width": 475
+ },
+ {
+  "type": "group",
+  "name": "chip3",
+  "targets": [
+   "chip3-bg",
+   "chip3-t"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "chip3",
+  "preset": "pop-in",
+  "start": 8080,
+  "duration": 450
+ }
+]

@@ -1,0 +1,368 @@
+[
+ {
+  "type": "timeline-set",
+  "duration": 11000,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "app-card",
+  "x": 90,
+  "y": 170,
+  "width": 1102,
+  "height": 758,
+  "radius": 16,
+  "fill": "#FFFCF7"
+ },
+ {
+  "type": "layer-style",
+  "target": "app-card",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "add",
+  "name": "app-shot",
+  "path": "/home/user/ByAuthorX/docs/images/editor-review.png",
+  "x": 100,
+  "y": 180,
+  "width": 1082,
+  "height": 738
+ },
+ {
+  "type": "shape",
+  "shape": "ellipse",
+  "name": "ring",
+  "x": 924.3399999999999,
+  "y": 367.36,
+  "width": 270.1200000000001,
+  "height": 75.45999999999998,
+  "fill": "none",
+  "stroke": "#AD283E",
+  "stroke_width": 5,
+  "line_cap": "round",
+  "stroke_align": "center",
+  "rotation": -2
+ },
+ {
+  "type": "keyframe",
+  "target": "ring",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "ring",
+  "property": "trim_end",
+  "time": 2600,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "ring",
+  "property": "trim_end",
+  "time": 3400,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "ellipse",
+  "name": "ring2",
+  "x": 917.78,
+  "y": 804.04,
+  "width": 283.24,
+  "height": 47.51999999999998,
+  "fill": "none",
+  "stroke": "#367B6C",
+  "stroke_width": 5,
+  "line_cap": "round",
+  "stroke_align": "center",
+  "rotation": -2
+ },
+ {
+  "type": "keyframe",
+  "target": "ring2",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "ring2",
+  "property": "trim_end",
+  "time": 4200,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "ring2",
+  "property": "trim_end",
+  "time": 5000,
+  "value": 100
+ },
+ {
+  "type": "group",
+  "name": "app",
+  "targets": [
+   "app-card",
+   "app-shot",
+   "ring",
+   "ring2"
+  ]
+ },
+ {
+  "type": "animate",
+  "target": "app",
+  "property": "translate-x",
+  "from": -120,
+  "to": 0,
+  "start": 0,
+  "duration": 1100,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "animate-preset",
+  "target": "app",
+  "preset": "fade-in",
+  "start": 0,
+  "duration": 800
+ },
+ {
+  "type": "pivot",
+  "target": "app",
+  "value": "center"
+ },
+ {
+  "type": "animate",
+  "target": "app",
+  "property": "scale",
+  "from": 1,
+  "to": 1.035,
+  "start": 1100,
+  "duration": 9900,
+  "easing": "linear"
+ },
+ {
+  "type": "text",
+  "name": "eyebrow",
+  "text": "REVIEW",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 26,
+  "color": "#367B6C",
+  "x": 1250,
+  "y": 250,
+  "align": "left",
+  "tracking": 4
+ },
+ {
+  "type": "animate-preset",
+  "target": "eyebrow",
+  "preset": "fade-in",
+  "start": 300,
+  "duration": 500
+ },
+ {
+  "type": "text",
+  "name": "head",
+  "text": "Suggestions wait for your say.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 62,
+  "color": "#252927",
+  "x": 1250,
+  "y": 300,
+  "align": "left"
+ },
+ {
+  "type": "text-layout",
+  "target": "head",
+  "width": 560,
+  "wrap": "pretty"
+ },
+ {
+  "type": "text-animate",
+  "target": "head",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 500,
+  "duration": 600,
+  "stagger": 80,
+  "mode": "in"
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "tick0",
+  "path": "M0 14 L 10 24 L 30 0",
+  "x": 1250,
+  "y": 568,
+  "stroke": "#367B6C",
+  "stroke_width": 5,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick0",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick0",
+  "property": "trim_end",
+  "time": 1700,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick0",
+  "property": "trim_end",
+  "time": 2050,
+  "value": 100
+ },
+ {
+  "type": "text",
+  "name": "body0",
+  "text": "Comments and AI ideas wait in Review",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 1300,
+  "y": 560,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "body0",
+  "preset": "slide-in-up",
+  "start": 1780,
+  "duration": 600,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "tick1",
+  "path": "M0 14 L 10 24 L 30 0",
+  "x": 1250,
+  "y": 673,
+  "stroke": "#367B6C",
+  "stroke_width": 5,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick1",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick1",
+  "property": "trim_end",
+  "time": 2120,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick1",
+  "property": "trim_end",
+  "time": 2470,
+  "value": 100
+ },
+ {
+  "type": "text",
+  "name": "body1",
+  "text": "Accept or reject each one, line by line",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 1300,
+  "y": 665,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "body1",
+  "preset": "slide-in-up",
+  "start": 2200,
+  "duration": 600,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "tick2",
+  "path": "M0 14 L 10 24 L 30 0",
+  "x": 1250,
+  "y": 778,
+  "stroke": "#367B6C",
+  "stroke_width": 5,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick2",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick2",
+  "property": "trim_end",
+  "time": 2540,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "tick2",
+  "property": "trim_end",
+  "time": 2890,
+  "value": 100
+ },
+ {
+  "type": "text",
+  "name": "body2",
+  "text": "Nothing changes until you decide",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 1300,
+  "y": 770,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "body2",
+  "preset": "slide-in-up",
+  "start": 2620,
+  "duration": 600,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ }
+]

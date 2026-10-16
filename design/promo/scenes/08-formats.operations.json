@@ -1,0 +1,819 @@
+[
+ {
+  "type": "timeline-set",
+  "duration": 10500,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "text",
+  "name": "eyebrow",
+  "text": "ONE MASTER",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 26,
+  "color": "#367B6C",
+  "x": "center",
+  "y": 100,
+  "align": "left",
+  "tracking": 4
+ },
+ {
+  "type": "animate-preset",
+  "target": "eyebrow",
+  "preset": "fade-in",
+  "start": 200,
+  "duration": 500
+ },
+ {
+  "type": "align",
+  "target": "eyebrow",
+  "alignment": "center-x"
+ },
+ {
+  "type": "text",
+  "name": "head",
+  "text": "Write once. Open it anywhere.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 70,
+  "color": "#252927",
+  "x": "center",
+  "y": 145,
+  "align": "center"
+ },
+ {
+  "type": "align",
+  "target": "head",
+  "alignment": "center-x"
+ },
+ {
+  "type": "text-animate",
+  "target": "head",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 400,
+  "duration": 600,
+  "stagger": 90,
+  "mode": "in"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "master",
+  "x": 810,
+  "y": 400,
+  "width": 300,
+  "height": 380,
+  "radius": 10,
+  "fill": "#FFFCF7",
+  "stroke": "#252927",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "master",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "add",
+  "name": "master-art",
+  "path": "/home/user/ByAuthorX/assets/logo-companion-library/illustrations/revision-pages-light@2x.png",
+  "x": 820,
+  "y": 440,
+  "width": 280,
+  "height": 210
+ },
+ {
+  "type": "text",
+  "name": "master-ext",
+  "text": ".byax",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 52,
+  "color": "#252927",
+  "x": 810,
+  "y": 685,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "master-ext",
+  "width": 300
+ },
+ {
+  "type": "group",
+  "name": "master-doc",
+  "targets": [
+   "master",
+   "master-art",
+   "master-ext"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "master-doc",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "master-doc",
+  "preset": "zoom-in",
+  "start": 900,
+  "duration": 700,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link0",
+  "path": "M0 0 C -171 0, -171 -150, -342 -150",
+  "x": 810,
+  "y": 590,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link0",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link0",
+  "property": "trim_end",
+  "time": 1700,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link0",
+  "property": "trim_end",
+  "time": 2200,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt0-bg",
+  "x": 332.0,
+  "y": 406,
+  "width": 136,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt0-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt0-t",
+  "text": "PDF",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 332.0,
+  "y": 420,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt0-t",
+  "width": 136
+ },
+ {
+  "type": "group",
+  "name": "fmt0",
+  "targets": [
+   "fmt0-bg",
+   "fmt0-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt0",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt0",
+  "preset": "pop-in",
+  "start": 2100,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link1",
+  "path": "M0 0 C -196 0, -196 40, -391 40",
+  "x": 810,
+  "y": 590,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link1",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link1",
+  "property": "trim_end",
+  "time": 1900,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link1",
+  "property": "trim_end",
+  "time": 2400,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt1-bg",
+  "x": 261.0,
+  "y": 596,
+  "width": 158,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt1-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt1-t",
+  "text": "Word",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 261.0,
+  "y": 610,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt1-t",
+  "width": 158
+ },
+ {
+  "type": "group",
+  "name": "fmt1",
+  "targets": [
+   "fmt1-bg",
+   "fmt1-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt1",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt1",
+  "preset": "pop-in",
+  "start": 2300,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link2",
+  "path": "M0 0 C -122 0, -122 230, -243 230",
+  "x": 810,
+  "y": 590,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link2",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link2",
+  "property": "trim_end",
+  "time": 2100,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link2",
+  "property": "trim_end",
+  "time": 2600,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt2-bg",
+  "x": 233.0,
+  "y": 786,
+  "width": 334,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt2-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt2-t",
+  "text": "OpenDocument",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 233.0,
+  "y": 800,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt2-t",
+  "width": 334
+ },
+ {
+  "type": "group",
+  "name": "fmt2",
+  "targets": [
+   "fmt2-bg",
+   "fmt2-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt2",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt2",
+  "preset": "pop-in",
+  "start": 2500,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link3",
+  "path": "M0 0 C 171 0, 171 -150, 342 -150",
+  "x": 1110,
+  "y": 590,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link3",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link3",
+  "property": "trim_end",
+  "time": 2300,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link3",
+  "property": "trim_end",
+  "time": 2800,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt3-bg",
+  "x": 1452.0,
+  "y": 406,
+  "width": 136,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt3-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt3-t",
+  "text": "RTF",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 1452.0,
+  "y": 420,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt3-t",
+  "width": 136
+ },
+ {
+  "type": "group",
+  "name": "fmt3",
+  "targets": [
+   "fmt3-bg",
+   "fmt3-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt3",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt3",
+  "preset": "pop-in",
+  "start": 2700,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link4",
+  "path": "M0 0 C 196 0, 196 40, 391 40",
+  "x": 1110,
+  "y": 590,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link4",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link4",
+  "property": "trim_end",
+  "time": 2500,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link4",
+  "property": "trim_end",
+  "time": 3000,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt4-bg",
+  "x": 1501.0,
+  "y": 596,
+  "width": 158,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt4-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt4-t",
+  "text": "HTML",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 1501.0,
+  "y": 610,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt4-t",
+  "width": 158
+ },
+ {
+  "type": "group",
+  "name": "fmt4",
+  "targets": [
+   "fmt4-bg",
+   "fmt4-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt4",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt4",
+  "preset": "pop-in",
+  "start": 2900,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link5",
+  "path": "M0 0 C 144 0, 144 230, 287 230",
+  "x": 1110,
+  "y": 590,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link5",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link5",
+  "property": "trim_end",
+  "time": 2700,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link5",
+  "property": "trim_end",
+  "time": 3200,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt5-bg",
+  "x": 1397.0,
+  "y": 786,
+  "width": 246,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt5-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt5-t",
+  "text": "Markdown",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 1397.0,
+  "y": 800,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt5-t",
+  "width": 246
+ },
+ {
+  "type": "group",
+  "name": "fmt5",
+  "targets": [
+   "fmt5-bg",
+   "fmt5-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt5",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt5",
+  "preset": "pop-in",
+  "start": 3100,
+  "duration": 450
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "link6",
+  "path": "M0 0 L 0 106",
+  "x": 960,
+  "y": 780,
+  "stroke": "#367B6C",
+  "stroke_width": 4,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "link6",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "link6",
+  "property": "trim_end",
+  "time": 2900,
+  "value": 0,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "link6",
+  "property": "trim_end",
+  "time": 3400,
+  "value": 100
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "fmt6-bg",
+  "x": 815.0,
+  "y": 886,
+  "width": 290,
+  "height": 68,
+  "radius": 34,
+  "fill": "#FFFCF7",
+  "stroke": "#367B6C",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "fmt6-bg",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "text",
+  "name": "fmt6-t",
+  "text": "Plain text",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 34,
+  "color": "#252927",
+  "x": 815.0,
+  "y": 900,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "fmt6-t",
+  "width": 290
+ },
+ {
+  "type": "group",
+  "name": "fmt6",
+  "targets": [
+   "fmt6-bg",
+   "fmt6-t"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "fmt6",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "fmt6",
+  "preset": "pop-in",
+  "start": 3300,
+  "duration": 450
+ },
+ {
+  "type": "text",
+  "name": "note",
+  "text": "Exports never replace the master, and every lossy step comes with a report.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 32,
+  "color": "#52615B",
+  "x": "center",
+  "y": 1000,
+  "align": "center"
+ },
+ {
+  "type": "align",
+  "target": "note",
+  "alignment": "center-x"
+ },
+ {
+  "type": "animate-preset",
+  "target": "note",
+  "preset": "slide-in-up",
+  "start": 4300,
+  "duration": 700,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ }
+]

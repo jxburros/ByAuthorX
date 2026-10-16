@@ -1,0 +1,142 @@
+[
+ {
+  "type": "shape",
+  "shape": "rectangle",
+  "name": "caret-wait",
+  "x": 516.0,
+  "y": 300.0,
+  "width": 5,
+  "height": 84,
+  "fill": "#367B6C"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-wait",
+  "property": "opacity",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-wait",
+  "property": "opacity",
+  "time": 700,
+  "value": 1,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-wait",
+  "property": "opacity",
+  "time": 1200,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-wait",
+  "property": "opacity",
+  "time": 1300,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "shape",
+  "shape": "rectangle",
+  "name": "caret-rest",
+  "x": 1146.0,
+  "y": 396.0,
+  "width": 5,
+  "height": 84,
+  "fill": "#367B6C"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 3460,
+  "value": 1,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 3960,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 4460,
+  "value": 1,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 4960,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 5460,
+  "value": 1,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 5960,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 6460,
+  "value": 1,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 6960,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 7460,
+  "value": 1,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "caret-rest",
+  "property": "opacity",
+  "time": 7960,
+  "value": 0,
+  "easing": "hold"
+ }
+]

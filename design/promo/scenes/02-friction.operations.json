@@ -1,0 +1,174 @@
+[
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "strike0",
+  "path": "M0 10 C 168 2, 336 16, 560 4",
+  "x": 242.0,
+  "y": 431.5,
+  "stroke": "#AD283E",
+  "stroke_width": 6,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike0",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike0",
+  "property": "trim_end",
+  "time": 4600,
+  "value": 0,
+  "easing": "ease-out-quad"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike0",
+  "property": "trim_end",
+  "time": 5080,
+  "value": 100
+ },
+ {
+  "type": "animate",
+  "target": "ask0",
+  "property": "opacity",
+  "to": 0.45,
+  "start": 4700,
+  "duration": 400
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "strike1",
+  "path": "M0 10 C 216 2, 431 16, 719 4",
+  "x": 242.0,
+  "y": 557.0,
+  "stroke": "#AD283E",
+  "stroke_width": 6,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike1",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike1",
+  "property": "trim_end",
+  "time": 5120,
+  "value": 0,
+  "easing": "ease-out-quad"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike1",
+  "property": "trim_end",
+  "time": 5600,
+  "value": 100
+ },
+ {
+  "type": "animate",
+  "target": "ask1",
+  "property": "opacity",
+  "to": 0.45,
+  "start": 5220,
+  "duration": 400
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "strike2",
+  "path": "M0 10 C 265 2, 529 16, 882 4",
+  "x": 242.0,
+  "y": 676.5,
+  "stroke": "#AD283E",
+  "stroke_width": 6,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike2",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike2",
+  "property": "trim_end",
+  "time": 5640,
+  "value": 0,
+  "easing": "ease-out-quad"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike2",
+  "property": "trim_end",
+  "time": 6120,
+  "value": 100
+ },
+ {
+  "type": "animate",
+  "target": "ask2",
+  "property": "opacity",
+  "to": 0.45,
+  "start": 5740,
+  "duration": 400
+ },
+ {
+  "type": "shape",
+  "shape": "path",
+  "name": "strike3",
+  "path": "M0 10 C 210 2, 420 16, 700 4",
+  "x": 242.0,
+  "y": 796.5,
+  "stroke": "#AD283E",
+  "stroke_width": 6,
+  "fill": "none",
+  "line_cap": "round"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike3",
+  "property": "trim_end",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike3",
+  "property": "trim_end",
+  "time": 6160,
+  "value": 0,
+  "easing": "ease-out-quad"
+ },
+ {
+  "type": "keyframe",
+  "target": "strike3",
+  "property": "trim_end",
+  "time": 6640,
+  "value": 100
+ },
+ {
+  "type": "animate",
+  "target": "ask3",
+  "property": "opacity",
+  "to": 0.45,
+  "start": 6260,
+  "duration": 400
+ }
+]

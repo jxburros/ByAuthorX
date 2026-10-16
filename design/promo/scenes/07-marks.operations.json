@@ -1,0 +1,117 @@
+[
+ {
+  "type": "timeline-set",
+  "duration": 9000,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "add",
+  "name": "marks",
+  "path": "/home/user/ByAuthorX/docs/images/editor-marks.png",
+  "x": -240.0,
+  "y": -170.0,
+  "width": 2112,
+  "height": 1440
+ },
+ {
+  "type": "pivot",
+  "target": "marks",
+  "value": [
+   0.47,
+   0.42
+  ]
+ },
+ {
+  "type": "animate",
+  "target": "marks",
+  "property": "scale",
+  "from": 1.0,
+  "to": 1.07,
+  "start": 0,
+  "duration": 9000,
+  "easing": "linear"
+ },
+ {
+  "type": "gradient",
+  "name": "veil",
+  "x": 0,
+  "y": 640,
+  "width": 1920,
+  "height": 440,
+  "stops": [
+   {
+    "offset": 0,
+    "color": "rgba(244,238,227,0)"
+   },
+   {
+    "offset": 0.38,
+    "color": "rgba(244,238,227,0.96)"
+   },
+   {
+    "offset": 1,
+    "color": "#F4EEE3"
+   }
+  ]
+ },
+ {
+  "type": "text",
+  "name": "eyebrow",
+  "text": "HAND-INKED MARKS",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 26,
+  "color": "#367B6C",
+  "x": 160,
+  "y": 820,
+  "align": "left",
+  "tracking": 4
+ },
+ {
+  "type": "animate-preset",
+  "target": "eyebrow",
+  "preset": "fade-in",
+  "start": 600,
+  "duration": 500
+ },
+ {
+  "type": "text",
+  "name": "head",
+  "text": "Red pen for spelling. Green for grammar.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 60,
+  "color": "#252927",
+  "x": 160,
+  "y": 862,
+  "align": "left"
+ },
+ {
+  "type": "text-animate",
+  "target": "head",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 900,
+  "duration": 600,
+  "stagger": 80,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "note",
+  "text": "Interface only: print and every export keep clean, exact lines.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 32,
+  "color": "#52615B",
+  "x": 160,
+  "y": 960,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "note",
+  "preset": "slide-in-up",
+  "start": 2600,
+  "duration": 700,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ }
+]

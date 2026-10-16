@@ -1,0 +1,190 @@
+[
+ {
+  "type": "canvas",
+  "width": 1920,
+  "height": 1080,
+  "background": "#F4EEE3"
+ },
+ {
+  "type": "timeline-set",
+  "duration": 9000,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "scale",
+  "target": "wordmark",
+  "value": 0.6,
+  "anchor": "center"
+ },
+ {
+  "type": "move",
+  "target": "wordmark",
+  "x": "center",
+  "y": 230
+ },
+ {
+  "type": "animate-preset",
+  "target": "wordmark",
+  "preset": "fade-in",
+  "start": 0,
+  "duration": 900
+ },
+ {
+  "type": "shape",
+  "shape": "rectangle",
+  "name": "wipe",
+  "x": 0,
+  "y": 0,
+  "width": 2,
+  "height": 90,
+  "fill": "#F4EEE3"
+ },
+ {
+  "type": "reparent",
+  "targets": [
+   "wipe"
+  ],
+  "into": "wordmark",
+  "keep": "local",
+  "index": 0
+ },
+ {
+  "type": "move",
+  "target": "wipe",
+  "x": 0,
+  "y": 104
+ },
+ {
+  "type": "clip",
+  "target": "loose-wave",
+  "base": "wipe"
+ },
+ {
+  "type": "keyframe",
+  "target": "wipe",
+  "property": "width",
+  "time": 0,
+  "value": 2,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "wipe",
+  "property": "width",
+  "time": 500,
+  "value": 2,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "wipe",
+  "property": "width",
+  "time": 1700,
+  "value": 700
+ },
+ {
+  "type": "text",
+  "name": "tagline",
+  "text": "Your words. Your call.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 72,
+  "color": "#252927",
+  "x": "center",
+  "y": 590,
+  "align": "center"
+ },
+ {
+  "type": "text-animate",
+  "target": "tagline",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 1500,
+  "duration": 600,
+  "stagger": 150,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "facts",
+  "text": "Free and open source  \u00b7  Windows 11 and Ubuntu 24.04  \u00b7  No account needed",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 34,
+  "color": "#52615B",
+  "x": "center",
+  "y": 720,
+  "align": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "facts",
+  "preset": "slide-in-up",
+  "start": 2700,
+  "duration": 700,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "cta-bg",
+  "x": 660,
+  "y": 820,
+  "width": 600,
+  "height": 84,
+  "radius": 10,
+  "fill": "#367B6C"
+ },
+ {
+  "type": "text",
+  "name": "cta",
+  "text": "github.com/jxburros/ByAuthorX",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 36,
+  "color": "#FFFFFF",
+  "x": 660,
+  "y": 842,
+  "align": "center"
+ },
+ {
+  "type": "text-layout",
+  "target": "cta",
+  "width": 600
+ },
+ {
+  "type": "group",
+  "name": "button",
+  "targets": [
+   "cta-bg",
+   "cta"
+  ]
+ },
+ {
+  "type": "pivot",
+  "target": "button",
+  "value": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "button",
+  "preset": "pop-in",
+  "start": 3500,
+  "duration": 550
+ },
+ {
+  "type": "align",
+  "targets": [
+   "tagline"
+  ],
+  "alignment": "center-x",
+  "relative_to": "canvas"
+ },
+ {
+  "type": "align",
+  "targets": [
+   "facts"
+  ],
+  "alignment": "center-x",
+  "relative_to": "canvas"
+ }
+]

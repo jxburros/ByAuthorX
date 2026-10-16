@@ -1,0 +1,309 @@
+[
+ {
+  "type": "timeline-set",
+  "duration": 11000,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "text",
+  "name": "eyebrow",
+  "text": "PROGRAMMABLE",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 26,
+  "color": "#8FC2B4",
+  "x": 140,
+  "y": 230,
+  "align": "left",
+  "tracking": 4
+ },
+ {
+  "type": "animate-preset",
+  "target": "eyebrow",
+  "preset": "fade-in",
+  "start": 200,
+  "duration": 500
+ },
+ {
+  "type": "text",
+  "name": "head",
+  "text": "The same engine, from the command line.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 64,
+  "color": "#F4EEE3",
+  "x": 140,
+  "y": 280,
+  "align": "left"
+ },
+ {
+  "type": "text-layout",
+  "target": "head",
+  "width": 620,
+  "wrap": "pretty"
+ },
+ {
+  "type": "text-animate",
+  "target": "head",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 400,
+  "duration": 600,
+  "stagger": 80,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "body",
+  "text": "byax, byax-mcp and a loopback REST service call the desktop's engine: atomic edits, revision checks, history and validated exports.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 32,
+  "color": "#CFC8BA",
+  "x": 140,
+  "y": 560,
+  "align": "left"
+ },
+ {
+  "type": "text-layout",
+  "target": "body",
+  "width": 600,
+  "wrap": "pretty"
+ },
+ {
+  "type": "animate-preset",
+  "target": "body",
+  "preset": "slide-in-up",
+  "start": 1500,
+  "duration": 700,
+  "distance": 14,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "shape",
+  "shape": "rounded-rectangle",
+  "name": "term",
+  "x": 840,
+  "y": 220,
+  "width": 960,
+  "height": 640,
+  "radius": 16,
+  "fill": "#1B1F1D",
+  "stroke": "#3A403D",
+  "stroke_width": 2
+ },
+ {
+  "type": "layer-style",
+  "target": "term",
+  "name": "drop-shadow",
+  "settings": {
+   "color": "rgba(37,41,39,0.16)",
+   "dx": 0,
+   "dy": 14,
+   "blur": 28
+  }
+ },
+ {
+  "type": "shape",
+  "shape": "ellipse",
+  "name": "light0",
+  "x": 872,
+  "y": 246,
+  "width": 16,
+  "height": 16,
+  "fill": "#AD283E"
+ },
+ {
+  "type": "shape",
+  "shape": "ellipse",
+  "name": "light1",
+  "x": 902,
+  "y": 246,
+  "width": 16,
+  "height": 16,
+  "fill": "#C9A24A"
+ },
+ {
+  "type": "shape",
+  "shape": "ellipse",
+  "name": "light2",
+  "x": 932,
+  "y": 246,
+  "width": 16,
+  "height": 16,
+  "fill": "#367B6C"
+ },
+ {
+  "type": "group",
+  "name": "terminal",
+  "targets": [
+   "term",
+   "light0",
+   "light1",
+   "light2"
+  ]
+ },
+ {
+  "type": "animate-preset",
+  "target": "terminal",
+  "preset": "slide-in-up",
+  "start": 600,
+  "duration": 800,
+  "distance": 30,
+  "easing": "ease-out-cubic"
+ },
+ {
+  "type": "text",
+  "name": "cmd0",
+  "text": "$ byax new --out chapter.byax --title Draft",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#F4EEE3",
+  "x": 880,
+  "y": 300,
+  "align": "left"
+ },
+ {
+  "type": "text-animate",
+  "target": "cmd0",
+  "preset": "typewriter",
+  "unit": "char",
+  "start": 1800,
+  "duration": 30,
+  "stagger": 26,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "cmd1",
+  "text": "  # a native document, with history",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#8FC2B4",
+  "x": 880,
+  "y": 366,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "cmd1",
+  "preset": "fade-in",
+  "start": 3168,
+  "duration": 250
+ },
+ {
+  "type": "text",
+  "name": "cmd2",
+  "text": "$ byax check chapter.byax --suite structure",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#F4EEE3",
+  "x": 880,
+  "y": 432,
+  "align": "left"
+ },
+ {
+  "type": "text-animate",
+  "target": "cmd2",
+  "preset": "typewriter",
+  "unit": "char",
+  "start": 3618,
+  "duration": 30,
+  "stagger": 26,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "cmd3",
+  "text": "  # deterministic checks, no model needed",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#8FC2B4",
+  "x": 880,
+  "y": 498,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "cmd3",
+  "preset": "fade-in",
+  "start": 4986,
+  "duration": 250
+ },
+ {
+  "type": "text",
+  "name": "cmd4",
+  "text": "$ byax export chapter.byax --out chapter.pdf",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#F4EEE3",
+  "x": 880,
+  "y": 564,
+  "align": "left"
+ },
+ {
+  "type": "text-animate",
+  "target": "cmd4",
+  "preset": "typewriter",
+  "unit": "char",
+  "start": 5436,
+  "duration": 30,
+  "stagger": 26,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "cmd5",
+  "text": "  # the master stays untouched",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#8FC2B4",
+  "x": 880,
+  "y": 630,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "cmd5",
+  "preset": "fade-in",
+  "start": 6830,
+  "duration": 250
+ },
+ {
+  "type": "text",
+  "name": "cmd6",
+  "text": "$ byax-mcp",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#F4EEE3",
+  "x": 880,
+  "y": 696,
+  "align": "left"
+ },
+ {
+  "type": "text-animate",
+  "target": "cmd6",
+  "preset": "typewriter",
+  "unit": "char",
+  "start": 7280,
+  "duration": 30,
+  "stagger": 26,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "cmd7",
+  "text": "  # the same engine, for your agent",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/onionskin/Onionskin-Regular.ttf",
+  "size": 27,
+  "color": "#8FC2B4",
+  "x": 880,
+  "y": 762,
+  "align": "left"
+ },
+ {
+  "type": "animate-preset",
+  "target": "cmd7",
+  "preset": "fade-in",
+  "start": 7790,
+  "duration": 250
+ }
+]

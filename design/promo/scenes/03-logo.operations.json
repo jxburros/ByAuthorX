@@ -1,0 +1,278 @@
+[
+ {
+  "type": "canvas",
+  "width": 1920,
+  "height": 1080,
+  "background": "#F4EEE3"
+ },
+ {
+  "type": "timeline-set",
+  "duration": 7500,
+  "fps": 30,
+  "loop": 1
+ },
+ {
+  "type": "scale",
+  "target": "wordmark",
+  "value": 0.78,
+  "anchor": "center"
+ },
+ {
+  "type": "move",
+  "target": "wordmark",
+  "x": "center",
+  "y": 250
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-0-B",
+  "preset": "slide-in-up",
+  "start": 200,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-1-y",
+  "preset": "slide-in-up",
+  "start": 290,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-2-A",
+  "preset": "slide-in-up",
+  "start": 380,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-3-u",
+  "preset": "slide-in-up",
+  "start": 470,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-4-t",
+  "preset": "slide-in-up",
+  "start": 560,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-5-h",
+  "preset": "slide-in-up",
+  "start": 650,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-6-o",
+  "preset": "slide-in-up",
+  "start": 740,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "target": "letter-7-r",
+  "preset": "slide-in-up",
+  "start": 830,
+  "duration": 650,
+  "distance": 40,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "keyframe",
+  "target": "X-fall",
+  "property": "opacity",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "X-fall",
+  "property": "opacity",
+  "time": 1050,
+  "value": 0,
+  "easing": "ease-out"
+ },
+ {
+  "type": "keyframe",
+  "target": "X-fall",
+  "property": "opacity",
+  "time": 1300,
+  "value": 1
+ },
+ {
+  "type": "pivot",
+  "target": "X-fall",
+  "value": "center"
+ },
+ {
+  "type": "animate",
+  "target": "X-fall",
+  "property": "scale",
+  "from": 0.6,
+  "to": 1,
+  "start": 1050,
+  "duration": 450,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "keyframe",
+  "target": "X-rise",
+  "property": "opacity",
+  "time": 0,
+  "value": 0,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "X-rise",
+  "property": "opacity",
+  "time": 1190,
+  "value": 0,
+  "easing": "ease-out"
+ },
+ {
+  "type": "keyframe",
+  "target": "X-rise",
+  "property": "opacity",
+  "time": 1440,
+  "value": 1
+ },
+ {
+  "type": "pivot",
+  "target": "X-rise",
+  "value": "center"
+ },
+ {
+  "type": "animate",
+  "target": "X-rise",
+  "property": "scale",
+  "from": 0.6,
+  "to": 1,
+  "start": 1190,
+  "duration": 450,
+  "easing": "ease-out-back"
+ },
+ {
+  "type": "animate-preset",
+  "targets": [
+   "red-ink-terminal",
+   "red-ink-terminal-fleck"
+  ],
+  "preset": "pop-in",
+  "start": 1700,
+  "duration": 380
+ },
+ {
+  "type": "shape",
+  "shape": "rectangle",
+  "name": "wipe",
+  "x": 0,
+  "y": 0,
+  "width": 2,
+  "height": 90,
+  "fill": "#F4EEE3"
+ },
+ {
+  "type": "reparent",
+  "targets": [
+   "wipe"
+  ],
+  "into": "wordmark",
+  "keep": "local",
+  "index": 0
+ },
+ {
+  "type": "move",
+  "target": "wipe",
+  "x": 0,
+  "y": 104
+ },
+ {
+  "type": "clip",
+  "target": "loose-wave",
+  "base": "wipe"
+ },
+ {
+  "type": "keyframe",
+  "target": "wipe",
+  "property": "width",
+  "time": 0,
+  "value": 2,
+  "easing": "hold"
+ },
+ {
+  "type": "keyframe",
+  "target": "wipe",
+  "property": "width",
+  "time": 1850,
+  "value": 2,
+  "easing": "ease-in-out-sine"
+ },
+ {
+  "type": "keyframe",
+  "target": "wipe",
+  "property": "width",
+  "time": 3100,
+  "value": 700
+ },
+ {
+  "type": "text",
+  "name": "tagline",
+  "text": "Your words. Your call.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/irongall/Irongall-Regular.ttf",
+  "size": 76,
+  "color": "#252927",
+  "x": "center",
+  "y": 690,
+  "align": "center"
+ },
+ {
+  "type": "text-animate",
+  "target": "tagline",
+  "preset": "fade-up",
+  "unit": "word",
+  "start": 3400,
+  "duration": 650,
+  "stagger": 160,
+  "mode": "in"
+ },
+ {
+  "type": "text",
+  "name": "sub",
+  "text": "A native word processor for people who write.",
+  "font": "/home/user/ByAuthorX/assets/brand-fonts/fonts/scholium/Scholium-Regular.ttf",
+  "size": 36,
+  "color": "#52615B",
+  "x": "center",
+  "y": 800,
+  "align": "center"
+ },
+ {
+  "type": "animate-preset",
+  "target": "sub",
+  "preset": "slide-in-up",
+  "start": 4500,
+  "duration": 800,
+  "distance": 16,
+  "easing": "ease-out-cubic"
+ }
+]

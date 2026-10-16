@@ -1,0 +1,5 @@
+scenes/score.wav
+scenes/.vixl/
+.vixl-cache/
+.vixl-cache.*
+.vixl-session.json
