@@ -340,6 +340,23 @@ def source_command(a, owner=None):
         )
     if action == 'suggest':
         return _suggest(a, doc)
+    if action == 'add-draft':
+        # Cite another .byax draft, pinned to its current version (byax.version_pins).
+        from .version_pins import source_from_draft
+
+        if not a.get('draft_path'):
+            raise ByaxError(
+                'invalid_input', 'Name the cited .byax draft with --draft-path', field='draft_path'
+            )
+        source = source_from_draft(a['path'], a['draft_path'])
+        return execute(
+            'apply',
+            {
+                'path': a['path'],
+                'input': {'operations': [{'type': 'add_reference', 'id': source['id'], 'values': source}]},
+                **{k: a[k] for k in ('expect_revision', 'request_id', 'dry_run') if k in a},
+            },
+        )
     if action == 'export':
         return envelope({'text': export_sources(doc['references'], a.get('format', 'csl-json'))}, doc)
     if action == 'bibliography':

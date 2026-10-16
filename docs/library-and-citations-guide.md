@@ -233,6 +233,34 @@ proposed anchor updates** in the dialog). `validation` is `failed` when a quotat
 found or a citation is unanchored (exit code 4); `review` is `required` for any other
 outcome that needs a look.
 
+## Version-pinned citations
+
+Every citation records the version of the source it cites: a library source pins the document's
+content hash (`library.content_hash`, and the mark's `anchor.content_hash`), and a source that is
+another `.byax` draft pins `byax = {path, document_id, revision, content_hash}`, where the content
+hash is the SHA-256 of the draft's body text. Cite a draft with
+`byax source Essay.byax --action add-draft --draft-path notes.byax` (the draft must be in the
+document's folder or its parent folder), then `byax cite` as usual.
+
+The citation audit (`byax check Essay.byax --citations`, Checks → Citation audit) includes
+`versions`, the version-pin check (`byax.version_pins.check_pins`). Each cited source is `current`,
+`superseded` (a newer version exists: the library file was re-indexed with different content at
+the same path, or the draft's current revision differs; when the pinned revision is still in the
+draft's history the message says it is an *earlier* version), `unavailable`, `unverified` (the
+file changed since indexing; refresh the library) or `unpinned`. A superseded citation is never
+hidden: it is a finding, `citations.superseded_version` ("Cites an earlier version of “Notes”"),
+on the exact cited range, and counts as needing review. Nothing is changed automatically:
+
+- `versions.operations` record the superseded state on the source (`superseded_by: {content_hash,
+  revision?}`), metadata only;
+- `versions.proposals` add one review proposal per source that re-pins its citations to the current
+  version (and updates their anchors' content hash) once you have read what changed. In the desktop
+  app, **Propose re-pinning…** in the audit window does both.
+
+Rendered output (exports, compile, print) is unchanged unless you set
+`settings.citations.annotate_superseded` to `true`; then citations whose source records
+`superseded_by` get " (cites an earlier version)" after the rendered citation or note.
+
 ## Optional embeddings
 
 Keyword search requires no model or network. Configure an existing Ollama or

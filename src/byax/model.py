@@ -317,6 +317,9 @@ def validate_document(doc, *, include_history=True):
 
     validate_codex(doc, fail)
     validate_saved_searches(doc, fail)
+    from .provenance import validate_provenance
+
+    validate_provenance(doc, fail)
     history = doc['history']
     if (
         not isinstance(history.get('revisions'), list)

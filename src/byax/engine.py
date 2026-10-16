@@ -11,7 +11,7 @@ from typing import Any, NoReturn
 
 import regex as unicode_regex
 
-from . import anchors, codex, formatting, project, project_index
+from . import anchors, codex, formatting, project, project_index, provenance
 from .checks import run_checks
 from .compare import compare as semantic_compare
 from .compare import plan_merge
@@ -119,6 +119,8 @@ OP_SCHEMAS.update(project.OP_SCHEMAS)
 # Codex entries and saved project searches; handlers live in ``codex`` and ``project_index``.
 OP_SCHEMAS.update(codex.OP_SCHEMAS)
 OP_SCHEMAS.update(project_index.SAVED_OP_SCHEMAS)
+# Claim-level provenance log (context engine plan 10); handlers live in ``provenance``.
+OP_SCHEMAS.update(provenance.OP_SCHEMAS)
 # Source corrections stay separate from document corrections (spec 13.2).
 SOURCE_OPERATIONS = {'add_reference', 'remove_reference'}
 CONTENT_OPERATIONS = {
@@ -560,6 +562,7 @@ def _op_text_edit(doc, op, base_revision, kind, changed, allow_policy_changes):
     before_marks = copy.deepcopy(obj.get('marks', []))
     _splice(obj, start, end, replacement)
     anchors.remap_splice(doc, obj, start, end, len(replacement))
+    provenance.record(doc, obj, start, len(replacement))
     changed.append(obj['id'])
     anchors.track_text(doc, obj, original, before_marks, start, end, replacement, base_revision)
 
@@ -569,6 +572,7 @@ def _op_insert_paragraph(doc, op, base_revision, kind, changed, allow_policy_cha
     if obj['style'] not in doc['styles']:
         _error('Unknown named style.', 'style')
     _insert(doc, obj, op.get('after'))
+    provenance.record_object(doc, obj)
     changed.append(obj['id'])
 
 
@@ -1457,6 +1461,9 @@ def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_cha
                 operation = proposal['operations'][edit['index']]
                 if current is not None:
                     current['attribution']['edit'] = edit['id']
+                    declared = provenance.from_proposal(proposal, edit['index'])
+                    if declared is not None:
+                        current['attribution']['provenance'] = declared
                 changed.extend(_operation(doc, operation, base_revision))
                 touched |= _edited_ids(operation) | _created_ids(operation)
         finally:
@@ -1797,6 +1804,7 @@ def _op_set_block(doc, op, base_revision, kind, changed, allow_policy_changes):
     if obj.get('text', '') != original:
         position, deleted, inserted = anchors.minimal_change(original, 0, len(original), obj.get('text', ''))
         anchors.remap_splice(doc, obj, position, position + len(deleted), len(inserted))
+        provenance.record(doc, obj, position, len(inserted))
         anchors.track_text(
             doc, obj, original, before_marks, 0, len(original), obj.get('text', ''), base_revision
         )
@@ -2048,7 +2056,11 @@ def _op_replace_content(doc, op, base_revision, kind, changed, allow_policy_chan
                 'Replacement content must keep locked blocks unchanged.',
                 target=block['id'],
             )
+    before_text = provenance._objects(doc)
     doc['blocks'] = copy.deepcopy(op['blocks'])
+    after_text = provenance._objects(doc)
+    # Wholesale replacement keeps identities but not offsets: changed objects lose their spans.
+    provenance.forget(doc, [k for k, v in before_text.items() if after_text.get(k, v) != v])
     doc['assets'].update(copy.deepcopy(op.get('assets', {})))
     if 'import_provenance' in op:
         doc['metadata']['import'] = copy.deepcopy(op['import_provenance'])
@@ -2292,6 +2304,7 @@ _HANDLERS = {
 _HANDLERS.update(project.HANDLERS)
 _HANDLERS.update(codex.HANDLERS)
 _HANDLERS.update(project_index.SAVED_HANDLERS)
+_HANDLERS.update(provenance.HANDLERS)
 
 
 def _operation(doc, op, base_revision, *, allow_policy_changes=False):
@@ -2738,9 +2751,14 @@ def apply(
         'required_suites',
         'origin',
         'author',
+        'provenance',
     }
     if unknown:
         _error('Unknown edit envelope fields.', '$', unknown=sorted(unknown))
+    if 'provenance' in envelope:
+        problem = provenance.envelope_problem(envelope['provenance'])
+        if problem:
+            _error(problem, 'provenance')
     if type(envelope.get('schema_version', 1)) is not int or envelope.get('schema_version', 1) != 1:
         _error('Unsupported operation schema version.', 'schema_version')
     if 'author' in envelope and not isinstance(envelope['author'], str):
@@ -2793,6 +2811,7 @@ def apply(
             'author': envelope.get('author', ''),
             'origin': envelope.get('origin', 'api'),
             'timestamp': datetime.now(UTC).isoformat(),
+            **({'provenance': copy.deepcopy(envelope['provenance'])} if 'provenance' in envelope else {}),
         }
     }
     token = anchors._JOURNAL.set(journal)
@@ -2828,6 +2847,7 @@ def _apply_operations(
             raise
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             raise ByaxError('schema_error', f'Invalid operation value: {exc}', operation_index=i) from exc
+    provenance.normalize(candidate)
     if 'project' in candidate:
         # Binder items whose heading an edit removed are reported, never dropped.
         for orphan in project.new_orphans(doc, candidate):

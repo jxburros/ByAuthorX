@@ -50,6 +50,8 @@ def audit_html(report):
         if item['status'] == 'unanchored':
             quote = f'<s>{quote}</s>'
         message = f'<br>{html.escape(item["message"])}' if item.get('message') else ''
+        if item.get('superseded'):
+            message += f'<br><b>Superseded:</b> {html.escape(item["superseded"].get("message", ""))}'
         rows.append(
             f'<p><b>{html.escape(AUDIT_LABELS[item["status"]])}</b> · {html.escape(str(item["title"]))}'
             f'<br>“{quote}”{message}</p>'
@@ -82,6 +84,13 @@ class CitationAuditDialog(QDialog):
             self.tr('Record re-anchored locators and mark citations that could not be found as unanchored')
         )
         self.apply_button.clicked.connect(self.apply)
+        versions = report.get('versions') or {}
+        self.repin_button = buttons.addButton(self.tr('Propose re-pinning…'), QDialogButtonBox.ActionRole)
+        self.repin_button.setEnabled(bool(versions.get('proposals')))
+        self.repin_button.setToolTip(
+            self.tr('Record which citations cite an earlier version and add review proposals to re-pin them')
+        )
+        self.repin_button.clicked.connect(self.propose_repin)
         buttons.rejected.connect(self.reject)
         layout.addWidget(buttons)
 
@@ -94,6 +103,20 @@ class CitationAuditDialog(QDialog):
         if window.commit(copy.deepcopy(self.report['operations'])):
             self.apply_button.setEnabled(False)
             window.status_label.setText(self.tr('Citation anchors updated.'))
+            return True
+        return False
+
+    def propose_repin(self):
+        """Record superseded sources and add one re-pin proposal per source to Review."""
+        window = self.window
+        window.flush_edits()
+        if window.doc['revision'] != self.revision:
+            window.status_label.setText(self.tr('The document changed since the audit. Run it again.'))
+            return False
+        versions = self.report.get('versions') or {}
+        if window.commit(copy.deepcopy(versions.get('operations', []) + versions.get('proposals', []))):
+            self.repin_button.setEnabled(False)
+            window.status_label.setText(self.tr('Re-pin proposals added to Review.'))
             return True
         return False
 
@@ -120,6 +143,12 @@ LOCAL_CHECKS = (
         'citations',
         'Citation audit',
         'Checks every citation’s quotation against its source, and whether the source changed. No AI.',
+        False,
+    ),
+    (
+        'continuity',
+        'Continuity',
+        'Eye and hair colour, hair style and age against the codex facts in force in each chapter. Advisory.',
         False,
     ),
 )
@@ -401,7 +430,10 @@ class ChecksPanel(QWidget):
             self.audit_dialog = CitationAuditDialog(window, report, frozen['revision'])
             self.audit_dialog.show()
 
-        window.background(self.tr('Auditing citations…'), lambda: audit_citations(frozen), done)
+        path = getattr(window, 'path', None)
+        window.background(
+            self.tr('Auditing citations…'), lambda: audit_citations(frozen, document_path=path), done
+        )
 
     def run(self, kinds):
         """Run local checks in the background, then each AI check with its own authorization."""
@@ -410,6 +442,7 @@ class ChecksPanel(QWidget):
         if 'citations' in kinds:
             self.run_citation_audit()
         suites = (['grammar'] if 'grammar' in kinds else []) + (HEALTH_SUITES if 'health' in kinds else [])
+        suites += ['continuity'] if 'continuity' in kinds else []
         groups = [kind.split(':', 1)[1] for kind in kinds if kind.startswith('fiction:')]
         if groups:
             self.window.run_checks(suites + ['fiction'], fiction_groups=groups)

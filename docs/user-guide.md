@@ -503,6 +503,76 @@ attachment wins over the series'. The series file can also list member documents
 project find. The format is described in the
 [library and citations guide](library-and-citations-guide.md#series-files).
 
+**Facts that change over time.** A trait can hold *as of* a chapter and *until* a chapter: give it
+`valid_from` and `valid_to` (a binder item, heading or block; for a series fact, `book:2`), for
+example `byax codex Novel.byax --action add-trait --target cx_mara --name hair --value grey
+--valid-from <chapter-3 item>`. `byax codex Novel.byax --action facts-at --target <block>` lists
+the facts in force there, the ones not yet established and the ones that no longer hold.
+
+**Continuity checks** (Checks → Continuity, or `byax check Novel.byax --family continuity`) compare
+simple statements in your text with those facts: eye colour, hair colour and style, and age, in
+patterns such as "Mara's eyes were blue", "Mara had black hair" or "Tom was twelve years old". A
+finding marks the exact words and says whether they contradict the fact in force, use a fact before
+the chapter where it is established, or repeat a fact that no longer holds. In a series, facts in
+the series codex bounded by `book:N` are checked in each book. The check is advisory and off by
+default; it reads only your document, codex and series file. Anything beyond these simple patterns
+still needs a reader.
+
+## Provenance and disclosure
+
+ByAuthorX keeps a **provenance log** in each document: which spans you typed, which you pasted
+(with the page address when your browser puts it on the clipboard), and which came from an AI
+proposal you accepted, generated (new text) or edited (rewritten text), with the model and provider
+alias and the sources the model cited. Every sentence an accepted AI proposal inserted is recorded
+as a *claim* with its grounding record; when you edit the sentence the claim follows the text and is
+marked *edited*, and **Re-find claim sources** follows a cited library passage that changed (or
+marks it unanchored, never dropping it). Text from before the log existed, imported text and edits
+made by tools that do not declare an origin show as *not recorded*. Reviewed dictation you insert
+counts as typed text.
+
+The log is local document data. It is never sent anywhere and no model sees it. Turn recording
+off for a document with `byax apply` and `{"type": "set_settings", "values": {"provenance":
+false}}`, and forget it with **Clear log…** or `byax provenance Novel.byax --action clear` (both
+undoable). Exports to other formats keep only the text.
+
+- **View → Show text origin** tints text by origin and draws a different underline for each
+  (dashed: AI-generated, dotted: AI-edited, dash-dot: pasted; typed text is unmarked), so the
+  distinction never depends on colour. In high-contrast mode only the underlines are drawn.
+- **Tools → Provenance…** shows the legend, the share of each origin for the document and for every
+  chapter, the list of spans (double-click one to jump there) and the AI claims with their sources.
+  `byax provenance Novel.byax` gives the same report (`--target` limits it to a chapter or block).
+- **Disclosure** writes an AI-use statement in APA, MLA or Chicago form from the log: the tools and
+  models, the share of AI-generated and AI-edited text, and the tasks (drafting, editing,
+  summarizing, citing, translating, from the kinds of proposal you accepted). **Copy** it, or **Add
+  to Review as a proposal** to insert it as a paragraph you accept like any other change
+  (`byax provenance Novel.byax --action disclose --style mla`, `--action propose-disclosure`). It
+  is a starting point: square brackets mark what the log cannot know (a chat's share link, an
+  unknown developer), and your instructor's or publisher's policy comes first.
+- **Export C2PA sidecar…** (`--action export-c2pa --out Novel.c2pa.json`) writes an optional
+  manifest describing the text's origins in C2PA 2.x terms (`c2pa.actions.v2` with IPTC digital
+  source types, a schema.org `CreativeWork` and a SHA-256 binding to the NFC-normalized text). It is
+  **unsigned and informational**: anyone can write such a file. C2PA 2.3 also defines embedding a
+  signed manifest in plain text; that needs a C2PA signing tool and your own certificate, which
+  ByAuthorX does not bundle. `--key-file` adds a detached Ed25519 signature (it needs the optional
+  `cryptography` package and is refused over MCP and REST); it shows who produced the file and is
+  not a C2PA claim signature.
+
+The disclosure formats follow the publishers' current guidance:
+
+- APA Style, [Citing generative AI in APA Style: Part 1—Reference formats](https://apastyle.apa.org/blog/cite-generative-ai-references)
+  (2025; it replaces the 2023 post [How to cite ChatGPT](https://apastyle.apa.org/blog/how-to-cite-chatgpt)):
+  describe the use in the text, such as the Method section or author note, with an in-text citation,
+  and list the tool as `Company. (year). Tool or model [Large language model]. URL`.
+- MLA Style Center, [How do I cite generative AI in MLA style? (Updated and Revised)](https://style.mla.org/citing-generative-ai-updated-revised/)
+  and [Beyond Citation: Describing AI Use in Your Work](https://style.mla.org/describing-ai-use/)
+  (13 August 2025): acknowledge substantive use in prose; works-cited entries are
+  `"Description" prompt. Tool, model Name, Company, Day Mon. Year, URL.`
+- The Chicago Manual of Style Online, [Q&A: citing content generated by AI](https://www.chicagomanualofstyle.org/qanda/data/faq/topics/Documentation/faq0422.html)
+  (18th edition): name the tool in the text or in a note such as `1. Text generated by Tool,
+  Company, Month Day, Year.`, adding "edited for style and content" when you edited the output.
+- C2PA, [Content Credentials specification 2.3](https://spec.c2pa.org/specifications/specifications/2.3/specs/C2PA_Specification.html),
+  appendix A.7 "Embedding Manifests into Unstructured Text".
+
 ## Libraries and citations
 
 Tools → Libraries attaches local research folders for retrieval; **Cite** inserts a citation from
@@ -516,6 +586,9 @@ see the cited passage, click to open the source at that page or block, and **Ins
 citation** to cite it in your text. Checks → **Citation audit** (or `byax check --citations`)
 checks every citation you made against its source on this computer, without AI. See the
 [library and citations guide](library-and-citations-guide.md#grounding-citation-chips-and-the-citation-audit).
+The audit also tells you when a citation points to an **earlier version** of its source (a library
+file that changed, or another `.byax` draft you cited that has moved on); see
+[version-pinned citations](library-and-citations-guide.md#version-pinned-citations).
 
 ## Keyboard and accessibility
 

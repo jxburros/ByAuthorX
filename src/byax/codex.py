@@ -52,8 +52,14 @@ ENTRY_FIELDS = frozenset(
 )
 # Fields codex_add and codex_update accept (traits have their own operations).
 EDITABLE = ('kind', 'name', 'aliases', 'case_sensitive', 'excluded', 'description', 'hide_from_ai', 'tags')
-TRAIT_FIELDS = frozenset(('id', 'name', 'value', 'hide_from_ai', 'provenance', 'created', 'updated'))
-TRAIT_EDITABLE = ('name', 'value', 'hide_from_ai', 'provenance')
+# ``valid_from`` / ``valid_to`` (context engine plan 10, temporal story knowledge base): the binder
+# item, heading or block from which (and through which) the fact holds, or ``book:N`` for a series
+# fact that holds from (through) the N-th book of the series. Absent means always.
+TRAIT_FIELDS = frozenset(
+    ('id', 'name', 'value', 'hide_from_ai', 'provenance', 'created', 'updated', 'valid_from', 'valid_to')
+)
+TRAIT_EDITABLE = ('name', 'value', 'hide_from_ai', 'provenance', 'valid_from', 'valid_to')
+TRAIT_VALIDITY = ('valid_from', 'valid_to')
 PROVENANCE_FIELDS = frozenset(
     (
         'origin',
@@ -152,6 +158,12 @@ def _problem(entry: Any, *, series: bool = False) -> tuple[str, str] | None:
                 return 'Dates must be ISO 8601 text.', path + '.' + key
         if 'provenance' in trait and _provenance_problem(trait['provenance']):
             return _provenance_problem(trait['provenance']), path + '.provenance'
+        for key in TRAIT_VALIDITY:
+            if key in trait and (not _text(trait[key], 128) or trait[key] != trait[key].strip()):
+                return (
+                    'Trait validity positions are item, heading or block identities (or book:N).',
+                    path + '.' + key,
+                )
     return None
 
 
@@ -1006,7 +1018,7 @@ OP_SCHEMAS = {
     'codex_add': ('values', 'id'),
     'codex_update': ('target values', ''),
     'codex_remove': ('target', ''),
-    'codex_add_trait': ('target name value', 'id hide_from_ai provenance'),
+    'codex_add_trait': ('target name value', 'id hide_from_ai provenance valid_from valid_to'),
     'codex_update_trait': ('target trait values', ''),
     'codex_remove_trait': ('target trait', ''),
 }
@@ -1040,10 +1052,13 @@ def _check_problem(entry, field='values'):
         _error(problem[0], field + problem[1])
 
 
-def _new_trait(name, value, *, identity=None, hide=None, provenance=None, now=None):
+def _new_trait(name, value, *, identity=None, hide=None, provenance=None, now=None, validity=None):
     trait = {'id': identity or new_id('trait'), 'name': name, 'value': value}
     if hide:
         trait['hide_from_ai'] = True
+    for key in TRAIT_VALIDITY:
+        if (validity or {}).get(key) is not None:
+            trait[key] = validity[key]
     if provenance is not None:
         trait['provenance'] = copy.deepcopy(provenance)
     trait['created'] = trait['updated'] = now or _now()
@@ -1097,7 +1112,13 @@ def _op_add(doc, op, base_revision, kind, changed, allow_policy_changes):
         _error('Traits must be a list.', 'values.traits')
     entry['traits'] = []
     for index, trait in enumerate(traits):
-        if not isinstance(trait, dict) or set(trait) - {'name', 'value', 'hide_from_ai', 'provenance'}:
+        if not isinstance(trait, dict) or set(trait) - {
+            'name',
+            'value',
+            'hide_from_ai',
+            'provenance',
+            *TRAIT_VALIDITY,
+        }:
             _error('Traits need name and value.', f'values.traits[{index}]')
         entry['traits'].append(
             _new_trait(
@@ -1107,6 +1128,7 @@ def _op_add(doc, op, base_revision, kind, changed, allow_policy_changes):
                 hide=trait.get('hide_from_ai'),
                 provenance=trait.get('provenance'),
                 now=now,
+                validity=trait,
             )
         )
     if provenance is not None:
@@ -1154,6 +1176,7 @@ def _op_add_trait(doc, op, base_revision, kind, changed, allow_policy_changes):
             hide=op.get('hide_from_ai'),
             provenance=op.get('provenance'),
             now=now,
+            validity=op,
         )
     )
     entry['updated'] = now
@@ -1169,7 +1192,7 @@ def _op_update_trait(doc, op, base_revision, kind, changed, allow_policy_changes
     if unknown:
         _error('Unknown trait fields.', 'values', unknown=sorted(unknown))
     for key, value in values.items():
-        if value is None and key in ('hide_from_ai', 'provenance'):
+        if value is None and key in ('hide_from_ai', 'provenance', *TRAIT_VALIDITY):
             trait.pop(key, None)
         else:
             trait[key] = value
@@ -1211,6 +1234,134 @@ def export_losses(doc: Doc, fmt: str) -> list[dict[str, Any]]:
             'count': len(_entries(doc)),
         }
     ]
+
+
+# Temporal story knowledge base (context engine plan 10): facts valid "as of chapter X".
+
+
+def _block_order(doc: Doc) -> dict[str, int]:
+    """Top-level block index of every body object (table cells map to their table)."""
+    order = {}
+    for index, block in enumerate(doc.get('blocks', [])):
+        order[block['id']] = index
+        for row in block.get('rows', []):
+            for cell in row.get('cells', []):
+                order[cell['id']] = index
+    return order
+
+
+def _section_end(doc: Doc, index: int) -> int:
+    """Index of the last block of the section a heading at ``index`` opens (itself for a paragraph)."""
+    blocks = doc.get('blocks', [])
+    block = blocks[index]
+    if block.get('type') != 'heading':
+        return index
+    level = block.get('attrs', {}).get('level', 1)
+    for later in range(index + 1, len(blocks)):
+        other = blocks[later]
+        if other.get('type') == 'heading' and other.get('attrs', {}).get('level', 1) <= level:
+            return later - 1
+    return len(blocks) - 1
+
+
+def _book(value: str) -> int | None:
+    if value.startswith('book:') and value[5:].isdigit() and int(value[5:]) >= 1:
+        return int(value[5:])
+    return None
+
+
+def resolve_position(doc: Doc, position: Any) -> int | None:
+    """Block index of a position: a binder item, heading, block or cell identity, or ``{target}``."""
+    from . import project
+
+    if isinstance(position, dict):
+        position = position.get('target')
+    if not isinstance(position, str) or not position:
+        return None
+    order = _block_order(doc)
+    if position in order:
+        return order[position]
+    item = project.find_item(doc, position) if isinstance(doc.get('project'), dict) else None
+    if item is not None and item.get('heading') in order:
+        return order[item['heading']]
+    return None
+
+
+def _bound(doc: Doc, value: str | None, *, end: bool, book: int | None) -> tuple[str, int]:
+    """(kind, number): ``always``, ``book`` (N), ``block`` (index) or ``unresolved``."""
+    if value is None:
+        return 'always', 0
+    number = _book(value)
+    if number is not None:
+        return ('book', number) if book is not None else ('unresolved', 0)
+    index = resolve_position(doc, value)
+    if index is None:
+        return 'unresolved', 0
+    return 'block', _section_end(doc, index) if end else index
+
+
+def _status(doc: Doc, trait: dict[str, Any], index: int, book: int | None) -> str:
+    """``in_force``, ``not_yet``, ``expired`` or ``unresolved`` for one trait at block ``index``."""
+    start_kind, start = _bound(doc, trait.get('valid_from'), end=False, book=book)
+    end_kind, stop = _bound(doc, trait.get('valid_to'), end=True, book=book)
+    if 'unresolved' in (start_kind, end_kind):
+        return 'unresolved'
+    current = book or 0
+    if (start_kind == 'book' and current < start) or (start_kind == 'block' and index < start):
+        return 'not_yet'
+    if (end_kind == 'book' and current > stop) or (end_kind == 'block' and index > stop):
+        return 'expired'
+    return 'in_force'
+
+
+def facts_at(
+    doc: Doc,
+    position: Any,
+    *,
+    series: dict[str, Any] | None = None,
+    book: int | None = None,
+    include_hidden: bool = True,
+    entries: list[str] | None = None,
+) -> dict[str, Any]:
+    """The codex facts (traits) in force at ``position``, plus those not yet established or expired.
+
+    ``position`` is a binder item, heading, block or cell identity (or ``{'target': id}``). A trait's
+    ``valid_from`` is the item, heading or block where it starts to hold; ``valid_to`` the item or
+    heading through whose section (or the block through which) it holds; ``book:N`` bounds a series
+    fact by the book number ``book`` of this document in its series. A trait whose bound no longer
+    resolves is listed under ``unresolved`` and is never treated as in force. Local and read-only;
+    hidden traits are included for local checks unless ``include_hidden`` is false.
+    """
+    index = resolve_position(doc, position)
+    if index is None:
+        raise ByaxError('missing_target', 'The position does not exist.', target=str(position))
+    result: dict[str, list[dict[str, Any]]] = {'in_force': [], 'not_yet': [], 'expired': [], 'unresolved': []}
+    for key, entry in sorted(effective_entries(doc, series).items(), key=lambda kv: kv[1]['name'].casefold()):
+        if entries is not None and key not in entries:
+            continue
+        if not include_hidden and entry.get('hide_from_ai'):
+            continue
+        for trait in entry.get('traits', []):
+            if not include_hidden and trait.get('hide_from_ai'):
+                continue
+            row = {
+                'entry': key,
+                'name': entry['name'],
+                'trait': trait['name'],
+                'trait_id': trait['id'],
+                'value': trait['value'],
+                'scope': entry.get('scope', 'document'),
+                **{k: trait[k] for k in TRAIT_VALIDITY if k in trait},
+            }
+            result[_status(doc, trait, index, book)].append(row)
+    block = doc['blocks'][index]
+    return {
+        'position': {'target': block['id'], 'index': index, **({'book': book} if book is not None else {})},
+        'facts': result['in_force'],
+        'not_yet': result['not_yet'],
+        'expired': result['expired'],
+        'unresolved': result['unresolved'],
+    }
 
 
 def _register_spelling_source() -> None:

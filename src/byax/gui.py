@@ -77,6 +77,7 @@ from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
 from .gui_onboarding import OnboardingPanels
 from .gui_project import BinderPanels
+from .gui_provenance import ProvenancePanels
 from .gui_ribbon import RibbonPanels
 from .gui_sync import SyncPanels
 from .gui_views import FileViews
@@ -120,6 +121,7 @@ class MainWindow(
     DraftPanels,
     CompilePanels,
     CodexPanels,
+    ProvenancePanels,
     DocxReviewPanels,
     QMainWindow,
 ):
@@ -245,6 +247,8 @@ class MainWindow(
         self._check_marks = ()
         self.editor.fileDropped.connect(self.open_path)
         self.editor.viewEditRequested.connect(self.commit)
+        self.editor.pasteStarted.connect(self.paste_started)
+        self.editor.pasteFinished.connect(self.paste_finished)
         self.editor.cursorPositionChanged.connect(self.selection_changed)
         self.stack = QStackedWidget()
         self.stack.addWidget(self.editor)
@@ -605,6 +609,7 @@ class MainWindow(
             ('Reusable settings…', self.reusable_settings),
             ('Readability report…', self.readability_report),
             ('Codex…', self.codex_panel),
+            ('Provenance…', self.provenance_panel),
             ('Synced folder safety…', self.sync_safety_details),
             ('Review conflicted copies…', self.review_conflicted_copies),
             ('Languages…', self.show_languages),
@@ -615,6 +620,15 @@ class MainWindow(
             self.action(self.tr('Styles and overrides…'), self.formatting_inspector)
         )
         menus['&View'].addAction(self.action(self.tr('Layer inspector…'), self.layer_inspector))
+        self.provenance_view_action = self.action(
+            self.tr('Show text origin'),
+            self.set_provenance_view,
+            checkable=True,
+            description=self.tr(
+                'Tint text by origin (typed, AI-generated, AI-edited, pasted) with distinct underlines'
+            ),
+        )
+        menus['&View'].addAction(self.provenance_view_action)
         for label, slot in (
             ('Edit selected layer…', self.edit_layer_properties),
             ('Group selected layers…', self.group_selected_layers),
@@ -1015,6 +1029,7 @@ class MainWindow(
 
     def update_sidebar(self):
         self.update_workspace_sidebars()
+        self.update_provenance_tint()
         self.outline.clear()
         for block in self.doc['blocks']:
             if block['type'] in ('heading', 'table', 'image', 'footnote', 'section_break') or block.get(
@@ -1185,6 +1200,7 @@ class MainWindow(
                 'schema_version': 1,
                 'expected_revision': old_revision,
                 'origin': 'gui',
+                'provenance': self.declared_provenance(),
                 'operations': operations,
             },
             allow_policy_changes=True,
@@ -2664,6 +2680,11 @@ class MainWindow(
 
             profile = group_profile(frozen, profile, fiction_groups)
         self.review_empty.set_busy(True)
+        if suites and 'continuity' in suites:
+            from .continuity import check_view
+
+            # Series facts and this book's number (a read-only view, never committed).
+            frozen = check_view(frozen, getattr(self, 'path', None))
         self.background(
             self.tr('Checking document…'),
             lambda: run_checks(frozen, suites=suites, profile=profile),

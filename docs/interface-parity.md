@@ -301,3 +301,29 @@ always AI-visible view for model clients. All lists are bounded with `offset` co
 | Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
 | Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
+
+## Provenance, disclosure, version pins and the temporal codex
+
+`provenance` reports the local provenance log (who or what wrote each span, per-section shares),
+writes APA, MLA and Chicago AI-use disclosures, records a disclosure as a review proposal, re-finds
+the sources of AI claims and exports an optional, unsigned C2PA sidecar manifest. It never uses the
+network. MCP and REST refuse `--action clear` and `--key-file` (signing reads a private key), and
+refuse edit envelopes that claim text was typed or pasted by a person (`provenance.origin` of
+`human` or `pasted`) or that rewrite the log (`clear_provenance`, `reanchor_claim`).
+`check --family continuity` runs the advisory continuity suite against the temporal codex;
+`codex --action facts-at` (and the read-only `entity --action facts-at`) lists the facts in force
+at a position. `check --citations` includes the version-pin check, and `source --action add-draft`
+cites another `.byax` draft pinned to its current version.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | provenance report | `byax provenance --action report` | `byax_provenance` | `POST /v1/execute` | `byax.provenance.report` | Tools > Provenance… |
+| Output | AI-use disclosure | `byax provenance --action disclose --style apa` | `byax_provenance` | `POST /v1/execute` | `byax.disclosure.disclose` | Tools > Provenance… |
+| Review | propose AI-use disclosure | `byax provenance --action propose-disclosure` | `byax_provenance` | `POST /v1/execute` | `byax.disclosure.disclosure_proposal` | Tools > Provenance… |
+| Output | C2PA sidecar manifest | `byax provenance --action export-c2pa --out FILE.c2pa.json` | `byax_provenance` | `POST /v1/execute` | `byax.disclosure.export_c2pa` | Tools > Provenance… |
+| Checks | AI claim source re-anchoring | `byax provenance --action reanchor` | `byax_provenance` | `POST /v1/execute` | `byax.provenance.reanchor_sources` | Tools > Provenance… |
+| Editing | clear provenance log | `byax provenance --action clear` | — (local only) | — (local only) | `byax.engine.apply` | Tools > Provenance… |
+| Checks | continuity checks | `byax check --family continuity` | `byax_check` | `POST /v1/execute` | `byax.continuity.analyze` | Inspector > Checks |
+| Inspection | codex facts at a position | `byax codex --action facts-at --target ID` | `byax_codex` | `POST /v1/execute` | `byax.codex.facts_at` | — (headless) |
+| Checks | version-pinned citations | `byax check --citations` | `byax_check` | `POST /v1/execute` | `byax.version_pins.check_pins` | Inspector > Checks |
+| Files | cite a .byax draft | `byax source --action add-draft --draft-path FILE.byax` | `byax_source` | `POST /v1/execute` | `byax.version_pins.source_from_draft` | — (headless) |

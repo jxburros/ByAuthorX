@@ -37,7 +37,8 @@ from dataclasses import asdict, dataclass, field, fields
 from .errors import ByaxError
 
 STATES = ('supported', 'partial', 'unsupported', 'not_checkable', 'unanchored', 'unverified')
-ORIGINS = ('native', 'token', 'user')
+# ``model``: an AI-written sentence with no citation (claim-level provenance, plan section 10).
+ORIGINS = ('native', 'token', 'user', 'model')
 STAGE_ORDER = ('quote', 'fuzzy', 'entailment', 'judge')
 DEFAULT_STAGES = ('quote', 'fuzzy')
 CONTEXT_CHARS = 32
@@ -95,7 +96,7 @@ class GroundingRecord:
     prefix: str  # up to 32 characters of source text before the quote, for re-anchoring
     suffix: str
     content_hash: str | None  # source version at citation time
-    origin: str  # native | token | user
+    origin: str  # native | token | user | model (uncited AI sentence)
     state: str = 'unverified'
     checks: list = field(default_factory=list)
     citation_id: str | None = None  # the cited chunk or reference ID as the model or writer gave it
@@ -1173,7 +1174,7 @@ def _audit_library(item, mark, source, doc, registry, cache_dir, operations, mov
     return item
 
 
-def audit_citations(doc, *, registry=None, cache_dir=None, stages=DEFAULT_STAGES):
+def audit_citations(doc, *, registry=None, cache_dir=None, stages=DEFAULT_STAGES, document_path=None):
     """Stage 1 of the cascade over every citation mark in ``doc`` (plan 6.4 and 6.5).
 
     Each citation gets a status: ``quote_found``; ``near_match`` with the differences;
@@ -1183,6 +1184,10 @@ def audit_citations(doc, *, registry=None, cache_dir=None, stages=DEFAULT_STAGES
     ``source_unavailable``; ``not_checkable`` (paraphrase without a quotation). ``operations`` lists
     proposed ``reanchor_citation`` (and source pointer) updates; nothing is applied. Deterministic
     and local: reads only the document and attached library indexes, no network and no consent.
+
+    ``versions`` is the version-pin check (:func:`byax.version_pins.check_pins`): citations whose
+    source has been superseded (a newer library version or a newer revision of a cited ``.byax``
+    draft, resolved against ``document_path``) carry ``superseded`` and count as needing review.
     """
     stages = tuple(stages)
     if 'quote' not in stages:
@@ -1234,8 +1239,20 @@ def audit_citations(doc, *, registry=None, cache_dir=None, stages=DEFAULT_STAGES
     summary = dict.fromkeys(AUDIT_STATUSES, 0)
     for item in items:
         summary[item['status']] += 1
+    from .version_pins import check_pins
+
+    versions = check_pins(doc, document_path=document_path, registry=registry, cache_dir=cache_dir)
+    superseded = {row['source_id']: row for row in versions['sources'] if row['state'] == 'superseded'}
+    for item in items:
+        if item['source_id'] in superseded:
+            item['superseded'] = {
+                k: superseded[item['source_id']][k]
+                for k in ('pinned', 'current', 'message')
+                if k in superseded[item['source_id']]
+            }
     failed = summary['quote_not_found'] + summary['unanchored']
     attention = failed + summary['near_match'] + summary['source_changed'] + summary['source_unavailable']
+    attention += versions['summary']['superseded']
     return {
         'audit': 'citations',
         'stages': [name for name in STAGE_ORDER if name in stages],
@@ -1247,6 +1264,7 @@ def audit_citations(doc, *, registry=None, cache_dir=None, stages=DEFAULT_STAGES
         'summary': summary,
         'total': len(items),
         'operations': operations,
+        'versions': versions,
         'validation': 'failed' if failed else 'passed',
         'review': 'required' if attention else 'not_required',
         'note': 'Stage 1 (quote match, fuzzy alignment) only. A paraphrase is not checked for meaning; '
@@ -1276,4 +1294,7 @@ def describe_audit(report):
     for item in report['citations']:
         detail = f' — {item["message"]}' if item.get('message') else ''
         lines.append(f'{labels[item["status"]]}: “{item["text"]}” ({item["title"]}){detail}')
+    for row in (report.get('versions') or {}).get('sources', []):
+        if row['state'] == 'superseded':
+            lines.append(f'Superseded source: {row["message"]} ({len(row["citations"])} citation(s))')
     return lines

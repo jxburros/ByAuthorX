@@ -22,6 +22,8 @@ PATH_KEYS = frozenset(
         'copy_path',
         'series_path',
         'reviewed_path',
+        'draft_path',
+        'key_file',
     )
 )
 
@@ -55,6 +57,11 @@ def check_provider_admin(command, arguments):
     if command == 'codex' and arguments.get('action') in ('series-attach', 'series-detach'):
         raise ByaxError(
             'unsupported_feature', 'Attach a series (and its libraries) through the local CLI or desktop'
+        )
+    if command == 'provenance' and (arguments.get('action') == 'clear' or arguments.get('key_file')):
+        raise ByaxError(
+            'unsupported_feature',
+            'Clear the provenance log or sign a C2PA sidecar through the local CLI or desktop',
         )
     if command == 'dependencies' and arguments.get('action') == 'refresh':
         raise ByaxError(
@@ -93,6 +100,17 @@ def check_provider_admin(command, arguments):
 
 def _check_source_claims(value):
     if isinstance(value, dict):
+        # Provenance (context engine plan 10): automation cannot claim a person typed or pasted text,
+        # nor rewrite or erase the log; those come only from the desktop editor and the local CLI.
+        declared = value.get('provenance') if 'operations' in value else None
+        if isinstance(declared, dict) and declared.get('origin') in ('human', 'pasted'):
+            raise ByaxError(
+                'unsupported_feature', 'Transport clients cannot record text as typed or pasted by a person'
+            )
+        if value.get('type', value.get('op')) in ('clear_provenance', 'reanchor_claim'):
+            raise ByaxError(
+                'unsupported_feature', 'Change the provenance log through the local CLI or desktop'
+            )
         if (
             value.get('type', value.get('op')) == 'set_settings'
             and isinstance(value.get('values'), dict)
@@ -753,4 +771,63 @@ INTERFACE_INVENTORY = (
     ('Files', 'detach series', 'codex --action series-detach', 'byax.engine.apply', None),
     ('Files', 'export series codex', 'codex --action series-export', 'byax.series.save', None),
     ('Inspection', 'entity lookup (read only)', 'entity', 'byax.cli_codex.entity_command', None),
+    # Differentiators (context engine plan 10): provenance, disclosure, version pins, temporal codex.
+    (
+        'Inspection',
+        'provenance report',
+        'provenance --action report',
+        'byax.provenance.report',
+        'Tools > Provenance…',
+    ),
+    (
+        'Output',
+        'AI-use disclosure',
+        'provenance --action disclose',
+        'byax.disclosure.disclose',
+        'Tools > Provenance…',
+    ),
+    (
+        'Review',
+        'propose AI-use disclosure',
+        'provenance --action propose-disclosure',
+        'byax.disclosure.disclosure_proposal',
+        'Tools > Provenance…',
+    ),
+    (
+        'Output',
+        'C2PA sidecar manifest',
+        'provenance --action export-c2pa',
+        'byax.disclosure.export_c2pa',
+        'Tools > Provenance…',
+    ),
+    (
+        'Checks',
+        'AI claim source re-anchoring',
+        'provenance --action reanchor',
+        'byax.provenance.reanchor_sources',
+        'Tools > Provenance…',
+    ),
+    (
+        'Editing',
+        'clear provenance log',
+        'provenance --action clear',
+        'byax.engine.apply',
+        'Tools > Provenance…',
+    ),
+    (
+        'Checks',
+        'continuity checks',
+        'check --family continuity',
+        'byax.continuity.analyze',
+        'Inspector > Checks',
+    ),
+    ('Inspection', 'codex facts at a position', 'codex --action facts-at', 'byax.codex.facts_at', None),
+    (
+        'Checks',
+        'version-pinned citations',
+        'check --citations',
+        'byax.version_pins.check_pins',
+        'Inspector > Checks',
+    ),
+    ('Files', 'cite a .byax draft', 'source --action add-draft', 'byax.version_pins.source_from_draft', None),
 )
