@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "kind": "byax-settings-collection",
+  "collections": {
+    "compile": {
+      "manuscript": {
+        "label": "Manuscript (standard format)",
+        "description": "Submission manuscript in standard (Shunn-style) format: Letter paper, 1 in margins, 12 pt Times New Roman, double-spaced, 0.5 in paragraph indent, ragged right, a title page with contact details and a rounded word count, a Surname / TITLE / page header on every following page, chapters on a new page a third of the way down, # for scene breaks and END at the end. Italics stay italic. Word by default.",
+        "version": 1,
+        "target": "docx",
+        "front_matter": [
+          {"kind": "manuscript_title", "start": "odd"}
+        ],
+        "back_matter": [],
+        "end_mark": "END",
+        "items": {
+          "part": {"start": "next", "number_style": "words", "label": "Part {number}", "title": "auto", "sink": 144},
+          "chapter": {
+            "start": "next",
+            "number_style": "words",
+            "label": "Chapter {number}",
+            "title": "auto",
+            "drop_cap": false,
+            "small_caps_words": 0,
+            "sink": 144,
+            "numbering": "continuous"
+          },
+          "scene": {"heading": "separator", "separator": "#", "small_caps_words": 0},
+          "front": {"start": "next", "heading": "keep"},
+          "back": {"start": "next", "heading": "keep"}
+        },
+        "design": {
+          "trim": "letter",
+          "margins": {"top": 72, "bottom": 72, "inside": 72, "outside": 72},
+          "gutter": 0,
+          "mirror": false,
+          "header": {"text": "{surname} / {short_title} / {page}", "align": "right", "first_page": false},
+          "running_heads": null,
+          "folios": "none",
+          "opener_folio": "none",
+          "widows": 0,
+          "orphans": 0,
+          "bleed": 0,
+          "crop_marks": false,
+          "image_dpi": 150,
+          "restart_numbering": false,
+          "docx": {"trim": "letter", "margins": 72}
+        },
+        "styles": {
+          "body": {"font_family": "Times New Roman", "font_size": 12, "line_spacing": 2.0, "alignment": "left", "first_line_indent": 36, "space_after": 0, "space_before": 0, "bold": false, "italic": false},
+          "compile_chapter_title": {"font_family": "Times New Roman", "font_size": 12, "bold": false, "italic": false, "alignment": "center", "line_spacing": 2.0, "space_before": 0, "space_after": 0, "first_line_indent": 0},
+          "compile_part_title": {"font_family": "Times New Roman", "font_size": 12, "bold": false, "italic": false, "alignment": "center", "line_spacing": 2.0, "space_before": 0, "space_after": 0, "first_line_indent": 0},
+          "compile_subheading": {"font_family": "Times New Roman", "font_size": 12, "bold": false, "italic": false, "alignment": "left", "line_spacing": 2.0, "space_before": 0, "space_after": 0, "first_line_indent": 0},
+          "compile_first": {"based_on": "body", "first_line_indent": 36},
+          "compile_chapter_label": {"font_size": 12, "alignment": "center", "space_after": 0},
+          "compile_part_label": {"font_size": 12, "alignment": "center", "space_after": 0},
+          "compile_scene_break": {"alignment": "center", "first_line_indent": 0, "space_before": 0, "space_after": 0},
+          "compile_title": {"font_size": 12, "alignment": "center", "first_line_indent": 0, "space_before": 0},
+          "compile_byline": {"font_size": 12, "alignment": "center", "first_line_indent": 0},
+          "compile_contact": {"font_size": 12, "line_spacing": 1.0, "first_line_indent": 0, "alignment": "left"},
+          "compile_word_count": {"font_size": 12, "line_spacing": 1.0, "first_line_indent": 0, "alignment": "right"},
+          "compile_end_mark": {"font_size": 12, "alignment": "center", "first_line_indent": 0, "space_before": 0}
+        },
+        "epub": {"embed_fonts": false}
+      }
+    }
+  },
+  "requires": {"provider_aliases": [], "styles": [], "sources": []}
+}

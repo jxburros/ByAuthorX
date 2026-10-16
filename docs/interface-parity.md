@@ -180,3 +180,19 @@ operation and run it through `engine.apply`, so `--expect-revision`, `--request-
 | Editing | binder status | `byax project --action set-status` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Editing | binder word target | `byax project --action set-target` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Editing | binder metadata | `byax project --action set-meta` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+
+## Compile pipeline
+
+`compile` turns a project into a print PDF, EPUB, Word or Markdown book (see the
+[user guide](user-guide.md#compiling-a-book)). It never changes the master; `--preset-file` is a
+path argument and is scoped like `--out` over REST. `save-preset` is a canonical `set_settings`
+operation, so `--expect-revision`, `--request-id` and `--dry-run` behave as for `apply`.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Output | compile a book | `byax compile PATH --preset NAME --target pdf --out FILE` | `byax_compile` | `POST /v1/execute` | `byax.compile.compile_document` | File > Compile… |
+| Checks | compile preflight | `byax compile PATH --preflight-only` | `byax_compile` | `POST /v1/execute` | `byax.compile.preflight` | File > Compile… |
+| Discovery | compile presets | `byax compile PATH --action presets` | `byax_compile` | `POST /v1/execute` | `byax.compile.list_presets` | File > Compile… |
+| Inspection | effective compile profile | `byax compile PATH --action show` | `byax_compile` | `POST /v1/execute` | `byax.compile.resolve_profile` | — (headless) |
+| Editing | save compile preset | `byax compile PATH --action save-preset --name NAME` | `byax_compile` | `POST /v1/execute` | `byax.compile.save_preset_operations` | File > Compile… |
+| Files | export compile preset | `byax compile PATH --action export-preset --out FILE.json` | `byax_compile` | `POST /v1/execute` | `byax.compile.preset_collection` | — (headless) |

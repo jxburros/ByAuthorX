@@ -45,6 +45,7 @@ Fixtures and benchmarks:
 ```bash
 uv run python scripts/generate_fixtures.py --out artifacts/fixtures
 QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark.py --out artifacts/benchmark.json
+QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark_compile.py --out artifacts/compile.json  # compile the 100k project
 ```
 
 ## CI gates (run these before pushing)

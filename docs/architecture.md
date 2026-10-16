@@ -28,6 +28,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `search_query`, `ranking`, `vector_store` | Shared search syntax compiled to safe FTS5 expressions, with RapidFuzz suggestions; `Hit`, reciprocal-rank fusion, de-duplication, MMR and the reranker interface; vector storage behind one interface (float32 BLOBs in the index cache today) |
 | `citations`, `citation_render` | Source records, CSL-JSON/BibTeX/RIS exchange, citation marks and APA/MLA/Chicago rendering |
 | `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report and the `project_*` canonical operations |
+| `compile`, `gui_compile` | Compile pipeline: compile profiles (presets in `resources/compile` are settings collections), the transient compiled document built by `engine.apply` on a copy, per-target export through the existing exporters, Word/Markdown round-trip verification, preflight findings; File → Compile… |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `sync_safety`, `gui_sync` | Synced-folder detection, risk report, conflicted-copy discovery and merge-as-proposal (`engine.import_branch` + `propose_merge`), explicit archive of merged copies; the notice bar and review dialog |
@@ -89,6 +90,32 @@ the removed heading blocks the merge. Headings removed or demoted by other edits
 rebound (`project_set_meta` with `heading`) or removed explicitly, never dropped. Exports write the
 binder as headings and report kinds, statuses, targets and synopses as located `binder_metadata`
 losses; clean publication drops the binder with the other metadata.
+
+## Compile pipeline
+
+`compile.build(master, profile, target)` deep-copies the master, drops editing state that is never
+output (history, replay records, review items, layers, protections, locks, tracking and the binder
+object) and turns the copy into a *compiled document* with canonical operations through
+`engine.apply`: excluded items are deleted, `order` uses `move_section`, styles are defined, binder
+headings become numbered openers, scene headings become separators, the first paragraph after an
+opener gets character-style marks for the drop cap and lead-in, and generated front and back matter is
+inserted. Print uses one section break per opener (so each opener is its section's first page and
+the `first` header and footer variants suppress the running heads) with `start: odd_page` or
+`next_page`; Word uses `page_break_before`; EPUB uses explicit `split_at` points. Generated block IDs
+are counters (`compile_<kind>_NNNN`), the EPUB `modified` date comes from the master and nothing reads
+the clock, so the compiled document's hash, the EPUB bytes and the PDF page breaks repeat.
+
+Layout additions used by book design (all optional layout keys, default off): `gutter` (added to the
+inside margin), `mirror_margins` (swap inside and outside on versos), `page_parity: physical` (recto
+and verso, odd/even section starts and header variants follow the sheet, not the folio, so a
+restarted folio 1 still lands on a recto), `blank_page_regions: false` (inserted blank pages carry no
+running head or folio; blank pages are not counted as a section's first page and belong to the
+sequence they complete), a block `sink` (space above a block that opens a page), `bleed` and
+`crop_marks` (PDF sheet enlarged around the trim), `region_font`, `region_font_size`,
+`region_small_caps` and `region_color`, and `small_caps` and `letter_spacing` character values. The
+PDF report adds `page_starts` (the block that opens each page body). The Word adapter now writes and
+reads `{page}`/`{pages}` as PAGE/NUMPAGES fields, a distinct first-page header or footer, region
+alignment, line spacing, style alignment and page break before.
 
 ## Review anchors, proposals and branches
 
