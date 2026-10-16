@@ -155,3 +155,37 @@ jobs:
           if-no-files-found: error
           compression-level: 0
           retention-days: 7
+  # Manual only: the full evaluation fixtures (30 PLOS papers fetched and hash-verified), the keyword and
+  # fake-embedder configurations on everything, and any model-backed tests whose provider is configured.
+  # The fast keyword/fake-embedder gate already runs in the normal pytest job above.
+  eval:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      QT_QPA_PLATFORM: offscreen
+      BYAX_EVAL_CACHE: ${{ github.workspace }}/.eval-cache
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: '3.12'
+      - name: Install Linux native libraries
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libegl1 libgl1 libxkbcommon0 libdbus-1-3 libxcb-cursor0 libasound2t64
+      - run: uv sync --frozen --extra dev
+      - uses: actions/cache@v4
+        with:
+          path: .eval-cache
+          key: eval-papers-${{ hashFiles('tests/fixtures/eval/MANIFEST.json') }}
+      - name: Fetch and verify the evaluation papers
+        run: uv run --no-sync python scripts/fetch_eval_fixtures.py
+      - name: Retrieval harness on the full fixtures
+        run: uv run --no-sync python scripts/eval_retrieval.py --configs keyword hybrid-fake --out-dir artifacts/bench
+      - name: Model-backed evaluation (skips unless BYAX_EVAL_PROVIDER is set)
+        run: uv run --no-sync pytest -m eval_models -q
+      - uses: actions/upload-artifact@v4
+        with:
+          name: retrieval-evaluation
+          path: artifacts/bench
+          retention-days: 30

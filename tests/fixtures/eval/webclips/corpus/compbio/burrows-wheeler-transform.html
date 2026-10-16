@@ -1,0 +1,1433 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Burrows–Wheeler transform - Wikipedia</title>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.24">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="noindex,nofollow,max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Burrows–Wheeler transform - Wikipedia">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div id="mw-aria-live-region"></div><a href="#bodyContent">Jump to content</a>
+<div>
+	<header>
+		<div>
+			<nav>
+<div id="vector-main-menu-dropdown"  >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button"    >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox"  ><span></span>
+<span>Main menu</span>
+	</label>
+	<div>
+				<div id="vector-main-menu-unpinned-container">
+<div id="vector-main-menu">
+	<div
+>
+	<div>Main menu</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-navigation"  >
+	<div>
+		Navigation
+	</div>
+	<div>
+		<ul>
+			<li id="n-mainpage-description"><a href="/wiki/Main_Page" accesskey="z"><span>Main page</span></a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents"><span>Contents</span></a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events"><span>Current events</span></a></li><li id="n-randompage"><a href="/wiki/Special:Random" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About"><span>About Wikipedia</span></a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us"><span>Contact us</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-interaction"  >
+	<div>
+		Contribute
+	</div>
+	<div>
+		<ul>
+			<li id="n-help"><a href="/wiki/Help:Contents"><span>Help</span></a></li><li id="n-introduction"><a href="/wiki/Help:Introduction"><span>Learn to edit</span></a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal"><span>Community portal</span></a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_upload_wizard"><span>Upload file</span></a></li><li id="n-specialpages"><a href="/wiki/Special:SpecialPages" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+				</div>
+	</div>
+</div>
+		</nav>
+<a href="/wiki/Main_Page">
+	<img src="/static/images/icons/enwiki-25.svg" alt="" height="50" width="50">
+	<span>
+		<img alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg">
+		<img alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11">
+	</span>
+</a>
+		</div>
+		<div>
+<div id="p-search" role="search">
+	<a href="/wiki/Special:Search" accesskey="f"><span></span>
+<span>Search</span>
+	</a>
+	<div>
+		<div>
+			<form action="/w/index.php" id="searchform">
+				<div id="simpleSearch" >
+					<div>
+						<input
+						 autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" autocapitalize="none" spellcheck="false" accesskey="f" id="searchInput"
+							>
+						<span></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button>Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+			<nav>
+	<div>
+<div id="p-vector-user-menu-preferences"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-userpage"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	<nav>
+<div id="vector-appearance-dropdown"  >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button"    >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox"  ><span></span>
+<span>Appearance</span>
+	</label>
+	<div>
+			<div id="vector-appearance-unpinned-container">
+			</div>
+	</div>
+</div>
+	</nav>
+<div id="p-vector-user-menu-notifications"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-overflow"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport-2"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Burrows%E2%80%93Wheeler+transform&amp;returntoquery=oldid%3D1378563264"><span>Create account</span></a>
+</li>
+<li id="pt-login-2"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Burrows%E2%80%93Wheeler+transform&amp;returntoquery=oldid%3D1378563264" accesskey="o"><span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+<div id="vector-user-links-dropdown"  >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button"    >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox"  ><span></span>
+<span>Personal tools</span>
+	</label>
+	<div>
+<div id="p-personal"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span></span>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Burrows%E2%80%93Wheeler+transform&amp;returntoquery=oldid%3D1378563264"><span></span>
+<span>Create account</span></a>
+</li>
+<li id="pt-login"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Burrows%E2%80%93Wheeler+transform&amp;returntoquery=oldid%3D1378563264" accesskey="o"><span></span>
+<span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+</nav>
+		</div>
+	</header>
+</div>
+<div>
+	<div>
+		<div>
+			<div id="siteNotice"></div>
+		</div>
+		<div>
+			<div>
+		<div id="mw-navigation">
+			<nav id="mw-panel">
+				<div id="vector-main-menu-pinned-container">
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div>
+				<nav id="mw-panel-toc">
+					<div id="vector-toc-pinned-container">
+					<div id="vector-toc">
+	<div
+>
+	<h2>Contents</h2>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+		>
+			<a href="#">
+				<div>(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Description"
+	>
+		<a href="#Description">
+			<div>
+				<span>1</span>
+				<span>Description</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Description subsection</span>
+			</button>
+		<ul id="toc-Description-sublist">
+			<li id="toc-Example"
+		>
+			<a href="#Example">
+				<div>
+					<span>1.1</span>
+					<span>Example</span>
+				</div>
+			</a>
+			<ul id="toc-Example-sublist">
+			</ul>
+		</li>
+		<li id="toc-Pseudocode"
+		>
+			<a href="#Pseudocode">
+				<div>
+					<span>1.2</span>
+					<span>Pseudocode</span>
+				</div>
+			</a>
+			<ul id="toc-Pseudocode-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Explanation"
+	>
+		<a href="#Explanation">
+			<div>
+				<span>2</span>
+				<span>Explanation</span>
+			</div>
+		</a>
+		<ul id="toc-Explanation-sublist">
+		</ul>
+	</li>
+	<li id="toc-Optimization"
+	>
+		<a href="#Optimization">
+			<div>
+				<span>3</span>
+				<span>Optimization</span>
+			</div>
+		</a>
+		<ul id="toc-Optimization-sublist">
+		</ul>
+	</li>
+	<li id="toc-Bijective_variant"
+	>
+		<a href="#Bijective_variant">
+			<div>
+				<span>4</span>
+				<span>Bijective variant</span>
+			</div>
+		</a>
+		<ul id="toc-Bijective_variant-sublist">
+		</ul>
+	</li>
+	<li id="toc-Dynamic_Burrows–Wheeler_transform"
+	>
+		<a href="#Dynamic_Burrows–Wheeler_transform">
+			<div>
+				<span>5</span>
+				<span>Dynamic Burrows–Wheeler transform</span>
+			</div>
+		</a>
+		<ul id="toc-Dynamic_Burrows–Wheeler_transform-sublist">
+		</ul>
+	</li>
+	<li id="toc-Sample_implementation"
+	>
+		<a href="#Sample_implementation">
+			<div>
+				<span>6</span>
+				<span>Sample implementation</span>
+			</div>
+		</a>
+		<ul id="toc-Sample_implementation-sublist">
+		</ul>
+	</li>
+	<li id="toc-BWT_applications"
+	>
+		<a href="#BWT_applications">
+			<div>
+				<span>7</span>
+				<span>BWT applications</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle BWT applications subsection</span>
+			</button>
+		<ul id="toc-BWT_applications-sublist">
+			<li id="toc-BWT_for_sequence_alignment"
+		>
+			<a href="#BWT_for_sequence_alignment">
+				<div>
+					<span>7.1</span>
+					<span>BWT for sequence alignment</span>
+				</div>
+			</a>
+			<ul id="toc-BWT_for_sequence_alignment-sublist">
+			</ul>
+		</li>
+		<li id="toc-BWT_for_image_compression"
+		>
+			<a href="#BWT_for_image_compression">
+				<div>
+					<span>7.2</span>
+					<span>BWT for image compression</span>
+				</div>
+			</a>
+			<ul id="toc-BWT_for_image_compression-sublist">
+			</ul>
+		</li>
+		<li id="toc-BWT_for_compression_of_genomic_databases"
+		>
+			<a href="#BWT_for_compression_of_genomic_databases">
+				<div>
+					<span>7.3</span>
+					<span>BWT for compression of genomic databases</span>
+				</div>
+			</a>
+			<ul id="toc-BWT_for_compression_of_genomic_databases-sublist">
+			</ul>
+		</li>
+		<li id="toc-BWT_for_sequence_prediction"
+		>
+			<a href="#BWT_for_sequence_prediction">
+				<div>
+					<span>7.4</span>
+					<span>BWT for sequence prediction</span>
+				</div>
+			</a>
+			<ul id="toc-BWT_for_sequence_prediction-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-References"
+	>
+		<a href="#References">
+			<div>
+				<span>8</span>
+				<span>References</span>
+			</div>
+		</a>
+		<ul id="toc-References-sublist">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+	>
+		<a href="#External_links">
+			<div>
+				<span>9</span>
+				<span>External links</span>
+			</div>
+		</a>
+		<ul id="toc-External_links-sublist">
+		</ul>
+	</li>
+</ul>
+</div>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div>
+			<main id="content">
+				<header>
+					<nav>
+<div id="vector-page-titlebar-toc"  >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button"    >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+	</label>
+	<div>
+							<div id="vector-page-titlebar-toc-unpinned-container">
+			</div>
+	</div>
+</div>
+					</nav>
+					<h1 id="firstHeading"><span lang="en" dir="ltr"><span>Burrows–Wheeler transform</span></span></h1>
+<div id="p-lang-btn"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button"   >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox"  ><span></span>
+<span>16 languages</span>
+	</label>
+	<div>
+		<div>
+			<ul>
+				<li><a href="https://cs.wikipedia.org/wiki/Burrowsova%E2%80%93Wheelerova_transformace" lang="cs" hreflang="cs"><span>Čeština</span></a></li><li><a href="https://de.wikipedia.org/wiki/Burrows-Wheeler-Transformation" lang="de" hreflang="de"><span>Deutsch</span></a></li><li><a href="https://es.wikipedia.org/wiki/Compresi%C3%B3n_de_Burrows-Wheeler" lang="es" hreflang="es"><span>Español</span></a></li><li><a href="https://fa.wikipedia.org/wiki/%D8%AA%D8%A8%D8%AF%DB%8C%D9%84_%D8%A8%D8%A7%D8%B1%D9%88%D8%B2-%D9%88%DB%8C%D9%84%D8%B1" lang="fa" hreflang="fa"><span>فارسی</span></a></li><li><a href="https://fr.wikipedia.org/wiki/Transform%C3%A9e_de_Burrows-Wheeler" lang="fr" hreflang="fr"><span>Français</span></a></li><li><a href="https://he.wikipedia.org/wiki/%D7%94%D7%AA%D7%9E%D7%A8%D7%AA_%D7%91%D7%95%D7%A8%D7%95%D7%95%D7%A1-%D7%95%D7%99%D7%9C%D7%A8" lang="he" hreflang="he"><span>עברית</span></a></li><li><a href="https://hu.wikipedia.org/wiki/Burrows%E2%80%93Wheeler-transzform%C3%A1ci%C3%B3" lang="hu" hreflang="hu"><span>Magyar</span></a></li><li><a href="https://it.wikipedia.org/wiki/Trasformata_di_Burrows-Wheeler" lang="it" hreflang="it"><span>Italiano</span></a></li><li><a href="https://ja.wikipedia.org/wiki/%E3%83%96%E3%83%AD%E3%83%83%E3%82%AF%E3%82%BD%E3%83%BC%E3%83%88" lang="ja" hreflang="ja"><span>日本語</span></a></li><li><a href="https://ko.wikipedia.org/wiki/%EB%B2%84%EB%A1%9C%EC%9A%B0%EC%A6%88-%ED%9C%A0%EB%9F%AC_%EB%B3%80%ED%99%98" lang="ko" hreflang="ko"><span>한국어</span></a></li><li><a href="https://nl.wikipedia.org/wiki/Burrows-Wheelertransformatie" lang="nl" hreflang="nl"><span>Nederlands</span></a></li><li><a href="https://pl.wikipedia.org/wiki/Transformata_Burrowsa-Wheelera" lang="pl" hreflang="pl"><span>Polski</span></a></li><li><a href="https://pt.wikipedia.org/wiki/M%C3%A9todo_de_Burrows-Wheeler" lang="pt" hreflang="pt"><span>Português</span></a></li><li><a href="https://ru.wikipedia.org/wiki/%D0%9F%D1%80%D0%B5%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5_%D0%91%D0%B0%D1%80%D1%80%D0%BE%D1%83%D0%B7%D0%B0_%E2%80%94_%D0%A3%D0%B8%D0%BB%D0%B5%D1%80%D0%B0" lang="ru" hreflang="ru"><span>Русский</span></a></li><li><a href="https://uk.wikipedia.org/wiki/%D0%9F%D0%B5%D1%80%D0%B5%D1%82%D0%B2%D0%BE%D1%80%D0%B5%D0%BD%D0%BD%D1%8F_%D0%91%D0%B5%D1%80%D1%80%D0%BE%D1%83%D0%B7%D0%B0_%E2%80%94_%D0%92%D1%96%D0%BB%D0%B5%D1%80%D0%B0" lang="uk" hreflang="uk"><span>Українська</span></a></li><li><a href="https://zh.wikipedia.org/wiki/Burrows-Wheeler%E5%8F%98%E6%8D%A2" lang="zh" hreflang="zh"><span>中文</span></a></li>
+			</ul>
+			<div><span><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q2806#sitelinks-wikipedia">Edit links</a></span></div>
+		</div>
+	</div>
+</div>
+</header>
+				<div>
+					<div>
+						<div id="left-navigation">
+							<nav>
+<div id="p-associated-pages"  >
+	<div>
+		<ul>
+			<li id="ca-nstab-main"><a data-mw-interface  href="/wiki/Burrows%E2%80%93Wheeler_transform" accesskey="c"><span>Article</span></a>
+</li>
+<li id="ca-talk"><a data-mw-interface  href="/wiki/Talk:Burrows%E2%80%93Wheeler_transform" rel="discussion" accesskey="t"><span>Talk</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="vector-variants-dropdown"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox"  ><span>English</span>
+	</label>
+	<div>
+<div id="p-variants"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+							</nav>
+						</div>
+						<div id="right-navigation">
+							<nav>
+<div id="p-views"  >
+	<div>
+		<ul>
+			<li id="ca-view"><a data-mw-interface  href="/wiki/Burrows%E2%80%93Wheeler_transform"><span>Read</span></a>
+</li>
+<li id="ca-edit"><a data-mw-interface  href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit" accesskey="e"><span>Edit</span></a>
+</li>
+<li id="ca-history"><a data-mw-interface  href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=history" accesskey="h"><span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+			</nav>
+							<nav>
+<div id="vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button"    >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox"  ><span></span>
+<span>Tools</span>
+	</label>
+	<div>
+									<div id="vector-page-tools-unpinned-container">
+<div id="vector-page-tools">
+	<div
+>
+	<div>Tools</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-cactions"  >
+	<div>
+		Actions
+	</div>
+	<div>
+		<ul>
+			<li id="ca-view-more"><a data-mw-interface  href="/wiki/Burrows%E2%80%93Wheeler_transform"><span></span>
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more"><a data-mw-interface  href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit" accesskey="e"><span></span>
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more"><a data-mw-interface  href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=history" accesskey="h"><span></span>
+<span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="p-tb"  >
+	<div>
+		General
+	</div>
+	<div>
+		<ul>
+			<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Burrows%E2%80%93Wheeler_transform" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Burrows%E2%80%93Wheeler_transform" rel="nofollow" accesskey="k"><span>Related changes</span></a></li><li id="t-upload"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink"><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;oldid=1378563264"><span>Permanent link</span></a></li><li id="t-info"><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=info"><span>Page information</span></a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Burrows%E2%80%93Wheeler_transform&amp;id=1378563264&amp;wpFormIdentifier=titleform"><span>Cite this page</span></a></li><li id="t-urlshortener"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fw%2Findex.php%3Ftitle%3DBurrows%25E2%2580%2593Wheeler_transform%26oldid%3D1378563264"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy"><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;oldid=1378563264&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-coll-print_export"  >
+	<div>
+		Print/export
+	</div>
+	<div>
+		<ul>
+			<li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Burrows%E2%80%93Wheeler_transform&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print"><a href="javascript:print();" rel="alternate" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-wikibase-otherprojects"  >
+	<div>
+		In other projects
+	</div>
+	<div>
+		<ul>
+			<li><a href="https://commons.wikimedia.org/wiki/Category:Burrows%E2%80%93Wheeler_transform" hreflang="en"><span>Wikimedia Commons</span></a></li><li><a href="https://www.wikifunctions.org/wiki/Z12729" hreflang="en"><span>Wikifunctions</span></a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q2806" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+									</div>
+	</div>
+</div>
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div>
+						<nav>
+							<div id="vector-page-tools-pinned-container">
+							</div>
+		</nav>
+						<nav>
+							<div id="vector-appearance-pinned-container">
+				<div id="vector-appearance">
+	<div
+>
+	<div>Appearance</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+</div>
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" data-mw-ve-target-container>
+					<div>
+							<div>
+		</div>
+						<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"><div><span></span><div><div id="mw-revision-info-current"><b>This is the <a href="/wiki/Help:Page_history">current revision</a> of this page, as edited by <span id="mw-revision-name"><a href="/wiki/User:PrimeBOT"><bdi>PrimeBOT</bdi></a> <span>(<a href="/wiki/User_talk:PrimeBOT">talk</a> | <a href="/wiki/Special:Contributions/PrimeBOT">contribs</a>)</span></span> at <span id="mw-revision-date">01:03, 5 October 2026</span><span id="mw-revision-summary"> <span>(<span><a href="#BWT_for_image_compression">→<bdi dir="ltr">BWT for image compression</bdi></a>: </span> <a href="/wiki/Wikipedia:Bots/Requests_for_approval/PrimeBOT_51">Task 51</a>: <a href="/wiki/MOS:REFSPACE">MOS:REFSPACE</a> fixes)</span></span>. The present address (URL) is a <a href="/wiki/Help:Permanent_link">permanent link</a> to this version.</b><span id="revision-info-current-plain">Revision as of 01:03, 5 October 2026 by <a href="/wiki/User:PrimeBOT"><bdi>PrimeBOT</bdi></a> <span>(<a href="/wiki/User_talk:PrimeBOT">talk</a> | <a href="/wiki/Special:Contributions/PrimeBOT">contribs</a>)</span> <span>(<span><a href="#BWT_for_image_compression">→<bdi dir="ltr">BWT for image compression</bdi></a>: </span> <a href="/wiki/Wikipedia:Bots/Requests_for_approval/PrimeBOT_51">Task 51</a>: <a href="/wiki/MOS:REFSPACE">MOS:REFSPACE</a> fixes)</span></span></div><div id="mw-revision-nav">(<a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;diff=prev&amp;oldid=1378563264">diff</a>) <a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;direction=prev&amp;oldid=1378563264">← Previous revision</a> | Latest revision (diff) | Newer revision → (diff)</div></div></div></div></div>
+					</div>
+					<div id="mw-content-text"><div lang="en" dir="ltr"><section id="mwAQ"><div about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"Short description","href":"./Template:Short_description"},"params":{"1":{"wt":"Algorithm used in data compression"}},"i":0}}]}'>Algorithm used in data compression</div><span about="#mwt1"></span>
+<span about="#mwt2" typeof="mw:Transclusion" id="mwAw" data-mw='{"parts":[{"template":{"target":{"wt":"Infobox algorithm\n","href":"./Template:Infobox_algorithm"},"params":{"name":{"wt":"Burrows–Wheeler transform"},"class":{"wt":"preprocessing for lossless compression"},"time":{"wt":"&apos;&apos;O&apos;&apos;(&apos;&apos;n&apos;&apos;)"},"space":{"wt":"&apos;&apos;O&apos;&apos;(&apos;&apos;n&apos;&apos;)"},"data":{"wt":"string"}},"i":0}}]}'></span><table about="#mwt2" id="mwBA"><tbody><tr><th colspan="2">Burrows–Wheeler transform</th></tr><tr><th scope="row">Class</th><td>preprocessing for lossless compression</td></tr><tr><th scope="row">Data structure</th><td>string</td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Best,_worst_and_average_case">Worst-case</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Time_complexity">performance</a></th><td><i>O</i>(<i>n</i>)</td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Best,_worst_and_average_case">Worst-case</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Space_complexity">space complexity</a></th><td><i>O</i>(<i>n</i>)</td></tr></tbody></table>
+<p id="mwBQ">The <b id="mwBg">Burrows–Wheeler transform</b> (<b id="mwBw">BWT</b>) rearranges a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Character_string_(computer_science)" id="mwCA">character string</a> into runs of similar characters, in a manner that can be reversed to recover the original string. Since <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_compression" id="mwCQ">compression</a> techniques such as <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Move-to-front_transform" id="mwCg">move-to-front transform</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Run-length_encoding" id="mwCw">run-length encoding</a> are more effective when such runs are present, the BWT can be used as a preparatory step to improve the efficiency of a compression algorithm, and is used this way in software such as <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bzip2" id="mwDA">bzip2</a>. The  algorithm can be implemented efficiently using a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_array" id="mwDQ">suffix array</a> thus reaching linear time complexity.</p>
+<p id="mwDg">It was invented by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/David_Wheeler_(computer_scientist)" id="mwDw">David Wheeler</a> in 1983, and later published by him and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Michael_Burrows_(computer_scientist)" id="mwEA">Michael Burrows</a> in 1994. Their paper included a compression algorithm, called the <b id="mwEQ">Block-sorting Lossless Data Compression Algorithm</b> or <b id="mwEg">BSLDCA</b>, that compresses data by using the BWT followed by move-to-front coding and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Huffman_coding" id="mwEw">Huffman coding</a> or <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Arithmetic_coding" id="mwFA">arithmetic coding</a>.<sup about="#mwt6" id="cite_ref-Burrows1994_1-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Burrows1994"},"body":{"id":"mw-reference-text-cite_note-Burrows1994-1"}}'><a href="#cite_note-Burrows1994-1" id="mwFQ"><span id="mwFg"><span id="mwFw">[</span>1<span id="mwGA">]</span></span></a></sup><sup about="#mwt9" id="cite_ref-u822_2-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"u822"},"body":{"id":"mw-reference-text-cite_note-u822-2"}}'><a href="#cite_note-u822-2" id="mwGQ"><span id="mwGg"><span id="mwGw">[</span>2<span id="mwHA">]</span></span></a></sup></p>
+<meta property="mw:PageProp/toc" id="mwHQ" data-mw='{"autoGenerated":true}'/></section><section id="mwHg"><div><h2 id="Description">Description</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=1"><span>edit</span></a><span>]</span></span></div>
+<p id="mwHw">The transform is done by constructing a matrix (known as the Burrows–Wheeler matrix<sup about="#mwt12" id="cite_ref-langmead_3-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"langmead"},"body":{"id":"mw-reference-text-cite_note-langmead-3"}}'><a href="#cite_note-langmead-3" id="mwIA"><span id="mwIQ"><span id="mwIg">[</span>3<span id="mwIw">]</span></span></a></sup>) whose rows are the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Circular_shift" id="mwJA">circular shifts</a> of the input text, sorted in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lexicographic_order" id="mwJQ">lexicographic order</a>, then taking the final column of that matrix.</p>
+<p id="mwJg">To allow the transform to be reversed, one additional step is necessary: either the index of the original string in the Burrows–Wheeler matrix must be returned along with the transformed string (the approach shown in the original paper by Burrows and Wheeler<sup about="#mwt13" id="cite_ref-Burrows1994_1-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Burrows1994"}}'><a href="#cite_note-Burrows1994-1" id="mwJw"><span id="mwKA"><span id="mwKQ">[</span>1<span id="mwKg">]</span></span></a></sup>) or a special end-of-text character must be added at the start or end of the input text before the transform is executed.<sup about="#mwt14" id="cite_ref-langmead_3-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"langmead"}}'><a href="#cite_note-langmead-3" id="mwKw"><span id="mwLA"><span id="mwLQ">[</span>3<span id="mwLg">]</span></span></a></sup></p>
+<section id="mwLw"><div><h3 id="Example">Example</h3><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=2"><span>edit</span></a><span>]</span></span></div>
+<p id="mwMA">Given an input string <code id="mwMQ">S = <span id="mwMg">^</span>BANANA<span id="mwMw">$</span></code> (step<span typeof="mw:Entity" id="mwNA"> </span>1 in the table below), rotate it <i id="mwNQ">N</i> times (step<span typeof="mw:Entity" id="mwNg"> </span>2), where <code id="mwNw">N = 8</code> is the length of the <code id="mwOA">S</code> string considering also the red <code id="mwOQ"><span id="mwOg">^</span></code> character representing the start of the string and the red <code id="mwOw"><span id="mwPA">$</span></code> character representing the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/End-of-file" id="mwPQ">EOF</a> pointer; these rotations, or circular shifts, are then sorted lexicographically (step<span typeof="mw:Entity" id="mwPg"> </span>3). The output of the encoding phase is the last column <code id="mwPw">L = BNN<span id="mwQA">^</span>AA<span id="mwQQ">$</span>A</code> after step<span typeof="mw:Entity" id="mwQg"> </span>3, and the index (0-based) <code id="mwQw">I</code> of the row containing the original string <code id="mwRA">S</code>, in this case <code id="mwRQ">I = 6</code>.</p>
+<p id="mwRg">It is not necessary to use both <code id="mwRw"><span id="mwSA">$</span></code> and <code id="mwSQ"><span id="mwSg">^</span></code>, but at least one must be used, else we cannot invert the transform, since all circular permutations of a string have the same Burrows–Wheeler transform.</p>
+<table id="mwSw">
+<caption id="mwTA">Transformation</caption>
+<tbody id="mwTQ"><tr id="mwTg">
+<th id="mwTw">1. Input</th>
+<th id="mwUA">2. All<br id="mwUQ"/>rotations</th>
+<th id="mwUg">3. Sort into<br id="mwUw"/>lexical order</th>
+<th id="mwVA">4. Take the<br id="mwVQ"/>last column</th>
+<th id="mwVg">5. Output</th></tr>
+<tr id="mwVw">
+<td id="mwWA">
+<pre id="mwWQ"><span id="mwWg">^</span>BANANA<span id="mwWw">$</span></pre></td>
+<td id="mwXA">
+<pre id="mwXQ"><span id="mwXg">^</span>BANANA<span id="mwXw">$</span>
+<span id="mwYA">$</span><span id="mwYQ">^</span>BANANA
+A<span id="mwYg">$</span><span id="mwYw">^</span>BANAN
+NA<span id="mwZA">$</span><span id="mwZQ">^</span>BANA
+ANA<span id="mwZg">$</span><span id="mwZw">^</span>BAN
+NANA<span id="mwaA">$</span><span id="mwaQ">^</span>BA
+ANANA<span id="mwag">$</span><span id="mwaw">^</span>B
+BANANA<span id="mwbA">$</span><span id="mwbQ">^</span></pre></td>
+<td id="mwbg">
+<pre id="mwbw"><b id="mwcA">A</b>NANA<span id="mwcQ">$</span><span id="mwcg">^</span>B
+<b id="mwcw">A</b>NA<span id="mwdA">$</span><span id="mwdQ">^</span>BAN
+<b id="mwdg">A</b><span id="mwdw">$</span><span id="mweA">^</span>BANAN
+<b id="mweQ">B</b>ANANA<span id="mweg">$</span><span id="mwew">^</span>
+<b id="mwfA">N</b>ANA<span id="mwfQ">$</span><span id="mwfg">^</span>BA
+<b id="mwfw">N</b>A<span id="mwgA">$</span><span id="mwgQ">^</span>BANA
+<span id="mwgg">^</span>BANANA<span id="mwgw">$</span>
+<span id="mwhA"><b id="mwhQ">$^</b></span>BANANA</pre></td>
+<td id="mwhg">
+<pre id="mwhw">ANANA<span id="mwiA">$</span><span id="mwiQ">^</span><b id="mwig">B</b>
+ANA<span id="mwiw">$</span><span id="mwjA">^</span>BA<b id="mwjQ">N</b>
+A<span id="mwjg">$</span><span id="mwjw">^</span>BANA<b id="mwkA">N</b>
+BANANA<span id="mwkQ">$</span><span id="mwkg"><b id="mwkw">^</b></span>
+NANA<span id="mwlA">$</span><span id="mwlQ">^</span>B<b id="mwlg">A</b>
+NA<span id="mwlw">$</span><span id="mwmA">^</span>BAN<b id="mwmQ">A</b>
+<span id="mwmg">^</span>BANANA<span id="mwmw"><b id="mwnA">$</b></span>
+<span id="mwnQ">$^</span>BANAN<b id="mwng">A</b></pre></td>
+<td id="mwnw">
+<pre id="mwoA">BNN<span id="mwoQ">^</span>AA<span id="mwog">$</span>A</pre></td></tr>
+</tbody></table>
+</section><section id="mwow"><div><h3 id="Pseudocode">Pseudocode</h3><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=3"><span>edit</span></a><span>]</span></span></div>
+<p id="mwpA">The following <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pseudocode" id="mwpQ">pseudocode</a> gives a simple (though inefficient) way to calculate the BWT and its inverse. It assumes that the input string <code id="mwpg">s</code> contains a special character "EOF", which is the last character and occurs nowhere else in the text.</p>
+<pre id="mwpw"><b id="mwqA">function</b> BWT (<i id="mwqQ">string</i> s)
+    create a table, where the rows are all possible rotations of s
+    sort rows alphabetically
+    <b id="mwqg">return</b> (last column of the table)</pre>
+<pre id="mwqw"><b id="mwrA">function</b> inverseBWT (<i id="mwrQ">string</i> s)
+    create empty table
+    <b id="mwrg">repeat</b> length(s) <b id="mwrw">times</b>
+        // first insert creates first column
+        insert s as a column of table before first column of the table
+        sort rows of the table alphabetically
+    <b id="mwsA">return</b> (row that ends with the "EOF" character)</pre>
+</section></section><section id="mwsQ"><div><h2 id="Explanation">Explanation</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=4"><span>edit</span></a><span>]</span></span></div>
+<p id="mwsg">If the original string had several substrings that occurred often, then the BWT-transformed string will have several places where a single character is repeated many times in a row,<sup about="#mwt17" id="cite_ref-4" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-4"}}'><a href="#cite_note-4" id="mwsw"><span id="mwtA"><span id="mwtQ">[</span>4<span id="mwtg">]</span></span></a></sup> creating more-easily-compressible data. For instance, consider transforming an English text frequently containing the word "the":</p>
+<p id="mwtw">For example:</p>
+<table id="mwuA">
+<tbody id="mwuQ"><tr id="mwug"><th id="mwuw">Input</th>
+<td id="mwvA"><code id="mwvQ">THE.MAN.AND.THE.DOG.WAITED.AT.THE.STATION.FOR.THE.TRAIN.TO.THE.CITY</code></td></tr>
+<tr id="mwvg">
+<th id="mwvw">Output</th>
+<td id="mwwA"><code id="mwwQ">NDEENEEODTRNEGRWM..T.EN.HHHHHT.OTTTTTATAC.AOIATDIFOT.ASI..Y..A..I.T</code></td></tr>
+</tbody></table>
+<p id="mwwg">Sorting the rotations of this text groups rotations starting with "he " together, and the last character of such a rotation (which is also the character before the "he ") will usually be "t" (though perhaps occasionally not, such as if the text contained "ache "), so the result of the transform will contain a run, or runs, of many consecutive "t" characters. Similarly, rotations beginning with "e " are grouped together, but "e " is often preceded by "h", so we see the output above contains a run of five consecutive "h" characters.</p>
+<p id="mwww">Thus it can be seen that the success of this transform depends upon one value having a high probability of occurring before a sequence, so that in general it needs fairly long samples (a few kilobytes at least) of appropriate data (such as text).</p>
+<p id="mwxA">BWT is interesting not because it generates a more easily encoded output—an ordinary sort would do that—but rather because it does this <i id="mwxQ">reversibly</i>, allowing the original document to be re-generated from the last column data.</p>
+<p id="mwxg">The inverse can be understood this way. Take the final table in the BWT algorithm, and erase all but the last column. Given only this information, you can easily reconstruct the first column. The last column tells you all the characters in the text, so just sort these characters alphabetically to get the first column. Then, the last and first columns (of each row) together give you all <i id="mwxw">pairs</i> of successive characters in the document, where pairs are taken cyclically so that the last and first character form a pair. Sorting the list of pairs gives the first <i id="mwyA">and second</i> columns. To obtain the third column, the last column is again prepended to the table, and the rows are sorted lexicographically. Continuing in this manner, you can reconstruct the entire list. Then, the row with the "end of file" character at the end is the original text. Reversing the example above is done like this:</p>
+<table id="mwyQ">
+<tbody id="mwyg"><tr id="mwyw"><th colspan="4" id="mwzA">Inverse transformation</th></tr>
+<tr id="mwzQ">
+<th colspan="4" id="mwzg">Input</th></tr>
+<tr id="mwzw">
+<td align="center" colspan="4" id="mw0A">
+<pre id="mw0Q">BNN<span id="mw0g">^</span>AA<span id="mw0w">$</span>A</pre></td></tr>
+<tr id="mw1A">
+<th id="mw1Q">Add 1</th>
+<th id="mw1g">Sort 1</th>
+<th id="mw1w">Add 2</th>
+<th id="mw2A">Sort 2</th></tr>
+<tr id="mw2Q">
+<td align="right" id="mw2g">
+<pre id="mw2w">B
+N
+N
+<span id="mw3A">^</span>
+A
+A
+<span id="mw3Q">$</span>
+A</pre></td>
+<td align="right" id="mw3g">
+<pre id="mw3w">A
+A
+A
+B
+N
+N
+<span id="mw4A">^</span>
+<span id="mw4Q">$</span></pre></td>
+<td align="right" id="mw4g">
+<pre id="mw4w">BA
+NA
+NA
+<span id="mw5A">^</span>B
+AN
+AN
+<span id="mw5Q">$</span><span id="mw5g">^</span>
+A<span id="mw5w">$</span></pre></td>
+<td align="right" id="mw6A">
+<pre id="mw6Q">AN
+AN
+A<span id="mw6g">$</span>
+BA
+NA
+NA
+<span id="mw6w">^</span>B
+<span id="mw7A">$</span><span id="mw7Q">^</span></pre></td></tr>
+<tr id="mw7g">
+<th id="mw7w">Add 3</th>
+<th id="mw8A">Sort 3</th>
+<th id="mw8Q">Add 4</th>
+<th id="mw8g">Sort 4</th></tr>
+<tr id="mw8w">
+<td align="right" id="mw9A">
+<pre id="mw9Q">BAN
+NAN
+NA<span id="mw9g">$</span>
+<span id="mw9w">^</span>BA
+ANA
+ANA
+<span id="mw-A">$</span><span id="mw-Q">^</span>B
+A<span id="mw-g">$</span><span id="mw-w">^</span></pre></td>
+<td align="right" id="mw_A">
+<pre id="mw_Q">ANA
+ANA
+A<span id="mw_g">$</span><span id="mw_w">^</span>
+BAN
+NAN
+NA<span id="mwAQA">$</span>
+<span id="mwAQE">^</span>BA
+<span id="mwAQI">$</span><span id="mwAQM">^</span>B</pre></td>
+<td align="right" id="mwAQQ">
+<pre id="mwAQU">BANA
+NANA
+NA<span id="mwAQY">$</span><span id="mwAQc">^</span>
+<span id="mwAQg">^</span>BAN
+ANAN
+ANA<span id="mwAQk">$</span>
+<span id="mwAQo">$</span><span id="mwAQs">^</span>BA
+A<span id="mwAQw">$</span><span id="mwAQ0">^</span>B</pre></td>
+<td align="right" id="mwAQ4">
+<pre id="mwAQ8">ANAN
+ANA<span id="mwARA">$</span>
+A<span id="mwARE">$</span><span id="mwARI">^</span>B
+BANA
+NANA
+NA<span id="mwARM">$</span><span id="mwARQ">^</span>
+<span id="mwARU">^</span>BAN
+<span id="mwARY">$</span><span id="mwARc">^</span>BA</pre></td></tr>
+<tr id="mwARg">
+<th id="mwARk">Add 5</th>
+<th id="mwARo">Sort 5</th>
+<th id="mwARs">Add 6</th>
+<th id="mwARw">Sort 6</th></tr>
+<tr id="mwAR0">
+<td align="right" id="mwAR4">
+<pre id="mwAR8">BANAN
+NANA<span id="mwASA">$</span>
+NA<span id="mwASE">$</span><span id="mwASI">^</span>B
+<span id="mwASM">^</span>BANA
+ANANA
+ANA<span id="mwASQ">$</span><span id="mwASU">^</span>
+<span id="mwASY">$</span><span id="mwASc">^</span>BAN
+A<span id="mwASg">$</span><span id="mwASk">^</span>BA</pre></td>
+<td align="right" id="mwASo">
+<pre id="mwASs">ANANA
+ANA<span id="mwASw">$</span><span id="mwAS0">^</span>
+A<span id="mwAS4">$</span><span id="mwAS8">^</span>BA
+BANAN
+NANA<span id="mwATA">$</span>
+NA<span id="mwATE">$</span><span id="mwATI">^</span>B
+<span id="mwATM">^</span>BANA
+<span id="mwATQ">$</span><span id="mwATU">^</span>BAN</pre></td>
+<td align="right" id="mwATY">
+<pre id="mwATc">BANANA
+NANA<span id="mwATg">$</span><span id="mwATk">^</span>
+NA<span id="mwATo">$</span><span id="mwATs">^</span>BA
+<span id="mwATw">^</span>BANAN
+ANANA<span id="mwAT0">$</span>
+ANA<span id="mwAT4">$</span><span id="mwAT8">^</span>B
+<span id="mwAUA">$</span><span id="mwAUE">^</span>BANA
+A<span id="mwAUI">$</span><span id="mwAUM">^</span>BAN</pre></td>
+<td align="right" id="mwAUQ">
+<pre id="mwAUU">ANANA<span id="mwAUY">$</span>
+ANA<span id="mwAUc">$</span><span id="mwAUg">^</span>B
+A<span id="mwAUk">$</span><span id="mwAUo">^</span>BAN
+BANANA
+NANA<span id="mwAUs">$</span><span id="mwAUw">^</span>
+NA<span id="mwAU0">$</span><span id="mwAU4">^</span>BA
+<span id="mwAU8">^</span>BANAN
+<span id="mwAVA">$</span><span id="mwAVE">^</span>BANA</pre></td></tr>
+<tr id="mwAVI">
+<th id="mwAVM">Add 7</th>
+<th id="mwAVQ">Sort 7</th>
+<th id="mwAVU">Add 8</th>
+<th id="mwAVY">Sort 8</th></tr>
+<tr id="mwAVc">
+<td align="right" id="mwAVg">
+<pre id="mwAVk">BANANA<span id="mwAVo">$</span>
+NANA<span id="mwAVs">$</span><span id="mwAVw">^</span>B
+NA<span id="mwAV0">$</span><span id="mwAV4">^</span>BAN
+<span id="mwAV8">^</span>BANANA
+ANANA<span id="mwAWA">$</span><span id="mwAWE">^</span>
+ANA<span id="mwAWI">$</span><span id="mwAWM">^</span>BA
+<span id="mwAWQ">$</span><span id="mwAWU">^</span>BANAN
+A<span id="mwAWY">$</span><span id="mwAWc">^</span>BANA</pre></td>
+<td align="right" id="mwAWg">
+<pre id="mwAWk">ANANA<span id="mwAWo">$</span><span id="mwAWs">^</span>
+ANA<span id="mwAWw">$</span><span id="mwAW0">^</span>BA
+A<span id="mwAW4">$</span><span id="mwAW8">^</span>BANA
+BANANA<span id="mwAXA">$</span>
+NANA<span id="mwAXE">$</span><span id="mwAXI">^</span>B
+NA<span id="mwAXM">$</span><span id="mwAXQ">^</span>BAN
+<span id="mwAXU">^</span>BANANA
+<span id="mwAXY">$</span><span id="mwAXc">^</span>BANAN</pre></td>
+<td align="right" id="mwAXg">
+<pre id="mwAXk">BANANA<span id="mwAXo">$</span><span id="mwAXs">^</span>
+NANA<span id="mwAXw">$</span><span id="mwAX0">^</span>BA
+NA<span id="mwAX4">$</span><span id="mwAX8">^</span>BANA
+<span id="mwAYA">^</span>BANANA<span id="mwAYE">$</span>
+ANANA<span id="mwAYI">$</span><span id="mwAYM">^</span>B
+ANA<span id="mwAYQ">$</span><span id="mwAYU">^</span>BAN
+<span id="mwAYY">$</span><span id="mwAYc">^</span>BANANA
+A<span id="mwAYg">$</span><span id="mwAYk">^</span>BANAN</pre></td>
+<td align="right" id="mwAYo">
+<pre id="mwAYs">ANANA<span id="mwAYw">$</span><span id="mwAY0">^</span>B
+ANA<span id="mwAY4">$</span><span id="mwAY8">^</span>BAN
+A<span id="mwAZA">$</span><span id="mwAZE">^</span>BANAN
+BANANA<span id="mwAZI">$</span><span id="mwAZM">^</span>
+NANA<span id="mwAZQ">$</span><span id="mwAZU">^</span>BA
+NA<span id="mwAZY">$</span><span id="mwAZc">^</span>BANA
+<span id="mwAZg">^</span>BANANA<span id="mwAZk">$</span>
+<span id="mwAZo">$</span><span id="mwAZs">^</span>BANANA</pre></td></tr>
+<tr id="mwAZw">
+<th colspan="4" id="mwAZ0">Output</th></tr>
+<tr id="mwAZ4">
+<td align="center" colspan="4" id="mwAZ8">
+<pre id="mwAaA"><span id="mwAaE">^</span>BANANA<span id="mwAaI">$</span></pre></td></tr>
+</tbody></table>
+</section><section id="mwAaM"><div><h2 id="Optimization">Optimization</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=5"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAaQ">A number of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Optimization_(computer_science)" id="mwAaU">optimizations</a> can make these algorithms run more efficiently without changing the output. There is no need to represent the table in either the encoder or decoder. In the encoder, each row of the table can be represented by a single pointer into the strings, and the sort performed using the indices. In the decoder, there is also no need to store the table, and the decoded string can be generated one character at a time from left to right. Comparative sorting can even be avoided in favor of linear sorting, with performance proportional to the alphabet size and string length. A "character" in the algorithm can be a byte, or a bit, or any other convenient size.</p>
+<p id="mwAaY">One may also make the observation that mathematically, the encoded string can be computed as a simple modification of the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_array" id="mwAac">suffix array</a>, and suffix arrays can be computed with linear time and memory. The BWT can be defined with regards to the suffix array SA of text T as (1-based indexing):</p>
+<p id="mwAag"><span typeof="mw:Extension/math" about="#mwt18" id="mwAak" data-mw='{"name":"math","attrs":{"display":"block"},"body":{"extsrc":"BWT[i] = \\begin{cases} T[SA[i]-1], &amp; \\text{if }SA[i] > 0\\\\ \\$, &amp; \\text{otherwise}\\end{cases}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" display="block" alttext="{\displaystyle BWT[i]={\begin{cases}T[SA[i]-1],&amp;{\text{if }}SA[i]>0\\\$,&amp;{\text{otherwise}}\end{cases}}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>B</mi>
+        <mi>W</mi>
+        <mi>T</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+        <mo>=</mo>
+        <mrow>
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <mi>T</mi>
+                  <mo stretchy="false">[</mo>
+                  <mi>S</mi>
+                  <mi>A</mi>
+                  <mo stretchy="false">[</mo>
+                  <mi>i</mi>
+                  <mo stretchy="false">]</mo>
+                  <mo>−</mo>
+                  <mn>1</mn>
+                  <mo stretchy="false">]</mo>
+                  <mo>,</mo>
+                </mtd>
+                <mtd>
+                  <mrow>
+                    <mtext>if </mtext>
+                  </mrow>
+                  <mi>S</mi>
+                  <mi>A</mi>
+                  <mo stretchy="false">[</mo>
+                  <mi>i</mi>
+                  <mo stretchy="false">]</mo>
+                  <mo>></mo>
+                  <mn>0</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mi mathvariant="normal">$</mi>
+                  <mo>,</mo>
+                </mtd>
+                <mtd>
+                  <mrow>
+                    <mtext>otherwise</mtext>
+                  </mrow>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle BWT[i]={\begin{cases}T[SA[i]-1],&amp;{\text{if }}SA[i]>0\\\$,&amp;{\text{otherwise}}\end{cases}}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/887d46efbb40f6f35ac2b8a5a3a60e42cef84bb2" alt="{\displaystyle BWT[i]={\begin{cases}T[SA[i]-1],&amp;{\text{if }}SA[i]>0\\\$,&amp;{\text{otherwise}}\end{cases}}}"/></span><sup about="#mwt21" id="cite_ref-5" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-5"}}'><a href="#cite_note-5" id="mwAao"><span id="mwAas"><span id="mwAaw">[</span>5<span id="mwAa0">]</span></span></a></sup></p>
+<p id="mwAa4">There is no need to have an actual 'EOF' character. Instead, a pointer can be used that remembers where in a string the 'EOF' would be if it existed. In this approach, the output of the BWT must include both the transformed string, and the final value of the pointer. The inverse transform then shrinks it back down to the original size: it is given a string and a pointer, and returns just a string.</p>
+<p id="mwAa8">A complete description of the algorithms can be found in Burrows and Wheeler's paper, or in a number of online sources.<sup about="#mwt22" id="cite_ref-Burrows1994_1-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Burrows1994"}}'><a href="#cite_note-Burrows1994-1" id="mwAbA"><span id="mwAbE"><span id="mwAbI">[</span>1<span id="mwAbM">]</span></span></a></sup> The algorithms vary somewhat by whether EOF is used, and in which direction the sorting was done. In fact, the original formulation did not use an EOF marker.<sup about="#mwt25" id="cite_ref-Manzini_6-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Manzini"},"body":{"id":"mw-reference-text-cite_note-Manzini-6"}}'><a href="#cite_note-Manzini-6" id="mwAbQ"><span id="mwAbU"><span id="mwAbY">[</span>6<span id="mwAbc">]</span></span></a></sup></p>
+</section><section id="mwAbg"><div><h2 id="Bijective_variant">Bijective variant</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=6"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAbk">Since any rotation of the input string will lead to the same transformed string, the BWT cannot be inverted without adding an EOF marker to the end of the input or doing something equivalent, making it possible to distinguish the input string from all its rotations.  Increasing the size of the alphabet (by appending the EOF character) makes later compression steps awkward.</p>
+<p id="mwAbo">There is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bijective" id="mwAbs">bijective</a> version of the transform, by which the transformed string uniquely identifies the original, and the two have the same length and contain exactly the same characters, just in a different order.<sup about="#mwt28" id="cite_ref-7" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-7"}}'><a href="#cite_note-7" id="mwAbw"><span id="mwAb0"><span id="mwAb4">[</span>7<span id="mwAb8">]</span></span></a></sup><sup about="#mwt31" id="cite_ref-8" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-8"}}'><a href="#cite_note-8" id="mwAcA"><span id="mwAcE"><span id="mwAcI">[</span>8<span id="mwAcM">]</span></span></a></sup></p>
+<p id="mwAcQ">The bijective transform is computed by factoring the input into a non-increasing sequence of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lyndon_word" id="mwAcU">Lyndon words</a>; such a factorization exists and is unique by the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Chen–Fox–Lyndon_theorem" id="mwAcY">Chen–Fox–Lyndon theorem</a>,<sup about="#mwt34" id="cite_ref-9" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-9"}}'><a href="#cite_note-9" id="mwAcc"><span id="mwAcg"><span id="mwAck">[</span>9<span id="mwAco">]</span></span></a></sup> and may be found in linear time and constant space.<sup about="#mwt37" id="cite_ref-10" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-10"}}'><a href="#cite_note-10" id="mwAcs"><span id="mwAcw"><span id="mwAc0">[</span>10<span id="mwAc4">]</span></span></a></sup> The algorithm sorts the rotations of all the words; as in the Burrows–Wheeler transform, this produces a sorted sequence of <i id="mwAc8">n</i> strings. The transformed string is then obtained by picking the final character of each string in this sorted list.  The one important caveat here is that strings of different lengths are not ordered in the usual way; the two strings are repeated forever, and the infinite repeats are sorted.  For example, "ORO" precedes "OR" because "OROORO..." precedes "OROROR...".</p>
+<p id="mwAdA">For example, the text "<span id="mwAdE">^</span>BANANA<span id="mwAdI">$</span>" is transformed into "ANNBAA<span id="mwAdM">^</span><span id="mwAdQ">$</span>" through these steps (the red <span id="mwAdU">$</span> character indicates the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/End-of-file" id="mwAdY">EOF</a> pointer) in the original string. The EOF character is unneeded in the bijective transform, so it is dropped during the transform and re-added to its proper place in the file.</p>
+<p id="mwAdc">The string is broken into Lyndon words so the words in the sequence are decreasing using the comparison method above. (Note that we're sorting '<span id="mwAdg">^</span>' as succeeding other characters.)  "<span id="mwAdk">^</span>BANANA" becomes (<span id="mwAdo">^</span>) (B) (AN) (AN) (A).</p>
+<table id="mwAds">
+<tbody id="mwAdw"><tr id="mwAd0">
+<th colspan="5" id="mwAd4">Bijective transformation</th></tr>
+<tr id="mwAd8">
+<th id="mwAeA">Input</th>
+<th id="mwAeE">All<br id="mwAeI"/>rotations</th>
+<th id="mwAeM">Sorted alphabetically</th>
+<th id="mwAeQ">Last column<br id="mwAeU"/>of rotated Lyndon word</th>
+<th id="mwAeY">Output</th></tr>
+<tr id="mwAec">
+<td align="center" id="mwAeg">
+<pre id="mwAek"><span id="mwAeo">^</span>BANANA<span id="mwAes">$</span></pre></td>
+<td id="mwAew">
+<pre id="mwAe0"><b id="mwAe4"><span id="mwAe8">^</span></b><span id="mwAfA">^</span><span id="mwAfE">^</span><span id="mwAfI">^</span><span id="mwAfM">^</span><span id="mwAfQ">^</span><span id="mwAfU">^</span><span id="mwAfY">^</span>... (<span id="mwAfc">^</span>)
+<b id="mwAfg">B</b>BBBBBBB... (B)
+<b id="mwAfk">ANAN</b>ANAN... (AN)
+<b id="mwAfo">NANA</b>NANA... (NA)
+<b id="mwAfs">ANAN</b>ANAN... (AN)
+<b id="mwAfw">NANA</b>NANA... (NA)
+<b id="mwAf0">A</b>AAAAAAA... (A)</pre></td>
+<td id="mwAf4">
+<pre id="mwAf8"><b id="mwAgA">A</b>AAAAAAA... (A)
+<b id="mwAgE">A</b>NANANAN... (AN)
+<b id="mwAgI">A</b>NANANAN... (AN)
+<b id="mwAgM">B</b>BBBBBBB... (B)
+<b id="mwAgQ">N</b>ANANANA... (NA)
+<b id="mwAgU">N</b>ANANANA... (NA)
+<b id="mwAgY"><span id="mwAgc">^</span></b><span id="mwAgg">^</span><span id="mwAgk">^</span><span id="mwAgo">^</span><span id="mwAgs">^</span><span id="mwAgw">^</span><span id="mwAg0">^</span><span id="mwAg4">^</span>... (<span id="mwAg8">^</span>)</pre></td>
+<td id="mwAhA">
+<pre id="mwAhE"><b id="mwAhI">A</b>AAAAAAA... (<b id="mwAhM">A</b>)
+A<b id="mwAhQ">N</b>ANANAN... (A<b id="mwAhU">N</b>)
+A<b id="mwAhY">N</b>ANANAN... (A<b id="mwAhc">N</b>)
+<b id="mwAhg">B</b>BBBBBBB... (<b id="mwAhk">B</b>)
+N<b id="mwAho">A</b>NANANA... (N<b id="mwAhs">A</b>)
+N<b id="mwAhw">A</b>NANANA... (N<b id="mwAh0">A</b>)
+<b id="mwAh4"><span id="mwAh8">^</span></b><span id="mwAiA">^</span><span id="mwAiE">^</span><span id="mwAiI">^</span><span id="mwAiM">^</span><span id="mwAiQ">^</span><span id="mwAiU">^</span><span id="mwAiY">^</span>... (<b id="mwAic"><span id="mwAig">^</span></b>)</pre></td>
+<td id="mwAik">
+<pre id="mwAio">ANNBAA<span id="mwAis">^</span><span id="mwAiw">$</span></pre></td></tr>
+</tbody></table>
+<table id="mwAi0">
+<tbody id="mwAi4"><tr id="mwAi8"><th colspan="4" id="mwAjA">Inverse bijective transform</th></tr>
+<tr id="mwAjE">
+<th colspan="4" id="mwAjI">Input</th></tr>
+<tr id="mwAjM">
+<td align="center" colspan="4" id="mwAjQ">
+<pre id="mwAjU">ANNBAA<span id="mwAjY">^</span></pre></td></tr>
+<tr id="mwAjc">
+<th id="mwAjg">Add 1</th>
+<th id="mwAjk">Sort 1</th>
+<th id="mwAjo">Add 2</th>
+<th id="mwAjs">Sort 2</th></tr>
+<tr id="mwAjw">
+<td align="right" id="mwAj0">
+<pre id="mwAj4">A
+N
+N
+B
+A
+A
+<span id="mwAj8">^</span></pre></td>
+<td align="right" id="mwAkA">
+<pre id="mwAkE">A
+A
+A
+B
+N
+N
+<span id="mwAkI">^</span></pre></td>
+<td align="right" id="mwAkM">
+<pre id="mwAkQ">AA
+NA
+NA
+BB
+AN
+AN
+<span id="mwAkU">^</span><span id="mwAkY">^</span></pre></td>
+<td align="right" id="mwAkc">
+<pre id="mwAkg">AA
+AN
+AN
+BB
+NA
+NA
+<span id="mwAkk">^</span><span id="mwAko">^</span></pre></td></tr>
+<tr id="mwAks">
+<th id="mwAkw">Add 3</th>
+<th id="mwAk0">Sort 3</th>
+<th id="mwAk4">Add 4</th>
+<th id="mwAk8">Sort 4</th></tr>
+<tr id="mwAlA">
+<td align="right" id="mwAlE">
+<pre id="mwAlI">AAA
+NAN
+NAN
+BBB
+ANA
+ANA
+<span id="mwAlM">^</span><span id="mwAlQ">^</span><span id="mwAlU">^</span></pre></td>
+<td align="right" id="mwAlY">
+<pre id="mwAlc">AAA
+ANA
+ANA
+BBB
+NAN
+NAN
+<span id="mwAlg">^</span><span id="mwAlk">^</span><span id="mwAlo">^</span></pre></td>
+<td align="right" id="mwAls">
+<pre id="mwAlw">AAAA
+NANA
+NANA
+BBBB
+ANAN
+ANAN
+<span id="mwAl0">^</span><span id="mwAl4">^</span><span id="mwAl8">^</span><span id="mwAmA">^</span></pre></td>
+<td align="right" id="mwAmE">
+<pre id="mwAmI">AAAA
+ANAN
+ANAN
+BBBB
+NANA
+NANA
+<span id="mwAmM">^</span><span id="mwAmQ">^</span><span id="mwAmU">^</span><span id="mwAmY">^</span></pre></td></tr>
+<tr id="mwAmc">
+<th colspan="4" id="mwAmg">Output</th></tr>
+<tr id="mwAmk">
+<td align="center" colspan="4" id="mwAmo">
+<pre id="mwAms"><span id="mwAmw">^</span>BANANA</pre></td></tr>
+</tbody></table>
+<p id="mwAm0">Up until the last step, the process is identical to the inverse Burrows–Wheeler process, but here it will not necessarily give rotations of a single sequence; it instead gives rotations of Lyndon words (which will start to repeat as the process is continued).  Here, we can see (repetitions of) four distinct Lyndon words: (A), (AN) (twice), (B), and (<span id="mwAm4">^</span>).  (NANA... doesn't represent a distinct word, as it is a cycle of ANAN....)
+At this point, these words are sorted into reverse order: (<span id="mwAm8">^</span>), (B), (AN), (AN), (A).  These are then concatenated to get</p>
+<dl id="mwAnA"><dd id="mwAnE"><span id="mwAnI">^</span>BANANA</dd></dl>
+<p id="mwAnM">The Burrows–Wheeler transform can indeed be viewed as a special case of this bijective transform; instead of the traditional introduction of a new letter from outside our alphabet to denote the end of the string, we can introduce a new letter that compares as preceding all existing letters that is put at the beginning of the string.  The whole string is now a Lyndon word, and running it through the bijective process will therefore result in a transformed result that, when inverted, gives back the Lyndon word, with no need for reassembling at the end.</p>
+<p id="mwAnQ">For example, applying the bijective transform gives:</p>
+<table id="mwAnU">
+<tbody id="mwAnY"><tr id="mwAnc"><th id="mwAng">Input</th>
+<td id="mwAnk"><code id="mwAno">SIX.MIXED.PIXIES.SIFT.SIXTY.PIXIE.DUST.BOXES</code></td></tr>
+<tr id="mwAns">
+<th id="mwAnw">Lyndon words</th>
+<td id="mwAn0"><code id="mwAn4"><span id="mwAn8">S</span><span id="mwAoA">IX</span><span id="mwAoE">.MIXED.PIXIES.SIFT.SIXTY.PIXIE</span><span id="mwAoI">.DUST</span><span id="mwAoM">.BOXES</span></code></td></tr>
+<tr id="mwAoQ">
+<th id="mwAoU">Output</th>
+<td id="mwAoY"><code id="mwAoc">STEYDST.E.IXXIIXXSMPPXS.B..EE..SUSFXDIOIIIIT</code></td></tr>
+</tbody></table>
+<p id="mwAog">The bijective transform includes eight runs of identical
+characters. These runs are, in order: <code id="mwAok">XX</code>,
+<code id="mwAoo">II</code>,
+<code id="mwAos">XX</code>,
+<code id="mwAow">PP</code>,
+<code id="mwAo0">..</code>,
+<code id="mwAo4">EE</code>,
+<code id="mwAo8">..</code>,
+and
+<code id="mwApA">IIII</code>.</p>
+<p id="mwApE">In total, 18 characters are used in these runs.</p>
+</section><section id="mwApI"><div><h2 id="Dynamic_Burrows–Wheeler_transform"><span id="Dynamic_Burrows.E2.80.93Wheeler_transform" typeof="mw:FallbackId"></span>Dynamic Burrows–Wheeler transform</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=7"><span>edit</span></a><span>]</span></span></div>
+<p id="mwApM">When a text is edited, its Burrows–Wheeler transform will change. Salson <i id="mwApQ">et al.</i><sup about="#mwt40" id="cite_ref-Salson2009_11-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Salson2009"},"body":{"id":"mw-reference-text-cite_note-Salson2009-11"}}'><a href="#cite_note-Salson2009-11" id="mwApU"><span id="mwApY"><span id="mwApc">[</span>11<span id="mwApg">]</span></span></a></sup> propose an algorithm that deduces the Burrows–Wheeler transform of an edited text from that of the original text, doing a limited number of local reorderings in the original Burrows–Wheeler transform, which can be faster than constructing the Burrows–Wheeler transform of the edited text directly.</p>
+</section><section id="mwApk"><div><h2 id="Sample_implementation">Sample implementation</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=8"><span>edit</span></a><span>]</span></span></div>
+<p id="mwApo">This <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Python_(programming_language)" id="mwAps">Python</a> implementation sacrifices speed for simplicity: the program is short, but takes more than the linear time that would be desired in a practical implementation. It essentially does what the pseudocode section does.</p>
+<p id="mwApw">Using the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/C0_and_C1_control_codes#STX" id="mwAp0">STX/ETX control codes</a> to mark the start and end of the text, and using <code id="mwAp4">s[i:] + s[:i]</code> to construct the <code id="mwAp8">i</code>th rotation of <code id="mwAqA">s</code>, the forward transform takes the last character of each of the sorted rows:</p>
+<div dir="ltr" typeof="mw:Extension/syntaxhighlight" about="#mwt41" id="mwAqE" data-mw='{"name":"syntaxhighlight","attrs":{"lang":"python"},"body":{"extsrc":"\nfrom curses.ascii import STX, ETX\n\ndef bwt(s: str, start=chr(STX), end=chr(ETX)) -> str:\n    r\"\"\"\n    Apply Burrows–Wheeler transform to input string.\n\n    >>> bwt(&apos;BANANA&apos;)\n    &apos;\\x03ANNB\\x02AA&apos;\n    >>> bwt(&apos;BANANA&apos;, start=&apos;^&apos;, end=&apos;$&apos;)\n    &apos;ANNB^AA$&apos;\n    >>> bwt(&apos;BANANA&apos;, start=&apos;%&apos;, end=&apos;$&apos;)\n    &apos;A$NNB%AA&apos;\n    \"\"\"\n    assert (\n        start not in s and end not in s\n    ), \"Input string cannot contain STX and ETX characters\"\n    s = f\"{start}{s}{end}\"  # Add start and end of text marker\n\n    # Table of rotations of string\n    table = sorted(f\"{s[i:]}{s[:i]}\" for i, c in enumerate(s))\n    last_column = [row[-1:] for row in table]  # Last characters of each row\n    return \"\".join(last_column)  # Convert list of characters into string\n"}}'><pre id="mwAqI"><span id="mwAqM"></span><span id="mwAqQ">from</span><span id="mwAqU"> </span><span id="mwAqY">curses.ascii</span><span id="mwAqc"> </span><span id="mwAqg">import</span> <span id="mwAqk">STX</span><span id="mwAqo">,</span> <span id="mwAqs">ETX</span>
+<span id="mwAqw">def</span><span id="mwAq0"> </span><span id="mwAq4">bwt</span><span id="mwAq8">(</span><span id="mwArA">s</span><span id="mwArE">:</span> <span id="mwArI">str</span><span id="mwArM">,</span> <span id="mwArQ">start</span><span id="mwArU">=</span><span id="mwArY">chr</span><span id="mwArc">(</span><span id="mwArg">STX</span><span id="mwArk">),</span> <span id="mwAro">end</span><span id="mwArs">=</span><span id="mwArw">chr</span><span id="mwAr0">(</span><span id="mwAr4">ETX</span><span id="mwAr8">))</span> <span id="mwAsA">-></span> <span id="mwAsE">str</span><span id="mwAsI">:</span>
+<span id="mwAsM">    </span><span id="mwAsQ">r</span><span id="mwAsU">"""</span>
+<span id="mwAsY">    Apply Burrows–Wheeler transform to input string.</span>
+<span id="mwAsc">    >>> bwt('BANANA')</span>
+<span id="mwAsg">    '\x03ANNB\x02AA'</span>
+<span id="mwAsk">    >>> bwt('BANANA', start='^', end='$')</span>
+<span id="mwAso">    'ANNB^AA$'</span>
+<span id="mwAss">    >>> bwt('BANANA', start='%', end='$')</span>
+<span id="mwAsw">    'A$NNB%AA'</span>
+<span id="mwAs0">    """</span>
+    <span id="mwAs4">assert</span> <span id="mwAs8">(</span>
+        <span id="mwAtA">start</span> <span id="mwAtE">not</span> <span id="mwAtI">in</span> <span id="mwAtM">s</span> <span id="mwAtQ">and</span> <span id="mwAtU">end</span> <span id="mwAtY">not</span> <span id="mwAtc">in</span> <span id="mwAtg">s</span>
+    <span id="mwAtk">),</span> <span id="mwAto">"Input string cannot contain STX and ETX characters"</span>
+    <span id="mwAts">s</span> <span id="mwAtw">=</span> <span id="mwAt0">f</span><span id="mwAt4">"</span><span id="mwAt8">{</span><span id="mwAuA">start</span><span id="mwAuE">}{</span><span id="mwAuI">s</span><span id="mwAuM">}{</span><span id="mwAuQ">end</span><span id="mwAuU">}</span><span id="mwAuY">"</span>  <span id="mwAuc"># Add start and end of text marker</span>
+    <span id="mwAug"># Table of rotations of string</span>
+    <span id="mwAuk">table</span> <span id="mwAuo">=</span> <span id="mwAus">sorted</span><span id="mwAuw">(</span><span id="mwAu0">f</span><span id="mwAu4">"</span><span id="mwAu8">{</span><span id="mwAvA">s</span><span id="mwAvE">[</span><span id="mwAvI">i</span><span id="mwAvM">:]</span><span id="mwAvQ">}{</span><span id="mwAvU">s</span><span id="mwAvY">[:</span><span id="mwAvc">i</span><span id="mwAvg">]</span><span id="mwAvk">}</span><span id="mwAvo">"</span> <span id="mwAvs">for</span> <span id="mwAvw">i</span><span id="mwAv0">,</span> <span id="mwAv4">c</span> <span id="mwAv8">in</span> <span id="mwAwA">enumerate</span><span id="mwAwE">(</span><span id="mwAwI">s</span><span id="mwAwM">))</span>
+    <span id="mwAwQ">last_column</span> <span id="mwAwU">=</span> <span id="mwAwY">[</span><span id="mwAwc">row</span><span id="mwAwg">[</span><span id="mwAwk">-</span><span id="mwAwo">1</span><span id="mwAws">:]</span> <span id="mwAww">for</span> <span id="mwAw0">row</span> <span id="mwAw4">in</span> <span id="mwAw8">table</span><span id="mwAxA">]</span>  <span id="mwAxE"># Last characters of each row</span>
+    <span id="mwAxI">return</span> <span id="mwAxM">""</span><span id="mwAxQ">.</span><span id="mwAxU">join</span><span id="mwAxY">(</span><span id="mwAxc">last_column</span><span id="mwAxg">)</span>  <span id="mwAxk"># Convert list of characters into string</span>
+</pre></div>
+<p id="mwAxo">The inverse transform repeatedly inserts <code id="mwAxs">r</code> as the left column of the table and sorts the table.  After the whole table is built, it returns the row that ends with ETX, minus the STX and ETX.</p>
+<div dir="ltr" typeof="mw:Extension/syntaxhighlight" about="#mwt42" id="mwAxw" data-mw='{"name":"syntaxhighlight","attrs":{"lang":"python"},"body":{"extsrc":"\ndef inverse_bwt(r: str, start=chr(STX), end=chr(ETX)) -> str:\n    r\"\"\"\n    Apply inverse Burrows–Wheeler transform.\n\n    >>> inverse_bwt(&apos;\\x03ANNB\\x02AA&apos;)\n    &apos;BANANA&apos;\n    >>> inverse_bwt(&apos;ANNB^AA$&apos;, start=&apos;^&apos;, end=&apos;$&apos;)\n    &apos;BANANA&apos;\n    >>> inverse_bwt(&apos;A$NNB%AA&apos;, start=&apos;%&apos;, end=&apos;$&apos;)\n    &apos;BANANA&apos;\n    \"\"\"\n    str_len = len(r)\n    table = [\"\"] * str_len  # Make empty table\n    for _ in range(str_len):\n        table = sorted(rc + tc for rc, tc in zip(r, table))  # Add a column of r\n\n    # Iterate over and check whether last character ends with ETX or not\n    s = next((row for row in table if row.endswith(end)), \"\")\n\n    # Retrieve data from array and get rid of start and end markers\n    return s.rstrip(end).strip(start)\n"}}'><pre id="mwAx0"><span id="mwAx4"></span><span id="mwAx8">def</span><span id="mwAyA"> </span><span id="mwAyE">inverse_bwt</span><span id="mwAyI">(</span><span id="mwAyM">r</span><span id="mwAyQ">:</span> <span id="mwAyU">str</span><span id="mwAyY">,</span> <span id="mwAyc">start</span><span id="mwAyg">=</span><span id="mwAyk">chr</span><span id="mwAyo">(</span><span id="mwAys">STX</span><span id="mwAyw">),</span> <span id="mwAy0">end</span><span id="mwAy4">=</span><span id="mwAy8">chr</span><span id="mwAzA">(</span><span id="mwAzE">ETX</span><span id="mwAzI">))</span> <span id="mwAzM">-></span> <span id="mwAzQ">str</span><span id="mwAzU">:</span>
+<span id="mwAzY">    </span><span id="mwAzc">r</span><span id="mwAzg">"""</span>
+<span id="mwAzk">    Apply inverse Burrows–Wheeler transform.</span>
+<span id="mwAzo">    >>> inverse_bwt('\x03ANNB\x02AA')</span>
+<span id="mwAzs">    'BANANA'</span>
+<span id="mwAzw">    >>> inverse_bwt('ANNB^AA$', start='^', end='$')</span>
+<span id="mwAz0">    'BANANA'</span>
+<span id="mwAz4">    >>> inverse_bwt('A$NNB%AA', start='%', end='$')</span>
+<span id="mwAz8">    'BANANA'</span>
+<span id="mwA0A">    """</span>
+    <span id="mwA0E">str_len</span> <span id="mwA0I">=</span> <span id="mwA0M">len</span><span id="mwA0Q">(</span><span id="mwA0U">r</span><span id="mwA0Y">)</span>
+    <span id="mwA0c">table</span> <span id="mwA0g">=</span> <span id="mwA0k">[</span><span id="mwA0o">""</span><span id="mwA0s">]</span> <span id="mwA0w">*</span> <span id="mwA00">str_len</span>  <span id="mwA04"># Make empty table</span>
+    <span id="mwA08">for</span> <span id="mwA1A">_</span> <span id="mwA1E">in</span> <span id="mwA1I">range</span><span id="mwA1M">(</span><span id="mwA1Q">str_len</span><span id="mwA1U">):</span>
+        <span id="mwA1Y">table</span> <span id="mwA1c">=</span> <span id="mwA1g">sorted</span><span id="mwA1k">(</span><span id="mwA1o">rc</span> <span id="mwA1s">+</span> <span id="mwA1w">tc</span> <span id="mwA10">for</span> <span id="mwA14">rc</span><span id="mwA18">,</span> <span id="mwA2A">tc</span> <span id="mwA2E">in</span> <span id="mwA2I">zip</span><span id="mwA2M">(</span><span id="mwA2Q">r</span><span id="mwA2U">,</span> <span id="mwA2Y">table</span><span id="mwA2c">))</span>  <span id="mwA2g"># Add a column of r</span>
+    <span id="mwA2k"># Iterate over and check whether last character ends with ETX or not</span>
+    <span id="mwA2o">s</span> <span id="mwA2s">=</span> <span id="mwA2w">next</span><span id="mwA20">((</span><span id="mwA24">row</span> <span id="mwA28">for</span> <span id="mwA3A">row</span> <span id="mwA3E">in</span> <span id="mwA3I">table</span> <span id="mwA3M">if</span> <span id="mwA3Q">row</span><span id="mwA3U">.</span><span id="mwA3Y">endswith</span><span id="mwA3c">(</span><span id="mwA3g">end</span><span id="mwA3k">)),</span> <span id="mwA3o">""</span><span id="mwA3s">)</span>
+    <span id="mwA3w"># Retrieve data from array and get rid of start and end markers</span>
+    <span id="mwA30">return</span> <span id="mwA34">s</span><span id="mwA38">.</span><span id="mwA4A">rstrip</span><span id="mwA4E">(</span><span id="mwA4I">end</span><span id="mwA4M">)</span><span id="mwA4Q">.</span><span id="mwA4U">strip</span><span id="mwA4Y">(</span><span id="mwA4c">start</span><span id="mwA4g">)</span>
+</pre></div>
+<p id="mwA4k">Following implementation notes from Manzini, it is equivalent to use a simple <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Null_character" id="mwA4o">null character</a> suffix instead. The sorting should be done in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Colexicographic_order" id="mwA4s">colexicographic order</a> (string read right-to-left), i.e. <code dir="ltr" typeof="mw:Extension/syntaxhighlight mw:Transclusion" about="#mwt43" id="mwA4w" data-mw='{"name":"syntaxhighlight","attrs":{"lang":"python","class":"","style":"","inline":"1"},"body":{"extsrc":"sorted(..., key=lambda s: s[::-1])"},"parts":[{"template":{"target":{"wt":"code","href":"./Template:Code"},"params":{"1":{"wt":"sorted(..., key=lambda s: s[::-1])"},"2":{"wt":"python"}},"i":0}}]}'><span id="mwA40">sorted</span><span id="mwA44">(</span><span id="mwA48">...</span><span id="mwA5A">,</span> <span id="mwA5E">key</span><span id="mwA5I">=</span><span id="mwA5M">lambda</span> <span id="mwA5Q">s</span><span id="mwA5U">:</span> <span id="mwA5Y">s</span><span id="mwA5c">[::</span><span id="mwA5g">-</span><span id="mwA5k">1</span><span id="mwA5o">])</span></code> in Python.<sup about="#mwt45" id="cite_ref-Manzini_6-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Manzini"}}'><a href="#cite_note-Manzini-6" id="mwA5s"><span id="mwA5w"><span id="mwA50">[</span>6<span id="mwA54">]</span></span></a></sup> (The above control codes actually fail to satisfy EOF being the last character; the two codes are actually the <i id="mwA58">first</i>. The rotation holds nevertheless.)</p>
+</section><section id="mwA6A"><div><h2 id="BWT_applications">BWT applications</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=9"><span>edit</span></a><span>]</span></span></div>
+<p id="mwA6E">As a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lossless_compression" id="mwA6I">lossless compression</a> algorithm the Burrows–Wheeler transform offers the important quality that its encoding is reversible and hence the original data may be recovered from the resulting compression. The lossless quality of Burrows algorithm has provided for different algorithms with different purposes in mind. To name a few, Burrows–Wheeler transform is used in algorithms for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment" id="mwA6M">sequence alignment</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Image_compression" id="mwA6Q">image compression</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_compression" id="mwA6U">data compression</a>, etc. The following is a compilation of some uses given to the Burrows–Wheeler Transform.</p>
+<section id="mwA6Y"><div><h3 id="BWT_for_sequence_alignment">BWT for sequence alignment</h3><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=10"><span>edit</span></a><span>]</span></span></div>
+<p id="mwA6c">The advent of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Next-generation_sequencing" id="mwA6g">next-generation sequencing</a> (NGS) techniques at the end of the 2000s decade has led to another application of the Burrows–Wheeler transformation. In NGS, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DNA" id="mwA6k">DNA</a> is fragmented into small pieces, of which the first few bases are <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DNA_sequencing" id="mwA6o">sequenced</a>, yielding several millions of "reads", each 30 to 500 <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Base_pair" id="mwA6s">base pairs</a> ("DNA characters") long. In many experiments, e.g., in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ChIP-Seq" id="mwA6w">ChIP-Seq</a>, the task is now to align these reads to a reference <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Genome" id="mwA60">genome</a>, i.e., to the known, nearly complete sequence of the organism in question (which may be up to several billion base pairs long). A number of alignment programs, specialized for this task, were published, which initially relied on <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hash_function" id="mwA64">hashing</a> (e.g., <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Eland_(software)?action=edit&amp;redlink=1" typeof="mw:LocalizedAttrs" id="mwA68" data-mw-i18n='{"title":{"lang":"x-page","key":"red-link-title","params":["Eland (software)"]}}'>Eland</a>, SOAP,<sup about="#mwt48" id="cite_ref-Li,_R2008_12-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Li, R2008"},"body":{"id":"mw-reference-text-cite_note-Li,_R2008-12"}}'><a href="#cite_note-Li,_R2008-12" id="mwA7A"><span id="mwA7E"><span id="mwA7I">[</span>12<span id="mwA7M">]</span></span></a></sup> or Maq<sup about="#mwt51" id="cite_ref-Li,_H2008_13-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Li, H2008"},"body":{"id":"mw-reference-text-cite_note-Li,_H2008-13"}}'><a href="#cite_note-Li,_H2008-13" id="mwA7Q"><span id="mwA7U"><span id="mwA7Y">[</span>13<span id="mwA7c">]</span></span></a></sup>). In an effort to reduce the memory requirement for sequence alignment, several alignment programs were developed (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bowtie_(sequence_analysis)" id="mwA7g">Bowtie</a>,<sup about="#mwt54" id="cite_ref-Langmead2009_14-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Langmead2009"},"body":{"id":"mw-reference-text-cite_note-Langmead2009-14"}}'><a href="#cite_note-Langmead2009-14" id="mwA7k"><span id="mwA7o"><span id="mwA7s">[</span>14<span id="mwA7w">]</span></span></a></sup> BWA,<sup about="#mwt57" id="cite_ref-Li,_H2009_15-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Li, H2009"},"body":{"id":"mw-reference-text-cite_note-Li,_H2009-15"}}'><a href="#cite_note-Li,_H2009-15" id="mwA70"><span id="mwA74"><span id="mwA78">[</span>15<span id="mwA8A">]</span></span></a></sup> and SOAP2<sup about="#mwt60" id="cite_ref-Li,_R2009_16-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Li, R2009"},"body":{"id":"mw-reference-text-cite_note-Li,_R2009-16"}}'><a href="#cite_note-Li,_R2009-16" id="mwA8E"><span id="mwA8I"><span id="mwA8M">[</span>16<span id="mwA8Q">]</span></span></a></sup>) that use the Burrows–Wheeler transform.</p>
+</section><section id="mwA8U"><div><h3 id="BWT_for_image_compression">BWT for image compression</h3><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=11"><span>edit</span></a><span>]</span></span></div>
+<p id="mwA8Y">The Burrows–Wheeler transformation has proved to be fundamental for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Image_compression" id="mwA8c">image compression</a> applications. For example,<sup about="#mwt63" id="cite_ref-Collin,_P2019_17-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Collin, P2019"},"body":{"id":"mw-reference-text-cite_note-Collin,_P2019-17"}}'><a href="#cite_note-Collin,_P2019-17" id="mwA8g"><span id="mwA8k"><span id="mwA8o">[</span>17<span id="mwA8s">]</span></span></a></sup> Showed a compression pipeline based on the application of the Burrows–Wheeler transformation followed by inversion, run-length, and arithmetic encoders. The pipeline developed in this case is known as Burrows–Wheeler transform with an inversion encoder (BWIC). The results shown by BWIC are shown to outperform the compression performance of well-known and widely used algorithms like <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lossless_JPEG" id="mwA8w">Lossless JPEG</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/JPEG_2000" id="mwA80">JPEG 2000</a>. BWIC is shown to outperform those in terms of final compression size of radiography medical images on the order of 5.1% and 4.1% respectively. The improvements are achieved by combining BWIC and a pre-BWIC scan of the image in a vertical snake order fashion. More recently, additional works have shown the implementation of the Burrows–Wheeler Transform in conjunction with the known <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Move-to-front_transform" id="mwA84">move-to-front transform</a> (MTF) achieve near lossless compression of images.<sup about="#mwt66" id="cite_ref-Devadoss,_CP2019_18-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Devadoss, CP2019"},"body":{"id":"mw-reference-text-cite_note-Devadoss,_CP2019-18"}}'><a href="#cite_note-Devadoss,_CP2019-18" id="mwA88"><span id="mwA9A"><span id="mwA9E">[</span>18<span id="mwA9I">]</span></span></a></sup></p>
+</section><section id="mwA9M"><div><h3 id="BWT_for_compression_of_genomic_databases">BWT for compression of genomic databases</h3><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=12"><span>edit</span></a><span>]</span></span></div>
+<p id="mwA9Q">Cox et al.<sup about="#mwt69" id="cite_ref-Cox,_AJ2012_19-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Cox, AJ2012"},"body":{"id":"mw-reference-text-cite_note-Cox,_AJ2012-19"}}'><a href="#cite_note-Cox,_AJ2012-19" id="mwA9U"><span id="mwA9Y"><span id="mwA9c">[</span>19<span id="mwA9g">]</span></span></a></sup> presented a genomic compression scheme that uses BWT as the algorithm applied during the first stage of compression of several genomic datasets including the human genomic information. Their work proposed that BWT compression could be enhanced by including a second stage compression mechanism called same-as-previous encoding ("SAP"), which makes use of the fact that suffixes of two or more prefix letters could be equal. With the compression mechanism BWT-SAP, Cox et al. showed that in the genomic database ERA015743, 135.5<span typeof="mw:Entity" id="mwA9k"> </span>GB in size, the compression scheme BWT-SAP compresses the ERA015743 dataset by around 94%, to 8.2<span typeof="mw:Entity" id="mwA9o"> </span>GB.</p>
+</section><section id="mwA9s"><div><h3 id="BWT_for_sequence_prediction">BWT for sequence prediction</h3><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=13"><span>edit</span></a><span>]</span></span></div>
+<p id="mwA9w">BWT has also been proved to be useful on sequence prediction which is a common area of study in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Machine_learning" id="mwA90">machine learning</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Natural-language_processing" id="mwA94">natural-language processing</a>. In particular, Ktistakis et al.<sup about="#mwt72" id="cite_ref-Ktistakis,_R2019_20-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Ktistakis, R2019"},"body":{"id":"mw-reference-text-cite_note-Ktistakis,_R2019-20"}}'><a href="#cite_note-Ktistakis,_R2019-20" id="mwA98"><span id="mwA-A"><span id="mwA-E">[</span>20<span id="mwA-I">]</span></span></a></sup> proposed a sequence prediction scheme called SuBSeq that exploits the lossless compression of data of the Burrows–Wheeler transform. SuBSeq exploits BWT by extracting the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FM-index" id="mwA-M">FM-index</a> and then performing a series of operations called backwardSearch, forwardSearch, neighbourExpansion, and getConsequents in order to search for predictions given a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix" id="mwA-Q">suffix</a>. The predictions are then classified based on a weight and put into an array from which the element with the highest weight is given as the prediction from the SuBSeq algorithm.</p>
+</section></section><section id="mwA-U"><div><h2 id="References">References</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=14"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt73" typeof="mw:Transclusion" id="mwA-Y" data-mw='{"parts":[{"template":{"target":{"wt":"Reflist","href":"./Template:Reflist"},"params":{},"i":0}}]}'></span><div about="#mwt73" id="mwA-c">
+<div typeof="mw:Extension/references" about="#mwt75" id="mwA-g" data-mw='{"name":"references","attrs":{"group":"","responsive":"1"},"body":{"extsrc":""}}'><ol id="mwA-k"><li about="#cite_note-Burrows1994-1" id="cite_note-Burrows1994-1"><span rel="mw:referencedBy" id="mwA-o"><a href="#cite_ref-Burrows1994_1-0" id="mwA-s"><span id="mwA-w">1</span></a> <a href="#cite_ref-Burrows1994_1-1" id="mwA-0"><span id="mwA-4">2</span></a> <a href="#cite_ref-Burrows1994_1-2" id="mwA-8"><span id="mwA_A">3</span></a></span> <span id="mw-reference-text-cite_note-Burrows1994-1"><cite id="CITEREFBurrowsWheeler1994" about="#mwt4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Michael_Burrows_(computer_scientist)" id="mwA_I">Burrows, Michael</a>; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/David_Wheeler_(British_computer_scientist)" id="mwA_M">Wheeler, David J.</a> (May 10, 1994), <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20030105080431/https://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-124.html" id="mwA_Q"><i id="mwA_U">A block sorting lossless data compression algorithm</i></a>, Technical Report 124, Digital Equipment Corporation, archived from <a rel="mw:ExtLink nofollow" href="https://www.hpl.hp.com/techreports/Compaq-DEC/SRC-RR-124.html" id="mwA_Y">the original</a> on January 5, 2003</cite><span about="#mwt4" id="mwA_c"></span></span></li>
+<li about="#cite_note-u822-2" id="cite_note-u822-2"><span id="mwA_g"><a href="#cite_ref-u822_2-0" rel="mw:referencedBy" id="mwA_k"><span id="mwA_o">↑</span></a></span> <span id="mw-reference-text-cite_note-u822-2"><cite id="CITEREFArnavutMagliveras1997" about="#mwt7">Arnavut, Z.; Magliveras, S.S. (1997). "Block sorting and compression". <i id="mwA_w">Proceedings DCC '97. Data Compression Conference</i>. IEEE Comput. Soc. Press. pp.<span typeof="mw:Entity" id="mwA_0"> </span><span id="mwA_4">181–</span>190. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA_8">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109%2FDCC.1997.582009" id="mwBAA">10.1109/DCC.1997.582009</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwBAE">ISBN</a><span typeof="mw:Entity" id="mwBAI"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-0-8186-7761-8" id="mwBAM"><bdi id="mwBAQ">978-0-8186-7761-8</bdi></a>.</cite><span about="#mwt7" id="mwBAU"></span></span></li>
+<li about="#cite_note-langmead-3" id="cite_note-langmead-3"><span rel="mw:referencedBy" id="mwBAY"><a href="#cite_ref-langmead_3-0" id="mwBAc"><span id="mwBAg">1</span></a> <a href="#cite_ref-langmead_3-1" id="mwBAk"><span id="mwBAo">2</span></a></span> <span id="mw-reference-text-cite_note-langmead-3"><cite id="CITEREFLangmead" about="#mwt10">Langmead, Ben. <a rel="mw:ExtLink nofollow" href="https://www.cs.jhu.edu/~langmea/resources/lecture_notes/bwt_and_fm_index.pdf" id="mwBAw">"Burrows-Wheeler Transform and FM Index"</a> <span id="mwBA0">(PDF)</span>. <i id="mwBA4">Johns Hopkins Whiting School of Engineering</i><span id="mwBA8">. Retrieved <span id="mwBBA">23 April</span> 2025</span>.</cite><span about="#mwt10" id="mwBBE"></span></span></li>
+<li about="#cite_note-4" id="cite_note-4"><span id="mwBBI"><a href="#cite_ref-4" rel="mw:referencedBy" id="mwBBM"><span id="mwBBQ">↑</span></a></span> <span id="mw-reference-text-cite_note-4"><cite about="#mwt15" id="mwBBY"><a rel="mw:ExtLink nofollow" href="https://github.com/adrien-mogenet/scala-bwt/blob/master/src/main/scala/me/algos/bwt/BurrowsWheelerCodec.scala" id="mwBBc">"adrien-mogenet/scala-bwt"</a>. <i id="mwBBg">GitHub</i><span id="mwBBk">. Retrieved <span id="mwBBo">19 April</span> 2018</span>.</cite><span about="#mwt15" id="mwBBs"></span></span></li>
+<li about="#cite_note-5" id="cite_note-5"><span id="mwBBw"><a href="#cite_ref-5" rel="mw:referencedBy" id="mwBB0"><span id="mwBB4">↑</span></a></span> <span id="mw-reference-text-cite_note-5"><cite id="CITEREFSimpsonDurbin2010" about="#mwt19">Simpson, Jared T.; Durbin, Richard (2010-06-15). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2881401" id="mwBCA">"Efficient construction of an assembly string graph using the FM-index"</a>. <i id="mwBCE">Bioinformatics</i>. <b id="mwBCI">26</b> (12): <span id="mwBCM">i367–</span>i373. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBCQ">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtq217" id="mwBCU">10.1093/bioinformatics/btq217</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISSN_(identifier)" id="mwBCY">ISSN</a><span typeof="mw:Entity" id="mwBCc"> </span><a rel="mw:ExtLink nofollow" href="https://search.worldcat.org/issn/1367-4803" id="mwBCg">1367-4803</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwBCk">PMC</a><span typeof="mw:Entity" id="mwBCo"> </span><span id="mwBCs"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2881401" id="mwBCw">2881401</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBC0">PMID</a><span typeof="mw:Entity" id="mwBC4"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/20529929" id="mwBC8">20529929</a>.</cite><span about="#mwt19" id="mwBDA"></span></span></li>
+<li about="#cite_note-Manzini-6" id="cite_note-Manzini-6"><span rel="mw:referencedBy" id="mwBDE"><a href="#cite_ref-Manzini_6-0" id="mwBDI"><span id="mwBDM">1</span></a> <a href="#cite_ref-Manzini_6-1" id="mwBDQ"><span id="mwBDU">2</span></a></span> <span id="mw-reference-text-cite_note-Manzini-6">"},"title":{"wt":"Mathematical Foundations of Computer Science 1999: 24th International Symposium, MFCS&apos;99 Szklarska Poreba, Poland, September 6-10, 1999 Proceedings"},"chapter":{"wt":"The Burrows–Wheeler Transform: Theory and Practice"},"last":{"wt":"Manzini"},"first":{"wt":"Giovanni"},"date":{"wt":"1999-08-18"},"publisher":{"wt":"Springer Science &amp; Business Media"},"isbn":{"wt":"9783540664086"},"language":{"wt":"en"}},"i":0}}]}'/><cite id="CITEREFManzini1999" about="#mwt23">Manzini, Giovanni (1999-08-18). <a rel="mw:ExtLink nofollow" href="https://people.unipmn.it/manzini/papers/mfcs99x.pdf" id="mwBDc">"The Burrows–Wheeler Transform: Theory and Practice"</a> <span id="mwBDg">(PDF)</span>. <i id="mwBDk">Mathematical Foundations of Computer Science 1999: 24th International Symposium, MFCS'99 Szklarska Poreba, Poland, September 6-10, 1999 Proceedings</i>. Springer Science &amp; Business Media. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwBDo">ISBN</a><span typeof="mw:Entity" id="mwBDs"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/9783540664086" id="mwBDw"><bdi id="mwBD0">9783540664086</bdi></a>. <a rel="mw:ExtLink nofollow" href="https://ghostarchive.org/archive/20221009/https://people.unipmn.it/manzini/papers/mfcs99x.pdf" id="mwBD4">Archived</a> <span id="mwBD8">(PDF)</span> from the original on 2022-10-09.</cite><span about="#mwt23" id="mwBEA"></span></span></li>
+<li about="#cite_note-7" id="cite_note-7"><span id="mwBEE"><a href="#cite_ref-7" rel="mw:referencedBy" id="mwBEI"><span id="mwBEM">↑</span></a></span> <span id="mw-reference-text-cite_note-7"><cite id="CITEREFGilScott2009" about="#mwt26">Gil, J.; Scott, D. A. (2009), <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20111008001603/http://bijective.dogma.net/00yyy.pdf" id="mwBEU"><i id="mwBEY">A bijective string sorting transform</i></a> <span id="mwBEc">(PDF)</span>, archived from <a rel="mw:ExtLink nofollow" href="http://bijective.dogma.net/00yyy.pdf" id="mwBEg">the original</a> <span id="mwBEk">(PDF)</span> on 2011-10-08<span id="mwBEo">, retrieved <span id="mwBEs">2009-07-09</span></span></cite><span about="#mwt26" id="mwBEw"></span></span></li>
+<li about="#cite_note-8" id="cite_note-8"><span id="mwBE0"><a href="#cite_ref-8" rel="mw:referencedBy" id="mwBE4"><span id="mwBE8">↑</span></a></span> <span id="mw-reference-text-cite_note-8"><cite id="CITEREFKufleitner2009" about="#mwt29">Kufleitner, Manfred (2009), "On bijective variants of the Burrows–Wheeler transform", in Holub, Jan; Žďárek, Jan (eds.), <a rel="mw:ExtLink nofollow" href="http://www.stringology.org/event/2009/p07.html" id="mwBFE"><i id="mwBFI">Prague Stringology Conference</i></a>, pp.<span typeof="mw:Entity" id="mwBFM"> </span><span id="mwBFQ">65–</span>69, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwBFU">arXiv</a>:<span id="mwBFY"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/0908.0239" id="mwBFc">0908.0239</a></span>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwBFg">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/2009arXiv0908.0239K" id="mwBFk">2009arXiv0908.0239K</a></cite><span about="#mwt29" id="mwBFo"></span>.</span></li>
+<li about="#cite_note-9" id="cite_note-9"><span id="mwBFs"><a href="#cite_ref-9" rel="mw:referencedBy" id="mwBFw"><span id="mwBF0">↑</span></a></span> <span id="mw-reference-text-cite_note-9"><ul id="mwBF4"><li id="mwBF8"><cite id="CITEREFLothaire1997" about="#mwt32"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/M._Lothaire" id="mwBGE">Lothaire, M.</a> (1997), <i id="mwBGI">Combinatorics on words</i>, Encyclopedia of Mathematics and Its Applications, vol.<span typeof="mw:Entity" id="mwBGM"> </span>17, Perrin, D.; Reutenauer, C.; Berstel, J.; Pin, J. E.; Pirillo, G.; Foata, D.; Sakarovitch, J.; Simon, I.; Schützenberger, M. P.; Choffrut, C.; Cori, R.; Lyndon, Roger; Rota, Gian-Carlo. Foreword by Roger Lyndon (2nd<span typeof="mw:Entity" id="mwBGQ"> </span>ed.), <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Cambridge_University_Press" id="mwBGU">Cambridge University Press</a>, p.<span typeof="mw:Entity" id="mwBGY"> </span>67, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwBGc">ISBN</a><span typeof="mw:Entity" id="mwBGg"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-0-521-59924-5" id="mwBGk"><bdi id="mwBGo">978-0-521-59924-5</bdi></a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zbl_(identifier)" id="mwBGs">Zbl</a><span typeof="mw:Entity" id="mwBGw"> </span><a rel="mw:ExtLink nofollow" href="https://zbmath.org/?format=complete&amp;q=an:0874.20040" id="mwBG0">0874.20040</a></cite><span about="#mwt32" id="mwBG4"></span></li></ul></span></li>
+<li about="#cite_note-10" id="cite_note-10"><span id="mwBG8"><a href="#cite_ref-10" rel="mw:referencedBy" id="mwBHA"><span id="mwBHE">↑</span></a></span> <span id="mw-reference-text-cite_note-10"><cite id="CITEREFDuval1983" about="#mwt35">Duval, Jean-Pierre (1983), "Factorizing words over an ordered alphabet", <i id="mwBHM">Journal of Algorithms</i>, <b id="mwBHQ">4</b> (4): <span id="mwBHU">363–</span>381, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBHY">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0196-6774%2883%2990017-2" id="mwBHc">10.1016/0196-6774(83)90017-2</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISSN_(identifier)" id="mwBHg">ISSN</a><span typeof="mw:Entity" id="mwBHk"> </span><a rel="mw:ExtLink nofollow" href="https://search.worldcat.org/issn/0196-6774" id="mwBHo">0196-6774</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zbl_(identifier)" id="mwBHs">Zbl</a><span typeof="mw:Entity" id="mwBHw"> </span><a rel="mw:ExtLink nofollow" href="https://zbmath.org/?format=complete&amp;q=an:0532.68061" id="mwBH0">0532.68061</a></cite><span about="#mwt35" id="mwBH4"></span>.</span></li>
+<li about="#cite_note-Salson2009-11" id="cite_note-Salson2009-11"><span id="mwBH8"><a href="#cite_ref-Salson2009_11-0" rel="mw:referencedBy" id="mwBIA"><span id="mwBIE">↑</span></a></span> <span id="mw-reference-text-cite_note-Salson2009-11"><cite id="CITEREFSalsonLecroqLéonardMouchard2009" about="#mwt38">Salson M, Lecroq T, Léonard M, Mouchard L (2009). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.tcs.2009.07.016" id="mwBIM">"A Four-Stage Algorithm for Updating a Burrows–Wheeler Transform"</a>. <i id="mwBIQ">Theoretical Computer Science</i>. <b id="mwBIU">410</b> (43): <span id="mwBIY">4350–</span>4359. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBIc">doi</a>:<span id="mwBIg"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.tcs.2009.07.016" id="mwBIk">10.1016/j.tcs.2009.07.016</a></span>.</cite><span about="#mwt38" id="mwBIo"></span></span></li>
+<li about="#cite_note-Li,_R2008-12" id="cite_note-Li,_R2008-12"><span id="mwBIs"><a href="#cite_ref-Li,_R2008_12-0" rel="mw:referencedBy" id="mwBIw"><span id="mwBI0">↑</span></a></span> <span id="mw-reference-text-cite_note-Li,_R2008-12"><cite id="CITEREFLi_R2008" about="#mwt46">Li R; et<span typeof="mw:Entity" id="mwBI8"> </span>al. (2008). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtn025" id="mwBJA">"SOAP: short oligonucleotide alignment program"</a>. <i id="mwBJE">Bioinformatics</i>. <b id="mwBJI">24</b> (5): <span id="mwBJM">713–</span>714. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBJQ">doi</a>:<span id="mwBJU"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtn025" id="mwBJY">10.1093/bioinformatics/btn025</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBJc">PMID</a><span typeof="mw:Entity" id="mwBJg"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/18227114" id="mwBJk">18227114</a>.</cite><span about="#mwt46" id="mwBJo"></span></span></li>
+<li about="#cite_note-Li,_H2008-13" id="cite_note-Li,_H2008-13"><span id="mwBJs"><a href="#cite_ref-Li,_H2008_13-0" rel="mw:referencedBy" id="mwBJw"><span id="mwBJ0">↑</span></a></span> <span id="mw-reference-text-cite_note-Li,_H2008-13"><cite id="CITEREFLiRuanDurbin2008" about="#mwt49">Li H, Ruan J, Durbin R (2008-08-19). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2577856" id="mwBJ8">"Mapping short DNA sequencing reads and calling variants using mapping quality scores"</a>. <i id="mwBKA">Genome Research</i>. <b id="mwBKE">18</b> (11): <span id="mwBKI">1851–</span>1858. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBKM">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1101%2Fgr.078212.108" id="mwBKQ">10.1101/gr.078212.108</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwBKU">PMC</a><span typeof="mw:Entity" id="mwBKY"> </span><span id="mwBKc"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2577856" id="mwBKg">2577856</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBKk">PMID</a><span typeof="mw:Entity" id="mwBKo"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/18714091" id="mwBKs">18714091</a>.</cite><span about="#mwt49" id="mwBKw"></span></span></li>
+<li about="#cite_note-Langmead2009-14" id="cite_note-Langmead2009-14"><span id="mwBK0"><a href="#cite_ref-Langmead2009_14-0" rel="mw:referencedBy" id="mwBK4"><span id="mwBK8">↑</span></a></span> <span id="mw-reference-text-cite_note-Langmead2009-14"><cite id="CITEREFLangmeadTrapnellPopSalzberg2009" about="#mwt52">Langmead B, Trapnell C, Pop M, Salzberg SL (2009). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2690996" id="mwBLE">"Ultrafast and memory-efficient alignment of short DNA sequences to the human genome"</a>. <i id="mwBLI">Genome Biology</i>. <b id="mwBLM">10</b> (3) R25. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBLQ">doi</a>:<span id="mwBLU"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1186%2Fgb-2009-10-3-r25" id="mwBLY">10.1186/gb-2009-10-3-r25</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwBLc">PMC</a><span typeof="mw:Entity" id="mwBLg"> </span><span id="mwBLk"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2690996" id="mwBLo">2690996</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBLs">PMID</a><span typeof="mw:Entity" id="mwBLw"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/19261174" id="mwBL0">19261174</a>.</cite><span about="#mwt52" id="mwBL4"></span></span></li>
+<li about="#cite_note-Li,_H2009-15" id="cite_note-Li,_H2009-15"><span id="mwBL8"><a href="#cite_ref-Li,_H2009_15-0" rel="mw:referencedBy" id="mwBMA"><span id="mwBME">↑</span></a></span> <span id="mw-reference-text-cite_note-Li,_H2009-15"><cite id="CITEREFLiDurbin2009" about="#mwt55">Li H, Durbin R (2009). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2705234" id="mwBMM">"Fast and accurate short read alignment with Burrows–Wheeler Transform"</a>. <i id="mwBMQ">Bioinformatics</i>. <b id="mwBMU">25</b> (14): <span id="mwBMY">1754–</span>1760. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBMc">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtp324" id="mwBMg">10.1093/bioinformatics/btp324</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwBMk">PMC</a><span typeof="mw:Entity" id="mwBMo"> </span><span id="mwBMs"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2705234" id="mwBMw">2705234</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBM0">PMID</a><span typeof="mw:Entity" id="mwBM4"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/19451168" id="mwBM8">19451168</a>.</cite><span about="#mwt55" id="mwBNA"></span></span></li>
+<li about="#cite_note-Li,_R2009-16" id="cite_note-Li,_R2009-16"><span id="mwBNE"><a href="#cite_ref-Li,_R2009_16-0" rel="mw:referencedBy" id="mwBNI"><span id="mwBNM">↑</span></a></span> <span id="mw-reference-text-cite_note-Li,_R2009-16"><cite id="CITEREFLi_R2009" about="#mwt58">Li R; et<span typeof="mw:Entity" id="mwBNU"> </span>al. (2009). "SOAP2: an improved ultrafast tool for short read alignment". <i id="mwBNY">Bioinformatics</i>. <b id="mwBNc">25</b> (15): <span id="mwBNg">1966–</span>1967. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBNk">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtp336" id="mwBNo">10.1093/bioinformatics/btp336</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBNs">PMID</a><span typeof="mw:Entity" id="mwBNw"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/19497933" id="mwBN0">19497933</a>.</cite><span about="#mwt58" id="mwBN4"></span></span></li>
+<li about="#cite_note-Collin,_P2019-17" id="cite_note-Collin,_P2019-17"><span id="mwBN8"><a href="#cite_ref-Collin,_P2019_17-0" rel="mw:referencedBy" id="mwBOA"><span id="mwBOE">↑</span></a></span> <span id="mw-reference-text-cite_note-Collin,_P2019-17">"},"date":{"wt":"2015"},"volume":{"wt":"2015"},"pages":{"wt":"2956–2959"},"pmid":{"wt":"26736912"},"doi":{"wt":"10.1109/EMBC.2015.7319012"},"isbn":{"wt":"978-1-4244-9271-8"},"s2cid":{"wt":"4460328"}},"i":0}}]}'/><cite id="CITEREFCollinArnavutKoc2015" about="#mwt61">Collin P, Arnavut Z, Koc B (2015). "Lossless compression of medical images using Burrows–Wheeler Transformation with Inversion Coder". <i id="mwBOM">2015 37th Annual International Conference of the IEEE Engineering in Medicine and Biology Society (EMBC)</i>. Vol.<span typeof="mw:Entity" id="mwBOQ"> </span>2015. pp.<span typeof="mw:Entity" id="mwBOU"> </span><span id="mwBOY">2956–</span>2959. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBOc">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109%2FEMBC.2015.7319012" id="mwBOg">10.1109/EMBC.2015.7319012</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwBOk">ISBN</a><span typeof="mw:Entity" id="mwBOo"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-1-4244-9271-8" id="mwBOs"><bdi id="mwBOw">978-1-4244-9271-8</bdi></a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBO0">PMID</a><span typeof="mw:Entity" id="mwBO4"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/26736912" id="mwBO8">26736912</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwBPA">S2CID</a><span typeof="mw:Entity" id="mwBPE"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:4460328" id="mwBPI">4460328</a>.</cite><span about="#mwt61" id="mwBPM"></span></span></li>
+<li about="#cite_note-Devadoss,_CP2019-18" id="cite_note-Devadoss,_CP2019-18"><span id="mwBPQ"><a href="#cite_ref-Devadoss,_CP2019_18-0" rel="mw:referencedBy" id="mwBPU"><span id="mwBPY">↑</span></a></span> <span id="mw-reference-text-cite_note-Devadoss,_CP2019-18"><cite id="CITEREFDevadossSankaragomathi2019" about="#mwt64">Devadoss CP, Sankaragomathi B (2019). <span id="mwBPg"><a rel="mw:ExtLink nofollow" href="https://link.springer.com/article/10.1007/s10586-018-1801-3" id="mwBPk">"Near lossless medical image compression using block BWT–MTF and hybrid fractal compression techniques"</a></span>. <i id="mwBPo">Cluster Computing</i>. <b id="mwBPs">22</b>: <span id="mwBPw">12929–</span>12937. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBP0">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2Fs10586-018-1801-3" id="mwBP4">10.1007/s10586-018-1801-3</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwBP8">S2CID</a><span typeof="mw:Entity" id="mwBQA"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:33687086" id="mwBQE">33687086</a>.</cite><span about="#mwt64" id="mwBQI"></span></span></li>
+<li about="#cite_note-Cox,_AJ2012-19" id="cite_note-Cox,_AJ2012-19"><span id="mwBQM"><a href="#cite_ref-Cox,_AJ2012_19-0" rel="mw:referencedBy" id="mwBQQ"><span id="mwBQU">↑</span></a></span> <span id="mw-reference-text-cite_note-Cox,_AJ2012-19"><cite id="CITEREFCoxBauerJakobiRosone2012" about="#mwt67">Cox AJ, Bauer MJ, Jakobi T, Rosone G (2012). "Large-scale compression of genomic sequence databases with the Burrows–Wheeler transform". <i id="mwBQc">Bioinformatics</i>. <b id="mwBQg">28</b> (11). Oxford University Press: <span id="mwBQk">1415–</span>1419. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwBQo">arXiv</a>:<span id="mwBQs"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/1205.0192" id="mwBQw">1205.0192</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBQ0">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbts173" id="mwBQ4">10.1093/bioinformatics/bts173</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwBQ8">PMID</a><span typeof="mw:Entity" id="mwBRA"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/22556365" id="mwBRE">22556365</a>.</cite><span about="#mwt67" id="mwBRI"></span></span></li>
+<li about="#cite_note-Ktistakis,_R2019-20" id="cite_note-Ktistakis,_R2019-20"><span id="mwBRM"><a href="#cite_ref-Ktistakis,_R2019_20-0" rel="mw:referencedBy" id="mwBRQ"><span id="mwBRU">↑</span></a></span> <span id="mw-reference-text-cite_note-Ktistakis,_R2019-20"><cite id="CITEREFKtistakisFournier-VigerPuglisiRaman2019" about="#mwt70">Ktistakis R, Fournier-Viger P, Puglisi SJ, Raman R (2019). <a rel="mw:ExtLink nofollow" href="https://figshare.com/articles/conference_contribution/Succinct_BWT-based_Sequence_prediction/10200137" id="mwBRc">"Succinct BWT-Based Sequence Prediction"</a>. <i id="mwBRg">Database and Expert Systems Applications</i>. Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity" id="mwBRk"> </span>11707. pp.<span typeof="mw:Entity" id="mwBRo"> </span><span id="mwBRs">91–</span>101. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwBRw">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F978-3-030-27618-8_7" id="mwBR0">10.1007/978-3-030-27618-8_7</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwBR4">ISBN</a><span typeof="mw:Entity" id="mwBR8"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-030-27617-1" id="mwBSA"><bdi id="mwBSE">978-3-030-27617-1</bdi></a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwBSI">S2CID</a><span typeof="mw:Entity" id="mwBSM"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:201058996" id="mwBSQ">201058996</a>.</cite><span about="#mwt70" id="mwBSU"></span></span></li>
+</ol></div></div>
+</section><section id="mwBSY"><div><h2 id="External_links">External links</h2><span><span>[</span><a href="/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;action=edit&amp;section=15"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwBSc"><li id="mwBSg"><a rel="mw:ExtLink nofollow" href="http://marknelson.us/1996/09/01/bwt/" id="mwBSk">Article by Mark Nelson on the BWT</a> <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20170325024404/http://marknelson.us/1996/09/01/bwt/" about="#mwt76" typeof="mw:Transclusion" id="mwBSo" data-mw='{"parts":[{"template":{"target":{"wt":"Webarchive","href":"./Template:Webarchive"},"params":{"url":{"wt":"https://web.archive.org/web/20170325024404/http://marknelson.us/1996/09/01/bwt/"},"date":{"wt":"2017-03-25"}},"i":0}}]}'>Archived</a><span about="#mwt76"> 2017-03-25 at the </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wayback_Machine" about="#mwt76">Wayback Machine</a></li>
+<li id="mwBSw"><a rel="mw:ExtLink nofollow" href="http://bijective.dogma.net/00yyy.pdf" id="mwBS0">A Bijective String-Sorting Transform, by Gil and Scott</a> <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20111008001603/http://bijective.dogma.net/00yyy.pdf" about="#mwt77" typeof="mw:Transclusion" id="mwBS4" data-mw='{"parts":[{"template":{"target":{"wt":"Webarchive","href":"./Template:Webarchive"},"params":{"url":{"wt":"https://web.archive.org/web/20111008001603/http://bijective.dogma.net/00yyy.pdf"},"date":{"wt":"2011-10-08"}},"i":0}}]}'>Archived</a><span about="#mwt77"> 2011-10-08 at the </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wayback_Machine" about="#mwt77">Wayback Machine</a></li>
+<li id="mwBTA"><a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20170306035431/https://encode.ru/attachment.php?attachmentid=959&amp;d=1249146089" id="mwBTE">Yuta's openbwt-v1.5.zip contains source code for various BWT routines including BWTS for bijective version</a></li>
+<li id="mwBTI"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/0908.0239" id="mwBTM">On Bijective Variants of the Burrows–Wheeler Transform, by Kufleitner</a></li>
+<li id="mwBTQ"><a rel="mw:ExtLink nofollow" href="https://google-opensource.blogspot.com/2008/06/debuting-dcs-bwt-experimental-burrows.html" id="mwBTU">Blog post</a> and <a rel="mw:ExtLink nofollow" href="https://code.google.com/p/dcs-bwt-compressor/" id="mwBTY">project page</a> for an open-source compression program and library based on the Burrows–Wheeler algorithm</li>
+<li id="mwBTc"><a rel="mw:ExtLink nofollow" href="https://www.youtube.com/watch?v=P3ORBMon8aw" id="mwBTg">MIT open courseware lecture on BWT (Foundations of Computational and Systems Biology)</a></li>
+<li id="mwBTk"><a rel="mw:ExtLink nofollow" href="https://github.com/abderrahimh/ARahim" id="mwBTo">League Table Sort (LTS) or The Weighting algorithm to BWT by Abderrahim Hechachena</a></li></ul>
+<div about="#mwt78" typeof="mw:Transclusion" id="mwBTs" data-mw='{"parts":[{"template":{"target":{"wt":"Compression Methods","href":"./Template:Compression_Methods"},"params":{},"i":0}}]}'><span></span></div><div role="navigation" about="#mwt78" id="mwBTw"><table><tbody><tr><th scope="col" colspan="2"><span></span><div><ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Compression_methods"><abbr>v</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template_talk:Compression_methods"><abbr>t</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:EditPage/Template:Compression_methods"><abbr>e</abbr></a></li></ul></div><div id="Data_compression_methods8821"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_compression">Data compression</a> methods</div></th></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lossless_compression">Lossless</a><br/>type</th><td><div></div><table><tbody><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Entropy_coding">Entropy</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Adaptive_coding">Adaptive coding</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Arithmetic_coding">Arithmetic</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Asymmetric_numeral_systems">Asymmetric numeral systems</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Golomb_coding">Golomb</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Huffman_coding">Huffman</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Adaptive_Huffman_coding">Adaptive</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Canonical_Huffman_code">Canonical</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Modified_Huffman_coding">Modified</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Range_coding">Range</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Shannon_coding">Shannon</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Shannon–Fano_coding">Shannon–Fano</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Shannon–Fano–Elias_coding">Shannon–Fano–Elias</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Tunstall_coding">Tunstall</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Unary_coding">Unary</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Universal_code_(data_compression)">Universal</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Exponential-Golomb_coding">Exp-Golomb</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Fibonacci_coding">Fibonacci</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Elias_gamma_coding">Gamma</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_coding">Levenshtein</a></li></ul></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dictionary_coder">Dictionary</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Byte-pair_encoding">Byte-pair encoding</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZ77_and_LZ78">Lempel–Ziv</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/842_(compression_algorithm)">842</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZ4_(compression_algorithm)">LZ4</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZJB">LZJB</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lempel–Ziv–Oberhumer">LZO</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZRW">LZRW</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lempel–Ziv–Storer–Szymanski">LZSS</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lempel–Ziv–Welch">LZW</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZWL">LZWL</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Snappy_(compression)">Snappy</a></li></ul></li></ul>
+</div></td></tr><tr><th scope="row">Other</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform">BWT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Context_tree_weighting">CTW</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Context_mixing">CM</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Delta_encoding">Delta</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Incremental_encoding">Incremental</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_Markov_compression">DMC</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Differential_pulse-code_modulation">DPCM</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Grammar-based_code">Grammar</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Re-Pair">Re-Pair</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequitur_algorithm">Sequitur</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_cosine_transform">LDCT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Move-to-front_transform">MTF</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PAQ">PAQ</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Prediction_by_partial_matching">PPM</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Run-length_encoding">RLE</a></li></ul>
+</div></td></tr><tr><th scope="row">Hybrid</th><td><div>
+<ul><li>LZ77 + Huffman
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Deflate">Deflate</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZX">LZX</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lempel–Ziv–Stac">LZS</a></li></ul></li>
+<li>LZ77 + ANS
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZFSE">LZFSE</a></li></ul></li>
+<li>LZ77 + Huffman + ANS
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zstd">Zstandard</a></li></ul></li>
+<li>LZ77 + Huffman + context
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Brotli">Brotli</a></li></ul></li>
+<li>LZSS + Huffman
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LHA_(file_format)">LHA/LZH</a></li></ul></li>
+<li>LZ77 + Range
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LZMA">LZMA</a></li>
+<li>LZHAM</li></ul></li>
+<li>RLE + BWT + MTF + Huffman
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bzip2">bzip2</a></li></ul></li></ul>
+</div></td></tr></tbody></table><div></div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lossy_compression">Lossy</a><br/>type</th><td><div></div><table><tbody><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Transform_coding">Transform</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_cosine_transform">Discrete cosine transform</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_cosine_transform">DCT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Modified_discrete_cosine_transform">MDCT</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_sine_transform">DST</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Fast_Fourier_transform">FFT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wavelet_transform">Wavelet</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Daubechies_wavelet">Daubechies</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_wavelet_transform">DWT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Set_partitioning_in_hierarchical_trees">SPIHT</a></li></ul></li></ul>
+</div></td></tr><tr><th scope="row">Predictive</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Differential_pulse-code_modulation">DPCM</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Adaptive_differential_pulse-code_modulation">ADPCM</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Linear_predictive_coding">LPC</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Algebraic_code-excited_linear_prediction">ACELP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Code-excited_linear_prediction">CELP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Log_area_ratio">LAR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Line_spectral_pairs">LSP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Warped_linear_predictive_coding">WLPC</a></li></ul></li>
+<li>Motion
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Motion_compensation">Compensation</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Motion_estimation">Estimation</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Motion_vector">Vector</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Psychoacoustics">Psychoacoustic</a></li></ul>
+</div></td></tr></tbody></table><div></div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_compression#Audio">Audio</a></th><td><div></div><table><tbody><tr><th scope="row">Concepts</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bit_rate">Bit rate</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Average_bitrate">ABR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Constant_bitrate">CBR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Variable_bitrate">VBR</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Companding">Companding</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Convolution">Convolution</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_range">Dynamic range</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Latency_(audio)">Latency</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nyquist–Shannon_sampling_theorem">Nyquist–Shannon theorem</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sampling_(signal_processing)">Sampling</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Silence_compression">Silence compression</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sound_quality">Sound quality</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Speech_coding">Speech coding</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sub-band_coding">Sub-band coding</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Audio_codec">Codec</a><br/>parts</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/A-law_algorithm">A-law</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Mu-law_algorithm">μ-law</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Differential_pulse-code_modulation">DPCM</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Adaptive_differential_pulse-code_modulation">ADPCM</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Delta_modulation">DM</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Fourier_transform">FT</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Fast_Fourier_transform">FFT</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Linear_predictive_coding">LPC</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Algebraic_code-excited_linear_prediction">ACELP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Code-excited_linear_prediction">CELP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Log_area_ratio">LAR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Line_spectral_pairs">LSP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Warped_linear_predictive_coding">WLPC</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Modified_discrete_cosine_transform">MDCT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Psychoacoustics">Psychoacoustic model</a></li></ul>
+</div></td></tr></tbody></table><div></div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Image_compression">Image</a></th><td><div></div><table><tbody><tr><th scope="row">Concepts</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Chroma_subsampling">Chroma subsampling</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Coding_tree_unit">Coding tree unit</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Color_space">Color space</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compression_artifact">Compression artifact</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Image_resolution">Image resolution</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Macroblock">Macroblock</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pixel">Pixel</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Peak_signal-to-noise_ratio">PSNR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Quantization_(image_processing)">Quantization</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Standard_test_image">Standard test image</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Texture_compression">Texture compression</a></li></ul>
+</div></td></tr><tr><th scope="row">Methods</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Chain_code">Chain code</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_cosine_transform">DCT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Deflate">Deflate</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Fractal_compression">Fractal</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Karhunen–Loève_theorem">KLT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pyramid_(image_processing)">LP</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Run-length_encoding">RLE</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wavelet_transform">Wavelet</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Daubechies_wavelet">Daubechies</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_wavelet_transform">DWT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Embedded_zerotrees_of_wavelet_transforms">EZW</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Set_partitioning_in_hierarchical_trees">SPIHT</a></li></ul></li></ul>
+</div></td></tr></tbody></table><div></div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_compression#Video">Video</a></th><td><div></div><table><tbody><tr><th scope="row">Concepts</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bit_rate">Bit rate</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Average_bitrate">ABR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Constant_bitrate">CBR</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Variable_bitrate">VBR</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Display_resolution">Display resolution</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Film_frame">Frame</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Frame_rate">Frame rate</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Video_compression_picture_types">Frame types</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Interlaced_video">Interlace</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Video#Characteristics_of_video_streams">Video characteristics</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Video_quality">Video quality</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Video_codec">Codec</a><br/>parts</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_cosine_transform">DCT</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Differential_pulse-code_modulation">DPCM</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Deblocking_filter">Deblocking filter</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lapped_transform">Lapped transform</a></li>
+<li>Motion
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Motion_compensation">Compensation</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Motion_estimation">Estimation</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Motion_vector">Vector</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wavelet_transform">Wavelet</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Daubechies_wavelet">Daubechies</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discrete_wavelet_transform">DWT</a></li></ul></li></ul>
+</div></td></tr></tbody></table><div></div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Information_theory">Theory</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_data_structure">Compressed data structures</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_suffix_array">Compressed suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FM-index">FM-index</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Entropy_(information_theory)">Entropy</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Information_theory">Information theory</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Timeline_of_information_theory">Timeline</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Kolmogorov_complexity">Kolmogorov complexity</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Prefix_code">Prefix code</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Quantization_(signal_processing)">Quantization</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rate–distortion_theory">Rate–distortion</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Redundancy_(information_theory)">Redundancy</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_compression_symmetry">Symmetry</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smallest_grammar_problem">Smallest grammar problem</a></li></ul>
+</div></td></tr><tr><th scope="row">Community</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hutter_Prize">Hutter Prize</a></li></ul>
+</div></td></tr><tr><th scope="row">People</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Mark_Adler">Mark Adler</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/David_A._Huffman">David A. Huffman</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Phil_Katz">Phil Katz</a></li></ul>
+</div></td></tr></tbody></table></div>
+<span about="#mwt83" typeof="mw:Transclusion" id="mwBT0" data-mw='{"parts":[{"template":{"target":{"wt":"DEFAULTSORT:Burrows-Wheeler Transform","function":"defaultsort"},"params":{},"i":0}}]}'></span>
+</section>
+</div><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1"></noscript>
+<div>Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Burrows–Wheeler_transform&amp;oldid=1378563264">https://en.wikipedia.org/w/index.php?title=Burrows–Wheeler_transform&amp;oldid=1378563264</a>"</div></div>
+					<div id="catlinks"><div id="mw-normal-catlinks"><a href="/wiki/Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Lossless_compression_algorithms">Lossless compression algorithms</a></li><li><a href="/wiki/Category:Data_compression_transforms">Data compression transforms</a></li><li><a href="/wiki/Category:Data_compression">Data compression</a></li></ul></div><div id="mw-hidden-catlinks">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:Webarchive_template_wayback_links">Webarchive template wayback links</a></li><li><a href="/wiki/Category:Articles_with_example_pseudocode">Articles with example pseudocode</a></li><li><a href="/wiki/Category:Articles_with_example_Python_(programming_language)_code">Articles with example Python (programming language) code</a></li><li><a href="/wiki/Category:Articles_with_example_R_code">Articles with example R code</a></li></ul></div></div>
+				</div>
+			</main>
+		</div>
+		<div>
+			<footer id="footer" >
+				<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 5 October 2026, at 01:03<span>&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+				<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=Burrows%E2%80%93Wheeler_transform&amp;oldid=1378563264&amp;mobileaction=toggle_view_mobile">Mobile view</a></li>
+</ul>
+				<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/"><picture><source media="(min-width: 500px)" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><picture><source media="(min-width: 500px)" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25"></picture></a></li>
+</ul>
+			</footer>
+		</div>
+	</div>
+</div>
+<div>
+	<div id="vector-sticky-header">
+		<div>
+			<div>
+				<button tabindex="-1"><span></span>
+<span>Search</span>
+			</button>
+		</div>
+		<div role="search">
+			<div>
+				<div>
+					<form action="/w/index.php" id="vector-sticky-search-form">
+						<div  >
+							<div>
+								<input
+								 autocomplete="off"
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button>Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div>
+				<nav>
+					<div id="vector-sticky-header-toc"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button"    >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+						</label>
+						<div>
+						<div id="vector-sticky-header-toc-unpinned-container">
+						</div>
+						</div>
+					</div>
+			</nav>
+				<div ><span lang="en" dir="ltr"><span>Burrows–Wheeler transform</span></span></div>
+			</div>
+		</div>
+		<div>
+			<div>
+				<a href="#" id="ca-talk-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-subject-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-history-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-watchstar-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-ve-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-viewsource-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+		</div>
+			<div>
+				<button id="p-lang-btn-sticky-header" tabindex="-1"><span></span>
+<span>16 languages</span>
+			</button>
+			<a href="#" id="ca-addsection-sticky-header" tabindex="-1"><span></span>
+<span>Add topic</span>
+			</a>
+		</div>
+			<div>
+				<div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="p-dock-bottom">
+	<ul>
+	</ul>
+</div>
+</body>
+</html>

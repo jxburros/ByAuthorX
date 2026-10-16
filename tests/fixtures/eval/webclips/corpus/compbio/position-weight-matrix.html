@@ -1,0 +1,1544 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Position weight matrix - Wikipedia</title>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.24">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="noindex,nofollow,max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Position weight matrix - Wikipedia">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div id="mw-aria-live-region"></div><a href="#bodyContent">Jump to content</a>
+<div>
+	<header>
+		<div>
+			<nav>
+<div id="vector-main-menu-dropdown"  >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button"    >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox"  ><span></span>
+<span>Main menu</span>
+	</label>
+	<div>
+				<div id="vector-main-menu-unpinned-container">
+<div id="vector-main-menu">
+	<div
+>
+	<div>Main menu</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-navigation"  >
+	<div>
+		Navigation
+	</div>
+	<div>
+		<ul>
+			<li id="n-mainpage-description"><a href="/wiki/Main_Page" accesskey="z"><span>Main page</span></a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents"><span>Contents</span></a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events"><span>Current events</span></a></li><li id="n-randompage"><a href="/wiki/Special:Random" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About"><span>About Wikipedia</span></a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us"><span>Contact us</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-interaction"  >
+	<div>
+		Contribute
+	</div>
+	<div>
+		<ul>
+			<li id="n-help"><a href="/wiki/Help:Contents"><span>Help</span></a></li><li id="n-introduction"><a href="/wiki/Help:Introduction"><span>Learn to edit</span></a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal"><span>Community portal</span></a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_upload_wizard"><span>Upload file</span></a></li><li id="n-specialpages"><a href="/wiki/Special:SpecialPages" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+				</div>
+	</div>
+</div>
+		</nav>
+<a href="/wiki/Main_Page">
+	<img src="/static/images/icons/enwiki-25.svg" alt="" height="50" width="50">
+	<span>
+		<img alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg">
+		<img alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11">
+	</span>
+</a>
+		</div>
+		<div>
+<div id="p-search" role="search">
+	<a href="/wiki/Special:Search" accesskey="f"><span></span>
+<span>Search</span>
+	</a>
+	<div>
+		<div>
+			<form action="/w/index.php" id="searchform">
+				<div id="simpleSearch" >
+					<div>
+						<input
+						 autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" autocapitalize="none" spellcheck="false" accesskey="f" id="searchInput"
+							>
+						<span></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button>Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+			<nav>
+	<div>
+<div id="p-vector-user-menu-preferences"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-userpage"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	<nav>
+<div id="vector-appearance-dropdown"  >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button"    >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox"  ><span></span>
+<span>Appearance</span>
+	</label>
+	<div>
+			<div id="vector-appearance-unpinned-container">
+			</div>
+	</div>
+</div>
+	</nav>
+<div id="p-vector-user-menu-notifications"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-overflow"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport-2"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Position+weight+matrix&amp;returntoquery=oldid%3D1281175370"><span>Create account</span></a>
+</li>
+<li id="pt-login-2"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Position+weight+matrix&amp;returntoquery=oldid%3D1281175370" accesskey="o"><span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+<div id="vector-user-links-dropdown"  >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button"    >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox"  ><span></span>
+<span>Personal tools</span>
+	</label>
+	<div>
+<div id="p-personal"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span></span>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Position+weight+matrix&amp;returntoquery=oldid%3D1281175370"><span></span>
+<span>Create account</span></a>
+</li>
+<li id="pt-login"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Position+weight+matrix&amp;returntoquery=oldid%3D1281175370" accesskey="o"><span></span>
+<span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+</nav>
+		</div>
+	</header>
+</div>
+<div>
+	<div>
+		<div>
+			<div id="siteNotice"></div>
+		</div>
+		<div>
+			<div>
+		<div id="mw-navigation">
+			<nav id="mw-panel">
+				<div id="vector-main-menu-pinned-container">
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div>
+				<nav id="mw-panel-toc">
+					<div id="vector-toc-pinned-container">
+					<div id="vector-toc">
+	<div
+>
+	<h2>Contents</h2>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+		>
+			<a href="#">
+				<div>(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Background"
+	>
+		<a href="#Background">
+			<div>
+				<span>1</span>
+				<span>Background</span>
+			</div>
+		</a>
+		<ul id="toc-Background-sublist">
+		</ul>
+	</li>
+	<li id="toc-Creation"
+	>
+		<a href="#Creation">
+			<div>
+				<span>2</span>
+				<span>Creation</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Creation subsection</span>
+			</button>
+		<ul id="toc-Creation-sublist">
+			<li id="toc-Conversion_of_sequence_to_position_probability_matrix"
+		>
+			<a href="#Conversion_of_sequence_to_position_probability_matrix">
+				<div>
+					<span>2.1</span>
+					<span>Conversion of sequence to position probability matrix</span>
+				</div>
+			</a>
+			<ul id="toc-Conversion_of_sequence_to_position_probability_matrix-sublist">
+			</ul>
+		</li>
+		<li id="toc-Conversion_of_position_probability_matrix_to_position_weight_matrix"
+		>
+			<a href="#Conversion_of_position_probability_matrix_to_position_weight_matrix">
+				<div>
+					<span>2.2</span>
+					<span>Conversion of position probability matrix to position weight matrix</span>
+				</div>
+			</a>
+			<ul id="toc-Conversion_of_position_probability_matrix_to_position_weight_matrix-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Information_content"
+	>
+		<a href="#Information_content">
+			<div>
+				<span>3</span>
+				<span>Information content</span>
+			</div>
+		</a>
+		<ul id="toc-Information_content-sublist">
+		</ul>
+	</li>
+	<li id="toc-Uses"
+	>
+		<a href="#Uses">
+			<div>
+				<span>4</span>
+				<span>Uses</span>
+			</div>
+		</a>
+		<ul id="toc-Uses-sublist">
+		</ul>
+	</li>
+	<li id="toc-See_also"
+	>
+		<a href="#See_also">
+			<div>
+				<span>5</span>
+				<span>See also</span>
+			</div>
+		</a>
+		<ul id="toc-See_also-sublist">
+		</ul>
+	</li>
+	<li id="toc-References"
+	>
+		<a href="#References">
+			<div>
+				<span>6</span>
+				<span>References</span>
+			</div>
+		</a>
+		<ul id="toc-References-sublist">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+	>
+		<a href="#External_links">
+			<div>
+				<span>7</span>
+				<span>External links</span>
+			</div>
+		</a>
+		<ul id="toc-External_links-sublist">
+		</ul>
+	</li>
+</ul>
+</div>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div>
+			<main id="content">
+				<header>
+					<nav>
+<div id="vector-page-titlebar-toc"  >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button"    >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+	</label>
+	<div>
+							<div id="vector-page-titlebar-toc-unpinned-container">
+			</div>
+	</div>
+</div>
+					</nav>
+					<h1 id="firstHeading"><span lang="en" dir="ltr"><span>Position weight matrix</span></span></h1>
+<div id="p-lang-btn"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button"   >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox"  ><span></span>
+<span>3 languages</span>
+	</label>
+	<div>
+		<div>
+			<ul>
+				<li><a href="https://es.wikipedia.org/wiki/Matriz_de_pesos_posicionales" lang="es" hreflang="es"><span>Español</span></a></li><li><a href="https://fa.wikipedia.org/wiki/%D9%85%D8%A7%D8%AA%D8%B1%DB%8C%D8%B3_%D9%88%D8%B2%D9%86_%D9%85%D9%88%D9%82%D8%B9%DB%8C%D8%AA_%D8%AE%D8%A7%D8%B5" lang="fa" hreflang="fa"><span>فارسی</span></a></li><li><a href="https://ru.wikipedia.org/wiki/%D0%9F%D0%BE%D0%B7%D0%B8%D1%86%D0%B8%D0%BE%D0%BD%D0%BD%D0%B0%D1%8F_%D0%B2%D0%B5%D1%81%D0%BE%D0%B2%D0%B0%D1%8F_%D0%BC%D0%B0%D1%82%D1%80%D0%B8%D1%86%D0%B0" lang="ru" hreflang="ru"><span>Русский</span></a></li>
+			</ul>
+			<div><span><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q7233183#sitelinks-wikipedia">Edit links</a></span></div>
+		</div>
+	</div>
+</div>
+</header>
+				<div>
+					<div>
+						<div id="left-navigation">
+							<nav>
+<div id="p-associated-pages"  >
+	<div>
+		<ul>
+			<li id="ca-nstab-main"><a data-mw-interface  href="/wiki/Position_weight_matrix" accesskey="c"><span>Article</span></a>
+</li>
+<li id="ca-talk"><a data-mw-interface  href="/wiki/Talk:Position_weight_matrix" rel="discussion" accesskey="t"><span>Talk</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="vector-variants-dropdown"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox"  ><span>English</span>
+	</label>
+	<div>
+<div id="p-variants"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+							</nav>
+						</div>
+						<div id="right-navigation">
+							<nav>
+<div id="p-views"  >
+	<div>
+		<ul>
+			<li id="ca-view"><a data-mw-interface  href="/wiki/Position_weight_matrix"><span>Read</span></a>
+</li>
+<li id="ca-edit"><a data-mw-interface  href="/w/index.php?title=Position_weight_matrix&amp;action=edit" accesskey="e"><span>Edit</span></a>
+</li>
+<li id="ca-history"><a data-mw-interface  href="/w/index.php?title=Position_weight_matrix&amp;action=history" accesskey="h"><span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+			</nav>
+							<nav>
+<div id="vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button"    >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox"  ><span></span>
+<span>Tools</span>
+	</label>
+	<div>
+									<div id="vector-page-tools-unpinned-container">
+<div id="vector-page-tools">
+	<div
+>
+	<div>Tools</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-cactions"  >
+	<div>
+		Actions
+	</div>
+	<div>
+		<ul>
+			<li id="ca-view-more"><a data-mw-interface  href="/wiki/Position_weight_matrix"><span></span>
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more"><a data-mw-interface  href="/w/index.php?title=Position_weight_matrix&amp;action=edit" accesskey="e"><span></span>
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more"><a data-mw-interface  href="/w/index.php?title=Position_weight_matrix&amp;action=history" accesskey="h"><span></span>
+<span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="p-tb"  >
+	<div>
+		General
+	</div>
+	<div>
+		<ul>
+			<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Position_weight_matrix" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Position_weight_matrix" rel="nofollow" accesskey="k"><span>Related changes</span></a></li><li id="t-upload"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink"><a href="/w/index.php?title=Position_weight_matrix&amp;oldid=1281175370"><span>Permanent link</span></a></li><li id="t-info"><a href="/w/index.php?title=Position_weight_matrix&amp;action=info"><span>Page information</span></a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Position_weight_matrix&amp;id=1281175370&amp;wpFormIdentifier=titleform"><span>Cite this page</span></a></li><li id="t-urlshortener"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fw%2Findex.php%3Ftitle%3DPosition_weight_matrix%26oldid%3D1281175370"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy"><a href="/w/index.php?title=Position_weight_matrix&amp;oldid=1281175370&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-coll-print_export"  >
+	<div>
+		Print/export
+	</div>
+	<div>
+		<ul>
+			<li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Position_weight_matrix&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print"><a href="javascript:print();" rel="alternate" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-wikibase-otherprojects"  >
+	<div>
+		In other projects
+	</div>
+	<div>
+		<ul>
+			<li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q7233183" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+									</div>
+	</div>
+</div>
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div>
+						<nav>
+							<div id="vector-page-tools-pinned-container">
+							</div>
+		</nav>
+						<nav>
+							<div id="vector-appearance-pinned-container">
+				<div id="vector-appearance">
+	<div
+>
+	<div>Appearance</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+</div>
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" data-mw-ve-target-container>
+					<div>
+							<div>
+		</div>
+						<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"><div><span></span><div><div id="mw-revision-info-current"><b>This is the <a href="/wiki/Help:Page_history">current revision</a> of this page, as edited by <span id="mw-revision-name"><a href="/wiki/User:SilkPyjamas"><bdi>SilkPyjamas</bdi></a> <span>(<a href="/wiki/User_talk:SilkPyjamas">talk</a> | <a href="/wiki/Special:Contributions/SilkPyjamas">contribs</a>)</span></span> at <span id="mw-revision-date">19:41, 18 March 2025</span><span id="mw-revision-summary"> <span>(Adding local <a href="/wiki/Wikipedia:Short_description">short description</a>: &quot;Commonly used representation of patterns in biological sequences&quot;, overriding Wikidata description &quot;tabular numerical representations of biological sequence motifs displaying their variability as likelihood values for each possible residue at each position in a sequence&quot;)</span></span>. The present address (URL) is a <a href="/wiki/Help:Permanent_link">permanent link</a> to this version.</b><span id="revision-info-current-plain">Revision as of 19:41, 18 March 2025 by <a href="/wiki/User:SilkPyjamas"><bdi>SilkPyjamas</bdi></a> <span>(<a href="/wiki/User_talk:SilkPyjamas">talk</a> | <a href="/wiki/Special:Contributions/SilkPyjamas">contribs</a>)</span> <span>(Adding local <a href="/wiki/Wikipedia:Short_description">short description</a>: &quot;Commonly used representation of patterns in biological sequences&quot;, overriding Wikidata description &quot;tabular numerical representations of biological sequence motifs displaying their variability as likelihood values for each possible residue at each position in a sequence&quot;)</span></span></div><div id="mw-revision-nav">(<a href="/w/index.php?title=Position_weight_matrix&amp;diff=prev&amp;oldid=1281175370">diff</a>) <a href="/w/index.php?title=Position_weight_matrix&amp;direction=prev&amp;oldid=1281175370">← Previous revision</a> | Latest revision (diff) | Newer revision → (diff)</div></div></div></div></div>
+					</div>
+					<div id="mw-content-text"><div lang="en" dir="ltr"><section id="mwAQ"><div about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"Short description","href":"./Template:Short_description"},"params":{"1":{"wt":"Commonly used representation of patterns in biological sequences"}},"i":0}}]}'>Commonly used representation of patterns in biological sequences</div><span about="#mwt1"></span>
+<span about="#mwt2" typeof="mw:Transclusion" id="mwAw" data-mw='{"parts":[{"template":{"target":{"wt":"About","href":"./Template:About"},"params":{"1":{"wt":"Bioinformatics"},"2":{"wt":"the disease in horses known by the acronym \"PSSM\""},"3":{"wt":"Equine polysaccharide storage myopathy"}},"i":0}}]}'></span><div role="note" about="#mwt2" id="mwBA">This article is about Bioinformatics. For the disease in horses known by the acronym "PSSM", see <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Equine_polysaccharide_storage_myopathy">Equine polysaccharide storage myopathy</a>.</div>
+<p id="mwBQ"><span typeof="mw:Nowiki mw:Transclusion" about="#mwt4" id="mwBg" data-mw='{"parts":[{"template":{"target":{"wt":"Use dmy dates","href":"./Template:Use_dmy_dates"},"params":{"date":{"wt":"January 2021"}},"i":0}}]}'></span></p>
+<figure typeof="mw:File/Thumb" id="mwCA"><a href="https://en.wikipedia.org/wiki/File:LexA_gram_positive_bacteria_sequence_logo.png" id="mwCQ"><img resource="https://en.wikipedia.org/wiki/File:LexA_gram_positive_bacteria_sequence_logo.png" src="//thumb.wikimedia.org/wikipedia/commons/thumb/8/85/LexA_gram_positive_bacteria_sequence_logo.png/250px-LexA_gram_positive_bacteria_sequence_logo.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="69" width="250" id="mwCg"/></a><figcaption id="mwCw">PWMs are often represented graphically as <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_logo" id="mwDA">sequence logos</a>.</figcaption></figure>
+<p id="mwDQ">A <b id="mwDg">position weight matrix (PWM)</b>, also known as a <b id="mwDw">position-specific weight matrix (PSWM)</b> or <b id="mwEA">position-specific scoring matrix (PSSM)</b>, is a commonly used representation of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_motif" id="mwEQ">motifs</a> (patterns) in biological sequences.</p>
+<p id="mwEg">PWMs are often derived from a set of aligned sequences that are thought to be functionally related and have become an important part of many software tools for computational motif discovery.</p>
+<meta property="mw:PageProp/toc" id="mwEw" data-mw='{"autoGenerated":true}'/></section><section id="mwFA"><div><h2 id="Background">Background</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=1"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt5" typeof="mw:Transclusion" id="mwFQ" data-mw='{"parts":[{"template":{"target":{"wt":"Empty section","href":"./Template:Empty_section"},"params":{"date":{"wt":"November 2022"}},"i":0}}]}'></span><table role="presentation" about="#mwt5"><tbody><tr><td><span typeof="mw:File mw:ExpandedAttrs" about="#mwt7" data-mw='{"attribs":[["alt",{"html":"alt=&lt;span typeof=\"mw:Entity\" id=\"mwFg\">[&lt;/span>icon&lt;span typeof=\"mw:Entity\" id=\"mwFw\">]&lt;/span>","txt":"[icon]"}]]}'><a href="https://en.wikipedia.org/wiki/File:Wiki_letter_w_cropped.svg"><img resource="https://en.wikipedia.org/wiki/File:Wiki_letter_w_cropped.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/1/1c/Wiki_letter_w_cropped.svg/20px-Wiki_letter_w_cropped.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" alt="[icon]" height="14" width="20"/></a></span></td><td><div><b>This section is empty.</b>  You can help by <a rel="mw:ExtLink" href="https://en.wikipedia.org/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=">adding to it</a>.  <span><i>(<span>November 2022</span>)</i></span></div></td></tr></tbody></table><span about="#mwt5"></span>
+</section><section id="mwGA"><div><h2 id="Creation">Creation</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=2"><span>edit</span></a><span>]</span></span></div>
+<section id="mwGQ"><div><h3 id="Conversion_of_sequence_to_position_probability_matrix">Conversion of sequence to position probability matrix</h3><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=3"><span>edit</span></a><span>]</span></span></div>
+<p id="mwGg">A PWM has one row for each symbol of the alphabet (4 rows for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nucleotide" id="mwGw">nucleotides</a> in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DNA" id="mwHA">DNA</a> sequences or 20 rows for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Amino_acid" id="mwHQ">amino acids</a> in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Protein" id="mwHg">protein</a> sequences) and one column for each position in the pattern. In the first step in constructing a PWM, a basic position frequency matrix (PFM) is created by counting the occurrences of each nucleotide at each position.  From the PFM, a position probability matrix (PPM) can now be created by dividing that former nucleotide count at each position by the number of sequences, thereby normalising the values. Formally, given a set <i id="mwHw">X</i> of <i id="mwIA">N</i> aligned sequences of length <i id="mwIQ">l</i>, the elements of the PPM <b id="mwIg">M</b> are calculated:<br id="mwIw"/></p>
+<dl id="mwJA"><dd id="mwJQ"><span typeof="mw:Extension/math" about="#mwt8" id="mwJg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"M_{k,j}=\\frac{1}{N}\\sum_{i=1}^N I(X_{i,j}=k),"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle M_{k,j}={\frac {1}{N}}\sum _{i=1}^{N}I(X_{i,j}=k),}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>M</mi>
+          <mrow>
+            <mi>k</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mrow>
+          <mfrac>
+            <mn>1</mn>
+            <mi>N</mi>
+          </mfrac>
+        </mrow>
+        <munderover>
+          <mo>∑</mo>
+          <mrow>
+            <mi>i</mi>
+            <mo>=</mo>
+            <mn>1</mn>
+          </mrow>
+          <mrow>
+            <mi>N</mi>
+          </mrow>
+        </munderover>
+        <mi>I</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>X</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mi>k</mi>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle M_{k,j}={\frac {1}{N}}\sum _{i=1}^{N}I(X_{i,j}=k),}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/ef4cf5e2e8b832405263a8fb33d7e8f86800dfbd" alt="{\displaystyle M_{k,j}={\frac {1}{N}}\sum _{i=1}^{N}I(X_{i,j}=k),}"/></span></dd></dl>
+<p id="mwJw">where <i id="mwKA">i</i> <span typeof="mw:Extension/math" about="#mwt9" id="mwKQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\in"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \in }">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo>∈</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \in }</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/6fe4d5b0a594c1da89b5e78e7dfbeed90bdcc32f" alt="{\displaystyle \in }"/></span> (1,...,<i id="mwKg">N</i>), <i id="mwKw">j</i> <span typeof="mw:Extension/math" about="#mwt10" id="mwLA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\in"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \in }">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo>∈</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \in }</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/6fe4d5b0a594c1da89b5e78e7dfbeed90bdcc32f" alt="{\displaystyle \in }"/></span> (1,...,<i id="mwLQ">l</i>), <i id="mwLg">k</i> is the set of symbols in the alphabet and <i id="mwLw">I(a=k)</i> is an <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Indicator_function" id="mwMA">indicator function</a> where <i id="mwMQ">I(a=k)</i> is 1 if <i id="mwMg">a=k</i> and 0 otherwise.</p>
+<p id="mwMw">For example, given the following DNA sequences:<br id="mwNA"/></p>
+<dl id="mwNQ"><dd id="mwNg"><table id="mwNw">
+<tbody id="mwOA"><tr id="mwOQ">
+<td id="mwOg"><div id="mwOw">
+<p id="mwPA">GAGGTAAAC<br id="mwPQ"/>
+TCCGTAAGT<br id="mwPg"/>
+CAGGTTGGA<br id="mwPw"/>
+ACAGTCAGT<br id="mwQA"/>
+TAGGTCATT<br id="mwQQ"/>
+TAGGTACTG<br id="mwQg"/>
+ATGGTAACT<br id="mwQw"/>
+CAGGTATAC<br id="mwRA"/>
+TGTGTGAGT<br id="mwRQ"/>
+AAGGTAAGT</p>
+</div></td></tr>
+</tbody></table></dd></dl>
+<p id="mwRg">The corresponding PFM is:<br id="mwRw"/></p>
+<dl id="mwSA"><dd id="mwSQ"><span typeof="mw:Extension/math" about="#mwt11" id="mwSg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"M = \\begin{matrix}\nA\\\\\nC\\\\\nG\\\\\nT\n\\end{matrix}\n\\begin{bmatrix}\n3 &amp; 6 &amp; 1 &amp; 0 &amp; 0 &amp; 6 &amp; 7 &amp; 2 &amp; 1\\\\\n2 &amp; 2 &amp; 1 &amp; 0 &amp; 0 &amp; 2 &amp; 1 &amp; 1 &amp; 2\\\\\n1 &amp; 1 &amp; 7 &amp; 10 &amp; 0 &amp; 1 &amp; 1 &amp; 5 &amp; 1\\\\\n4 &amp; 1 &amp; 1 &amp; 0 &amp; 10 &amp; 1 &amp; 1 &amp; 2 &amp; 6\n\\end{bmatrix}.\n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}3&amp;6&amp;1&amp;0&amp;0&amp;6&amp;7&amp;2&amp;1\\2&amp;2&amp;1&amp;0&amp;0&amp;2&amp;1&amp;1&amp;2\\1&amp;1&amp;7&amp;10&amp;0&amp;1&amp;1&amp;5&amp;1\\4&amp;1&amp;1&amp;0&amp;10&amp;1&amp;1&amp;2&amp;6\end{bmatrix}}.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>M</mi>
+        <mo>=</mo>
+        <mrow>
+          <mtable rowspacing="4pt" columnspacing="1em">
+            <mtr>
+              <mtd>
+                <mi>A</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>C</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>G</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>T</mi>
+              </mtd>
+            </mtr>
+          </mtable>
+        </mrow>
+        <mrow>
+          <mrow>
+            <mo>[</mo>
+            <mtable rowspacing="4pt" columnspacing="1em">
+              <mtr>
+                <mtd>
+                  <mn>3</mn>
+                </mtd>
+                <mtd>
+                  <mn>6</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+                <mtd>
+                  <mn>6</mn>
+                </mtd>
+                <mtd>
+                  <mn>7</mn>
+                </mtd>
+                <mtd>
+                  <mn>2</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>2</mn>
+                </mtd>
+                <mtd>
+                  <mn>2</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+                <mtd>
+                  <mn>2</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>2</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>7</mn>
+                </mtd>
+                <mtd>
+                  <mn>10</mn>
+                </mtd>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>5</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>4</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+                <mtd>
+                  <mn>10</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>1</mn>
+                </mtd>
+                <mtd>
+                  <mn>2</mn>
+                </mtd>
+                <mtd>
+                  <mn>6</mn>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo>]</mo>
+          </mrow>
+        </mrow>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}3&amp;6&amp;1&amp;0&amp;0&amp;6&amp;7&amp;2&amp;1\\2&amp;2&amp;1&amp;0&amp;0&amp;2&amp;1&amp;1&amp;2\\1&amp;1&amp;7&amp;10&amp;0&amp;1&amp;1&amp;5&amp;1\\4&amp;1&amp;1&amp;0&amp;10&amp;1&amp;1&amp;2&amp;6\end{bmatrix}}.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/153972d72914a8cb8ddbda6ee366b4fa8485ead2" alt="{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}3&amp;6&amp;1&amp;0&amp;0&amp;6&amp;7&amp;2&amp;1\\2&amp;2&amp;1&amp;0&amp;0&amp;2&amp;1&amp;1&amp;2\\1&amp;1&amp;7&amp;10&amp;0&amp;1&amp;1&amp;5&amp;1\\4&amp;1&amp;1&amp;0&amp;10&amp;1&amp;1&amp;2&amp;6\end{bmatrix}}.}"/></span></dd></dl>
+<p id="mwSw">Therefore, the resulting PPM is:<sup about="#mwt14" id="cite_ref-guigo-pssms_1-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"guigo-pssms"},"body":{"id":"mw-reference-text-cite_note-guigo-pssms-1"}}'><a href="#cite_note-guigo-pssms-1" id="mwTA"><span id="mwTQ"><span id="mwTg">[</span>1<span id="mwTw">]</span></span></a></sup><br id="mwUA"/></p>
+<dl id="mwUQ"><dd id="mwUg"><span typeof="mw:Extension/math" about="#mwt15" id="mwUw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"M = \\begin{matrix}\nA\\\\\nC\\\\\nG\\\\\nT\n\\end{matrix}\n\\begin{bmatrix}\n0.3 &amp; 0.6 &amp; 0.1 &amp; 0.0 &amp; 0.0 &amp; 0.6 &amp; 0.7 &amp; 0.2 &amp; 0.1\\\\\n0.2 &amp; 0.2 &amp; 0.1 &amp; 0.0 &amp; 0.0 &amp; 0.2 &amp; 0.1 &amp; 0.1 &amp; 0.2\\\\\n0.1 &amp; 0.1 &amp; 0.7 &amp; 1.0 &amp; 0.0 &amp; 0.1 &amp; 0.1 &amp; 0.5 &amp; 0.1\\\\\n0.4 &amp; 0.1 &amp; 0.1 &amp; 0.0 &amp; 1.0 &amp; 0.1 &amp; 0.1 &amp; 0.2 &amp; 0.6\n\\end{bmatrix}.\n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}0.3&amp;0.6&amp;0.1&amp;0.0&amp;0.0&amp;0.6&amp;0.7&amp;0.2&amp;0.1\\0.2&amp;0.2&amp;0.1&amp;0.0&amp;0.0&amp;0.2&amp;0.1&amp;0.1&amp;0.2\\0.1&amp;0.1&amp;0.7&amp;1.0&amp;0.0&amp;0.1&amp;0.1&amp;0.5&amp;0.1\\0.4&amp;0.1&amp;0.1&amp;0.0&amp;1.0&amp;0.1&amp;0.1&amp;0.2&amp;0.6\end{bmatrix}}.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>M</mi>
+        <mo>=</mo>
+        <mrow>
+          <mtable rowspacing="4pt" columnspacing="1em">
+            <mtr>
+              <mtd>
+                <mi>A</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>C</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>G</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>T</mi>
+              </mtd>
+            </mtr>
+          </mtable>
+        </mrow>
+        <mrow>
+          <mrow>
+            <mo>[</mo>
+            <mtable rowspacing="4pt" columnspacing="1em">
+              <mtr>
+                <mtd>
+                  <mn>0.3</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.6</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.6</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.7</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.2</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>0.2</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.2</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.2</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.2</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.7</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.5</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>0.4</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.0</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.1</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.2</mn>
+                </mtd>
+                <mtd>
+                  <mn>0.6</mn>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo>]</mo>
+          </mrow>
+        </mrow>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}0.3&amp;0.6&amp;0.1&amp;0.0&amp;0.0&amp;0.6&amp;0.7&amp;0.2&amp;0.1\\0.2&amp;0.2&amp;0.1&amp;0.0&amp;0.0&amp;0.2&amp;0.1&amp;0.1&amp;0.2\\0.1&amp;0.1&amp;0.7&amp;1.0&amp;0.0&amp;0.1&amp;0.1&amp;0.5&amp;0.1\\0.4&amp;0.1&amp;0.1&amp;0.0&amp;1.0&amp;0.1&amp;0.1&amp;0.2&amp;0.6\end{bmatrix}}.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/6940f505c03de60ce26b4f89b9f1e9f867b714c8" alt="{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}0.3&amp;0.6&amp;0.1&amp;0.0&amp;0.0&amp;0.6&amp;0.7&amp;0.2&amp;0.1\\0.2&amp;0.2&amp;0.1&amp;0.0&amp;0.0&amp;0.2&amp;0.1&amp;0.1&amp;0.2\\0.1&amp;0.1&amp;0.7&amp;1.0&amp;0.0&amp;0.1&amp;0.1&amp;0.5&amp;0.1\\0.4&amp;0.1&amp;0.1&amp;0.0&amp;1.0&amp;0.1&amp;0.1&amp;0.2&amp;0.6\end{bmatrix}}.}"/></span></dd></dl>
+<p id="mwVA">Both PPMs and PWMs assume <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Independence_(probability_theory)" id="mwVQ">statistical independence</a> between positions in the pattern, as the probabilities for each position are calculated independently of other positions. From the definition above, it follows that the sum of values for a particular position (that is, summing over all symbols) is 1. Each column can therefore be regarded as an independent <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Multinomial_distribution" id="mwVg">multinomial distribution</a>. This makes it easy to calculate the probability of a sequence given a PPM, by multiplying the relevant probabilities at each position. For example, the probability of the sequence <i id="mwVw">S</i><span typeof="mw:Entity" id="mwWA"> </span>=<span typeof="mw:Entity" id="mwWQ"> </span><span about="#mwt16" id="mwWw">GAGGTAAAC</span> given the above PPM <b id="mwXA">M</b> can be calculated:<br id="mwXQ"/></p>
+<dl id="mwXg"><dd id="mwXw"><span typeof="mw:Extension/math" about="#mwt18" id="mwYA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"p(S\\vert M) = 0.1 \\times 0.6 \\times 0.7 \\times 1.0 \\times 1.0 \\times 0.6 \\times 0.7 \\times 0.2 \\times 0.2 = 0.0007056."}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle p(S\vert M)=0.1\times 0.6\times 0.7\times 1.0\times 1.0\times 0.6\times 0.7\times 0.2\times 0.2=0.0007056.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>p</mi>
+        <mo stretchy="false">(</mo>
+        <mi>S</mi>
+        <mo fence="false" stretchy="false">|</mo>
+        <mi>M</mi>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mn>0.1</mn>
+        <mo>×</mo>
+        <mn>0.6</mn>
+        <mo>×</mo>
+        <mn>0.7</mn>
+        <mo>×</mo>
+        <mn>1.0</mn>
+        <mo>×</mo>
+        <mn>1.0</mn>
+        <mo>×</mo>
+        <mn>0.6</mn>
+        <mo>×</mo>
+        <mn>0.7</mn>
+        <mo>×</mo>
+        <mn>0.2</mn>
+        <mo>×</mo>
+        <mn>0.2</mn>
+        <mo>=</mo>
+        <mn>0.0007056.</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle p(S\vert M)=0.1\times 0.6\times 0.7\times 1.0\times 1.0\times 0.6\times 0.7\times 0.2\times 0.2=0.0007056.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/54104f6b4bab8907770bc2b8b0d413aa1fa4eaee" alt="{\displaystyle p(S\vert M)=0.1\times 0.6\times 0.7\times 1.0\times 1.0\times 0.6\times 0.7\times 0.2\times 0.2=0.0007056.}"/></span></dd></dl>
+<p id="mwYQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pseudocount" id="mwYg">Pseudocounts</a> (or <i id="mwYw"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Laplace_estimator" id="mwZA">Laplace estimators</a></i>) are often applied when calculating PPMs if based on a small dataset, in order to avoid matrix entries having a value of 0.<sup about="#mwt25" id="cite_ref-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-2"}}'><a href="#cite_note-2" id="mwZQ"><span id="mwZg"><span id="mwZw">[</span>2<span id="mwaA">]</span></span></a></sup> This is equivalent to multiplying each column of the PPM by a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dirichlet_distribution" id="mwaQ">Dirichlet distribution</a> and allows the probability to be calculated for new sequences (that is, sequences which were not part of the original dataset). In the example above, without pseudocounts, any sequence which did not have a <span about="#mwt19" id="mwaw">G</span> in the 4th position or a <span about="#mwt21" id="mwbQ">T</span> in the 5th position would have a probability of 0, regardless of the other positions.</p>
+</section><section id="mwbg"><div><h3 id="Conversion_of_position_probability_matrix_to_position_weight_matrix">Conversion of position probability matrix to position weight matrix</h3><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=4"><span>edit</span></a><span>]</span></span></div>
+<p id="mwbw">Most often the elements in PWMs are calculated as log odds. That is, the elements of a PPM are transformed using a background model <span typeof="mw:Extension/math" about="#mwt26" id="mwcA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle b}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>b</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f11423fbb2e967f986e36804a8ae4271734917c3" alt="{\displaystyle b}"/></span> so that:</p>
+<dl id="mwcQ"><dd id="mwcg"><span typeof="mw:Extension/math" about="#mwt27" id="mwcw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"M_{k,j}=\\mathrm{log_{2}}\\;(M_{k,j} / b_k)."}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle M_{k,j}=\mathrm {log_{2}} \;(M_{k,j}/b_{k}).}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>M</mi>
+          <mrow>
+            <mi>k</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mrow>
+          <mi mathvariant="normal">l</mi>
+          <mi mathvariant="normal">o</mi>
+          <msub>
+            <mi mathvariant="normal">g</mi>
+            <mrow>
+              <mn>2</mn>
+            </mrow>
+          </msub>
+        </mrow>
+        <mspace width="thickmathspace"></mspace>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>M</mi>
+          <mrow>
+            <mi>k</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mrow>
+          <mo>/</mo>
+        </mrow>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle M_{k,j}=\mathrm {log_{2}} \;(M_{k,j}/b_{k}).}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c61694dc7d6fe70e2241879c1841408d2959b6d5" alt="{\displaystyle M_{k,j}=\mathrm {log_{2}} \;(M_{k,j}/b_{k}).}"/></span></dd></dl>
+<p id="mwdA">describes how <i id="mwdQ">an element in the PWM (left)</i>, <span typeof="mw:Extension/math" about="#mwt28" id="mwdg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"M_{k,j}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle M_{k,j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>M</mi>
+          <mrow>
+            <mi>k</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle M_{k,j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f7535c48bf46deaf97d3d0253bc1ebd65cc1619e" alt="{\displaystyle M_{k,j}}"/></span>, can be calculated.
+The simplest background model assumes that each letter appears equally frequently in the dataset. That is, the value of <span typeof="mw:Extension/math" about="#mwt29" id="mwdw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b_k = 1/\\vert k \\vert"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle b_{k}=1/\vert k\vert }">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mn>1</mn>
+        <mrow>
+          <mo>/</mo>
+        </mrow>
+        <mo fence="false" stretchy="false">|</mo>
+        <mi>k</mi>
+        <mo fence="false" stretchy="false">|</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b_{k}=1/\vert k\vert }</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/006796b30b24daac16efdb2ef018acd00412b4d9" alt="{\displaystyle b_{k}=1/\vert k\vert }"/></span> for all symbols in the alphabet (0.25 for nucleotides and 0.05 for amino acids). Applying this transformation to the PPM <b id="mweA">M</b> from above (with no pseudocounts added) gives:</p>
+<dl id="mweQ"><dd id="mweg"><span typeof="mw:Extension/math" about="#mwt30" id="mwew" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"M = \\begin{matrix}\nA\\\\\nC\\\\\nG\\\\\nT\n\\end{matrix}\n\\begin{bmatrix}\n0.26 &amp; 1.26 &amp; -1.32 &amp; -\\infty &amp; -\\infty &amp; 1.26 &amp; 1.49 &amp; -0.32 &amp; -1.32\\\\\n-0.32 &amp; -0.32 &amp; -1.32 &amp; -\\infty &amp; -\\infty &amp; -0.32 &amp; -1.32 &amp; -1.32 &amp; -0.32\\\\\n-1.32 &amp; -1.32 &amp; 1.49 &amp; 2.0 &amp; -\\infty &amp; -1.32 &amp; -1.32 &amp; 1.0 &amp; -1.32\\\\\n0.68 &amp; -1.32 &amp; -1.32 &amp; -\\infty &amp; 2.0 &amp; -1.32 &amp; -1.32 &amp; -0.32 &amp; 1.26\n\\end{bmatrix}.\n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}0.26&amp;1.26&amp;-1.32&amp;-\infty &amp;-\infty &amp;1.26&amp;1.49&amp;-0.32&amp;-1.32\\-0.32&amp;-0.32&amp;-1.32&amp;-\infty &amp;-\infty &amp;-0.32&amp;-1.32&amp;-1.32&amp;-0.32\\-1.32&amp;-1.32&amp;1.49&amp;2.0&amp;-\infty &amp;-1.32&amp;-1.32&amp;1.0&amp;-1.32\\0.68&amp;-1.32&amp;-1.32&amp;-\infty &amp;2.0&amp;-1.32&amp;-1.32&amp;-0.32&amp;1.26\end{bmatrix}}.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>M</mi>
+        <mo>=</mo>
+        <mrow>
+          <mtable rowspacing="4pt" columnspacing="1em">
+            <mtr>
+              <mtd>
+                <mi>A</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>C</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>G</mi>
+              </mtd>
+            </mtr>
+            <mtr>
+              <mtd>
+                <mi>T</mi>
+              </mtd>
+            </mtr>
+          </mtable>
+        </mrow>
+        <mrow>
+          <mrow>
+            <mo>[</mo>
+            <mtable rowspacing="4pt" columnspacing="1em">
+              <mtr>
+                <mtd>
+                  <mn>0.26</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.26</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mi mathvariant="normal">∞</mi>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mi mathvariant="normal">∞</mi>
+                </mtd>
+                <mtd>
+                  <mn>1.26</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.49</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>0.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>0.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>0.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mi mathvariant="normal">∞</mi>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mi mathvariant="normal">∞</mi>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>0.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>0.32</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.49</mn>
+                </mtd>
+                <mtd>
+                  <mn>2.0</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mi mathvariant="normal">∞</mi>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.0</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>0.68</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mi mathvariant="normal">∞</mi>
+                </mtd>
+                <mtd>
+                  <mn>2.0</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1.32</mn>
+                </mtd>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>0.32</mn>
+                </mtd>
+                <mtd>
+                  <mn>1.26</mn>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo>]</mo>
+          </mrow>
+        </mrow>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}0.26&amp;1.26&amp;-1.32&amp;-\infty &amp;-\infty &amp;1.26&amp;1.49&amp;-0.32&amp;-1.32\\-0.32&amp;-0.32&amp;-1.32&amp;-\infty &amp;-\infty &amp;-0.32&amp;-1.32&amp;-1.32&amp;-0.32\\-1.32&amp;-1.32&amp;1.49&amp;2.0&amp;-\infty &amp;-1.32&amp;-1.32&amp;1.0&amp;-1.32\\0.68&amp;-1.32&amp;-1.32&amp;-\infty &amp;2.0&amp;-1.32&amp;-1.32&amp;-0.32&amp;1.26\end{bmatrix}}.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fdfd6d12944fa91b38061959b4fdbcfc1c951536" alt="{\displaystyle M={\begin{matrix}A\\C\\G\\T\end{matrix}}{\begin{bmatrix}0.26&amp;1.26&amp;-1.32&amp;-\infty &amp;-\infty &amp;1.26&amp;1.49&amp;-0.32&amp;-1.32\\-0.32&amp;-0.32&amp;-1.32&amp;-\infty &amp;-\infty &amp;-0.32&amp;-1.32&amp;-1.32&amp;-0.32\\-1.32&amp;-1.32&amp;1.49&amp;2.0&amp;-\infty &amp;-1.32&amp;-1.32&amp;1.0&amp;-1.32\\0.68&amp;-1.32&amp;-1.32&amp;-\infty &amp;2.0&amp;-1.32&amp;-1.32&amp;-0.32&amp;1.26\end{bmatrix}}.}"/></span></dd></dl>
+<p id="mwfA">The <span typeof="mw:Extension/math" about="#mwt39" id="mwfQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"-\\infty"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle -\infty }">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo>−</mo>
+        <mi mathvariant="normal">∞</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle -\infty }</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/ca2608c4b5fd3bffc73585f8c67e379b4e99b6f1" alt="{\displaystyle -\infty }"/></span> entries in the matrix make clear the advantage of adding pseudocounts, especially when using small datasets to construct <b id="mwfg">M</b>. The background model need not have equal values for each symbol: for example, when studying organisms with a high <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GC-content" id="mwfw">GC-content</a>, the values for <span about="#mwt31" id="mwgQ">C</span> and <span about="#mwt33" id="mwgw">G</span> may be increased with a corresponding decrease for the <span about="#mwt35" id="mwhQ">A</span> and <span about="#mwt37" id="mwhw">T</span> values.</p>
+<p id="mwiA">When the PWM elements are calculated using log likelihoods, the score of a sequence can be calculated by adding (rather than multiplying) the relevant values at each position in the PWM. The sequence score gives an indication of how different the sequence is from a random sequence. The score is 0 if the sequence has the same probability of being a functional site and of being a random site. The score is greater than 0 if it is more likely to be a functional site than a random site, and less than 0 if it is more likely to be a random site than a functional site.<sup about="#mwt40" id="cite_ref-guigo-pssms_1-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"guigo-pssms"}}'><a href="#cite_note-guigo-pssms-1" id="mwiQ"><span id="mwig"><span id="mwiw">[</span>1<span id="mwjA">]</span></span></a></sup> The sequence score can also be interpreted in a physical framework as the binding energy for that sequence.</p>
+</section></section><section id="mwjQ"><div><h2 id="Information_content">Information content</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=5"><span>edit</span></a><span>]</span></span></div>
+<p id="mwjg">The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Information_content" id="mwjw">information content</a> (IC) of a PWM is sometimes of interest, as it says something about how different a given PWM is from a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Uniform_distribution_(discrete)" id="mwkA">uniform distribution</a>.</p>
+<p id="mwkQ">The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Self-information" id="mwkg">self-information</a> of observing a particular symbol at a particular position of the motif is:</p>
+<dl id="mwkw"><dd id="mwlA"><span typeof="mw:Extension/math" about="#mwt41" id="mwlQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"-\\log(p_{i,j})"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle -\log(p_{i,j})}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo>−</mo>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>p</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle -\log(p_{i,j})}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f8a6b81e5493d30dadef1d64ced7ccfd89df67b0" alt="{\displaystyle -\log(p_{i,j})}"/></span></dd></dl>
+<p id="mwlg">The expected (average) self-information of a particular element in the PWM is then:</p>
+<dl id="mwlw"><dd id="mwmA"><span typeof="mw:Extension/math" about="#mwt42" id="mwmQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"-p_{i,j} \\cdot \\log(p_{i,j})"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle -p_{i,j}\cdot \log(p_{i,j})}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo>−</mo>
+        <msub>
+          <mi>p</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>⋅</mo>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>p</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle -p_{i,j}\cdot \log(p_{i,j})}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/5b8058b894bcc721ea24773c43fcbcf8dc7c9821" alt="{\displaystyle -p_{i,j}\cdot \log(p_{i,j})}"/></span></dd></dl>
+<p id="mwmg">Finally, the IC of the PWM is then the sum of the expected self-information of every element:</p>
+<dl id="mwmw"><dd id="mwnA"><span typeof="mw:Extension/math" about="#mwt43" id="mwnQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\textstyle -\\sum_{i,j} p_{i,j}\\cdot \\log(p_{i,j})"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \textstyle -\sum _{i,j}p_{i,j}\cdot \log(p_{i,j})}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mstyle displaystyle="false" scriptlevel="0">
+          <mo>−</mo>
+          <munder>
+            <mo>∑</mo>
+            <mrow>
+              <mi>i</mi>
+              <mo>,</mo>
+              <mi>j</mi>
+            </mrow>
+          </munder>
+          <msub>
+            <mi>p</mi>
+            <mrow>
+              <mi>i</mi>
+              <mo>,</mo>
+              <mi>j</mi>
+            </mrow>
+          </msub>
+          <mo>⋅</mo>
+          <mi>log</mi>
+          <mo>⁡</mo>
+          <mo stretchy="false">(</mo>
+          <msub>
+            <mi>p</mi>
+            <mrow>
+              <mi>i</mi>
+              <mo>,</mo>
+              <mi>j</mi>
+            </mrow>
+          </msub>
+          <mo stretchy="false">)</mo>
+        </mstyle>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \textstyle -\sum _{i,j}p_{i,j}\cdot \log(p_{i,j})}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/cf273ba3ab6bfbe76d676d6ed5ae63e6f5167010" alt="{\displaystyle \textstyle -\sum _{i,j}p_{i,j}\cdot \log(p_{i,j})}"/></span></dd></dl>
+<p id="mwng">Often, it is more useful to calculate the information content with the background letter frequencies of the sequences you are studying rather than assuming equal probabilities of each letter (e.g., the GC-content of DNA of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thermophilic" id="mwnw">thermophilic</a> bacteria range from 65.3 to 70.8,<sup about="#mwt46" id="cite_ref-Aleksandrushkina1978_3-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Aleksandrushkina1978"},"body":{"id":"mw-reference-text-cite_note-Aleksandrushkina1978-3"}}'><a href="#cite_note-Aleksandrushkina1978-3" id="mwoA"><span id="mwoQ"><span id="mwog">[</span>3<span id="mwow">]</span></span></a></sup> thus a motif of ATAT would contain much more information than a motif of CCGG). The equation for information content thus becomes</p>
+<dl id="mwpA"><dd id="mwpQ"><span typeof="mw:Extension/math" about="#mwt47" id="mwpg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\textstyle -\\sum_{i,j} p_{i,j}\\cdot \\log(p_{i,j}/p_{j})"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \textstyle -\sum _{i,j}p_{i,j}\cdot \log(p_{i,j}/p_{j})}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mstyle displaystyle="false" scriptlevel="0">
+          <mo>−</mo>
+          <munder>
+            <mo>∑</mo>
+            <mrow>
+              <mi>i</mi>
+              <mo>,</mo>
+              <mi>j</mi>
+            </mrow>
+          </munder>
+          <msub>
+            <mi>p</mi>
+            <mrow>
+              <mi>i</mi>
+              <mo>,</mo>
+              <mi>j</mi>
+            </mrow>
+          </msub>
+          <mo>⋅</mo>
+          <mi>log</mi>
+          <mo>⁡</mo>
+          <mo stretchy="false">(</mo>
+          <msub>
+            <mi>p</mi>
+            <mrow>
+              <mi>i</mi>
+              <mo>,</mo>
+              <mi>j</mi>
+            </mrow>
+          </msub>
+          <mrow>
+            <mo>/</mo>
+          </mrow>
+          <msub>
+            <mi>p</mi>
+            <mrow>
+              <mi>j</mi>
+            </mrow>
+          </msub>
+          <mo stretchy="false">)</mo>
+        </mstyle>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \textstyle -\sum _{i,j}p_{i,j}\cdot \log(p_{i,j}/p_{j})}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/cbadfca4c9719d260640fac7387e5e699060bf85" alt="{\displaystyle \textstyle -\sum _{i,j}p_{i,j}\cdot \log(p_{i,j}/p_{j})}"/></span></dd></dl>
+<p id="mwpw">where <span typeof="mw:Extension/math" about="#mwt48" id="mwqA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"p_{j}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle p_{j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>p</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle p_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/499e0821b28c43e9bc2a6360b937de535057bc62" alt="{\displaystyle p_{j}}"/></span> is the background frequency for letter <span typeof="mw:Extension/math" about="#mwt49" id="mwqQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle j}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>j</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle j}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2f461e54f5c093e92a55547b9764291390f0b5d0" alt="{\displaystyle j}"/></span>. This corresponds to the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Kullback–Leibler_divergence" id="mwqg">Kullback–Leibler divergence</a> or relative entropy. However, it has been shown that when using PSSM to search genomic sequences (see below) this uniform correction can lead to overestimation of the importance of the different bases in a motif, due to the uneven distribution of n-mers in real genomes, leading to a significantly larger number of false positives.<sup about="#mwt52" id="cite_ref-Erill2009_4-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Erill2009"},"body":{"id":"mw-reference-text-cite_note-Erill2009-4"}}'><a href="#cite_note-Erill2009-4" id="mwqw"><span id="mwrA"><span id="mwrQ">[</span>4<span id="mwrg">]</span></span></a></sup></p>
+</section><section id="mwrw"><div><h2 id="Uses">Uses</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=6"><span>edit</span></a><span>]</span></span></div>
+<p id="mwsA">There are various algorithms to scan for hits of PWMs in sequences. One example is the MATCH algorithm<sup about="#mwt55" id="cite_ref-Kel2003_5-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Kel2003"},"body":{"id":"mw-reference-text-cite_note-Kel2003-5"}}'><a href="#cite_note-Kel2003-5" id="mwsQ"><span id="mwsg"><span id="mwsw">[</span>5<span id="mwtA">]</span></span></a></sup> which has been implemented in the ModuleMaster.<sup about="#mwt58" id="cite_ref-Wrzodek2010_6-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Wrzodek2010"},"body":{"id":"mw-reference-text-cite_note-Wrzodek2010-6"}}'><a href="#cite_note-Wrzodek2010-6" id="mwtQ"><span id="mwtg"><span id="mwtw">[</span>6<span id="mwuA">]</span></span></a></sup> More sophisticated algorithms for fast database searching with nucleotide as well as amino acid PWMs/PSSMs are implemented in the possumsearch software.<sup about="#mwt61" id="cite_ref-Beckstette2006_7-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Beckstette2006"},"body":{"id":"mw-reference-text-cite_note-Beckstette2006-7"}}'><a href="#cite_note-Beckstette2006-7" id="mwuQ"><span id="mwug"><span id="mwuw">[</span>7<span id="mwvA">]</span></span></a></sup></p>
+<p id="mwvQ">The basic PWM/PSSM is unable to deal with insertions and deletions. A PSSM with additional probabilities for insertion and deletion at each position can be interpreted as a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hidden_Markov_model" id="mwvg">hidden Markov model</a>. This is the approach used by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pfam" id="mwvw">Pfam</a>.<sup about="#mwt64" id="cite_ref-8" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-8"}}'><a href="#cite_note-8" id="mwwA"><span id="mwwQ"><span id="mwwg">[</span>8<span id="mwww">]</span></span></a></sup><sup about="#mwt67" id="cite_ref-9" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-9"}}'><a href="#cite_note-9" id="mwxA"><span id="mwxQ"><span id="mwxg">[</span>9<span id="mwxw">]</span></span></a></sup></p>
+</section><section id="mwyA"><div><h2 id="See_also">See also</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=7"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwyQ"><li id="mwyg"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ScerTF" id="mwyw">ScerTF</a></li></ul>
+</section><section id="mwzA"><div><h2 id="References">References</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=8"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt68" typeof="mw:Transclusion" id="mwzQ" data-mw='{"parts":[{"template":{"target":{"wt":"reflist","href":"./Template:Reflist"},"params":{},"i":0}}]}'></span><div about="#mwt68" id="mwzg">
+<div typeof="mw:Extension/references" about="#mwt70" id="mwzw" data-mw='{"name":"references","attrs":{"group":"","responsive":"1"},"body":{"extsrc":""}}'><ol id="mw0A"><li about="#cite_note-guigo-pssms-1" id="cite_note-guigo-pssms-1"><span rel="mw:referencedBy" id="mw0Q"><a href="#cite_ref-guigo-pssms_1-0" id="mw0g"><span id="mw0w">1</span></a> <a href="#cite_ref-guigo-pssms_1-1" id="mw1A"><span id="mw1Q">2</span></a></span> <span id="mw-reference-text-cite_note-guigo-pssms-1"><cite id="CITEREFGuigo" about="#mwt12">Guigo, Roderic. <a rel="mw:ExtLink nofollow" href="http://bioinformatica.upf.edu/T12/MakeProfile.html" id="mw1w">"An Introduction to Position Specific Scoring Matrices"</a>. <i id="mw2A">bioinformatica.upf.edu</i><span id="mw2Q">. Retrieved <span id="mw2g">12 November</span> 2013</span>.</cite><span about="#mwt12" id="mw2w"></span></span></li>
+<li about="#cite_note-2" id="cite_note-2"><span id="mw3A"><a href="#cite_ref-2" rel="mw:referencedBy" id="mw3Q"><span id="mw3g">↑</span></a></span> <span id="mw-reference-text-cite_note-2"><cite id="CITEREFNishidaFrith,_M._C.Nakai,_K.2008" about="#mwt23">Nishida, K.; Frith, M. C.; Nakai, K. (23 December 2008). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2647310" id="mw4A">"Pseudocounts for transcription factor binding sites"</a>. <i id="mw4Q">Nucleic Acids Research</i>. <b id="mw4g">37</b> (3): <span id="mw4w">939–</span>944. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mw5A">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fnar%2Fgkn1019" id="mw5Q">10.1093/nar/gkn1019</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mw5g">PMC</a><span typeof="mw:Entity" id="mw5w"> </span><span id="mw6A"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2647310" id="mw6Q">2647310</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mw6g">PMID</a><span typeof="mw:Entity" id="mw6w"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/19106141" id="mw7A">19106141</a>.</cite><span about="#mwt23" id="mw7Q"></span></span></li>
+<li about="#cite_note-Aleksandrushkina1978-3" id="cite_note-Aleksandrushkina1978-3"><span id="mw7g"><a href="#cite_ref-Aleksandrushkina1978_3-0" rel="mw:referencedBy" id="mw7w"><span id="mw8A">↑</span></a></span> <span id="mw-reference-text-cite_note-Aleksandrushkina1978-3"><cite id="CITEREFAleksandrushkina_NI,_Egorova_LA1978" about="#mwt44">Aleksandrushkina NI, Egorova LA (1978). "Nucleotide makeup of the DNA of thermophilic bacteria of the genus Thermus". <i id="mw8g">Mikrobiologiia</i>. <b id="mw8w">47</b> (2): <span id="mw9A">250–</span>2. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mw9Q">PMID</a><span typeof="mw:Entity" id="mw9g"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/661633" id="mw9w">661633</a>.</cite><span about="#mwt44" id="mw-A"></span></span></li>
+<li about="#cite_note-Erill2009-4" id="cite_note-Erill2009-4"><span id="mw-Q"><a href="#cite_ref-Erill2009_4-0" rel="mw:referencedBy" id="mw-g"><span id="mw-w">↑</span></a></span> <span id="mw-reference-text-cite_note-Erill2009-4"><cite id="CITEREFErill_I,_O'Neill_MC2009" about="#mwt50">Erill I, O'Neill MC (2009). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2680408" id="mw_Q">"A reexamination of information theory-based methods for DNA-binding site identification"</a>. <i id="mw_g">BMC Bioinformatics</i>. <b id="mw_w">10</b>: 57. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAQA">doi</a>:<span id="mwAQE"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1186%2F1471-2105-10-57" id="mwAQI">10.1186/1471-2105-10-57</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwAQM">PMC</a><span typeof="mw:Entity" id="mwAQQ"> </span><span id="mwAQU"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2680408" id="mwAQY">2680408</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAQc">PMID</a><span typeof="mw:Entity" id="mwAQg"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/19210776" id="mwAQk">19210776</a>.</cite><span about="#mwt50" id="mwAQo"></span></span></li>
+<li about="#cite_note-Kel2003-5" id="cite_note-Kel2003-5"><span id="mwAQs"><a href="#cite_ref-Kel2003_5-0" rel="mw:referencedBy" id="mwAQw"><span id="mwAQ0">↑</span></a></span> <span id="mw-reference-text-cite_note-Kel2003-5"><cite id="CITEREFKel2003" about="#mwt53">Kel AE, et<span typeof="mw:Entity" id="mwAQ8"> </span>al. (2003). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC169193" id="mwARA">"MATCHTM: a tool for searching transcription factor binding sites in DNA sequences"</a>. <i id="mwARE">Nucleic Acids Research</i>. <b id="mwARI">31</b> (13): <span id="mwARM">3576–</span>3579. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwARQ">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fnar%2Fgkg585" id="mwARU">10.1093/nar/gkg585</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwARY">PMC</a><span typeof="mw:Entity" id="mwARc"> </span><span id="mwARg"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC169193" id="mwARk">169193</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwARo">PMID</a><span typeof="mw:Entity" id="mwARs"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/12824369" id="mwARw">12824369</a>.</cite><span about="#mwt53" id="mwAR0"></span></span></li>
+<li about="#cite_note-Wrzodek2010-6" id="cite_note-Wrzodek2010-6"><span id="mwAR4"><a href="#cite_ref-Wrzodek2010_6-0" rel="mw:referencedBy" id="mwAR8"><span id="mwASA">↑</span></a></span> <span id="mw-reference-text-cite_note-Wrzodek2010-6"><cite id="CITEREFWrzodekSchröderDrägerWanke2009" about="#mwt56">Wrzodek, Clemens; Schröder, Adrian; Dräger, Andreas; Wanke, Dierk; Berendzen, Kenneth W.; Kronfeld, Marcel; Harter, Klaus; Zell, Andreas (9 October 2009). "ModuleMaster: A new tool to decipher transcriptional regulatory networks". <i id="mwASI">Biosystems</i>. <b id="mwASM">99</b> (1): <span id="mwASQ">79–</span>81. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwASU">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.biosystems.2009.09.005" id="mwASY">10.1016/j.biosystems.2009.09.005</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISSN_(identifier)" id="mwASc">ISSN</a><span typeof="mw:Entity" id="mwASg"> </span><a rel="mw:ExtLink nofollow" href="https://search.worldcat.org/issn/0303-2647" id="mwASk">0303-2647</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwASo">PMID</a><span typeof="mw:Entity" id="mwASs"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/19819296" id="mwASw">19819296</a>.</cite><span about="#mwt56" id="mwAS0"></span></span></li>
+<li about="#cite_note-Beckstette2006-7" id="cite_note-Beckstette2006-7"><span id="mwAS4"><a href="#cite_ref-Beckstette2006_7-0" rel="mw:referencedBy" id="mwAS8"><span id="mwATA">↑</span></a></span> <span id="mw-reference-text-cite_note-Beckstette2006-7"><cite id="CITEREFBeckstette,_M.HomannGiegerichKurtz2006" about="#mwt59">Beckstette, M.; et<span typeof="mw:Entity" id="mwATI"> </span>al. (2006). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635428" id="mwATM">"Fast index based algorithms and software for matching position specific scoring matrices"</a>. <i id="mwATQ">BMC Bioinformatics</i>. <b id="mwATU">7</b>: 389. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwATY">doi</a>:<span id="mwATc"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1186%2F1471-2105-7-389" id="mwATg">10.1186/1471-2105-7-389</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwATk">PMC</a><span typeof="mw:Entity" id="mwATo"> </span><span id="mwATs"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC1635428" id="mwATw">1635428</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAT0">PMID</a><span typeof="mw:Entity" id="mwAT4"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/16930469" id="mwAT8">16930469</a>.</cite><span about="#mwt59" id="mwAUA"></span></span></li>
+<li about="#cite_note-8" id="cite_note-8"><span id="mwAUE"><a href="#cite_ref-8" rel="mw:referencedBy" id="mwAUI"><span id="mwAUM">↑</span></a></span> <span id="mw-reference-text-cite_note-8"><cite id="CITEREFKimChikina" about="#mwt62">Kim, Seyoung; Chikina, Maria. <a rel="mw:ExtLink nofollow" href="https://www.csb.pitt.edu/ComputationalGenomics/Lectures/Lec5.pdf" id="mwAUU">"PSC103 Spring 2016 / HMMs and biological sequence analysis"</a> <span id="mwAUY">(PDF)</span>. <i id="mwAUc">csb.pitt.edu</i><span id="mwAUg">. Retrieved <span id="mwAUk">14 December</span> 2023</span>.</cite><span about="#mwt62" id="mwAUo"></span></span></li>
+<li about="#cite_note-9" id="cite_note-9"><span id="mwAUs"><a href="#cite_ref-9" rel="mw:referencedBy" id="mwAUw"><span id="mwAU0">↑</span></a></span> <span id="mw-reference-text-cite_note-9"><cite about="#mwt65" id="mwAU8"><a rel="mw:ExtLink nofollow" href="https://www.ebi.ac.uk/training/online/courses/pfam-creating-protein-families/what-are-profile-hidden-markov-models-hmms/" id="mwAVA">"What are profile hidden Markov models?"</a>. <i id="mwAVE">Pfam</i>.</cite><span about="#mwt65" id="mwAVI"></span></span></li>
+</ol></div></div>
+</section><section id="mwAVM"><div><h2 id="External_links">External links</h2><span><span>[</span><a href="/w/index.php?title=Position_weight_matrix&amp;action=edit&amp;section=9"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwAVQ"><li id="mwAVU"><a rel="mw:ExtLink nofollow" href="http://www.biodatamining.org/content/2/1/8" id="mwAVY">3PFDB</a> – a database of Best Representative PSSM Profiles (BRPs) of Protein Families generated using a novel data mining approach.</li>
+<li id="mwAVc"><a rel="mw:ExtLink nofollow" href="http://ugene.unipro.ru/" id="mwAVg">UGENE</a> – PSS matrices design, integrated interface to JASPAR, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/UniPROBE" id="mwAVk">UniPROBE</a> and SITECON databases.</li></ul>
+</section>
+</div><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1"></noscript>
+<div>Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Position_weight_matrix&amp;oldid=1281175370">https://en.wikipedia.org/w/index.php?title=Position_weight_matrix&amp;oldid=1281175370</a>"</div></div>
+					<div id="catlinks"><div id="mw-normal-catlinks"><a href="/wiki/Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Bioinformatics">Bioinformatics</a></li><li><a href="/wiki/Category:Evaluation_methods">Evaluation methods</a></li></ul></div><div id="mw-hidden-catlinks">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:Use_dmy_dates_from_January_2021">Use dmy dates from January 2021</a></li><li><a href="/wiki/Category:Articles_to_be_expanded_from_November_2022">Articles to be expanded from November 2022</a></li><li><a href="/wiki/Category:All_articles_to_be_expanded">All articles to be expanded</a></li><li><a href="/wiki/Category:Articles_with_empty_sections_from_November_2022">Articles with empty sections from November 2022</a></li><li><a href="/wiki/Category:All_articles_with_empty_sections">All articles with empty sections</a></li></ul></div></div>
+				</div>
+			</main>
+		</div>
+		<div>
+			<footer id="footer" >
+				<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 18 March 2025, at 19:41<span>&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+				<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=Position_weight_matrix&amp;oldid=1281175370&amp;mobileaction=toggle_view_mobile">Mobile view</a></li>
+</ul>
+				<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/"><picture><source media="(min-width: 500px)" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><picture><source media="(min-width: 500px)" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25"></picture></a></li>
+</ul>
+			</footer>
+		</div>
+	</div>
+</div>
+<div>
+	<div id="vector-sticky-header">
+		<div>
+			<div>
+				<button tabindex="-1"><span></span>
+<span>Search</span>
+			</button>
+		</div>
+		<div role="search">
+			<div>
+				<div>
+					<form action="/w/index.php" id="vector-sticky-search-form">
+						<div  >
+							<div>
+								<input
+								 autocomplete="off"
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button>Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div>
+				<nav>
+					<div id="vector-sticky-header-toc"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button"    >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+						</label>
+						<div>
+						<div id="vector-sticky-header-toc-unpinned-container">
+						</div>
+						</div>
+					</div>
+			</nav>
+				<div ><span lang="en" dir="ltr"><span>Position weight matrix</span></span></div>
+			</div>
+		</div>
+		<div>
+			<div>
+				<a href="#" id="ca-talk-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-subject-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-history-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-watchstar-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-ve-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-viewsource-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+		</div>
+			<div>
+				<button id="p-lang-btn-sticky-header" tabindex="-1"><span></span>
+<span>3 languages</span>
+			</button>
+			<a href="#" id="ca-addsection-sticky-header" tabindex="-1"><span></span>
+<span>Add topic</span>
+			</a>
+		</div>
+			<div>
+				<div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="p-dock-bottom">
+	<ul>
+	</ul>
+</div>
+</body>
+</html>

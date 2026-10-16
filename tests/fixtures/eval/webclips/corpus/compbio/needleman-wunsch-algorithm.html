@@ -1,0 +1,1641 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Needleman–Wunsch algorithm - Wikipedia</title>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.24">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="noindex,nofollow,max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/3/3f/Needleman-Wunsch_pairwise_sequence_alignment.png?utm_source=en.wikipedia.org&amp;utm_campaign=index&amp;utm_content=thumbnail_unscaled">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="1200">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Needleman–Wunsch algorithm - Wikipedia">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div id="mw-aria-live-region"></div><a href="#bodyContent">Jump to content</a>
+<div>
+	<header>
+		<div>
+			<nav>
+<div id="vector-main-menu-dropdown"  >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button"    >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox"  ><span></span>
+<span>Main menu</span>
+	</label>
+	<div>
+				<div id="vector-main-menu-unpinned-container">
+<div id="vector-main-menu">
+	<div
+>
+	<div>Main menu</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-navigation"  >
+	<div>
+		Navigation
+	</div>
+	<div>
+		<ul>
+			<li id="n-mainpage-description"><a href="/wiki/Main_Page" accesskey="z"><span>Main page</span></a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents"><span>Contents</span></a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events"><span>Current events</span></a></li><li id="n-randompage"><a href="/wiki/Special:Random" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About"><span>About Wikipedia</span></a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us"><span>Contact us</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-interaction"  >
+	<div>
+		Contribute
+	</div>
+	<div>
+		<ul>
+			<li id="n-help"><a href="/wiki/Help:Contents"><span>Help</span></a></li><li id="n-introduction"><a href="/wiki/Help:Introduction"><span>Learn to edit</span></a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal"><span>Community portal</span></a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_upload_wizard"><span>Upload file</span></a></li><li id="n-specialpages"><a href="/wiki/Special:SpecialPages" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+				</div>
+	</div>
+</div>
+		</nav>
+<a href="/wiki/Main_Page">
+	<img src="/static/images/icons/enwiki-25.svg" alt="" height="50" width="50">
+	<span>
+		<img alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg">
+		<img alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11">
+	</span>
+</a>
+		</div>
+		<div>
+<div id="p-search" role="search">
+	<a href="/wiki/Special:Search" accesskey="f"><span></span>
+<span>Search</span>
+	</a>
+	<div>
+		<div>
+			<form action="/w/index.php" id="searchform">
+				<div id="simpleSearch" >
+					<div>
+						<input
+						 autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" autocapitalize="none" spellcheck="false" accesskey="f" id="searchInput"
+							>
+						<span></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button>Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+			<nav>
+	<div>
+<div id="p-vector-user-menu-preferences"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-userpage"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	<nav>
+<div id="vector-appearance-dropdown"  >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button"    >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox"  ><span></span>
+<span>Appearance</span>
+	</label>
+	<div>
+			<div id="vector-appearance-unpinned-container">
+			</div>
+	</div>
+</div>
+	</nav>
+<div id="p-vector-user-menu-notifications"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-overflow"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport-2"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Needleman%E2%80%93Wunsch+algorithm&amp;returntoquery=oldid%3D1369642006"><span>Create account</span></a>
+</li>
+<li id="pt-login-2"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Needleman%E2%80%93Wunsch+algorithm&amp;returntoquery=oldid%3D1369642006" accesskey="o"><span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+<div id="vector-user-links-dropdown"  >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button"    >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox"  ><span></span>
+<span>Personal tools</span>
+	</label>
+	<div>
+<div id="p-personal"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span></span>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Needleman%E2%80%93Wunsch+algorithm&amp;returntoquery=oldid%3D1369642006"><span></span>
+<span>Create account</span></a>
+</li>
+<li id="pt-login"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Needleman%E2%80%93Wunsch+algorithm&amp;returntoquery=oldid%3D1369642006" accesskey="o"><span></span>
+<span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+</nav>
+		</div>
+	</header>
+</div>
+<div>
+	<div>
+		<div>
+			<div id="siteNotice"></div>
+		</div>
+		<div>
+			<div>
+		<div id="mw-navigation">
+			<nav id="mw-panel">
+				<div id="vector-main-menu-pinned-container">
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div>
+				<nav id="mw-panel-toc">
+					<div id="vector-toc-pinned-container">
+					<div id="vector-toc">
+	<div
+>
+	<h2>Contents</h2>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+		>
+			<a href="#">
+				<div>(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Introduction"
+	>
+		<a href="#Introduction">
+			<div>
+				<span>1</span>
+				<span>Introduction</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Introduction subsection</span>
+			</button>
+		<ul id="toc-Introduction-sublist">
+			<li id="toc-Constructing_the_grid"
+		>
+			<a href="#Constructing_the_grid">
+				<div>
+					<span>1.1</span>
+					<span>Constructing the grid</span>
+				</div>
+			</a>
+			<ul id="toc-Constructing_the_grid-sublist">
+			</ul>
+		</li>
+		<li id="toc-Choosing_a_scoring_system"
+		>
+			<a href="#Choosing_a_scoring_system">
+				<div>
+					<span>1.2</span>
+					<span>Choosing a scoring system</span>
+				</div>
+			</a>
+			<ul id="toc-Choosing_a_scoring_system-sublist">
+			</ul>
+		</li>
+		<li id="toc-Filling_in_the_table"
+		>
+			<a href="#Filling_in_the_table">
+				<div>
+					<span>1.3</span>
+					<span>Filling in the table</span>
+				</div>
+			</a>
+			<ul id="toc-Filling_in_the_table-sublist">
+			</ul>
+		</li>
+		<li id="toc-Tracing_arrows_back_to_origin"
+		>
+			<a href="#Tracing_arrows_back_to_origin">
+				<div>
+					<span>1.4</span>
+					<span>Tracing arrows back to origin</span>
+				</div>
+			</a>
+			<ul id="toc-Tracing_arrows_back_to_origin-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Scoring_systems"
+	>
+		<a href="#Scoring_systems">
+			<div>
+				<span>2</span>
+				<span>Scoring systems</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Scoring systems subsection</span>
+			</button>
+		<ul id="toc-Scoring_systems-sublist">
+			<li id="toc-Basic_scoring_schemes"
+		>
+			<a href="#Basic_scoring_schemes">
+				<div>
+					<span>2.1</span>
+					<span>Basic scoring schemes</span>
+				</div>
+			</a>
+			<ul id="toc-Basic_scoring_schemes-sublist">
+			</ul>
+		</li>
+		<li id="toc-Similarity_matrix"
+		>
+			<a href="#Similarity_matrix">
+				<div>
+					<span>2.2</span>
+					<span>Similarity matrix</span>
+				</div>
+			</a>
+			<ul id="toc-Similarity_matrix-sublist">
+			</ul>
+		</li>
+		<li id="toc-Gap_penalty"
+		>
+			<a href="#Gap_penalty">
+				<div>
+					<span>2.3</span>
+					<span>Gap penalty</span>
+				</div>
+			</a>
+			<ul id="toc-Gap_penalty-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Advanced_presentation_of_algorithm"
+	>
+		<a href="#Advanced_presentation_of_algorithm">
+			<div>
+				<span>3</span>
+				<span>Advanced presentation of algorithm</span>
+			</div>
+		</a>
+		<ul id="toc-Advanced_presentation_of_algorithm-sublist">
+		</ul>
+	</li>
+	<li id="toc-Complexity"
+	>
+		<a href="#Complexity">
+			<div>
+				<span>4</span>
+				<span>Complexity</span>
+			</div>
+		</a>
+		<ul id="toc-Complexity-sublist">
+		</ul>
+	</li>
+	<li id="toc-Historical_notes_and_algorithm_development"
+	>
+		<a href="#Historical_notes_and_algorithm_development">
+			<div>
+				<span>5</span>
+				<span>Historical notes and algorithm development</span>
+			</div>
+		</a>
+		<ul id="toc-Historical_notes_and_algorithm_development-sublist">
+		</ul>
+	</li>
+	<li id="toc-Applications_outside_bioinformatics"
+	>
+		<a href="#Applications_outside_bioinformatics">
+			<div>
+				<span>6</span>
+				<span>Applications outside bioinformatics</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Applications outside bioinformatics subsection</span>
+			</button>
+		<ul id="toc-Applications_outside_bioinformatics-sublist">
+			<li id="toc-Computer_stereo_vision"
+		>
+			<a href="#Computer_stereo_vision">
+				<div>
+					<span>6.1</span>
+					<span>Computer stereo vision</span>
+				</div>
+			</a>
+			<ul id="toc-Computer_stereo_vision-sublist">
+			</ul>
+		</li>
+		<li id="toc-Artificial_neural_networks"
+		>
+			<a href="#Artificial_neural_networks">
+				<div>
+					<span>6.2</span>
+					<span>Artificial neural networks</span>
+				</div>
+			</a>
+			<ul id="toc-Artificial_neural_networks-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-See_also"
+	>
+		<a href="#See_also">
+			<div>
+				<span>7</span>
+				<span>See also</span>
+			</div>
+		</a>
+		<ul id="toc-See_also-sublist">
+		</ul>
+	</li>
+	<li id="toc-References"
+	>
+		<a href="#References">
+			<div>
+				<span>8</span>
+				<span>References</span>
+			</div>
+		</a>
+		<ul id="toc-References-sublist">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+	>
+		<a href="#External_links">
+			<div>
+				<span>9</span>
+				<span>External links</span>
+			</div>
+		</a>
+		<ul id="toc-External_links-sublist">
+		</ul>
+	</li>
+</ul>
+</div>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div>
+			<main id="content">
+				<header>
+					<nav>
+<div id="vector-page-titlebar-toc"  >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button"    >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+	</label>
+	<div>
+							<div id="vector-page-titlebar-toc-unpinned-container">
+			</div>
+	</div>
+</div>
+					</nav>
+					<h1 id="firstHeading"><span lang="en" dir="ltr"><span>Needleman–Wunsch algorithm</span></span></h1>
+<div id="p-lang-btn"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button"   >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox"  ><span></span>
+<span>18 languages</span>
+	</label>
+	<div>
+		<div>
+			<ul>
+				<li><a href="https://ca.wikipedia.org/wiki/Algorisme_de_Needleman-Wunsch" lang="ca" hreflang="ca"><span>Català</span></a></li><li><a href="https://cs.wikipedia.org/wiki/Needleman%C5%AFv%E2%80%93Wunsch%C5%AFv_algoritmus" lang="cs" hreflang="cs"><span>Čeština</span></a></li><li><a href="https://de.wikipedia.org/wiki/Needleman-Wunsch-Algorithmus" lang="de" hreflang="de"><span>Deutsch</span></a></li><li><a href="https://el.wikipedia.org/wiki/%CE%91%CE%BB%CE%B3%CF%8C%CF%81%CE%B9%CE%B8%CE%BC%CE%BF%CF%82_%CE%9D%CE%AF%CE%BD%CF%84%CE%BB%CE%BC%CE%B1%CE%BD-%CE%92%CE%BF%CF%85%CE%BD%CF%82" lang="el" hreflang="el"><span>Ελληνικά</span></a></li><li><a href="https://es.wikipedia.org/wiki/Algoritmo_Needleman-Wunsch" lang="es" hreflang="es"><span>Español</span></a></li><li><a href="https://fa.wikipedia.org/wiki/%D8%A7%D9%84%DA%AF%D9%88%D8%B1%DB%8C%D8%AA%D9%85_%D9%86%DB%8C%D8%AF%D9%84%D9%85%D9%86-%D9%88%D8%A7%D9%86%DA%86" lang="fa" hreflang="fa"><span>فارسی</span></a></li><li><a href="https://fr.wikipedia.org/wiki/Algorithme_de_Needleman-Wunsch" lang="fr" hreflang="fr"><span>Français</span></a></li><li><a href="https://hy.wikipedia.org/wiki/%D5%86%D5%AB%D5%A4%D5%A5%D5%AC%D5%B4%D5%A1%D5%B6-%D5%8E%D5%B8%D6%82%D5%B6%D5%B7%D5%AB_%D5%A1%D5%AC%D5%A3%D5%B8%D6%80%D5%AB%D5%A9%D5%B4" lang="hy" hreflang="hy"><span>Հայերեն</span></a></li><li><a href="https://mk.wikipedia.org/wiki/%D0%9D%D0%B8%D0%B4%D0%BB%D0%BC%D0%B0%D0%BD%E2%80%93%D0%92%D1%83%D0%BD%D1%88%D0%BE%D0%B2_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%B0%D0%BC" lang="mk" hreflang="mk"><span>Македонски</span></a></li><li><a href="https://pl.wikipedia.org/wiki/Algorytm_Needlemana-Wunscha" lang="pl" hreflang="pl"><span>Polski</span></a></li><li><a href="https://pt.wikipedia.org/wiki/Algoritmo_Needleman-Wunsch" lang="pt" hreflang="pt"><span>Português</span></a></li><li><a href="https://ru.wikipedia.org/wiki/%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC_%D0%9D%D0%B8%D0%B4%D0%BB%D0%BC%D0%B0%D0%BD%D0%B0_%E2%80%94_%D0%92%D1%83%D0%BD%D1%88%D0%B0" lang="ru" hreflang="ru"><span>Русский</span></a></li><li><a href="https://sr.wikipedia.org/wiki/Nidlmen-Van%C5%A1ov_algoritam" lang="sr" hreflang="sr"><span>Српски / srpski</span></a></li><li><a href="https://th.wikipedia.org/wiki/%E0%B8%82%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%95%E0%B8%AD%E0%B8%99%E0%B8%A7%E0%B8%B4%E0%B8%98%E0%B8%B5%E0%B8%82%E0%B8%AD%E0%B8%87%E0%B8%99%E0%B8%B5%E0%B9%80%E0%B8%94%E0%B8%AD%E0%B8%A1%E0%B8%B2%E0%B8%99%E2%80%93%E0%B8%A7%E0%B8%B2%E0%B8%99%E0%B8%8B%E0%B9%8C" lang="th" hreflang="th"><span>ไทย</span></a></li><li><a href="https://tr.wikipedia.org/wiki/Needleman-Wunsch_algoritmas%C4%B1" lang="tr" hreflang="tr"><span>Türkçe</span></a></li><li><a href="https://uk.wikipedia.org/wiki/%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC_%D0%9D%D1%96%D0%B4%D0%BB%D0%BC%D0%B0%D0%BD%D0%B0_%E2%80%94_%D0%92%D1%83%D0%BD%D1%88%D0%B0" lang="uk" hreflang="uk"><span>Українська</span></a></li><li><a href="https://uz.wikipedia.org/wiki/Needleman_Wunsch_algoritmi" lang="uz" hreflang="uz"><span>Oʻzbekcha / ўзбекча</span></a></li><li><a href="https://zh.wikipedia.org/wiki/%E5%B0%BC%E5%BE%B7%E6%9B%BC-%E7%BF%81%E6%96%BD%E7%AE%97%E6%B3%95" lang="zh" hreflang="zh"><span>中文</span></a></li>
+			</ul>
+			<div><span><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q583546#sitelinks-wikipedia">Edit links</a></span></div>
+		</div>
+	</div>
+</div>
+</header>
+				<div>
+					<div>
+						<div id="left-navigation">
+							<nav>
+<div id="p-associated-pages"  >
+	<div>
+		<ul>
+			<li id="ca-nstab-main"><a data-mw-interface  href="/wiki/Needleman%E2%80%93Wunsch_algorithm" accesskey="c"><span>Article</span></a>
+</li>
+<li id="ca-talk"><a data-mw-interface  href="/wiki/Talk:Needleman%E2%80%93Wunsch_algorithm" rel="discussion" accesskey="t"><span>Talk</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="vector-variants-dropdown"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox"  ><span>English</span>
+	</label>
+	<div>
+<div id="p-variants"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+							</nav>
+						</div>
+						<div id="right-navigation">
+							<nav>
+<div id="p-views"  >
+	<div>
+		<ul>
+			<li id="ca-view"><a data-mw-interface  href="/wiki/Needleman%E2%80%93Wunsch_algorithm"><span>Read</span></a>
+</li>
+<li id="ca-edit"><a data-mw-interface  href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit" accesskey="e"><span>Edit</span></a>
+</li>
+<li id="ca-history"><a data-mw-interface  href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=history" accesskey="h"><span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+			</nav>
+							<nav>
+<div id="vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button"    >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox"  ><span></span>
+<span>Tools</span>
+	</label>
+	<div>
+									<div id="vector-page-tools-unpinned-container">
+<div id="vector-page-tools">
+	<div
+>
+	<div>Tools</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-cactions"  >
+	<div>
+		Actions
+	</div>
+	<div>
+		<ul>
+			<li id="ca-view-more"><a data-mw-interface  href="/wiki/Needleman%E2%80%93Wunsch_algorithm"><span></span>
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more"><a data-mw-interface  href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit" accesskey="e"><span></span>
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more"><a data-mw-interface  href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=history" accesskey="h"><span></span>
+<span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="p-tb"  >
+	<div>
+		General
+	</div>
+	<div>
+		<ul>
+			<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Needleman%E2%80%93Wunsch_algorithm" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Needleman%E2%80%93Wunsch_algorithm" rel="nofollow" accesskey="k"><span>Related changes</span></a></li><li id="t-upload"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink"><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;oldid=1369642006"><span>Permanent link</span></a></li><li id="t-info"><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=info"><span>Page information</span></a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Needleman%E2%80%93Wunsch_algorithm&amp;id=1369642006&amp;wpFormIdentifier=titleform"><span>Cite this page</span></a></li><li id="t-urlshortener"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fw%2Findex.php%3Ftitle%3DNeedleman%25E2%2580%2593Wunsch_algorithm%26oldid%3D1369642006"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy"><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;oldid=1369642006&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-coll-print_export"  >
+	<div>
+		Print/export
+	</div>
+	<div>
+		<ul>
+			<li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Needleman%E2%80%93Wunsch_algorithm&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print"><a href="javascript:print();" rel="alternate" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-wikibase-otherprojects"  >
+	<div>
+		In other projects
+	</div>
+	<div>
+		<ul>
+			<li><a href="https://commons.wikimedia.org/wiki/Category:Needleman%E2%80%93Wunsch_algorithm" hreflang="en"><span>Wikimedia Commons</span></a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q583546" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+									</div>
+	</div>
+</div>
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div>
+						<nav>
+							<div id="vector-page-tools-pinned-container">
+							</div>
+		</nav>
+						<nav>
+							<div id="vector-appearance-pinned-container">
+				<div id="vector-appearance">
+	<div
+>
+	<div>Appearance</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+</div>
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" data-mw-ve-target-container>
+					<div>
+							<div>
+		</div>
+						<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"><div><span></span><div><div id="mw-revision-info-current"><b>This is the <a href="/wiki/Help:Page_history">current revision</a> of this page, as edited by <span id="mw-revision-name"><a href="/wiki/User:JCW-CleanerBot"><bdi>JCW-CleanerBot</bdi></a> <span>(<a href="/wiki/User_talk:JCW-CleanerBot">talk</a> | <a href="/wiki/Special:Contributions/JCW-CleanerBot">contribs</a>)</span></span> at <span id="mw-revision-date">06:06, 16 August 2026</span><span id="mw-revision-summary"> <span>(<span><a href="#Historical_notes_and_algorithm_development">→<bdi dir="ltr">Historical notes and algorithm development</bdi></a>: </span> mark free doi)</span></span>. The present address (URL) is a <a href="/wiki/Help:Permanent_link">permanent link</a> to this version.</b><span id="revision-info-current-plain">Revision as of 06:06, 16 August 2026 by <a href="/wiki/User:JCW-CleanerBot"><bdi>JCW-CleanerBot</bdi></a> <span>(<a href="/wiki/User_talk:JCW-CleanerBot">talk</a> | <a href="/wiki/Special:Contributions/JCW-CleanerBot">contribs</a>)</span> <span>(<span><a href="#Historical_notes_and_algorithm_development">→<bdi dir="ltr">Historical notes and algorithm development</bdi></a>: </span> mark free doi)</span></span></div><div id="mw-revision-nav">(<a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;diff=prev&amp;oldid=1369642006">diff</a>) <a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;direction=prev&amp;oldid=1369642006">← Previous revision</a> | Latest revision (diff) | Newer revision → (diff)</div></div></div></div></div>
+					</div>
+					<div id="mw-content-text"><div lang="en" dir="ltr"><section id="mwAQ"><div about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"Short description","href":"./Template:Short_description"},"params":{"1":{"wt":"Method for aligning biological sequences"}},"i":0}}]}'>Method for aligning biological sequences</div><span about="#mwt1"></span>
+<span about="#mwt2" typeof="mw:Transclusion" id="mwAw" data-mw='{"parts":[{"template":{"target":{"wt":"Technical","href":"./Template:Technical"},"params":{"date":{"wt":"September 2013"}},"i":0}}]}'></span><table role="presentation" about="#mwt2"><tbody><tr><td><div><span typeof="mw:File"><span><img resource="https://en.wikipedia.org/wiki/File:Edit-clear.svg" src="//thumb.wikimedia.org/wikipedia/en/thumb/f/f2/Edit-clear.svg/40px-Edit-clear.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" alt="" height="40" width="40"/></span></span></div></td><td><div>This article <b>may be too technical for most readers to understand</b>.<span> Please <a rel="mw:ExtLink" href="https://en.wikipedia.org/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit">help improve it</a> to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wikipedia:Make_technical_articles_understandable">make it understandable to non-experts</a>, without removing the technical details.</span>  <span><i>(<span>September 2013</span>)</i></span><span><i> (<small><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Help:Maintenance_template_removal">Learn how and when to remove this message</a></small>)</i></span></div></td></tr></tbody></table><span about="#mwt2"></span>
+<span about="#mwt4" typeof="mw:Transclusion" id="mwBA" data-mw='{"parts":[{"template":{"target":{"wt":"Infobox algorithm\n","href":"./Template:Infobox_algorithm"},"params":{"name":{"wt":"&lt;!-- Defaults to article name -->"},"class":{"wt":"[[Sequence alignment]]"},"image":{"wt":"Needleman-Wunsch pairwise sequence alignment.png"},"caption":{"wt":"Figure 1: Needleman-Wunsch pairwise sequence alignment"},"data":{"wt":""},"time":{"wt":"&lt;math>O(mn)&lt;/math>"},"best-time":{"wt":""},"average-time":{"wt":""},"space":{"wt":"&lt;math>O(mn)&lt;/math>"}},"i":0}}]}'></span><table about="#mwt4" id="mwBQ"><tbody><tr><td colspan="2"><span typeof="mw:File/Frameless"><a href="https://en.wikipedia.org/wiki/File:Needleman-Wunsch_pairwise_sequence_alignment.png"><img resource="https://en.wikipedia.org/wiki/File:Needleman-Wunsch_pairwise_sequence_alignment.png" src="//thumb.wikimedia.org/wikipedia/commons/thumb/3/3f/Needleman-Wunsch_pairwise_sequence_alignment.png/250px-Needleman-Wunsch_pairwise_sequence_alignment.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="250" width="250"/></a></span><div>Figure 1: Needleman-Wunsch pairwise sequence alignment</div></td></tr><tr><th scope="row">Class</th><td><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment">Sequence alignment</a></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Best,_worst_and_average_case">Worst-case</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Time_complexity">performance</a></th><td><span typeof="mw:Extension/math" about="#mwt6" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Best,_worst_and_average_case">Worst-case</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Space_complexity">space complexity</a></th><td><span typeof="mw:Extension/math" about="#mwt7" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span></td></tr></tbody></table>
+<p id="mwBg">The <b id="mwBw">Needleman–Wunsch algorithm</b> is an <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Algorithm" id="mwCA">algorithm</a> used in  <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics" id="mwCQ">bioinformatics</a> to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment" id="mwCg">align</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Protein" id="mwCw">protein</a> or <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nucleotide" id="mwDA">nucleotide</a> sequences. It was one of the first applications of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_programming" id="mwDQ">dynamic programming</a> to compare biological sequences. The algorithm was developed by Saul B. Needleman and Christian D. Wunsch and published in 1970.<sup about="#mwt10" id="cite_ref-Needleman_1-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Needleman"},"body":{"id":"mw-reference-text-cite_note-Needleman-1"}}'><a href="#cite_note-Needleman-1" id="mwDg"><span id="mwDw"><span id="mwEA">[</span>1<span id="mwEQ">]</span></span></a></sup> The algorithm essentially divides a large problem (e.g. the full sequence) into a series of smaller problems, and it uses the solutions to the smaller problems to find an optimal solution to the larger problem.<sup about="#mwt13" id="cite_ref-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-2"}}'><a href="#cite_note-2" id="mwEg"><span id="mwEw"><span id="mwFA">[</span>2<span id="mwFQ">]</span></span></a></sup> It is also sometimes referred to as the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Optimal_matching" id="mwFg">optimal matching</a> algorithm and the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment#Global_and_local_alignments" id="mwFw">global alignment</a> technique. The Needleman–Wunsch algorithm is still widely used for optimal global alignment, particularly when the quality of the global alignment is of the utmost importance. The algorithm assigns a score to every possible alignment, and the purpose of the algorithm is to find all possible alignments having the highest score.</p>
+<meta property="mw:PageProp/toc" id="mwGA" data-mw='{"autoGenerated":true}'/></section><section id="mwGQ"><div><h2 id="Introduction">Introduction</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=1"><span>edit</span></a><span>]</span></span></div>
+<p id="mwGg">This algorithm can be used for any two <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_(computer_science)" id="mwGw">strings</a>. This guide will use two small <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DNA_sequences" id="mwHA">DNA sequences</a> as examples as shown in Figure 1:</p>
+<pre id="mwHQ">GCATGCG
+GATTACA</pre>
+<section id="mwHg"><div><h3 id="Constructing_the_grid">Constructing the grid</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=2"><span>edit</span></a><span>]</span></span></div>
+<p id="mwHw">First construct a grid such as one shown in Figure 1 above. Start the first string in the top of the third column and start the other string at the start of the third row. Fill out the rest of the column and row headers as in Figure 1. There should be no numbers in the grid yet.</p>
+<table id="mwIA">
+<tbody id="mwIQ"><tr id="mwIg">
+<th id="mwIw"></th><th id="mwJA"></th><th id="mwJQ">G</th><th id="mwJg">C</th><th id="mwJw">A</th><th id="mwKA">T</th><th id="mwKQ">G</th><th id="mwKg">C</th><th id="mwKw">G</th></tr>
+<tr id="mwLA">
+<th scope="row" id="mwLQ"></th>
+<td id="mwLg"><span typeof="mw:Entity" id="mwLw"> </span></td><td id="mwMA"></td><td id="mwMQ"></td><td id="mwMg"></td><td id="mwMw"></td><td id="mwNA"></td><td id="mwNQ"></td><td id="mwNg"></td></tr>
+<tr id="mwNw">
+<th scope="row" id="mwOA">G</th>
+<td id="mwOQ"></td><td id="mwOg"></td><td id="mwOw"></td><td id="mwPA"></td><td id="mwPQ"></td><td id="mwPg"></td><td id="mwPw"></td><td id="mwQA"></td></tr>
+<tr id="mwQQ">
+<th scope="row" id="mwQg">A</th>
+<td id="mwQw"></td><td id="mwRA"></td><td id="mwRQ"></td><td id="mwRg"></td><td id="mwRw"></td><td id="mwSA"></td><td id="mwSQ"></td><td id="mwSg"></td></tr>
+<tr id="mwSw">
+<th scope="row" id="mwTA">T</th>
+<td id="mwTQ"></td><td id="mwTg"></td><td id="mwTw"></td><td id="mwUA"></td><td id="mwUQ"></td><td id="mwUg"></td><td id="mwUw"></td><td id="mwVA"></td></tr>
+<tr id="mwVQ">
+<th scope="row" id="mwVg">T</th>
+<td id="mwVw"></td><td id="mwWA"></td><td id="mwWQ"></td><td id="mwWg"></td><td id="mwWw"></td><td id="mwXA"></td><td id="mwXQ"></td><td id="mwXg"></td></tr>
+<tr id="mwXw">
+<th scope="row" id="mwYA">A</th>
+<td id="mwYQ"></td><td id="mwYg"></td><td id="mwYw"></td><td id="mwZA"></td><td id="mwZQ"></td><td id="mwZg"></td><td id="mwZw"></td><td id="mwaA"></td></tr>
+<tr id="mwaQ">
+<th scope="row" id="mwag">C</th>
+<td id="mwaw"></td><td id="mwbA"></td><td id="mwbQ"></td><td id="mwbg"></td><td id="mwbw"></td><td id="mwcA"></td><td id="mwcQ"></td><td id="mwcg"></td></tr>
+<tr id="mwcw">
+<th scope="row" id="mwdA">A</th>
+<td id="mwdQ"></td><td id="mwdg"></td><td id="mwdw"></td><td id="mweA"></td><td id="mweQ"></td><td id="mweg"></td><td id="mwew"></td><td id="mwfA"></td></tr>
+</tbody></table>
+</section><section id="mwfQ"><div><h3 id="Choosing_a_scoring_system">Choosing a scoring system</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=3"><span>edit</span></a><span>]</span></span></div>
+<p id="mwfg">Next, decide how to score each individual pair of letters. Using the example above, one possible alignment candidate might be:</p>
+<pre id="mwfw">12345678
+<samp about="#mwt14" typeof="mw:Transclusion" id="mwgA" data-mw='{"parts":[{"template":{"target":{"wt":"DNA sequence","href":"./Template:DNA_sequence"},"params":{"1":{"wt":"GCATG-CG"}},"i":0}}]}'>GCATG-CG</samp>
+<samp about="#mwt15" typeof="mw:Transclusion" id="mwgQ" data-mw='{"parts":[{"template":{"target":{"wt":"DNA sequence","href":"./Template:DNA_sequence"},"params":{"1":{"wt":"G-ATTACA"}},"i":0}}]}'>G-ATTACA</samp></pre>
+<p id="mwgg">The letters may match, mismatch, or be matched to a gap (a deletion or insertion (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Indel" id="mwgw">indel</a>)):</p>
+<ul id="mwhA"><li id="mwhQ">Match: The two letters at the current index are the same.</li>
+<li id="mwhg">Mismatch: The two letters at the current index are different.</li>
+<li id="mwhw">Indel (Insertion or Deletion): The best alignment involves one letter aligning to a gap in the other string.</li></ul>
+<p id="mwiA">Each of these scenarios is assigned a score and the sum of the scores of all the pairings is the score of the whole alignment candidate. Different systems exist for assigning scores; some have been outlined in the <a rel="mw:WikiLink" href="#Scoring_systems" id="mwiQ">Scoring systems</a> section below. For now, the system used by Needleman and Wunsch<sup about="#mwt17" id="cite_ref-Needleman_1-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Needleman"}}'><a href="#cite_note-Needleman-1" id="mwig"><span id="mwiw"><span id="mwjA">[</span>1<span id="mwjQ">]</span></span></a></sup><sup about="#mwt16" id="mwjw"><span typeof="mw:Entity">[</span><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wikipedia:Verifiability"><span>failed verification</span></a></i><span typeof="mw:Entity">]</span></sup> will be used:</p>
+<ul id="mwkA"><li id="mwkQ">Match: +1</li>
+<li id="mwkg">Mismatch or Indel: −1</li></ul>
+<p id="mwkw">For the Example above, the score of the alignment would be 0:</p>
+<pre id="mwlA"><samp about="#mwt18" typeof="mw:Transclusion" id="mwlQ" data-mw='{"parts":[{"template":{"target":{"wt":"DNA sequence","href":"./Template:DNA_sequence"},"params":{"1":{"wt":"GCATG-CG"}},"i":0}}]}'>GCATG-CG</samp>
+<samp about="#mwt19" typeof="mw:Transclusion" id="mwlg" data-mw='{"parts":[{"template":{"target":{"wt":"DNA sequence","href":"./Template:DNA_sequence"},"params":{"1":{"wt":"G-ATTACA"}},"i":0}}]}'>G-ATTACA</samp>
++−++−−+− −> 1*4 + (−1)*4 = 0</pre>
+</section><section id="mwlw"><div><h3 id="Filling_in_the_table">Filling in the table</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=4"><span>edit</span></a><span>]</span></span></div>
+<p id="mwmA">Start with a zero in the first row, first column (not including the cells containing nucleotides). Move through the cells row by row, calculating the score for each cell. The score is calculated by comparing the scores of the cells neighboring to the left, top or top-left (diagonal) of the cell and adding the appropriate score for match, mismatch or indel. Take the maximum of the candidate scores for each of the three possibilities:</p>
+<ul id="mwmQ"><li id="mwmg">The path from the top or left cell represents an indel pairing, so take the scores of the left and the top cell, and add the score for indel to each of them.</li>
+<li id="mwmw">The diagonal path represents a match/mismatch, so take the score of the top-left diagonal cell and add the score for match if the corresponding bases (letters) in the row and column are matching or the score for mismatch if they do not.</li></ul>
+<p id="mwnA">The resulting score for the cell is the highest of the three candidate scores.</p>
+<p id="mwnQ">Given there is no 'top' or 'top-left' cells for the first row only the existing cell to the left can be used to calculate the score of each cell. Hence −1 is added for each shift to the right as this represents an indel from the previous score. This results in the first row being 0, −1, −2, −3, −4, −5, −6, −7. The same applies to the first column as only the existing score above each cell can be used. Thus the resulting table is:</p>
+<table id="mwng">
+<tbody id="mwnw"><tr id="mwoA">
+<th id="mwoQ"></th><th id="mwog"></th><th id="mwow">G</th><th id="mwpA">C</th><th id="mwpQ">A</th><th id="mwpg">T</th><th id="mwpw">G</th><th id="mwqA">C</th><th id="mwqQ">G</th></tr>
+<tr id="mwqg">
+<th scope="row" id="mwqw"></th>
+<td id="mwrA">0</td><td id="mwrQ">−1</td><td id="mwrg">−2</td><td id="mwrw">−3</td><td id="mwsA">−4</td><td id="mwsQ">−5</td><td id="mwsg">−6</td><td id="mwsw">−7</td></tr>
+<tr id="mwtA">
+<th scope="row" id="mwtQ">G</th>
+<td id="mwtg">−1</td><td id="mwtw"></td><td id="mwuA"></td><td id="mwuQ"></td><td id="mwug"></td><td id="mwuw"></td><td id="mwvA"></td><td id="mwvQ"></td></tr>
+<tr id="mwvg">
+<th scope="row" id="mwvw">A</th>
+<td id="mwwA">−2</td><td id="mwwQ"></td><td id="mwwg"></td><td id="mwww"></td><td id="mwxA"></td><td id="mwxQ"></td><td id="mwxg"></td><td id="mwxw"></td></tr>
+<tr id="mwyA">
+<th scope="row" id="mwyQ">T</th>
+<td id="mwyg">−3</td><td id="mwyw"></td><td id="mwzA"></td><td id="mwzQ"></td><td id="mwzg"></td><td id="mwzw"></td><td id="mw0A"></td><td id="mw0Q"></td></tr>
+<tr id="mw0g">
+<th scope="row" id="mw0w">T</th>
+<td id="mw1A">−4</td><td id="mw1Q"></td><td id="mw1g"></td><td id="mw1w"></td><td id="mw2A"></td><td id="mw2Q"></td><td id="mw2g"></td><td id="mw2w"></td></tr>
+<tr id="mw3A">
+<th scope="row" id="mw3Q">A</th>
+<td id="mw3g">−5</td><td id="mw3w"></td><td id="mw4A"></td><td id="mw4Q"></td><td id="mw4g"></td><td id="mw4w"></td><td id="mw5A"></td><td id="mw5Q"></td></tr>
+<tr id="mw5g">
+<th scope="row" id="mw5w">C</th>
+<td id="mw6A">−6</td><td id="mw6Q"></td><td id="mw6g"></td><td id="mw6w"></td><td id="mw7A"></td><td id="mw7Q"></td><td id="mw7g"></td><td id="mw7w"></td></tr>
+<tr id="mw8A">
+<th scope="row" id="mw8Q">A</th>
+<td id="mw8g">−7</td><td id="mw8w"></td><td id="mw9A"></td><td id="mw9Q"></td><td id="mw9g"></td><td id="mw9w"></td><td id="mw-A"></td><td id="mw-Q"></td></tr>
+</tbody></table>
+<p id="mw-g">The first case with existing scores in all 3 directions is the intersection of our first letters (in this case G and G). The surrounding cells are below:</p>
+<table id="mw-w">
+<tbody id="mw_A"><tr id="mw_Q">
+<th id="mw_g"></th><th id="mw_w"></th><th id="mwAQA">G</th></tr>
+<tr id="mwAQE">
+<th scope="row" id="mwAQI"></th>
+<td id="mwAQM">0</td><td id="mwAQQ">−1</td></tr>
+<tr id="mwAQU">
+<th scope="row" id="mwAQY">G</th>
+<td id="mwAQc">−1</td><td id="mwAQg"><b id="mwAQk">X</b></td></tr>
+</tbody></table>
+<p id="mwAQo">This cell has three possible candidate sums:</p>
+<ul id="mwAQs"><li id="mwAQw">The diagonal top-left neighbor has score 0. The pairing of G and G is a match, so add the score for match: 0+1 = 1</li>
+<li id="mwAQ0">The top neighbor has score −1 and moving from there represents an indel, so add the score for indel: (−1) + (−1) = (−2)</li>
+<li id="mwAQ4">The left neighbor also has score −1, represents an indel and also produces (−2).</li></ul>
+<p id="mwAQ8">The highest candidate is 1 and is entered into the cell:</p>
+<table id="mwARA">
+<tbody id="mwARE"><tr id="mwARI">
+<th id="mwARM"></th><th id="mwARQ"></th><th id="mwARU">G</th></tr>
+<tr id="mwARY">
+<th scope="row" id="mwARc"></th>
+<td id="mwARg">0</td><td id="mwARk">−1</td></tr>
+<tr id="mwARo">
+<th scope="row" id="mwARs">G</th>
+<td id="mwARw">−1</td><td id="mwAR0"><b id="mwAR4">1</b></td></tr>
+</tbody></table>
+<p id="mwAR8">The cell which gave the highest candidate score must also be recorded. In the completed diagram in figure 1 above, this is represented as an arrow from the cell in row and column 2 to the cell in row and column 1.</p>
+<p id="mwASA">In the next example, the diagonal step for both X and Y represents a mismatch:</p>
+<table id="mwASE">
+<tbody id="mwASI"><tr id="mwASM">
+<th id="mwASQ"></th><th id="mwASU"></th><th id="mwASY">G</th><th id="mwASc">C</th></tr>
+<tr id="mwASg">
+<th scope="row" id="mwASk"></th>
+<td id="mwASo">0</td><td id="mwASs">−1</td><td id="mwASw">−2</td></tr>
+<tr id="mwAS0">
+<th scope="row" id="mwAS4">G</th>
+<td id="mwAS8">−1</td><td id="mwATA">1</td><td id="mwATE"><b id="mwATI">X</b></td></tr>
+<tr id="mwATM">
+<th scope="row" id="mwATQ">A</th>
+<td id="mwATU">−2</td><td id="mwATY"><b id="mwATc">Y</b></td><td id="mwATg"></td></tr>
+</tbody></table>
+<p id="mwATk">X:</p>
+<ul id="mwATo"><li id="mwATs">Top: (−2)+(−1) = (−3)</li>
+<li id="mwATw">Left: (+1)+(−1) = (0)</li>
+<li id="mwAT0">Top-Left: (−1)+(−1) = (−2)</li></ul>
+<p id="mwAT4">Y:</p>
+<ul id="mwAT8"><li id="mwAUA">Top: (1)+(−1) = (0)</li>
+<li id="mwAUE">Left: (−2)+(−1) = (−3)</li>
+<li id="mwAUI">Top-Left: (−1)+(−1) = (−2)</li></ul>
+<p id="mwAUM">For both X and Y, the highest score is zero:</p>
+<table id="mwAUQ">
+<tbody id="mwAUU"><tr id="mwAUY">
+<th id="mwAUc"></th><th id="mwAUg"></th><th id="mwAUk">G</th><th id="mwAUo">C</th></tr>
+<tr id="mwAUs">
+<th scope="row" id="mwAUw"></th>
+<td id="mwAU0">0</td><td id="mwAU4">−1</td><td id="mwAU8">−2</td></tr>
+<tr id="mwAVA">
+<th scope="row" id="mwAVE">G</th>
+<td id="mwAVI">−1</td><td id="mwAVM">1</td><td id="mwAVQ"><b id="mwAVU">0</b></td></tr>
+<tr id="mwAVY">
+<th scope="row" id="mwAVc">A</th>
+<td id="mwAVg">−2</td><td id="mwAVk"><b id="mwAVo">0</b></td><td id="mwAVs"></td></tr>
+</tbody></table>
+<p id="mwAVw">The highest candidate score may be reached by two of the neighboring cells:</p>
+<table id="mwAV0">
+<tbody id="mwAV4"><tr id="mwAV8">
+<th id="mwAWA"></th><th id="mwAWE">T</th><th id="mwAWI">G</th></tr>
+<tr id="mwAWM">
+<th scope="row" id="mwAWQ">T</th>
+<td id="mwAWU">1</td><td id="mwAWY">1</td></tr>
+<tr id="mwAWc">
+<th scope="row" id="mwAWg">A</th>
+<td id="mwAWk">0</td><td id="mwAWo"><b id="mwAWs">X</b></td></tr>
+</tbody></table>
+<ul id="mwAWw"><li id="mwAW0">Top: (1)+(−1) = (0)</li>
+<li id="mwAW4">Top-Left: (1)+(−1) = (0)</li>
+<li id="mwAW8">Left: (0)+(−1) = (−1)</li></ul>
+<p id="mwAXA">In this case, all directions reaching the highest candidate score must be noted as possible origin cells in the finished diagram in figure 1, e.g. in the cell in row and column 6.</p>
+<p id="mwAXE">Filling in the table in this manner gives the scores of all possible alignment candidates, the score in the cell on the bottom right represents the alignment score for the best alignment.</p>
+</section><section id="mwAXI"><div><h3 id="Tracing_arrows_back_to_origin">Tracing arrows back to origin</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=5"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAXM">Mark a path from the cell on the bottom right back to the cell on the top left by following the direction of the arrows. From this path, the sequence is constructed by these rules:</p>
+<ul id="mwAXQ"><li id="mwAXU">A diagonal arrow represents a match or mismatch, so the letter of the column and the letter of the row of the origin cell will align.</li>
+<li id="mwAXY">A horizontal or vertical arrow represents an indel. Vertical arrows will align a gap ("-") to the letter of the row (the "side" sequence), horizontal arrows will align a gap to the letter of the column (the "top" sequence).</li>
+<li id="mwAXc">If there are multiple arrows to choose from, they represent a branching of the alignments. If two or more branches all belong to paths from the bottom right to the top left cell, they are equally viable alignments. In this case, note the paths as separate alignment candidates.</li></ul>
+<p id="mwAXg">Following these rules, the steps for one possible alignment candidate in figure 1 are:</p>
+<pre id="mwAXk">G → CG → GCG → -GCG → T-GCG → AT-GCG → CAT-GCG → <b id="mwAXo">GCAT-GCG</b>
+A → CA → ACA → TACA → TTACA → ATTACA → -ATTACA → <b id="mwAXs">G-ATTACA</b>
+             ↓
+    (branch) → TGCG → -TGCG → ...
+             → TACA → TTACA → ...</pre>
+</section></section><section id="mwAXw"><div><h2 id="Scoring_systems">Scoring systems</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=6"><span>edit</span></a><span>]</span></span></div>
+<section id="mwAX0"><div><h3 id="Basic_scoring_schemes">Basic scoring schemes</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=7"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAX4">The simplest scoring schemes simply give a value for each match, mismatch and indel. The step-by-step guide above uses match = 1, mismatch  = −1, indel = −1. Thus the lower the alignment score the larger the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance" id="mwAX8">edit distance</a>, for this scoring system one wants a high score. Another scoring system might be:</p>
+<ul id="mwAYA"><li id="mwAYE">Match = 0</li>
+<li id="mwAYI">Indel = -1</li>
+<li id="mwAYM">Mismatch = -1</li></ul>
+<p id="mwAYQ">For this system the alignment score will represent the edit distance between the two strings.
+Different scoring systems can be devised for different situations, for example if gaps are considered very bad for your alignment you may use a scoring system that penalises gaps heavily, such as:</p>
+<ul id="mwAYU"><li id="mwAYY">Match = 1</li>
+<li id="mwAYc">Indel = -10</li>
+<li id="mwAYg">Mismatch = -1</li></ul>
+<p id="mwAYk">
+<br id="mwAYo"/></p>
+</section><section id="mwAYs"><div><h3 id="Similarity_matrix">Similarity matrix</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=8"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAYw">More complicated scoring systems attribute values not only for the type of alteration, but also for the letters that are involved. For example, a match between A and A may be given 1, but a match between T and T may be given 4. Here (assuming the first scoring system) more importance is given to the Ts matching than the As, i.e. the Ts matching is  assumed to be more significant to the alignment. This weighting based on letters also applies to mismatches.</p>
+<p id="mwAY0">In order to represent all the possible combinations of letters and their resulting scores  a similarity matrix is used. The similarity matrix for the most basic system is represented as:</p>
+<table id="mwAY4">
+<tbody id="mwAY8"><tr id="mwAZA"><th scope="col" id="mwAZE"></th>
+<th scope="col" id="mwAZI">A</th>
+<th scope="col" id="mwAZM">G</th>
+<th scope="col" id="mwAZQ">C</th>
+<th scope="col" id="mwAZU">T</th></tr>
+<tr id="mwAZY">
+<th scope="row" id="mwAZc">A</th>
+<td id="mwAZg">1</td><td id="mwAZk">−1</td><td id="mwAZo">−1</td><td id="mwAZs">−1</td></tr>
+<tr id="mwAZw">
+<th scope="row" id="mwAZ0">G</th>
+<td id="mwAZ4">−1</td><td id="mwAZ8">1</td><td id="mwAaA">−1</td><td id="mwAaE">−1</td></tr>
+<tr id="mwAaI">
+<th scope="row" id="mwAaM">C</th>
+<td id="mwAaQ">−1</td><td id="mwAaU">−1</td><td id="mwAaY">1</td><td id="mwAac">−1</td></tr>
+<tr id="mwAag">
+<th scope="row" id="mwAak">T</th>
+<td id="mwAao">−1</td><td id="mwAas">−1</td><td id="mwAaw">−1</td><td id="mwAa0">1</td></tr>
+</tbody></table>
+<p id="mwAa4">Each score represents a switch from one of the letters the cell matches to the other. Hence this represents all possible matches and mismatches (for an alphabet of ACGT). Note all the matches go along the diagonal, also not all the table needs to be filled, only this triangle because the scores are reciprocal.= (Score for A → C = Score for C → A). If implementing the T-T = 4 rule from above the following similarity matrix is produced:</p>
+<table id="mwAa8">
+<tbody id="mwAbA"><tr id="mwAbE"><th scope="col" id="mwAbI"></th>
+<th scope="col" id="mwAbM">A</th>
+<th scope="col" id="mwAbQ">G</th>
+<th scope="col" id="mwAbU">C</th>
+<th scope="col" id="mwAbY">T</th></tr>
+<tr id="mwAbc">
+<th scope="row" id="mwAbg">A</th>
+<td id="mwAbk">1</td><td id="mwAbo">−1</td><td id="mwAbs">−1</td><td id="mwAbw">−1</td></tr>
+<tr id="mwAb0">
+<th scope="row" id="mwAb4">G</th>
+<td id="mwAb8">−1</td><td id="mwAcA">1</td><td id="mwAcE">−1</td><td id="mwAcI">−1</td></tr>
+<tr id="mwAcM">
+<th scope="row" id="mwAcQ">C</th>
+<td id="mwAcU">−1</td><td id="mwAcY">−1</td><td id="mwAcc">1</td><td id="mwAcg">−1</td></tr>
+<tr id="mwAck">
+<th scope="row" id="mwAco">T</th>
+<td id="mwAcs">−1</td><td id="mwAcw">−1</td><td id="mwAc0">−1</td><td id="mwAc4">4</td></tr>
+</tbody></table>
+<p id="mwAc8">Different scoring matrices have been statistically constructed which give weight to different actions appropriate to a particular scenario. Having weighted scoring matrices is particularly important in protein sequence alignment due to the varying frequency of the different amino acids. There are two broad families of scoring matrices, each with further alterations for specific scenarios:</p>
+<ul id="mwAdA"><li id="mwAdE"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Point_accepted_mutation" id="mwAdI">PAM</a></li>
+<li id="mwAdM"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLOSUM" id="mwAdQ">BLOSUM</a></li></ul>
+</section><section id="mwAdU"><div><h3 id="Gap_penalty">Gap penalty</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=9"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAdY">When aligning sequences there are often gaps (i.e. indels), sometimes large ones. Biologically, a large gap is more likely to occur as one large deletion as opposed to multiple single deletions. Hence two small indels should have a worse score than one large one. The simple and common way to do this is via a large gap-start score for a new indel and a smaller gap-extension score for every letter which extends the indel. For example, new-indel may cost -5 and extend-indel may cost -1. In this way an alignment such as:</p>
+<pre id="mwAdc">GAAAAAAT
+G--A-A-T</pre>
+<p id="mwAdg">which has multiple equal alignments, some with multiple small alignments will now align as:</p>
+<pre id="mwAdk">GAAAAAAT
+GAA----T</pre>
+<p id="mwAdo">or any alignment with a 4 long gap in preference over multiple small gaps.</p>
+</section></section><section id="mwAds"><div><h2 id="Advanced_presentation_of_algorithm">Advanced presentation of algorithm</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=10"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAdw">Scores for aligned characters are specified by a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Similarity_matrix" id="mwAd0">similarity matrix</a>. Here, <span about="#mwt20" typeof="mw:Transclusion" id="mwAd4" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;S&apos;&apos;(&apos;&apos;a&apos;&apos;, &apos;&apos;b&apos;&apos;)"}},"i":0}}]}'><i>S</i>(<i>a</i>, <i>b</i>)</span> is the similarity of characters <i id="mwAd8">a</i> and <i id="mwAeA">b</i>. It uses a linear <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gap_penalty" id="mwAeE">gap penalty</a>, here called <span about="#mwt21" typeof="mw:Transclusion" id="mwAeI" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"d"}},"i":0}}]}'>d</span>.</p>
+<p id="mwAeM">For example, if the similarity matrix was</p>
+<table id="mwAeQ">
+<tbody id="mwAeU"><tr id="mwAeY"><th scope="col" id="mwAec"></th>
+<th scope="col" id="mwAeg">A</th>
+<th scope="col" id="mwAek">G</th>
+<th scope="col" id="mwAeo">C</th>
+<th scope="col" id="mwAes">T</th></tr>
+<tr id="mwAew">
+<th scope="row" id="mwAe0">A</th>
+<td id="mwAe4">10</td><td id="mwAe8">−1</td><td id="mwAfA">−3</td><td id="mwAfE">−4</td></tr>
+<tr id="mwAfI">
+<th scope="row" id="mwAfM">G</th>
+<td id="mwAfQ">−1</td><td id="mwAfU">7</td><td id="mwAfY">−5</td><td id="mwAfc">−3</td></tr>
+<tr id="mwAfg">
+<th scope="row" id="mwAfk">C</th>
+<td id="mwAfo">−3</td><td id="mwAfs">−5</td><td id="mwAfw">9</td><td id="mwAf0">0</td></tr>
+<tr id="mwAf4">
+<th scope="row" id="mwAf8">T</th>
+<td id="mwAgA">−4</td><td id="mwAgE">−3</td><td id="mwAgI">0</td><td id="mwAgM">8</td></tr>
+</tbody></table>
+<p id="mwAgQ">then the alignment:</p>
+<pre id="mwAgU">AGACTAGTTAC
+CGA---GACGT</pre>
+<p id="mwAgY">with a gap penalty of −5, would have the following score:</p>
+<dl id="mwAgc"><dd id="mwAgg"><span about="#mwt22" typeof="mw:Transclusion" id="mwAgk"><i>S</i>(A,C) + <i>S</i>(G,G) + <i>S</i>(A,A) + (3 × <i>d</i>) + <i>S</i>(G,G) + <i>S</i>(T,A) + <i>S</i>(T,C) + <i>S</i>(A,G) + <i>S</i>(C,T)</span></dd>
+<dd id="mwAgo">= −3 + 7 + 10 − (3 × 5) + 7 + (−4) + 0 + (−1) + 0 = 1</dd></dl>
+<p id="mwAgs">To find the alignment with the highest score, a two-dimensional <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Array_data_structure" id="mwAgw">array</a> (or <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Matrix_(mathematics)" id="mwAg0">matrix</a>) <i id="mwAg4">F</i> is allocated. The entry in row <i id="mwAg8">i</i> and column <i id="mwAhA">j</i> is denoted here by
+<span typeof="mw:Extension/math" about="#mwt23" id="mwAhE" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{ij}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{ij}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{ij}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9f0a0c66fea9dad672268a8392d5c530e2d3f8e0" alt="{\displaystyle F_{ij}}"/></span>. There is one row for each character in sequence <i id="mwAhI">A</i>, and one column for each character in sequence <i id="mwAhM">B</i>. Thus, if aligning sequences of sizes <i id="mwAhQ">n</i> and <i id="mwAhU">m</i>, the amount of memory used is in <span typeof="mw:Extension/math" about="#mwt24" id="mwAhY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(nm)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(nm)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mi>m</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(nm)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/051245e657739f572fe7902c817ea9103c687fb7" alt="{\displaystyle O(nm)}"/></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hirschberg's_algorithm" id="mwAhc">Hirschberg's algorithm</a> only holds a subset of the array in memory and uses <span typeof="mw:Extension/math" about="#mwt25" id="mwAhg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\Theta(\\min \\{n,m\\})"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \Theta (\min\{n,m\})}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi mathvariant="normal">Θ</mi>
+        <mo stretchy="false">(</mo>
+        <mo movablelimits="true" form="prefix">min</mo>
+        <mo fence="false" stretchy="false">{</mo>
+        <mi>n</mi>
+        <mo>,</mo>
+        <mi>m</mi>
+        <mo fence="false" stretchy="false">}</mo>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \Theta (\min\{n,m\})}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a158767662e2f55a403ac654db74dd91942342ff" alt="{\displaystyle \Theta (\min\{n,m\})}"/></span> space, but is otherwise similar to Needleman-Wunsch (and still requires <span typeof="mw:Extension/math" about="#mwt26" id="mwAhk" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(nm)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(nm)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mi>m</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(nm)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/051245e657739f572fe7902c817ea9103c687fb7" alt="{\displaystyle O(nm)}"/></span> time).</p>
+<p id="mwAho">As the algorithm progresses, the <span typeof="mw:Extension/math" about="#mwt27" id="mwAhs" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{ij}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{ij}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{ij}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9f0a0c66fea9dad672268a8392d5c530e2d3f8e0" alt="{\displaystyle F_{ij}}"/></span> will be assigned to be the optimal score for the alignment of the first <span typeof="mw:Extension/math" about="#mwt28" id="mwAhw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"i=0,\\dotsc,n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle i=0,\dotsc ,n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>i</mi>
+        <mo>=</mo>
+        <mn>0</mn>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle i=0,\dotsc ,n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/1a57301a01dbbb2868686131483a2681b262a548" alt="{\displaystyle i=0,\dotsc ,n}"/></span> characters in <i id="mwAh0">A</i> and the first <span typeof="mw:Extension/math" about="#mwt29" id="mwAh4" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"j=0,\\dotsc,m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle j=0,\dotsc ,m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>j</mi>
+        <mo>=</mo>
+        <mn>0</mn>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle j=0,\dotsc ,m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/564c3edf3098b95d4555b5486aefa1bc748b8abe" alt="{\displaystyle j=0,\dotsc ,m}"/></span> characters in <i id="mwAh8">B</i>. The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bellman_equation#Bellman's_principle_of_optimality" id="mwAiA">principle of optimality</a> is then applied as follows:</p>
+<ul id="mwAiE"><li id="mwAiI">Basis:</li></ul>
+<dl id="mwAiM"><dd id="mwAiQ"><span typeof="mw:Extension/math" about="#mwt30" id="mwAiU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{0j} = d*j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{0j}=d*j}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mn>0</mn>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mi>d</mi>
+        <mo>∗</mo>
+        <mi>j</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{0j}=d*j}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4d4c08d197aba91b6d2fd553da2de6b8db428dbe" alt="{\displaystyle F_{0j}=d*j}"/></span></dd>
+<dd id="mwAiY"><span typeof="mw:Extension/math" about="#mwt31" id="mwAic" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{i0} = d*i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{i0}=d*i}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mn>0</mn>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mi>d</mi>
+        <mo>∗</mo>
+        <mi>i</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{i0}=d*i}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/32566f595bc25bdcf53850703414cc2de106b3dd" alt="{\displaystyle F_{i0}=d*i}"/></span></dd></dl>
+<ul id="mwAig"><li id="mwAik">Recursion, based on the principle of optimality:</li></ul>
+<dl id="mwAio"><dd id="mwAis"><span typeof="mw:Extension/math" about="#mwt32" id="mwAiw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{ij} = \\max(F_{i-1,j-1} + S(A_{i}, B_{j}), \\; F_{i,j-1} + d, \\; F_{i-1,j} + d)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{ij}=\max(F_{i-1,j-1}+S(A_{i},B_{j}),\;F_{i,j-1}+d,\;F_{i-1,j}+d)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mo movablelimits="true" form="prefix">max</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+            <mo>,</mo>
+            <mi>j</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>+</mo>
+        <mi>S</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>A</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>B</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <mspace width="thickmathspace"></mspace>
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>+</mo>
+        <mi>d</mi>
+        <mo>,</mo>
+        <mspace width="thickmathspace"></mspace>
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>+</mo>
+        <mi>d</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{ij}=\max(F_{i-1,j-1}+S(A_{i},B_{j}),\;F_{i,j-1}+d,\;F_{i-1,j}+d)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/09ff4bd3d3ae737a9c71892887a1d30da4c9d78b" alt="{\displaystyle F_{ij}=\max(F_{i-1,j-1}+S(A_{i},B_{j}),\;F_{i,j-1}+d,\;F_{i-1,j}+d)}"/></span></dd></dl>
+<p id="mwAi0">The pseudo-code for the algorithm to compute the F matrix therefore looks like this:</p>
+<pre id="mwAi4">d ← Gap penalty score
+<b id="mwAi8">for</b> i = 0 <b id="mwAjA">to</b> <b id="mwAjE">length</b>(A)
+    F(i,0) ← d * i
+<b id="mwAjI">for</b> j = 0 <b id="mwAjM">to</b> <b id="mwAjQ">length</b>(B)
+    F(0,j) ← d * j
+<b id="mwAjU">for</b> i = 1 <b id="mwAjY">to</b> <b id="mwAjc">length</b>(A)
+    <b id="mwAjg">for</b> j = 1 <b id="mwAjk">to</b> <b id="mwAjo">length</b>(B)
+    {
+        Match ← F(i−1, j−1) + S(A<sub id="mwAjs">i</sub>, B<sub id="mwAjw">j</sub>)
+        Delete ← F(i−1, j) + d
+        Insert ← F(i, j−1) + d
+        F(i,j) ← <b id="mwAj0">max</b>(Match, Insert, Delete)
+    }</pre>
+<p id="mwAj4">Once the <i id="mwAj8">F</i> matrix is computed, the entry <span typeof="mw:Extension/math" about="#mwt33" id="mwAkA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{nm}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{nm}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>n</mi>
+            <mi>m</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{nm}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/739121f821cf200c4155fdf9047a9b158d19b085" alt="{\displaystyle F_{nm}}"/></span> gives the maximum score among all possible alignments. To compute an alignment that actually gives this score, you start from the bottom right cell, and compare the value with the three possible sources (Match, Insert, and Delete above) to see which it came from. If Match, then <span typeof="mw:Extension/math" about="#mwt34" id="mwAkE" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A_i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A_{i}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>A</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/1aed3b5def921afbe6cc48aaf8f9b11c6f1c1e2d" alt="{\displaystyle A_{i}}"/></span> and <span typeof="mw:Extension/math" about="#mwt35" id="mwAkI" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"B_j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle B_{j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>B</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle B_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/ea2c69d0fec8f10eb21aa996ca50219be25fc223" alt="{\displaystyle B_{j}}"/></span> are aligned, if Delete, then <span typeof="mw:Extension/math" about="#mwt36" id="mwAkM" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A_i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A_{i}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>A</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/1aed3b5def921afbe6cc48aaf8f9b11c6f1c1e2d" alt="{\displaystyle A_{i}}"/></span> is aligned with a gap, and if Insert, then <span typeof="mw:Extension/math" about="#mwt37" id="mwAkQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"B_j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle B_{j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>B</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle B_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/ea2c69d0fec8f10eb21aa996ca50219be25fc223" alt="{\displaystyle B_{j}}"/></span> is aligned with a gap. (In general, more than one choice may have the same value, leading to alternative optimal alignments.)</p>
+<pre id="mwAkU">AlignmentA ← ""
+AlignmentB ← ""
+i ← <b id="mwAkY">length</b>(A)
+j ← <b id="mwAkc">length</b>(B)
+<b id="mwAkg">while</b> (i > 0 <b id="mwAkk">or</b> j > 0)
+{
+    <b id="mwAko">if</b> (i > 0 <b id="mwAks">and</b> j > 0 <b id="mwAkw">and</b> F(i, j) == F(i−1, j−1) + S(A<sub id="mwAk0">i</sub>, B<sub id="mwAk4">j</sub>))
+    {
+        AlignmentA ← A<sub id="mwAk8">i</sub> + AlignmentA
+        AlignmentB ← B<sub id="mwAlA">j</sub> + AlignmentB
+        i ← i − 1
+        j ← j − 1
+    }
+    <b id="mwAlE">else</b> <b id="mwAlI">if</b> (i > 0 <b id="mwAlM">and</b> F(i, j) == F(i−1, j) + d)
+    {
+        AlignmentA ← A<sub id="mwAlQ">i</sub> + AlignmentA
+        AlignmentB ← "−" + AlignmentB
+        i ← i − 1
+    }
+    <b id="mwAlU">else</b>
+    {
+        AlignmentA ← "−" + AlignmentA
+        AlignmentB ← B<sub id="mwAlY">j</sub> + AlignmentB
+        j ← j − 1
+    }
+}</pre>
+</section><section id="mwAlc"><div><h2 id="Complexity">Complexity</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=11"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAlg">Computing the score <span typeof="mw:Extension/math" about="#mwt38" id="mwAlk" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{ij}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{ij}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{ij}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9f0a0c66fea9dad672268a8392d5c530e2d3f8e0" alt="{\displaystyle F_{ij}}"/></span> for each cell in the table is an <span typeof="mw:Extension/math" about="#mwt39" id="mwAlo" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(1)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(1)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mn>1</mn>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(1)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/e66384bc40452c5452f33563fe0e27e803b0cc21" alt="{\displaystyle O(1)}"/></span> operation. Thus the time complexity of the algorithm for two sequences of length <span typeof="mw:Extension/math" about="#mwt40" id="mwAls" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> and <span typeof="mw:Extension/math" about="#mwt41" id="mwAlw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> is <span typeof="mw:Extension/math" about="#mwt42" id="mwAl0" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span>.<sup about="#mwt45" id="cite_ref-:0_3-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":0"},"body":{"id":"mw-reference-text-cite_note-:0-3"}}'><a href="#cite_note-:0-3" id="mwAl4"><span id="mwAl8"><span id="mwAmA">[</span>3<span id="mwAmE">]</span></span></a></sup> It has been shown that it is possible to improve the running time to <span typeof="mw:Extension/math" about="#mwt46" id="mwAmI" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn/ \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn/\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mrow>
+          <mo>/</mo>
+        </mrow>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn/\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/cbffde729ef3c8c6081ebe2d1fbf4fe74b9347ba" alt="{\displaystyle O(mn/\log n)}"/></span> using the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Method_of_Four_Russians" id="mwAmM">Method of Four Russians</a>.<sup about="#mwt47" id="cite_ref-:0_3-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":0"}}'><a href="#cite_note-:0-3" id="mwAmQ"><span id="mwAmU"><span id="mwAmY">[</span>3<span id="mwAmc">]</span></span></a></sup><sup about="#mwt50" id="cite_ref-4" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-4"}}'><a href="#cite_note-4" id="mwAmg"><span id="mwAmk"><span id="mwAmo">[</span>4<span id="mwAms">]</span></span></a></sup> Since the algorithm fills an <span typeof="mw:Extension/math" about="#mwt51" id="mwAmw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n \\times m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n\times m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+        <mo>×</mo>
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n\times m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/d82325a2a02ad79bc7c347ba9702ad46eb0de824" alt="{\displaystyle n\times m}"/></span> table the space complexity is <span typeof="mw:Extension/math" about="#mwt52" id="mwAm0" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)."}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn).}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn).}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/de6cd0ec0f1e877a29c376a0beffd6b19d9f1378" alt="{\displaystyle O(mn).}"/></span><sup about="#mwt53" id="cite_ref-:0_3-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":0"}}'><a href="#cite_note-:0-3" id="mwAm4"><span id="mwAm8"><span id="mwAnA">[</span>3<span id="mwAnE">]</span></span></a></sup></p>
+</section><section id="mwAnI"><div><h2 id="Historical_notes_and_algorithm_development">Historical notes and algorithm development</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=12"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAnM">The original purpose of the algorithm described by Needleman and Wunsch was to find similarities in the amino acid sequences of two proteins.<sup about="#mwt54" id="cite_ref-Needleman_1-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Needleman"}}'><a href="#cite_note-Needleman-1" id="mwAnQ"><span id="mwAnU"><span id="mwAnY">[</span>1<span id="mwAnc">]</span></span></a></sup></p>
+<p id="mwAng">Needleman and Wunsch describe their algorithm explicitly for the case when the alignment is penalized solely by the matches and mismatches, and gaps have no penalty (<i id="mwAnk">d</i>=0). The original publication from 1970 suggests the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Recursion" id="mwAno">recursion</a>
+<span typeof="mw:Extension/math" about="#mwt55" id="mwAns" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"F_{ij} = \\max_{h&lt;i,k&lt;j} \\{ F_{h,j-1}+S(A_{i},B_{j}), F_{i-1,k}+S(A_i,B_j) \\}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle F_{ij}=\max _{h&lt;i,k&lt;j}\{F_{h,j-1}+S(A_{i},B_{j}),F_{i-1,k}+S(A_{i},B_{j})\}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <munder>
+          <mo movablelimits="true" form="prefix">max</mo>
+          <mrow>
+            <mi>h</mi>
+            <mo>&lt;</mo>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>k</mi>
+            <mo>&lt;</mo>
+            <mi>j</mi>
+          </mrow>
+        </munder>
+        <mo fence="false" stretchy="false">{</mo>
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>h</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>+</mo>
+        <mi>S</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>A</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>B</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>F</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+            <mo>,</mo>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+        <mo>+</mo>
+        <mi>S</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>A</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>B</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo fence="false" stretchy="false">}</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle F_{ij}=\max _{h&lt;i,k&lt;j}\{F_{h,j-1}+S(A_{i},B_{j}),F_{i-1,k}+S(A_{i},B_{j})\}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f54134d6fbda7851c01eed5aa6e53fcc2a915e02" alt="{\displaystyle F_{ij}=\max _{h&lt;i,k&lt;j}\{F_{h,j-1}+S(A_{i},B_{j}),F_{i-1,k}+S(A_{i},B_{j})\}}"/></span>.</p>
+<p id="mwAnw">The corresponding dynamic programming algorithm takes cubic time. The paper also points out that the recursion can accommodate arbitrary gap penalization formulas:</p>
+<blockquote id="mwAn0">
+<p id="mwAn4">A penalty factor, a number subtracted for every gap made, may be assessed as a barrier to allowing the gap. The penalty factor could be a function of the size and/or direction of the gap. [page 444]</p>
+</blockquote>
+<p id="mwAn8">A better dynamic programming algorithm with quadratic running time for the same problem (no gap penalty) was introduced later<sup about="#mwt58" id="cite_ref-Sankoff_5-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Sankoff"},"body":{"id":"mw-reference-text-cite_note-Sankoff-5"}}'><a href="#cite_note-Sankoff-5" id="mwAoA"><span id="mwAoE"><span id="mwAoI">[</span>5<span id="mwAoM">]</span></span></a></sup> by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/David_Sankoff" id="mwAoQ">David Sankoff</a> in 1972.
+Similar quadratic-time algorithms were discovered independently
+by T. K. Vintsyuk<sup about="#mwt61" id="cite_ref-Vintsyuk_6-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Vintsyuk"},"body":{"id":"mw-reference-text-cite_note-Vintsyuk-6"}}'><a href="#cite_note-Vintsyuk-6" id="mwAoU"><span id="mwAoY"><span id="mwAoc">[</span>6<span id="mwAog">]</span></span></a></sup> in 1968 for speech processing
+(<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_time_warping" id="mwAok">"time warping"</a>), and by Robert A. Wagner and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Michael_J._Fischer" id="mwAoo">Michael J. Fischer</a><sup about="#mwt64" id="cite_ref-WagnerFischer_7-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"WagnerFischer"},"body":{"id":"mw-reference-text-cite_note-WagnerFischer-7"}}'><a href="#cite_note-WagnerFischer-7" id="mwAos"><span id="mwAow"><span id="mwAo0">[</span>7<span id="mwAo4">]</span></span></a></sup> in 1974 for string matching.</p>
+<p id="mwAo8">Needleman and Wunsch formulated their problem in terms of maximizing similarity. Another possibility is to minimize the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance" id="mwApA">edit distance</a> between sequences, introduced by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Vladimir_Levenshtein" id="mwApE">Vladimir Levenshtein</a>. Peter H. Sellers showed<sup about="#mwt67" id="cite_ref-Sellers_8-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Sellers"},"body":{"id":"mw-reference-text-cite_note-Sellers-8"}}'><a href="#cite_note-Sellers-8" id="mwApI"><span id="mwApM"><span id="mwApQ">[</span>8<span id="mwApU">]</span></span></a></sup> in 1974 that the two problems are equivalent.</p>
+<p id="mwApY">The Needleman–Wunsch algorithm is still widely used for optimal <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment#Global_and_local_alignments" id="mwApc">global alignment</a>, particularly when the quality of the global alignment is of the utmost importance. However, the algorithm is expensive with respect to time and space, proportional to the product of the length of two sequences and hence is not suitable for long sequences.</p>
+<p id="mwApg">Recent development has focused on improving the time and space cost of the algorithm while maintaining quality. For example, in 2013, a Fast Optimal Global Sequence Alignment Algorithm (FOGSAA),<sup about="#mwt70" id="cite_ref-9" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-9"}}'><a href="#cite_note-9" id="mwApk"><span id="mwApo"><span id="mwAps">[</span>9<span id="mwApw">]</span></span></a></sup> suggested alignment of nucleotide/protein sequences faster than other optimal global alignment methods, including the Needleman–Wunsch algorithm. The paper claims that when compared to the Needleman–Wunsch algorithm, FOGSAA achieves a time gain of 70–90% for highly similar nucleotide sequences (with > 80% similarity), and 54–70% for sequences having 30–80% similarity.</p>
+</section><section id="mwAp0"><div><h2 id="Applications_outside_bioinformatics">Applications outside bioinformatics</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=13"><span>edit</span></a><span>]</span></span></div>
+<section id="mwAp4"><div><h3 id="Computer_stereo_vision">Computer stereo vision</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=14"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt71" typeof="mw:Transclusion" id="mwAp8" data-mw='{"parts":[{"template":{"target":{"wt":"Main","href":"./Template:Main"},"params":{"1":{"wt":"Computer stereo vision"}},"i":0}}]}'></span><div role="note" about="#mwt71" id="mwAqA">Main article: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Computer_stereo_vision">Computer stereo vision</a></div>
+<p id="mwAqE">Stereo matching is an essential step in the process of 3D reconstruction from a pair of stereo images. When images have been rectified, an analogy can be drawn between aligning nucleotide and protein sequences and matching <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pixels" id="mwAqI">pixels</a> belonging to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Scan_lines" id="mwAqM">scan lines</a>, since both tasks aim at establishing optimal correspondence between two strings of characters. </p>
+<p id="mwAqQ">Although in many applications image rectification can be performed, e.g. by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Camera_resectioning" id="mwAqU">camera resectioning</a> or calibration, it is sometimes impossible or impractical since the computational cost of accurate rectification models prohibit their usage in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Real-time_computing" id="mwAqY">real-time</a> applications. Moreover, none of these models is suitable when a camera lens displays unexpected <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Distortions" id="mwAqc">distortions</a>, such as those generated by raindrops, weatherproof covers or dust. By extending the Needleman–Wunsch algorithm, a line in the 'left' image can be associated to a curve in the 'right' image by finding the alignment with the highest score in a three-dimensional array (or matrix). Experiments demonstrated that such extension allows dense pixel matching between unrectified or distorted images.<sup about="#mwt75" id="cite_ref-10" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-10"}}'><a href="#cite_note-10" id="mwAqg"><span id="mwAqk"><span id="mwAqo">[</span>10<span id="mwAqs">]</span></span></a></sup></p>
+</section><section id="mwAqw"><div><h3 id="Artificial_neural_networks">Artificial neural networks</h3><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=15"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAq0">The Needleman–Wunsch algorithm has also been applied to the comparison of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Artificial_neural_network" id="mwAq4">artificial neural network</a> architectures. Inspired by how global sequence alignment identifies similarities in the aforementioned biological sequences, this approach represents neural networks as sequences of computational layers or blocks. By aligning these sequences, architectural similarity can be quantified in a principled manner.</p>
+<p id="mwAq8">This method has been successfully used in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Neural_architecture_search" id="mwArA">neural architecture search (NAS)</a>, particularly in approaches based on <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Evolutionary_algorithm" id="mwArE">evolutionary algorithms</a>. Architectural similarity can be assessed without requiring model training, enabling more efficient guidance of diversity during population-based search, preventing premature convergence.<sup about="#mwt78" id="cite_ref-11" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-11"}}'><a href="#cite_note-11" id="mwArI"><span id="mwArM"><span id="mwArQ">[</span>11<span id="mwArU">]</span></span></a></sup></p>
+</section></section><section id="mwArY"><div><h2 id="See_also">See also</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=16"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwArc"><li id="mwArg"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm" id="mwArk">Wagner–Fischer algorithm</a></li>
+<li id="mwAro"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smith–Waterman_algorithm" id="mwArs">Smith–Waterman algorithm</a></li>
+<li id="mwArw"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_mining" id="mwAr0">Sequence mining</a></li>
+<li id="mwAr4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance" id="mwAr8">Levenshtein distance</a></li>
+<li id="mwAsA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_time_warping" id="mwAsE">Dynamic time warping</a></li>
+<li id="mwAsI"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment" id="mwAsM">Sequence alignment</a></li></ul>
+</section><section id="mwAsQ"><div><h2 id="References">References</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=17"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt79" typeof="mw:Transclusion" id="mwAsU" data-mw='{"parts":[{"template":{"target":{"wt":"Reflist","href":"./Template:Reflist"},"params":{},"i":0}}]}'></span><div about="#mwt79" id="mwAsY">
+<div typeof="mw:Extension/references" about="#mwt81" id="mwAsc" data-mw='{"name":"references","attrs":{"group":"","responsive":"1"},"body":{"extsrc":""}}'><ol id="mwAsg"><li about="#cite_note-Needleman-1" id="cite_note-Needleman-1"><span rel="mw:referencedBy" id="mwAsk"><a href="#cite_ref-Needleman_1-0" id="mwAso"><span id="mwAss">1</span></a> <a href="#cite_ref-Needleman_1-1" id="mwAsw"><span id="mwAs0">2</span></a> <a href="#cite_ref-Needleman_1-2" id="mwAs4"><span id="mwAs8">3</span></a></span> <span id="mw-reference-text-cite_note-Needleman-1"><cite id="CITEREFNeedleman,_Saul_B.Wunsch,_Christian_D.1970" about="#mwt8">Needleman, Saul B. &amp; Wunsch, Christian D. (1970). "A general method applicable to the search for similarities in the amino acid sequence of two proteins". <i id="mwAtE">Journal of Molecular Biology</i>. <b id="mwAtI">48</b> (3): <span id="mwAtM">443–</span>53. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAtQ">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-2836%2870%2990057-4" id="mwAtU">10.1016/0022-2836(70)90057-4</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAtY">PMID</a><span typeof="mw:Entity" id="mwAtc"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/5420325" id="mwAtg">5420325</a>.</cite><span about="#mwt8" id="mwAtk"></span></span></li>
+<li about="#cite_note-2" id="cite_note-2"><span id="mwAto"><a href="#cite_ref-2" rel="mw:referencedBy" id="mwAts"><span id="mwAtw">↑</span></a></span> <span id="mw-reference-text-cite_note-2"><cite about="#mwt11" id="mwAt4"><a rel="mw:ExtLink nofollow" href="http://www.britannica.com/EBchecked/topic/1334661/bioinformatics/285871/Goals-of-bioinformatics#ref1115380" id="mwAt8">"bioinformatics"</a><span id="mwAuA">. Retrieved <span id="mwAuE">10 September</span> 2014</span>.</cite><span about="#mwt11" id="mwAuI"></span></span></li>
+<li about="#cite_note-:0-3" id="cite_note-:0-3"><span rel="mw:referencedBy" id="mwAuM"><a href="#cite_ref-:0_3-0" id="mwAuQ"><span id="mwAuU">1</span></a> <a href="#cite_ref-:0_3-1" id="mwAuY"><span id="mwAuc">2</span></a> <a href="#cite_ref-:0_3-2" id="mwAug"><span id="mwAuk">3</span></a></span> <span id="mw-reference-text-cite_note-:0-3"><cite id="CITEREFWing-Kin.2010" about="#mwt43">Wing-Kin., Sung (2010). <i id="mwAus">Algorithms in bioinformatics<span typeof="mw:DisplaySpace" id="mwAuw"> </span>: a practical introduction</i>. Boca Raton: Chapman &amp; Hall/CRC Press. pp.<span typeof="mw:Entity" id="mwAu0"> </span><span id="mwAu4">34–</span>35. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwAu8">ISBN</a><span typeof="mw:Entity" id="mwAvA"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/9781420070330" id="mwAvE"><bdi id="mwAvI">9781420070330</bdi></a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/OCLC_(identifier)" id="mwAvM">OCLC</a><span typeof="mw:Entity" id="mwAvQ"> </span><a rel="mw:ExtLink nofollow" href="https://search.worldcat.org/oclc/429634761" id="mwAvU">429634761</a>.</cite><span about="#mwt43" id="mwAvY"></span></span></li>
+<li about="#cite_note-4" id="cite_note-4"><span id="mwAvc"><a href="#cite_ref-4" rel="mw:referencedBy" id="mwAvg"><span id="mwAvk">↑</span></a></span> <span id="mw-reference-text-cite_note-4"><cite id="CITEREFMasekPaterson1980" about="#mwt48">Masek, William; Paterson, Michael (February 1980). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-0000%2880%2990002-1" id="mwAvs">"A faster algorithm computing string edit distances"</a>. <i id="mwAvw">Journal of Computer and System Sciences</i>. <b id="mwAv0">20</b>: <span id="mwAv4">18–</span>31. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAv8">doi</a>:<span id="mwAwA"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-0000%2880%2990002-1" id="mwAwE">10.1016/0022-0000(80)90002-1</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hdl_(identifier)" id="mwAwI">hdl</a>:<span id="mwAwM"><a rel="mw:ExtLink nofollow" href="https://hdl.handle.net/1721.1%2F148933" id="mwAwQ">1721.1/148933</a></span>.</cite><span about="#mwt48" id="mwAwU"></span></span></li>
+<li about="#cite_note-Sankoff-5" id="cite_note-Sankoff-5"><span id="mwAwY"><a href="#cite_ref-Sankoff_5-0" rel="mw:referencedBy" id="mwAwc"><span id="mwAwg">↑</span></a></span> <span id="mw-reference-text-cite_note-Sankoff-5"><cite id="CITEREFSankoff_D1972" about="#mwt56">Sankoff D (1972). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC427531" id="mwAwo">"Matching sequences under deletion/insertion constraints"</a>. <i id="mwAws">Proceedings of the National Academy of Sciences of the USA</i>. <b id="mwAww">69</b> (1): <span id="mwAw0">4–</span>6. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwAw4">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/1972PNAS...69....4S" id="mwAw8">1972PNAS...69....4S</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAxA">doi</a>:<span id="mwAxE"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1073%2Fpnas.69.1.4" id="mwAxI">10.1073/pnas.69.1.4</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwAxM">PMC</a><span typeof="mw:Entity" id="mwAxQ"> </span><span id="mwAxU"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC427531" id="mwAxY">427531</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAxc">PMID</a><span typeof="mw:Entity" id="mwAxg"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/4500555" id="mwAxk">4500555</a>.</cite><span about="#mwt56" id="mwAxo"></span></span></li>
+<li about="#cite_note-Vintsyuk-6" id="cite_note-Vintsyuk-6"><span id="mwAxs"><a href="#cite_ref-Vintsyuk_6-0" rel="mw:referencedBy" id="mwAxw"><span id="mwAx0">↑</span></a></span> <span id="mw-reference-text-cite_note-Vintsyuk-6"><cite id="CITEREFVintsyuk_TK1968" about="#mwt59">Vintsyuk TK (1968). "Speech discrimination by dynamic programming". <i id="mwAx8">Kibernetika</i>. <b id="mwAyA">4</b>: <span id="mwAyE">81–</span>88. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAyI">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2FBF01074755" id="mwAyM">10.1007/BF01074755</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwAyQ">S2CID</a><span typeof="mw:Entity" id="mwAyU"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:123081024" id="mwAyY">123081024</a>.</cite><span about="#mwt59" id="mwAyc"></span></span></li>
+<li about="#cite_note-WagnerFischer-7" id="cite_note-WagnerFischer-7"><span id="mwAyg"><a href="#cite_ref-WagnerFischer_7-0" rel="mw:referencedBy" id="mwAyk"><span id="mwAyo">↑</span></a></span> <span id="mw-reference-text-cite_note-WagnerFischer-7"><cite id="CITEREFWagnerFischer1974" about="#mwt62">Wagner RA, Fischer MJ (1974). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145%2F321796.321811" id="mwAyw">"The string-to-string correction problem"</a>. <i id="mwAy0"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_the_ACM" id="mwAy4">Journal of the ACM</a></i>. <b id="mwAy8">21</b> (1): <span id="mwAzA">168–</span>173. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAzE">doi</a>:<span id="mwAzI"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145%2F321796.321811" id="mwAzM">10.1145/321796.321811</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwAzQ">S2CID</a><span typeof="mw:Entity" id="mwAzU"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:13381535" id="mwAzY">13381535</a>.</cite><span about="#mwt62" id="mwAzc"></span></span></li>
+<li about="#cite_note-Sellers-8" id="cite_note-Sellers-8"><span id="mwAzg"><a href="#cite_ref-Sellers_8-0" rel="mw:referencedBy" id="mwAzk"><span id="mwAzo">↑</span></a></span> <span id="mw-reference-text-cite_note-Sellers-8"><cite id="CITEREFSellers_PH1974" about="#mwt65">Sellers PH (1974). "On the theory and computation of evolutionary distances". <i id="mwAzw">SIAM Journal on Applied Mathematics</i>. <b id="mwAz0">26</b> (4): <span id="mwAz4">787–</span>793. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAz8">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1137%2F0126070" id="mwA0A">10.1137/0126070</a>.</cite><span about="#mwt65" id="mwA0E"></span></span></li>
+<li about="#cite_note-9" id="cite_note-9"><span id="mwA0I"><a href="#cite_ref-9" rel="mw:referencedBy" id="mwA0M"><span id="mwA0Q">↑</span></a></span> <span id="mw-reference-text-cite_note-9"><cite id="CITEREFChakrabortyBandyopadhyay2013" about="#mwt68">Chakraborty, Angana; Bandyopadhyay, Sanghamitra (29 April 2013). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3638164" id="mwA0Y">"FOGSAA: Fast Optimal Global Sequence Alignment Algorithm"</a>. <i id="mwA0c">Scientific Reports</i>. <b id="mwA0g">3</b>: 1746. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwA0k">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/2013NatSR...3.1746C" id="mwA0o">2013NatSR...3.1746C</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA0s">doi</a>:<span id="mwA0w"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1038%2Fsrep01746" id="mwA00">10.1038/srep01746</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwA04">PMC</a><span typeof="mw:Entity" id="mwA08"> </span><span id="mwA1A"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3638164" id="mwA1E">3638164</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwA1I">PMID</a><span typeof="mw:Entity" id="mwA1M"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/23624407" id="mwA1Q">23624407</a>.</cite><span about="#mwt68" id="mwA1U"></span></span></li>
+<li about="#cite_note-10" id="cite_note-10"><span id="mwA1Y"><a href="#cite_ref-10" rel="mw:referencedBy" id="mwA1c"><span id="mwA1g">↑</span></a></span> <span id="mw-reference-text-cite_note-10"><cite id="CITEREFThevenon,_JMartinez-del-Rincon,_JDieny,_RNebel,_J-C2012" about="#mwt73">Thevenon, J; Martinez-del-Rincon, J; Dieny, R; Nebel, J-C (2012). <a rel="mw:ExtLink nofollow" href="https://www.researchgate.net/publication/257928290" id="mwA1o"><i id="mwA1s">Dense pixel matching between unrectified and distorted images using dynamic programming</i></a>. International Conference on Computer Vision Theory and Applications. Rome.</cite><span about="#mwt73" id="mwA1w"></span></span></li>
+<li about="#cite_note-11" id="cite_note-11"><span id="mwA10"><a href="#cite_ref-11" rel="mw:referencedBy" id="mwA14"><span id="mwA18">↑</span></a></span> <span id="mw-reference-text-cite_note-11"><cite id="CITEREFÁvila_Pava,_MGroh,_RKist,_A_M2024" about="#mwt76">Ávila Pava, M; Groh, R; Kist, A M (2024). <a rel="mw:ExtLink nofollow" href="https://proceedings.mlr.press/v256/pava24a.html" id="mwA2E"><i id="mwA2I">Sequence Alignment-based Similarity Metric in Evolutionary Neural Architecture Search</i></a>. International Conference on Automated Machine Learning (AutoML 2024). Paris.</cite><span about="#mwt76" id="mwA2M"></span></span></li>
+</ol></div></div>
+</section><section id="mwA2Q"><div><h2 id="External_links">External links</h2><span><span>[</span><a href="/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;action=edit&amp;section=18"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwA2U"><li id="mwA2Y"><a rel="mw:ExtLink nofollow" href="http://zhanglab.ccmb.med.umich.edu/NW-align" id="mwA2c">NW-align: A protein sequence-to-sequence alignment program by Needleman-Wunsch algorithm (online server and source code)</a></li>
+<li id="mwA2g"><a rel="mw:ExtLink nofollow" href="https://needleman-wunsch.com" id="mwA2k">A live demonstration of the algorithm</a></li></ul>
+<p id="mwA2o">
+<br id="mwA2s"/></p>
+<div about="#mwt82" typeof="mw:Transclusion" id="mwA2w" data-mw='{"parts":[{"template":{"target":{"wt":"Strings","href":"./Template:Strings"},"params":{},"i":0}}]}'><span></span></div><div role="navigation" about="#mwt82" id="mwA20"><table><tbody><tr><th scope="col" colspan="2"><span></span><div><ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Strings"><abbr>v</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template_talk:Strings"><abbr>t</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:EditPage/Template:Strings"><abbr>e</abbr></a></li></ul></div><div id="Strings1741"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_(computer_science)">Strings</a></div></th></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_metric">String metric</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Approximate_string_matching">Approximate string matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bitap_algorithm">Bitap algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance">Damerau–Levenshtein distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Edit_distance">Edit distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gestalt_pattern_matching">Gestalt pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_distance">Hamming distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Jaro–Winkler_distance">Jaro–Winkler distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lee_distance">Lee distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_automaton">Levenshtein automaton</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm">Wagner–Fischer algorithm </a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String-searching_algorithm">String-searching algorithm</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Apostolico–Giancarlo_algorithm">Apostolico–Giancarlo algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Boyer–Moore_string-search_algorithm">Boyer–Moore string-search algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Boyer–Moore–Horspool_algorithm">Boyer–Moore–Horspool algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Knuth–Morris–Pratt_algorithm">Knuth–Morris–Pratt algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rabin–Karp_algorithm">Rabin–Karp algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Raita_algorithm">Raita algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Trigram_search">Trigram search</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Two-way_string-matching_algorithm">Two-way string-matching algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zhu–Takaoka_string_matching_algorithm">Zhu–Takaoka string matching algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row">Multiple string searching</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Aho–Corasick_algorithm">Aho–Corasick</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Commentz-Walter_algorithm">Commentz-Walter algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Regular_expression">Regular expression</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Comparison_of_regular-expression_engines">Comparison of regular-expression engines</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Regular_grammar">Regular grammar</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thompson's_construction">Thompson's construction</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment">Sequence alignment</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLAST_(biotechnology)">BLAST</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hirschberg's_algorithm">Hirschberg's algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm">Needleman–Wunsch algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smith–Waterman_algorithm">Smith–Waterman algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_structure">Data structure</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton">DAFSA</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Substring_index">Substring index</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_array">Suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_automaton">Suffix automaton</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree">Suffix tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_suffix_array">Compressed suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array">LCP array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FM-index">FM-index</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Generalized_suffix_tree">Generalized suffix tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rope_(data_structure)">Rope</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ternary_search_tree">Ternary search tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Trie">Trie</a></li></ul>
+</div></td></tr><tr><th scope="row">Other</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Parsing">Parsing</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pattern_matching">Pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_pattern_matching">Compressed pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_subsequence">Longest common subsequence</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_substring">Longest common substring</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequential_pattern_mining">Sequential pattern mining</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:String_sorting_algorithms">Sorting</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Semi-Thue_system">String rewriting systems</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_operations">String operations</a></li></ul>
+</div></td></tr></tbody></table></div>
+<span about="#mwt87" typeof="mw:Transclusion" id="mwA24" data-mw='{"parts":[{"template":{"target":{"wt":"DEFAULTSORT:Needleman-Wunsch Algorithm","function":"defaultsort"},"params":{},"i":0}}]}'></span>
+</section>
+</div><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1"></noscript>
+<div>Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Needleman–Wunsch_algorithm&amp;oldid=1369642006">https://en.wikipedia.org/w/index.php?title=Needleman–Wunsch_algorithm&amp;oldid=1369642006</a>"</div></div>
+					<div id="catlinks"><div id="mw-normal-catlinks"><a href="/wiki/Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Bioinformatics_algorithms">Bioinformatics algorithms</a></li><li><a href="/wiki/Category:Sequence_alignment_algorithms">Sequence alignment algorithms</a></li><li><a href="/wiki/Category:Computational_phylogenetics">Computational phylogenetics</a></li><li><a href="/wiki/Category:Dynamic_programming">Dynamic programming</a></li></ul></div><div id="mw-hidden-catlinks">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:Wikipedia_articles_that_are_too_technical_from_September_2013">Wikipedia articles that are too technical from September 2013</a></li><li><a href="/wiki/Category:All_articles_that_are_too_technical">All articles that are too technical</a></li><li><a href="/wiki/Category:All_articles_with_failed_verification">All articles with failed verification</a></li><li><a href="/wiki/Category:Articles_with_failed_verification_from_October_2024">Articles with failed verification from October 2024</a></li><li><a href="/wiki/Category:Articles_with_example_pseudocode">Articles with example pseudocode</a></li></ul></div></div>
+				</div>
+			</main>
+		</div>
+		<div>
+			<footer id="footer" >
+				<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 16 August 2026, at 06:06<span>&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+				<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=Needleman%E2%80%93Wunsch_algorithm&amp;oldid=1369642006&amp;mobileaction=toggle_view_mobile">Mobile view</a></li>
+</ul>
+				<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/"><picture><source media="(min-width: 500px)" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><picture><source media="(min-width: 500px)" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25"></picture></a></li>
+</ul>
+			</footer>
+		</div>
+	</div>
+</div>
+<div>
+	<div id="vector-sticky-header">
+		<div>
+			<div>
+				<button tabindex="-1"><span></span>
+<span>Search</span>
+			</button>
+		</div>
+		<div role="search">
+			<div>
+				<div>
+					<form action="/w/index.php" id="vector-sticky-search-form">
+						<div  >
+							<div>
+								<input
+								 autocomplete="off"
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button>Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div>
+				<nav>
+					<div id="vector-sticky-header-toc"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button"    >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+						</label>
+						<div>
+						<div id="vector-sticky-header-toc-unpinned-container">
+						</div>
+						</div>
+					</div>
+			</nav>
+				<div ><span lang="en" dir="ltr"><span>Needleman–Wunsch algorithm</span></span></div>
+			</div>
+		</div>
+		<div>
+			<div>
+				<a href="#" id="ca-talk-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-subject-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-history-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-watchstar-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-ve-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-viewsource-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+		</div>
+			<div>
+				<button id="p-lang-btn-sticky-header" tabindex="-1"><span></span>
+<span>18 languages</span>
+			</button>
+			<a href="#" id="ca-addsection-sticky-header" tabindex="-1"><span></span>
+<span>Add topic</span>
+			</a>
+		</div>
+			<div>
+				<div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="p-dock-bottom">
+	<ul>
+	</ul>
+</div>
+</body>
+</html>

@@ -1,0 +1,61 @@
+{
+  "comment": "CI floors for tests/test_retrieval_eval.py on the fast sample (byax.evaluation.SAMPLES, 24 queries per library). Regenerate with: uv run python scripts/eval_retrieval.py --sample --configs keyword hybrid-fake --update-thresholds. A run fails when a metric drops more than the tolerance below its floor; raising a floor is a deliberate edit.",
+  "tolerance": {
+    "recall@5": 0.03,
+    "recall@20": 0.03,
+    "ndcg@10": 0.03,
+    "mrr": 0.03
+  },
+  "latency_p95_ms_max": {
+    "keyword": 2500,
+    "hybrid-fake": 5000
+  },
+  "floors": {
+    "keyword": {
+      "novel": {
+        "recall@5": 0.8636,
+        "recall@20": 0.8636,
+        "ndcg@10": 0.8636,
+        "mrr": 0.8636,
+        "queries": 24
+      },
+      "series": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9832,
+        "mrr": 0.9773,
+        "queries": 24
+      },
+      "humanities": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9832,
+        "mrr": 0.9773,
+        "queries": 24
+      },
+      "webclips": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9605,
+        "mrr": 0.947,
+        "queries": 24
+      },
+      "papers": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9832,
+        "mrr": 0.9773,
+        "queries": 24
+      }
+    },
+    "hybrid-fake": {
+      "papers": {
+        "recall@5": 0.9545,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9191,
+        "mrr": 0.8944,
+        "queries": 24
+      }
+    }
+  }
+}

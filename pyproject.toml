@@ -45,6 +45,8 @@ packages = ["src/byax"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["eval_models: retrieval evaluation against real embedding models (run with -m eval_models)"]
+addopts = "-m 'not eval_models'"
 
 [tool.ruff]
 line-length = 110
