@@ -1,6 +1,6 @@
 # ruff: noqa: BLE001
 # GUI event boundaries report errors rather than terminating the application.
-"""ByAuthorX native desktop application (Windows 11 / Ubuntu 24.04)."""
+"""ByAuthorX native desktop application (Windows 11 / Ubuntu 24.04 / macOS 13+ on Apple silicon)."""
 
 from __future__ import annotations
 
@@ -60,7 +60,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import __version__, engine, gui_a11y, model, storage
+from . import __version__, engine, gui_a11y, gui_platform, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
@@ -69,6 +69,7 @@ from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
+from .gui_onboarding import OnboardingPanels
 from .gui_ribbon import RibbonPanels
 from .gui_sync import SyncPanels
 from .gui_views import FileViews
@@ -98,7 +99,14 @@ class Worker(QRunnable):
 
 
 class MainWindow(
-    FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, SyncPanels, QMainWindow
+    FileViews,
+    WorkflowPanels,
+    WorkspacePanels,
+    RibbonPanels,
+    LibraryPanels,
+    SyncPanels,
+    OnboardingPanels,
+    QMainWindow,
 ):
     def __init__(self, path=None):
         super().__init__()
@@ -210,7 +218,8 @@ class MainWindow(
         self.recent_menu = menus['&File'].addMenu(self.tr('Recent documents'))
         self.update_recents()
         menus['&File'].addSeparator()
-        menus['&File'].addAction(self.action(self.tr('Quit'), self.close, QKeySequence.Quit))
+        self.quit_action = self.action(self.tr('Quit'), self.close, QKeySequence.Quit)
+        menus['&File'].addAction(self.quit_action)
         self.editor = SemanticEditor()
         self.editor.motion = self.motion
         self.editor.set_hand_marks(self.hand_marks)
@@ -495,10 +504,14 @@ class MainWindow(
             (self.tr('Document properties…'), self.document_properties, 'properties'),
             (self.tr('Document statistics'), self.statistics, 'statistics'),
         ]:
-            menus['&Tools'].addAction(self.action(title, slot, icon=icon))
+            tool_action = self.action(title, slot, icon=icon)
+            menus['&Tools'].addAction(tool_action)
+            if slot == self.provider_settings:
+                self.provider_settings_action = tool_action
         about = self.action(self.tr('About ByAuthorX'), self.about)
         about.setIcon(app_icon())  # the logo's own micro mark, never a redraw of it
         menus['&Help'].addAction(about)
+        gui_platform.apply_menu_roles(about, self.provider_settings_action, self.quit_action)
         self.outline = QTreeWidget()
         self.outline.setHeaderHidden(True)
         self.outline.setAccessibleName(self.tr('Document outline'))
@@ -598,6 +611,7 @@ class MainWindow(
         menus['F&ormat'].addAction(self.action(self.tr('Page masters…'), self.edit_page_masters))
         menus['&Review'].addAction(self.action(self.tr('Section profiles…'), self.edit_section_profiles))
         menus['&Help'].addAction(self.action(self.tr('Download updates…'), self.open_releases))
+        self.build_onboarding_menu(menus['&Help'])
         self.build_file_views(menus, workspace_layout)
         self.build_ribbon(menus)
         theme_menu = menus['&View'].addMenu(self.tr('Theme'))
@@ -3025,7 +3039,11 @@ class MainWindow(
             self.update_pages()
             self.view_label.setText(self.tr('Page preview'))
             if not self._active_tasks:
-                self.status_label.setText(self.tr('Print layout · Ctrl+Alt+L to return to writing'))
+                self.status_label.setText(
+                    self.tr('Print layout · %1 to return to writing').replace(
+                        '%1', gui_platform.native_keys('Ctrl+Alt+L')
+                    )
+                )
         else:
             self.stack.setCurrentIndex(0)
             self.editor.setFocus()
@@ -3538,8 +3556,14 @@ def main(argv=None):
     app.setOrganizationName('ByAuthorX')
     app.setStyle('Fusion')
     args = sys.argv[1:] if argv is None else argv
+    # Finder and the Dock deliver documents as events on macOS, possibly before the window exists.
+    opener = gui_platform.FileOpenFilter(app)
+    app.installEventFilter(opener)
     window = MainWindow(args[0] if args else None)
+    opener.attach(window.open_path)
     window.show()
+    if not args:
+        QTimer.singleShot(0, window.maybe_show_tour)
     return app.exec()
 
 

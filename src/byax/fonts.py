@@ -131,9 +131,14 @@ def resolve_font_file(family, bold=False, italic=False):
     import os
     import shutil
     import subprocess
+    import sys
 
     path = bundled_font_path(family, bold, italic)
-    if path is None and os.name == 'posix' and shutil.which('fc-match'):
+    if path is None and sys.platform == 'darwin':
+        from .platform_support import find_system_font
+
+        path = find_system_font(family, bold, italic)
+    elif path is None and os.name == 'posix' and shutil.which('fc-match'):
         pattern = f'{family}:weight={"bold" if bold else "regular"}:slant={"italic" if italic else "roman"}'
         result = subprocess.run(
             ['fc-match', '--format=%{file}', pattern], capture_output=True, timeout=5, check=False, text=True

@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Hardened runtime. Only what the application uses is enabled; see docs/packaging.md. -->
+  <!-- Dictation and audio import record from the microphone, after the person asks and macOS prompts. -->
+  <key>com.apple.security.device.audio-input</key>
+  <true/>
+  <!-- Outbound connections only: providers the person configured, linked-asset retrieval and the manual update check. -->
+  <key>com.apple.security.network.client</key>
+  <true/>
+  <!-- Deliberately absent: allow-jit, allow-unsigned-executable-memory and disable-library-validation.
+       Qt WebEngine and QtQuick (the parts of Qt that need a JIT) are excluded from the bundle. -->
+</dict>
+</plist>

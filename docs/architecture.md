@@ -31,7 +31,9 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `sync_safety`, `gui_sync` | Synced-folder detection, risk report, conflicted-copy discovery and merge-as-proposal (`engine.import_branch` + `propose_merge`), explicit archive of merged copies; the notice bar and review dialog |
-| `brand`, `resources/` | Bundled identity, fonts, tokens and baked UI art |
+| `platform_support`, `gui_platform` | Platform seams read at call time so tests can patch `sys.platform`: macOS font folders and scan, full fsync, lock identity (case and Unicode folding), best-effort parser limits; Finder open events, application-menu roles and native key names |
+| `updates`, `samples`, `gui_onboarding` | The one manual update request (GitHub Releases API, proxy-aware, never at startup), the bundled sample project and its safe copy, and the Help menu glue: first-run tour, sample, update check |
+| `brand`, `resources/` | Bundled identity, fonts, tokens and baked UI art; `resources/samples/` holds the generated sample project (`scripts/build_sample_project.py`) |
 
 ## Mutation and persistence
 

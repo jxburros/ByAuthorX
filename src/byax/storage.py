@@ -19,6 +19,7 @@ from platformdirs import user_cache_path
 
 from .errors import ByaxError
 from .model import SCHEMA_VERSION, new_id, validate_document
+from .platform_support import fsync_file, lock_identity
 
 MAX_PACKAGE_BYTES = 256 * 1024 * 1024
 MAX_MEMBER_BYTES = 64 * 1024 * 1024
@@ -84,7 +85,7 @@ class DocumentLock:
             else:
                 # Keep a stable inode across contenders. Unlinking a sidecar on
                 # release can let two processes lock different inodes for one file.
-                lock_key = hashlib.sha256(os.path.normcase(self.path).encode('utf-8')).hexdigest()
+                lock_key = hashlib.sha256(lock_identity(self.path).encode('utf-8')).hexdigest()
                 lock_path = user_cache_path('ByAuthorX') / 'locks' / (lock_key + '.lock')
                 lock_path.parent.mkdir(parents=True, exist_ok=True)
                 handle = open(lock_path, 'a+b')  # noqa: SIM115 -- held until DocumentLock.release across calls
@@ -444,7 +445,7 @@ def save_document(
                         info.external_attr = 0o600 << 16
                         archive.writestr(info, data)
                 stream.flush()
-                os.fsync(stream.fileno())
+                fsync_file(stream.fileno())
             _verify_written(tmp, members)
             if expected_stamp is not UNCHECKED and file_stamp(target) != expected_stamp:
                 raise ByaxError(
@@ -505,7 +506,7 @@ def _preserve_original(target, version):
             with os.fdopen(fd, 'wb') as stream:
                 stream.write(data)
                 stream.flush()
-                os.fsync(stream.fileno())
+                fsync_file(stream.fileno())
             os.replace(tmp, backup)
         finally:
             if os.path.exists(tmp):

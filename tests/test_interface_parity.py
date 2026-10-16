@@ -79,7 +79,8 @@ def test_inventory_covers_every_family_command_and_library_callable():
 
 
 def test_gui_labels_and_parity_document_match_inventory():
-    gui = (ROOT / 'src' / 'byax' / 'gui.py').read_text(encoding='utf-8')
+    # Menu entries may live in any of the focused gui_*.py modules, not only the main window.
+    gui = ''.join(p.read_text(encoding='utf-8') for p in sorted((ROOT / 'src' / 'byax').glob('gui*.py')))
     document = (ROOT / 'docs' / 'interface-parity.md').read_text(encoding='utf-8')
     for family, operation, cli, library, label in INTERFACE_INVENTORY:
         assert f'| {family} | {operation} |' in document, operation

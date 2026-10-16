@@ -53,11 +53,10 @@ def main(argv=None):
     args = sys.argv[1:] if argv is None else argv
     try:
         # A malicious archive/parser cannot grow without bound. Parent also enforces wall time.
-        if sys.platform != 'win32':
-            import resource
+        from .platform_support import apply_parser_limits
 
-            resource.setrlimit(resource.RLIMIT_AS, (768 * 1024**2, 768 * 1024**2))
-            resource.setrlimit(resource.RLIMIT_CPU, (30, 30))
+        # macOS may refuse or ignore RLIMIT_AS; the parent's wall-clock timeout still applies.
+        apply_parser_limits(768 * 1024**2, 30)
         value = {'passages': extract(args[0], int(args[1]))}
     except Exception as exc:  # noqa: BLE001 - isolated parser reports all malformed inputs
         value = {'error': str(exc)[:400]}

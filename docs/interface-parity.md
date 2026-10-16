@@ -14,6 +14,9 @@ document drifts from it.
 | Family | Operation | CLI | MCP tool | REST | Library | GUI |
 | --- | --- | --- | --- | --- | --- | --- |
 | Discovery | version | `byax version` | `byax_version` | `POST /v1/execute` | `byax.__version__` | Help > About ByAuthorX |
+| Discovery | update check | `byax version --check-updates` | `byax_version` (refused) | `POST /v1/execute` (refused) | `byax.updates.check_for_updates` | Help > Check for updates… |
+| Discovery | sample project | `byax sample` | `byax_sample` | `POST /v1/execute` | `byax.samples.install_sample` | Help > Open sample project |
+| Discovery | first-run tour | — (desktop) | — | — | `byax.gui_onboarding.TOUR_STEPS` | Help > Take the tour… |
 | Discovery | capabilities | `byax capabilities` | `byax_capabilities` | `POST /v1/execute` | `byax.providers.list_capabilities` | — (headless) |
 | Discovery | command schema | `byax schema` | `byax_schema` | `POST /v1/execute` | `byax.cli.command_schema` | — (headless) |
 | Discovery | operation schema | `byax schema --topic operations` | `byax_schema` | `POST /v1/execute` | `byax.engine.operation_schema` | — (headless) |
@@ -93,6 +96,10 @@ Known gaps (recorded rather than hidden):
   `review --action propose` / `apply` with explicit operations.
 - **Provider configuration** is refused over MCP and REST by design (`unsupported_feature`);
   configure aliases through the local CLI or desktop.
+- **Update checks** are refused over MCP and REST (`unsupported_feature`): the one network request a
+  version query can make happens only from the local CLI or desktop, on explicit request.
+  `sample` over MCP and REST requires `out` (a path inside the authorized roots).
+- **First-run tour** is desktop-only onboarding with no headless equivalent.
 
 ## One envelope everywhere
 

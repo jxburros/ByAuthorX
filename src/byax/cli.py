@@ -35,7 +35,7 @@ COMMANDS = {
     'collection': 'Inspect, export or apply reusable document settings',
     'dependencies': 'Inspect, explicitly refresh or embed linked assets',
     'view': 'Read a format projection and its located losses without changing the master',
-    'version': 'Engine and schema versions',
+    'version': 'Engine and schema versions; --check-updates makes one explicit GitHub Releases request',
     'capabilities': 'Discover supported features and provider adapters',
     'schema': 'Discover command or canonical operation schemas',
     'new': 'Create a native document',
@@ -67,6 +67,7 @@ COMMANDS = {
     'template-batch': 'Fill independent copies of a template from CSV field rows',
     'fonts': 'Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts',
     'sync': 'Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal',
+    'sample': 'Copy the bundled sample project to a folder you choose (never edits the bundled file)',
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
@@ -165,7 +166,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'allow_network': 'boolean',
     },
     'view': {'path': 'string', 'as': 'string', 'source': 'boolean'},
-    'version': {},
+    'version': {'check_updates': 'boolean'},
+    'sample': {'out': 'string'},
     'capabilities': {'topic': 'string'},
     'schema': {'topic': 'string'},
     'new': {'out': 'string', 'title': 'string', 'text': 'string', 'overwrite': 'boolean'},
@@ -680,14 +682,25 @@ def _cmd_view(a: Args, owner: str | None) -> Result:
 def _cmd_version(a: Args, owner: str | None) -> Result:
     from . import __version__
 
-    return envelope(
-        {
-            'engine_version': __version__,
-            'operation_schema_version': 1,
-            'offset_unit': 'unicode_scalar',
-            'range_end': 'exclusive',
-        }
-    )
+    result = {
+        'engine_version': __version__,
+        'operation_schema_version': 1,
+        'offset_unit': 'unicode_scalar',
+        'range_end': 'exclusive',
+    }
+    if a.get('check_updates'):
+        # The one place a version query touches the network, and only when asked for by name.
+        from .updates import check_for_updates
+
+        result['update_check'] = check_for_updates()
+    return envelope(result)
+
+
+def _cmd_sample(a: Args, owner: str | None) -> Result:
+    from .samples import install_sample
+
+    copied = install_sample(a.get('out'))
+    return envelope({'sample': copied}, outputs=[copied['path']])
 
 
 def _cmd_capabilities(a: Args, owner: str | None) -> Result:
@@ -1471,6 +1484,7 @@ _HANDLERS: dict[str, Handler] = {
     'fonts': _cmd_fonts,
     'project': project_command,
     'sync': sync_command,
+    'sample': _cmd_sample,
 }
 
 

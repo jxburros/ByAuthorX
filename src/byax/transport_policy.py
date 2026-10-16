@@ -51,6 +51,13 @@ def check_provider_admin(command, arguments):
             'unsupported_feature',
             'Retrieve document-linked files through the local CLI or desktop; transport path scope does not authorize embedded URIs',
         )
+    if command == 'version' and arguments.get('check_updates'):
+        raise ByaxError(
+            'unsupported_feature',
+            'Check for updates through the local CLI or desktop; automation does not reach out',
+        )
+    if command == 'sample' and not arguments.get('out'):
+        raise ByaxError('invalid_input', 'Name the output path for the sample project copy', field='out')
     if command == 'providers' and arguments.get('action') == 'configure':
         raise ByaxError('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
     if command == 'jobs' and arguments.get('action') == 'submit':
@@ -124,6 +131,15 @@ INTERFACE_INVENTORY = (
     ),
     ('Inspection', 'file view', 'view', 'byax.formats.project', 'View > File view'),
     ('Discovery', 'version', 'version', 'byax.__version__', 'Help > About ByAuthorX'),
+    (
+        'Discovery',
+        'update check',
+        'version --check-updates',
+        'byax.updates.check_for_updates',
+        'Help > Check for updates…',
+    ),
+    ('Discovery', 'sample project', 'sample', 'byax.samples.install_sample', 'Help > Open sample project'),
+    ('Discovery', 'first-run tour', None, 'byax.gui_onboarding.TOUR_STEPS', 'Help > Take the tour…'),
     ('Discovery', 'capabilities', 'capabilities', 'byax.providers.list_capabilities', None),
     ('Discovery', 'command schema', 'schema', 'byax.cli.command_schema', None),
     ('Discovery', 'operation schema', 'schema --topic operations', 'byax.engine.operation_schema', None),

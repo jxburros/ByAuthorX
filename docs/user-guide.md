@@ -10,10 +10,31 @@ computer (see [providers](providers.md)).
 ## Install
 
 Installers are attached to each [GitHub release](https://github.com/jxburros/ByAuthorX/releases):
-a Windows 11 x64 setup program and an Ubuntu 24.04 x64 `.deb`. They are unsigned, so Windows
-SmartScreen warns on first run. Ubuntu: `sudo apt install ./byauthorx_<version>_amd64.deb`.
-To run from source see the [README](../README.md#run-from-source). **Help → Download updates**
-only opens the releases page; the app never updates itself.
+a Windows 11 x64 setup program, an Ubuntu 24.04 x64 `.deb` and a macOS `.dmg` for Apple silicon
+(macOS 14 or later). The release notes say, per file, whether it is signed. Unsigned files make
+Windows SmartScreen or macOS Gatekeeper warn on first run; see
+[troubleshooting](troubleshooting.md#macos-gatekeeper-says-the-app-cannot-be-opened). Ubuntu:
+`sudo apt install ./byauthorx_<version>_amd64.deb`. macOS: open the `.dmg` and drag ByAuthorX to
+Applications. To run from source see the [README](../README.md#run-from-source).
+
+## Your first minutes
+
+- **The tour.** The first time ByAuthorX starts, a short tour (six steps) explains styles, the outline,
+  proposals, checks and citations. Use **Next** and **Back** or the arrow keys, **Skip tour** or Escape
+  to leave, and tick **Don't show this tour again** to stop it ever returning (a future, different tour
+  would otherwise be offered once). Reopen it any time with **Help → Take the tour…**. With reduced
+  motion on (**View → Reduce motion**, your system preference, or `BYAX_REDUCED_MOTION=1`) steps swap
+  without any fade.
+- **The sample project.** **Help → Open sample project** copies a small manuscript, *The Lamp at
+  Harrow Point*, into `Documents/ByAuthorX` and opens the copy. It has named styles (including one it
+  defines), a binder with chapters, scenes and a note, a pending proposal from a reviewer, a comment, a
+  citation that points at a source record, and a clean recorded check. The bundled original is never
+  opened for editing, so change anything you like; asking again makes another copy and never replaces
+  one you edited. From the command line: `byax sample --out practice.byax`.
+- **Updates.** ByAuthorX never looks for updates by itself. **Help → Check for updates…** makes one
+  request to GitHub's releases API when you click it, tells you whether a newer version exists and links
+  to the release page; it downloads and installs nothing. Remove the menu item with **Help → Show
+  "Check for updates" in this menu**. **Help → Download updates…** only opens the releases page in your browser.
 
 ## The window
 
@@ -254,7 +275,9 @@ literally and shows any matches. See the
 
 ## Keyboard and accessibility
 
-Controls are native, with accessible names; motion respects **View → Reduce motion**, system
+Controls are native, with accessible names. Shortcuts written Ctrl+… in this guide are Cmd+… on macOS
+(Qt translates them); the application, preferences and quit entries sit in the macOS application menu.
+Motion respects **View → Reduce motion**, system
 preferences and `BYAX_REDUCED_MOTION=1`. No screen-reader or WCAG certification is claimed; see
 the [accessibility audit](accessibility-audit.md).
 

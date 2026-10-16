@@ -58,7 +58,7 @@ command's flags.
 | `collection` | Inspect, export or apply reusable document settings |
 | `dependencies` | Inspect, explicitly refresh or embed linked assets |
 | `view` | Read a format projection and its located losses without changing the master |
-| `version` | Engine and schema versions |
+| `version` | Engine and schema versions. `--check-updates` makes **one** explicit request to the GitHub Releases API and adds `update_check` (status, latest version, release link); without the flag nothing touches the network. Refused over MCP and REST; disabled by `BYAX_DISABLE_UPDATE_CHECK=1` |
 | `capabilities` | Discover supported features and provider adapters |
 | `schema` | Discover command or canonical operation schemas |
 | `new` | Create a native document |
@@ -91,6 +91,7 @@ command's flags.
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
 | `project` | List, reorder, split, merge and annotate manuscript binder items |
 | `sync` | Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal |
+| `sample` | Copy the bundled sample project (`--out` a `.byax` path or a folder; default: your Documents/ByAuthorX folder) and never edit the bundled file. Over MCP and REST `--out` is required |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -282,6 +283,8 @@ desktop confirmation (see [architecture](architecture.md#mutation-and-persistenc
 | `BYAX_SERVICE_TOKEN` | `byax serve` | Bearer token (at least 24 random characters). Rename with `--token-env`. |
 | `BYAX_LIBREOFFICE` | legacy `.doc` import | Absolute path of the LibreOffice executable to use for conversion. Unset means `.doc` is not converted. |
 | `BYAX_REDUCED_MOTION` | desktop | `1` disables all animation. |
+| `BYAX_DISABLE_UPDATE_CHECK` | desktop, `version --check-updates` | `1` removes Help → Check for updates and refuses the CLI flag (managed desktops). |
+| `BYAX_NO_TOUR` | desktop | `1` suppresses the first-run tour; Help → Take the tour still opens it. |
 | `QT_QPA_PLATFORM` | rendering, tests | Set `offscreen` for headless PNG/PDF rendering and tests. |
 
 Provider keys are referenced as `env:NAME` or stored in the OS credential store; see

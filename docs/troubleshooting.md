@@ -40,8 +40,38 @@ The installer adds its directory to your *user* PATH. Open a new terminal.
 
 ## Windows: SmartScreen warning
 
-Installers are unsigned. Choose *More info → Run anyway* only for builds you downloaded from the
-project's GitHub Releases and verified against `SHA256SUMS.txt`.
+Unless the release notes' "Signing status" says the installer is `signed`, it is unsigned. Choose
+*More info → Run anyway* only for builds you downloaded from the project's GitHub Releases and verified
+against `SHA256SUMS.txt` (`Get-FileHash -Algorithm SHA256 <file>`). A newly signed installer can still
+warn until SmartScreen has seen enough downloads.
+
+## macOS: Gatekeeper says the app cannot be opened
+
+A `.dmg` named `...-UNSIGNED.dmg` (or `-NOT-NOTARIZED`) has no Apple Developer ID signature or
+notarization ticket, so Gatekeeper blocks it ("cannot be opened because the developer cannot be verified",
+or "is damaged" for a quarantined download). First verify the download: `shasum -a 256 <file>.dmg` must
+match `SHA256SUMS.txt` on the release. Then drag ByAuthorX to Applications and either Control-click it and
+choose *Open* twice, or on macOS 15 and later try to open it once and use *System Settings → Privacy &
+Security → Open Anyway*, or run `xattr -dr com.apple.quarantine /Applications/ByAuthorX.app`. Do this
+only for builds from the project's GitHub Releases. The same steps are in the `READ ME FIRST` file inside
+the unsigned image. The first time you store or use a provider key, macOS asks whether ByAuthorX may use
+the Keychain; the first time you dictate it asks for the microphone (System Settings → Privacy &
+Security → Microphone if you declined). The `byax` command is inside the app:
+`ln -s /Applications/ByAuthorX.app/Contents/MacOS/byax /usr/local/bin/byax`. Apple silicon only; Intel
+Macs are not supported yet.
+
+## Check for updates fails
+
+The check makes one request to `api.github.com` and nothing else. "Could not reach GitHub" means the
+network or a proxy blocked it: set `HTTPS_PROXY` (and `NO_PROXY` if needed) the way your other tools
+expect, or open **Help → Download updates…** to look at the releases page in a browser. "Rate limiting"
+means GitHub is throttling your address; wait and try again. If the menu item is missing, either
+**Help → Show "Check for updates" in this menu** is unticked or `BYAX_DISABLE_UPDATE_CHECK=1` is set.
+
+## The tour keeps appearing, or never appears
+
+The tour is shown once per tour version, remembered in the application's local settings. Tick *Don't
+show this tour again*, or set `BYAX_NO_TOUR=1`, to stop it. **Help → Take the tour…** always opens it.
 
 ## `.doc` files will not import
 

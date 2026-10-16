@@ -76,6 +76,12 @@ cancellation and prompt Qt window teardown reduce repeated work; documentation/a
   tests described in [architecture](architecture.md#format-versions-and-migration).
 - **Export format change** – report every loss; update [compatibility](compatibility.md) and the acceptance matrix.
 - **Screens/branding** – rerun `scripts/capture_screens.py` and review the PNGs in `docs/images`.
+- **Sample project** – after any change to the document model or operations that alters what the bundled sample
+  contains (schema bump, default styles, check rules), run `uv run python scripts/build_sample_project.py` and commit
+  the regenerated `src/byax/resources/samples/sample-project.byax`; `tests/test_onboarding.py` fails when it is stale.
+- **Platform code** – read `sys.platform` when called (see `platform_support.py`) so tests can monkeypatch it, and
+  cover each branch without a second machine. macOS-only behaviour that cannot be unit tested goes on the
+  pending-verification list in the acceptance matrix.
 - **Release** – follow [packaging](packaging.md#cutting-a-release); `tests/test_release_metadata.py` enforces matching
   versions and a changelog entry.
 

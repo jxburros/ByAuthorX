@@ -35,15 +35,144 @@ jobs:
     name: Build and test
     needs: verify
     uses: ./.github/workflows/ci.yml
+  # Signing is optional and driven only by repository secrets (docs/packaging.md, "Signing and
+  # notarization"). Without them every job below still runs and produces a clearly labelled unsigned
+  # file; nothing is ever signed with a placeholder.
+  windows-sign:
+    name: Windows installer (signed when a certificate exists)
+    needs: ci
+    runs-on: windows-2022
+    timeout-minutes: 20
+    env:
+      WINDOWS_CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
+      WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: ByAuthorX-windows-2022-x64
+          path: installer
+      - name: Sign the installer with signtool (PFX certificate)
+        shell: pwsh
+        run: |
+          $installer = Get-ChildItem installer -Filter '*-windows-x64-setup.exe' | Select-Object -First 1
+          if (-not $installer) { throw 'No Windows installer artifact found' }
+          New-Item -ItemType Directory -Force release | Out-Null
+          if ($env:WINDOWS_CERTIFICATE_PFX -and $env:WINDOWS_CERTIFICATE_PASSWORD) {
+            $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
+            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_PFX))
+            $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+              Sort-Object FullName | Select-Object -Last 1
+            & $signtool.FullName sign /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "ByAuthorX" $installer.FullName
+            if ($LASTEXITCODE -ne 0) { throw 'signtool sign failed' }
+            & $signtool.FullName verify /pa /v $installer.FullName
+            if ($LASTEXITCODE -ne 0) { throw 'signtool verify failed' }
+            Remove-Item $pfx
+            Set-Content release/signing-status-windows.txt 'signed'
+          } else {
+            Write-Warning 'No WINDOWS_CERTIFICATE_PFX secret: publishing the installer unsigned.'
+            Set-Content release/signing-status-windows.txt 'unsigned'
+          }
+          Copy-Item $installer.FullName release/
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: release/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
+  macos:
+    name: macOS disk image (signed and notarized when secrets exist)
+    needs: ci
+    runs-on: macos-14
+    timeout-minutes: 60
+    env:
+      APPLE_CERTIFICATE_P12: ${{ secrets.APPLE_CERTIFICATE_P12 }}
+      APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+      APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      APPLE_ID: ${{ secrets.APPLE_ID }}
+      APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          python-version: '3.12'
+      - run: uv sync --frozen --extra dev
+      - name: Are all five Apple signing secrets present?
+        id: apple
+        run: |
+          if [ -n "$APPLE_CERTIFICATE_P12" ] && [ -n "$APPLE_CERTIFICATE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] \
+             && [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ]; then
+            echo "sign=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "sign=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::Apple signing secrets are incomplete: building an UNSIGNED disk image."
+          fi
+      - name: Import the Developer ID certificate into a temporary keychain
+        id: keychain
+        if: steps.apple.outputs.sign == 'true'
+        run: |
+          keychain="$RUNNER_TEMP/byax-signing.keychain-db"
+          password="$(uuidgen)"
+          echo "$APPLE_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+          security create-keychain -p "$password" "$keychain"
+          security set-keychain-settings -lut 21600 "$keychain"
+          security unlock-keychain -p "$password" "$keychain"
+          security import "$RUNNER_TEMP/certificate.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+          security set-key-partition-list -S apple-tool:,apple: -k "$password" "$keychain"
+          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+          rm -f "$RUNNER_TEMP/certificate.p12"
+          identity="$(security find-identity -v -p codesigning "$keychain" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/')"
+          if [ -z "$identity" ]; then
+            echo "::error::No Developer ID Application identity in the certificate"
+            exit 1
+          fi
+          echo "keychain=$keychain" >> "$GITHUB_OUTPUT"
+          echo "identity=$identity" >> "$GITHUB_OUTPUT"
+      - name: Build, sign (hardened runtime) and notarize
+        if: steps.apple.outputs.sign == 'true'
+        env:
+          APPLE_SIGNING_IDENTITY: ${{ steps.keychain.outputs.identity }}
+          APPLE_KEYCHAIN: ${{ steps.keychain.outputs.keychain }}
+        run: uv run --no-sync python scripts/build_macos.py --dmg --notarize
+      - name: Build an unsigned, labelled disk image
+        if: steps.apple.outputs.sign != 'true'
+        run: uv run --no-sync python scripts/build_macos.py --dmg
+      - name: Smoke test the frozen CLI and MCP server inside the app
+        run: uv run --no-sync python scripts/smoke_distribution.py dist/ByAuthorX.app/Contents/MacOS/byax dist/ByAuthorX.app/Contents/MacOS/byax-mcp
+      - name: Gatekeeper assessment
+        if: steps.apple.outputs.sign == 'true'
+        run: |
+          spctl --assess --type exec --verbose=2 dist/ByAuthorX.app
+          xcrun stapler validate dist/*.dmg
+      - name: Record signing status
+        run: |
+          mkdir release
+          cp dist/*.dmg release/
+          if [ "${{ steps.apple.outputs.sign }}" = "true" ]; then
+            echo signed > release/signing-status-macos.txt
+          else
+            echo unsigned > release/signing-status-macos.txt
+          fi
+          ls -l release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: release/*
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 7
   publish:
     name: Publish GitHub Release
-    needs: ci
+    needs: [ci, windows-sign, macos]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/download-artifact@v4
@@ -52,14 +181,38 @@ jobs:
       - name: Collect installers and checksums
         run: |
           mkdir release
-          find artifacts \( -name '*_amd64.deb' -o -name '*-windows-x64-setup.exe' \) -exec cp {} release/ \;
+          find artifacts/ByAuthorX-ubuntu-24.04-x64 -name '*_amd64.deb' -exec cp {} release/ \;
+          find artifacts/release-windows -name '*-windows-x64-setup.exe' -exec cp {} release/ \;
+          find artifacts/release-macos -name '*.dmg' -exec cp {} release/ \;
           ls -l release
-          if [ "$(ls release | wc -l)" -ne 2 ]; then
-            echo "::error::Expected exactly one .deb and one Windows installer"
+          if [ "$(ls release | wc -l)" -ne 3 ]; then
+            echo "::error::Expected exactly one .deb, one Windows installer and one macOS disk image"
             exit 1
           fi
           (cd release && sha256sum * > SHA256SUMS.txt)
           cat release/SHA256SUMS.txt
+      - name: Sign the checksums and the Ubuntu package with GPG (when a key exists)
+        run: |
+          if [ -z "$GPG_PRIVATE_KEY" ]; then
+            echo "::warning::No GPG_PRIVATE_KEY secret: the Ubuntu package and checksums are published unsigned."
+            echo unsigned > signing-status-linux.txt
+            exit 0
+          fi
+          export GNUPGHOME="$(mktemp -d)"
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          key="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')"
+          gpg_sign=(gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --local-user "$key")
+          # dpkg-sig embeds a signature in the .deb itself; it is optional and skipped where unavailable.
+          if sudo apt-get install -y --no-install-recommends dpkg-sig > /dev/null 2>&1; then
+            for deb in release/*.deb; do
+              dpkg-sig --gpg-options "--batch --pinentry-mode loopback --passphrase $GPG_PASSPHRASE" -k "$key" --sign builder "$deb"
+            done
+          fi
+          # The checksums are computed after dpkg-sig rewrote the package, then signed (detached).
+          (cd release && sha256sum *.deb *.exe *.dmg > SHA256SUMS.txt && "${gpg_sign[@]}" --armor --detach-sign --output SHA256SUMS.txt.asc SHA256SUMS.txt)
+          gpg --armor --export "$key" > release/byauthorx-release-key.asc
+          gpg --verify release/SHA256SUMS.txt.asc release/SHA256SUMS.txt
+          echo "signed ($key)" > signing-status-linux.txt
       - name: Release notes from the changelog
         run: |
           version="${GITHUB_REF_NAME#v}"
@@ -74,6 +227,16 @@ jobs:
             exit 1
           fi
           printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt`.\n' >> release-notes.md
+          {
+            echo
+            echo '### Signing status'
+            echo
+            echo "- Windows installer: $(cat artifacts/release-windows/signing-status-windows.txt)"
+            echo "- macOS disk image: $(cat artifacts/release-macos/signing-status-macos.txt)"
+            echo "- Ubuntu package and checksums: $(cat signing-status-linux.txt 2>/dev/null || echo unsigned)"
+            echo
+            echo 'An unsigned file makes the operating system warn on first run. Verify it against SHA256SUMS.txt first; see the troubleshooting guide.'
+          } >> release-notes.md
           cat release-notes.md
       - name: Publish the release
         run: |
