@@ -301,3 +301,33 @@ always AI-visible view for model clients. All lists are bounded with `offset` co
 | Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
 | Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
+
+## Assistant routing, inspector and grounding tools
+
+`route` (`byax_route`) explains the route the assistant would take for a request (R0–R4, the
+reason, every rule that ran, the privacy outcome and the context-size thresholds) without calling
+any model; `--inspect` also assembles the context locally and returns the "What the AI saw" payload
+(each item with tokens, score source, library, local or remote, and everything dropped by budget or
+policy). `outline` (`byax_outline`) exposes the outline parameters of `inspect` (`--depth`,
+`--counts`, `--binder`). `verify-citations` (`byax_verify_citations`) returns grounding records for
+a reply, checked against the text the attached library index or the open document holds (never text
+sent with the request), or, without `--reply`, the document's citation audit. These three are
+read-only. `summaries` builds chapter and book summaries only when asked, with the named provider and
+the usual remote authorization (`--allow-remote`); summaries stay in the user cache, and
+`propose-synopsis` records a pending proposal. None of these commands configures libraries,
+embeddings or providers. Every list is bounded with `offset` continuations.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Providers | assistant route | `byax route --request TEXT` | `byax_route` | `POST /v1/execute` | `byax.router.decide` | AI tab > What the AI saw |
+| Providers | what the AI saw (inspector) | `byax route --request TEXT --inspect` | `byax_route` | `POST /v1/execute` | `byax.context_assembly.inspector_payload` | AI tab > What the AI saw |
+| Providers | routed context assembly | `byax route --request TEXT --inspect` | `byax_route` | `POST /v1/execute` | `byax.context_assembly.assemble` | AI tab > What the AI saw |
+| Providers | research log export | — (desktop) | — | — | `byax.research_log.export_conversation` | AI tab > Export conversation… |
+| Inspection | outline with counts and binder | `byax outline --counts --binder` | `byax_outline` | `POST /v1/execute` | `byax.outline.outline` | View > Outline |
+| Checks | verify reply citations | `byax verify-citations --reply TEXT` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding.ground_reply` | AI tab (citation chips) |
+| Checks | citation audit (read only) | `byax verify-citations` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding.audit_citations` | Inspector > Checks |
+| Providers | chapter summaries status | `byax summaries --action status` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.status` | AI tab > Build chapter summaries… |
+| Providers | build chapter summaries | `byax summaries --action build --alias A` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.build` | AI tab > Build chapter summaries… |
+| Inspection | show chapter summaries | `byax summaries --action show` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.collected` | — (headless) |
+| Review | summary as synopsis proposal | `byax summaries --action propose-synopsis --target ITEM` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.synopsis_proposal` | AI tab > Build chapter summaries… |
+| Files | clear cached summaries | `byax summaries --action clear` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.SummaryCache.clear` | — (headless) |

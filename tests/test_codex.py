@@ -360,7 +360,6 @@ def test_cli_context_and_transport_tools_hide_codex_data(tmp_path):
 def test_gui_assistant_context_is_redacted(qtbot, monkeypatch, tmp_path):
     from PySide6.QtCore import QSettings
 
-    from byax import gui_ai
     from byax.gui import MainWindow
 
     settings = QSettings(str(tmp_path / 'codex.ini'), QSettings.IniFormat)
@@ -370,13 +369,13 @@ def test_gui_assistant_context_is_redacted(qtbot, monkeypatch, tmp_path):
     qtbot.addWidget(window)
     window.doc = manuscript()
     window.refresh()
-    real = gui_ai.engine.context
+    real = engine.context
 
     def leaky(doc, **kwargs):
         # A context builder that (wrongly) carried the codex must still be redacted.
         return dict(real(doc, **kwargs), codex=copy.deepcopy(doc['codex']))
 
-    monkeypatch.setattr(gui_ai.engine, 'context', leaky)
+    monkeypatch.setattr(engine, 'context', leaky)
     context = window.ai_panel.context(copy.deepcopy(window.doc))
     _payload_has_no_hidden_data(context)
     assert 'cx_eliz' in context['codex']['entries']

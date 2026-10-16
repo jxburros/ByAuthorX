@@ -1019,6 +1019,7 @@ class ProviderRegistry:
             },
             'prompt_layout': {'order': layout['order'], 'slots': layout['slots'], 'native_citations': native},
             'cost': None,
+            'cost_estimate': estimate_cost(config, usage),
             'input_hash': hashlib.sha256(
                 json.dumps(body, sort_keys=True, ensure_ascii=False).encode()
             ).hexdigest(),
@@ -2094,6 +2095,10 @@ def validate_proposed_edits(edits, context):
                 collect(child)
 
     collect(context.get('blocks', []))
+    # Route R4 sends the whole text as the manuscript snapshot (stable prompt prefix) instead.
+    snapshot = context.get('manuscript_snapshot')
+    if isinstance(snapshot, dict):
+        collect(snapshot.get('blocks', []))
     intervals, proposals = {}, []
     required = {'target', 'start', 'end', 'expected_text', 'replacement'}
     for edit in edits:

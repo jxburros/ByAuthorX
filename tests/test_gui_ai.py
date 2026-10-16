@@ -155,8 +155,13 @@ EDIT_REPLY = {
 }
 
 
+def document_blocks(context):
+    """Blocks the request carried: the selection's blocks, or (route R4) the manuscript snapshot."""
+    return context.get('blocks') or context['manuscript_snapshot']['blocks']
+
+
 def model_edit_output(context):
-    edit = dict(EDIT_REPLY['proposed_edits'][0], target=context['blocks'][0]['id'])
+    edit = dict(EDIT_REPLY['proposed_edits'][0], target=document_blocks(context)[0]['id'])
     return json.dumps({**EDIT_REPLY, 'proposed_edits': [edit]})
 
 
@@ -179,7 +184,8 @@ def test_chat_mode_never_commits_even_if_model_returns_edits(window, qtbot, monk
     panel.send()
     qtbot.waitUntil(lambda: panel._pending is None)
     assert calls[0]['mode'] == 'chat'
-    assert calls[0]['context']['blocks'][0]['text'].startswith('The quick')
+    # No selection and a document that fits the model: route R4 sends it whole as the snapshot.
+    assert document_blocks(calls[0]['context'])[0]['text'].startswith('The quick')
     assert committed == []
     assert window.doc == original
     assert panel.messages[-1] == {'role': 'assistant', 'content': 'Here is a thought.'}
