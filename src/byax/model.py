@@ -14,7 +14,7 @@ _SURROGATE = regex.compile('[\ud800-\udfff]')
 BLOCK_TYPES = {'paragraph', 'heading', 'table', 'image', 'page_break', 'section_break', 'toc', 'footnote'}
 # Current document schema. Older supported versions are upgraded by explicit
 # transitions in ``migration``; newer versions are rejected without rewriting.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 STYLE_KINDS = ('paragraph', 'character')
 DEPENDENCY_POLICIES = ('link', 'embedded')
 DEPENDENCY_STATUSES = ('unresolved', 'current', 'changed', 'missing', 'embedded')
@@ -210,6 +210,10 @@ def validate_document(doc, *, include_history=True):
                 boundaries = {0} | {m.end() for m in regex.finditer(r'\X', b.get('text', ''))}
             if mark['start'] not in boundaries or mark['end'] not in boundaries:
                 fail('Text mark cannot split a grapheme cluster.', path + '.marks')
+            if mark['type'] == 'citation' and any(
+                not isinstance(mark.get(key, ''), str) for key in ('prefix', 'suffix')
+            ):
+                fail('Citation prefix and suffix must be text.', path + '.marks')
         if b['type'] == 'table':
             rows = b.get('rows')
             if not isinstance(rows, list) or not rows:
@@ -269,6 +273,9 @@ def validate_document(doc, *, include_history=True):
     ):
         fail('Margins require finite nonnegative measurements.', 'layout.margins')
     validate_layout_extensions(doc, fail)
+    from .project import validate_project
+
+    validate_project(doc, fail)
     history = doc['history']
     if (
         not isinstance(history.get('revisions'), list)

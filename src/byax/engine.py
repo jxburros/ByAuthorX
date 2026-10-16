@@ -11,7 +11,7 @@ from typing import Any, NoReturn
 
 import regex as unicode_regex
 
-from . import anchors, formatting
+from . import anchors, formatting, project
 from .checks import run_checks
 from .compare import compare as semantic_compare
 from .compare import plan_merge
@@ -113,6 +113,8 @@ OP_SCHEMAS.update(
         'remove_reference': ('id', ''),
     }
 )
+# Manuscript project (binder) operations; handlers live in ``project``.
+OP_SCHEMAS.update(project.OP_SCHEMAS)
 # Source corrections stay separate from document corrections (spec 13.2).
 SOURCE_OPERATIONS = {'add_reference', 'remove_reference'}
 CONTENT_OPERATIONS = {
@@ -139,6 +141,7 @@ CONTENT_OPERATIONS = {
     'place_image',
     'apply_repair',
 }
+CONTENT_OPERATIONS |= project.CONTENT_OPERATIONS
 
 
 def operation_schema() -> dict[str, Any]:
@@ -444,10 +447,8 @@ def _section_end(blocks, start):
     )
 
 
-def _move_section(doc, op):
-    heading = _target(doc, op)
-    if heading.get('type') != 'heading' or heading not in doc['blocks']:
-        _error('Section target must be a heading.', 'target')
+def _section_members(doc, heading):
+    """IDs of a heading's section, plus blocks explicitly anchored to it elsewhere."""
     blocks = doc['blocks']
     start = blocks.index(heading)
     members = {b['id'] for b in blocks[start : _section_end(blocks, start)]}
@@ -468,14 +469,34 @@ def _move_section(doc, op):
                 members.add(block['id'])
         if len(members) == old_count:
             break
+    return members
+
+
+def _move_section(doc, op, *, before=None, inside=None):
+    """Move a heading's section after a block (default), before a heading or to the end of one.
+
+    ``before`` and ``inside`` are internal placements used by binder moves.
+    """
+    heading = _target(doc, op)
+    if heading.get('type') != 'heading' or heading not in doc['blocks']:
+        _error('Section target must be a heading.', 'target')
+    blocks = doc['blocks']
+    members = _section_members(doc, heading)
     after = op.get('after')
-    if after in members:
-        raise ByaxError('conflict', 'A section cannot be moved inside itself.', target=after)
+    for anchor in (after, before, inside):
+        if anchor in members:
+            raise ByaxError('conflict', 'A section cannot be moved inside itself.', target=anchor)
     moving = [b for b in blocks if b['id'] in members]
     for block in moving:
         _target(doc, {'target': block['id']})
     retained = [b for b in blocks if b['id'] not in members]
-    if after is None:
+    if before is not None or inside is not None:
+        anchor = before if before is not None else inside
+        destination = next((i for i, b in enumerate(retained) if b['id'] == anchor), None)
+        if destination is None:
+            raise ByaxError('missing_target', 'Section destination does not exist.', target=anchor)
+        insertion = destination if before is not None else _section_end(retained, destination)
+    elif after is None:
         insertion = len(retained)
     else:
         destination = next((i for i, b in enumerate(retained) if b['id'] == after), None)
@@ -1114,6 +1135,17 @@ def _plan_edits(doc, operations, explicit=None, existing=None):
     return edits
 
 
+def _find_reviewable(doc, target):
+    """A body object, or a binder item (``project_*`` operations target item IDs)."""
+    try:
+        return find_object(doc, target)
+    except ByaxError:
+        item = project.find_item(doc, target)
+        if item is None:
+            raise
+        return item
+
+
 def _register_proposal(doc, values, base_revision, *, allow_empty=False):
     values = copy.deepcopy(values)
     operations = values.get('operations')
@@ -1155,7 +1187,7 @@ def _register_proposal(doc, values, base_revision, *, allow_empty=False):
     preconditions = {}
     for target in sorted(target_ids):
         try:
-            preconditions[target] = object_hash(find_object(doc, target))
+            preconditions[target] = object_hash(_find_reviewable(doc, target))
         except ByaxError:
             # Dependencies and review records are revalidated by their own operations.
             if target not in doc.get('dependencies', {}):
@@ -1228,7 +1260,7 @@ def _revalidate(doc, proposal, selected):
                 if digest is None:
                     continue
                 try:
-                    current = object_hash(find_object(doc, reference))
+                    current = object_hash(_find_reviewable(doc, reference))
                 except ByaxError:
                     _stale('Proposal target no longer exists.', target=reference, edit=edit['id'])
                 if current != digest:
@@ -1239,7 +1271,7 @@ def _revalidate(doc, proposal, selected):
             reference = operation.get(key)
             if isinstance(reference, str) and reference not in created:
                 try:
-                    find_object(doc, reference)
+                    _find_reviewable(doc, reference)
                 except ByaxError:
                     _stale('Proposal insertion anchor no longer exists.', target=reference, edit=edit['id'])
 
@@ -2196,6 +2228,7 @@ _HANDLERS = {
     'reorder_layer': _op_reorder_layer,
     'insert_cross_reference': _op_insert_cross_reference,
 }
+_HANDLERS.update(project.HANDLERS)
 
 
 def _operation(doc, op, base_revision, *, allow_policy_changes=False):
@@ -2706,7 +2739,7 @@ def apply(
         )
     finally:
         anchors._JOURNAL.reset(token)
-    for key in ('anchor_mappings', 'identity_changes'):
+    for key in ('anchor_mappings', 'identity_changes', 'project_orphans'):
         if journal.get(key):
             result[key] = journal[key]
     # Desktop commits are never retried by identity, so they keep no replay record.
@@ -2732,6 +2765,10 @@ def _apply_operations(
             raise
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             raise ByaxError('schema_error', f'Invalid operation value: {exc}', operation_index=i) from exc
+    if 'project' in candidate:
+        # Binder items whose heading an edit removed are reported, never dropped.
+        for orphan in project.new_orphans(doc, candidate):
+            anchors.note('project_orphans', orphan)
     validate_document(candidate, include_history=False)
     _preserve(
         doc,

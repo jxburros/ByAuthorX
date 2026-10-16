@@ -152,3 +152,26 @@ Linked asset retrieval requires explicit authorization in the local CLI or deskt
 | Inspection | library passage | `byax library-read` | `byax_library_read` | `POST /v1/execute` | `byax.cli_libraries.library_read` | Library / Cite |
 | Review | citation sources | `byax source` | `byax_source` | `POST /v1/execute` | `byax.cli_libraries.source_command` | Library / Cite |
 | Editing | insert citation | `byax cite` | `byax_cite` | `POST /v1/execute` | `byax.cli_libraries.cite_command` | Library / Cite |
+
+## Manuscript projects (binder)
+
+Binder actions are one `project` command. Mutating actions build one canonical `project_*`
+operation and run it through `engine.apply`, so `--expect-revision`, `--request-id` and
+`--dry-run` behave as for `apply`. The corkboard and outline views (track A2) are not built yet.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | project binder | `byax project --action list` | `byax_project` | `POST /v1/execute` | `byax.project.items` | — (headless) |
+| Inspection | project tree | `byax project --action tree` | `byax_project` | `POST /v1/execute` | `byax.project.tree` | — (headless) |
+| Inspection | project consistency | `byax project --action reconcile` | `byax_project` | `POST /v1/execute` | `byax.project.reconcile` | — (headless) |
+| Inspection | project block map | `byax project --action blocks` | `byax_project` | `POST /v1/execute` | `byax.project.block_map` | — (headless) |
+| Output | project compile inclusion | `byax project --action compile` | `byax_project` | `POST /v1/execute` | `byax.project.compile_plan` | — (headless) |
+| Editing | create binder | `byax project --action init` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | add binder item | `byax project --action add` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | remove binder item | `byax project --action remove` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | move binder item | `byax project --action move` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | split binder item | `byax project --action split` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | merge binder items | `byax project --action merge` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | binder status | `byax project --action set-status` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | binder word target | `byax project --action set-target` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | binder metadata | `byax project --action set-meta` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |

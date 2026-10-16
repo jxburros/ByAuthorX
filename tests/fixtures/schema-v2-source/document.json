@@ -1,0 +1,344 @@
+{
+  "assets": {},
+  "blocks": [
+    {
+      "attrs": {},
+      "id": "p_front",
+      "marks": [],
+      "style": "body",
+      "text": "For everyone who kept a light burning.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 1
+      },
+      "id": "h_part1",
+      "marks": [],
+      "style": "heading1",
+      "text": "Part One: Arrival",
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "id": "h_ch1",
+      "marks": [],
+      "style": "heading2",
+      "text": "Chapter 1",
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "id": "h_s1",
+      "marks": [],
+      "style": "heading3",
+      "text": "The boat",
+      "type": "heading"
+    },
+    {
+      "attrs": {},
+      "id": "p_s1a",
+      "marks": [],
+      "style": "body",
+      "text": "The boat came in on the evening tide.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {},
+      "id": "p_s1b",
+      "marks": [],
+      "style": "body",
+      "text": "Mara counted the gulls on the rail.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "id": "h_s2",
+      "marks": [],
+      "style": "heading3",
+      "text": "The keeper",
+      "type": "heading"
+    },
+    {
+      "attrs": {},
+      "id": "p_s2a",
+      "marks": [],
+      "style": "body",
+      "text": "The keeper did not look up from his lamp or the sea.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 2
+      },
+      "id": "h_ch2",
+      "marks": [],
+      "style": "heading2",
+      "text": "Chapter 2",
+      "type": "heading"
+    },
+    {
+      "attrs": {
+        "level": 3
+      },
+      "id": "h_s3",
+      "marks": [],
+      "style": "heading3",
+      "text": "Night watch",
+      "type": "heading"
+    },
+    {
+      "attrs": {},
+      "id": "p_s3a",
+      "marks": [],
+      "style": "body",
+      "text": "At midnight the lamp failed for the second time.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {},
+      "id": "p_alt",
+      "marks": [],
+      "style": "body",
+      "text": "Nobody slept.",
+      "type": "paragraph"
+    },
+    {
+      "attrs": {
+        "level": 1
+      },
+      "id": "h_notes",
+      "marks": [],
+      "style": "heading1",
+      "text": "Research notes",
+      "type": "heading"
+    },
+    {
+      "attrs": {},
+      "id": "p_notes",
+      "marks": [
+        {
+          "end": 14,
+          "kind": "paraphrase",
+          "locator": {
+            "page": "12"
+          },
+          "prefix": "see ",
+          "quote": "Fresnel lenses",
+          "start": 0,
+          "suffix": ", ch. 2",
+          "type": "citation",
+          "value": "stevenson"
+        }
+      ],
+      "style": "body",
+      "text": "Fresnel lenses were introduced in 1823.",
+      "type": "paragraph"
+    }
+  ],
+  "dependencies": {},
+  "fields": {},
+  "history": {
+    "branches": {},
+    "current_branch": "main",
+    "revisions": []
+  },
+  "id": "doc_schema2_manuscript",
+  "layers": [],
+  "layout": {
+    "height": 792,
+    "margins": {
+      "bottom": 72,
+      "left": 72,
+      "right": 72,
+      "top": 72
+    },
+    "paper": "Letter",
+    "width": 612
+  },
+  "metadata": {
+    "author": "A. Writer",
+    "language": "en",
+    "title": "The Lighthouse Keeper"
+  },
+  "profiles": {},
+  "references": {
+    "stevenson": {
+      "csl": {
+        "author": [
+          {
+            "family": "Stevenson",
+            "given": "Thomas"
+          }
+        ],
+        "issued": {
+          "date-parts": [
+            [
+              1871
+            ]
+          ]
+        },
+        "title": "Lighthouse Illumination",
+        "type": "book"
+      },
+      "id": "stevenson"
+    }
+  },
+  "requests": {},
+  "review": {
+    "comments": [
+      {
+        "author": "ed",
+        "end": 8,
+        "id": "comment_d5d6d35bf1c74d389cb22d6e693ed637",
+        "replies": [
+          {
+            "author": "me",
+            "id": "comment_12f2735b1f634eda84830e0cb6004bc0",
+            "parent_id": "comment_d5d6d35bf1c74d389cb22d6e693ed637",
+            "replies": [],
+            "revision": "rev_a538733ec64c4177b264e39d2dfebd85",
+            "status": "open",
+            "target": "p_s1a",
+            "text": "The ferry."
+          }
+        ],
+        "revision": "rev_7752f58255fa499697d27310f3f5af30",
+        "start": 4,
+        "status": "open",
+        "target": "p_s1a",
+        "text": "Which boat?"
+      }
+    ],
+    "findings": [],
+    "proposals": [],
+    "tracked_changes": [
+      {
+        "after": "The keeper did not look up from his lamp or the sea.",
+        "after_marks": [],
+        "author": "",
+        "base_revision": "rev_931cc39fee994ac0915133c9a75e237b",
+        "before": "The keeper did not look up from his lamp.",
+        "before_marks": [],
+        "deleted": "",
+        "deleted_marks": [],
+        "end": 51,
+        "id": "change_4c2d97816c5449ebab9431c8ad740a19",
+        "inserted": " or the sea",
+        "kind": "insertion",
+        "origin": "api",
+        "start": 40,
+        "status": "pending",
+        "target": "p_s2a",
+        "timestamp": "2026-10-16T20:33:55.559135+00:00"
+      },
+      {
+        "after": "At midnight the lamp failed for the second time.",
+        "after_marks": [],
+        "author": "",
+        "base_revision": "rev_2619129c6c434cbebf88691c71d28a5b",
+        "before": "At midnight the lamp failed for the first time.",
+        "before_marks": [],
+        "deleted": "first",
+        "deleted_marks": [],
+        "end": 42,
+        "id": "change_e7ebbf9b8f614b74b62bd2c056ef43fb",
+        "inserted": "second",
+        "kind": "replacement",
+        "origin": "api",
+        "start": 36,
+        "status": "pending",
+        "target": "p_s3a",
+        "timestamp": "2026-10-16T20:33:55.560707+00:00"
+      }
+    ]
+  },
+  "revision": "rev_4d8a60952adb4f748f9ef8bfb1321de4",
+  "schema_version": 2,
+  "settings": {
+    "bookmarks": {
+      "gulls": {
+        "offset": 16,
+        "target": "p_s1b"
+      }
+    },
+    "track_changes": true
+  },
+  "styles": {
+    "body": {
+      "font_family": "DejaVu Sans",
+      "font_size": 11
+    },
+    "caption": {
+      "based_on": "body",
+      "font_size": 9,
+      "italic": true
+    },
+    "code": {
+      "font_family": "DejaVu Sans Mono",
+      "font_size": 10
+    },
+    "heading1": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 24
+    },
+    "heading2": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 18
+    },
+    "heading3": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 14
+    },
+    "heading4": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 12
+    },
+    "heading5": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 11
+    },
+    "heading6": {
+      "based_on": "body",
+      "font_size": 11,
+      "italic": true
+    },
+    "list": {
+      "based_on": "body",
+      "font_size": 11
+    },
+    "quotation": {
+      "based_on": "body",
+      "italic": true,
+      "left_margin": 24
+    },
+    "subtitle": {
+      "based_on": "body",
+      "font_size": 16
+    },
+    "title": {
+      "based_on": "body",
+      "bold": true,
+      "font_size": 30
+    }
+  },
+  "x_extension": {
+    "payload": [
+      4,
+      5,
+      6
+    ],
+    "vendor": "future-tool"
+  }
+}

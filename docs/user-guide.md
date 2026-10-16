@@ -152,6 +152,29 @@ fully deleted becomes *unresolved*; a partial overlap becomes *needs review*. Cr
 checkpoints and branches from History, and restore any retained revision. Restoring cannot weaken
 protections or tracking you have set.
 
+## Manuscript projects (binder)
+
+A long manuscript can carry a binder: an ordered list of parts, chapters and scenes built from its
+headings, plus `note` items for research and character sheets. The binder lives inside the same
+`.byax` file and the text stays in the document, so history, comments, checks and exports work as
+before. Run `byax project novel.byax --action init` to bind every heading (kinds are inferred from
+heading levels; pass `--input` with `{"kinds": {"1": "part", "2": "chapter", "3": "scene"}}` to
+choose), then:
+
+- `--action list` or `tree` shows items with status, target and authored word counts;
+- `move` reorders an item with its text (`--before`, `--after` or `--parent` another item);
+- `split` starts a new item at an exact offset (`--target ITEM --at BLOCK --offset N --text TITLE`);
+- `merge` joins an item with the next one (`--next ITEM`);
+- `set-status`, `set-target --words N` and `set-meta --input meta.json` (synopsis, label,
+  `include_in_compile`) record your plan. Synopses are only what you write.
+
+Notes are left out of the compile list by default (`--action compile`). Comments, bookmarks and
+tracked changes travel with the text through every binder change. If you delete a heading in the
+editor, its item is kept and reported as orphaned (`--action reconcile`) until you rebind or remove
+it. Word, Markdown and other exports keep the binder order as headings and list statuses and targets
+as losses. The corkboard and outline views come later; every binder action already works from the
+CLI, MCP and REST.
+
 ## Libraries and citations
 
 Tools → Libraries attaches local research folders for retrieval; **Cite** inserts a citation from
