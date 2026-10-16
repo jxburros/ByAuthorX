@@ -301,3 +301,17 @@ always AI-visible view for model clients. All lists are bounded with `offset` co
 | Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
 | Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
 | Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
+
+## On-device search models (context engine Phase 3)
+
+`byax models` lists the pinned catalogue and reports each model's state; `--action download` shows the
+source, size and SHA-256 and downloads only with `--confirm`. MCP and REST may use `list`, `status` and
+`verify`; `download`, `remove` and `configure` are refused there (`transport_policy.check_provider_admin`),
+as are the library actions `semantic-enable`, `semantic-disable`, `embed`, `embedding-configure`,
+`chunking-configure`, `contextualize`, `contextualize-preview`, `contextualize-clear` and `pdf-engine`.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Discovery | on-device model catalogue | `byax models` | `byax_models` | `POST /v1/execute` | `byax.local_models.models_command` | Tools > On-device search… |
+| Providers | download or remove on-device models | `byax models --action download` | `byax_models` | `POST /v1/execute` | `byax.local_models.download_model` | Tools > On-device search… |
+| Search and targeting | enable on-device semantic search | `byax library --action semantic-enable` | `byax_library` | `POST /v1/execute` | `byax.cli_libraries.library_command` | Library panel (Enable on-device semantic search) |

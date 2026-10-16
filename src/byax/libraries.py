@@ -20,6 +20,7 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
+from .context_assembly import estimate_tokens, tokens_to_chars
 from .errors import ByaxError
 from .providers import _atomic_json, _default_dir
 from .search_query import COLUMN_WEIGHTS, Query
@@ -32,13 +33,22 @@ DEFAULT_LIMITS = {
     'text_chars': 2_000_000,
     'chunks': 100_000,
     'parse_seconds': 30,
+    # The optional Docling PDF engine runs a layout model, so a PDF gets far longer than other files.
+    'docling_parse_seconds': 900,
     'results': 100,
     'context_chars': 100_000,
 }
-CHUNKING = {'version': 2, 'chars': 1800, 'overlap': 160}
-# Index schema 2: chunk heading and fingerprint, porter FTS with a heading column and
-# prefix indexes, a trigram table for substring matches and an fts5vocab view.
-SCHEMA = 2
+# Chunker v3 (structure-aware): short paragraphs merge up to ``target_tokens`` (a conservative first
+# default; the retrieval harness sweeps 200-1000), a chunk never crosses a heading, and a paragraph
+# longer than the target splits at sentence boundaries with ``overlap`` characters of context.
+CHUNKING = {'version': 3, 'target_tokens': 400, 'overlap': 160}
+MIN_TARGET_TOKENS, MAX_TARGET_TOKENS = 50, 4000
+# Weight of the contextual-retrieval note column in bm25 (it is a hint, never source text).
+CONTEXT_WEIGHT = 0.5
+# Index schema 3: chunk heading and fingerprint, porter FTS with heading, text and a contextual-note
+# column and prefix indexes, a trigram table for substring matches, an fts5vocab view and the
+# ``contexts`` table that keeps notes apart from the chunk text.
+SCHEMA = 3
 _SCHEMA_TABLES = (
     'CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)',
     'CREATE TABLE IF NOT EXISTS documents (document_id TEXT PRIMARY KEY, content_hash TEXT NOT NULL)',
@@ -49,7 +59,10 @@ _SCHEMA_TABLES = (
         (chunk_id TEXT PRIMARY KEY, document_id TEXT, ordinal INTEGER, locator TEXT,
          heading TEXT, text TEXT, fingerprint TEXT)""",
     'CREATE INDEX IF NOT EXISTS chunk_document ON chunks(document_id)',
-    """CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(chunk_id UNINDEXED, heading, text,
+    """CREATE TABLE IF NOT EXISTS contexts
+        (chunk_id TEXT PRIMARY KEY, text_fingerprint TEXT NOT NULL, note TEXT NOT NULL, generator TEXT)""",
+    'CREATE INDEX IF NOT EXISTS contexts_fingerprint ON contexts(text_fingerprint)',
+    """CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(chunk_id UNINDEXED, heading, text, context,
         tokenize="porter unicode61 remove_diacritics 2", prefix='2 3')""",
     "CREATE VIRTUAL TABLE IF NOT EXISTS vocab USING fts5vocab(search, 'row')",
 )
@@ -69,9 +82,16 @@ def _library_id(value):
     return value
 
 
-def _parser_command(snapshot, maximum, result_path):
+PDF_ENGINES = ('pypdf', 'docling')
+
+
+def _parser_command(snapshot, maximum, result_path, engine='pypdf', seconds=None):
     mode = ['--byax-library-parser'] if getattr(sys, 'frozen', False) else ['-m', 'byax.library_parser']
-    return [sys.executable, *mode, str(snapshot), str(int(maximum)), str(result_path)]
+    command = [sys.executable, *mode, str(snapshot), str(int(maximum)), str(result_path)]
+    # The engine and its CPU budget are added only when they differ from the default parser contract.
+    if engine != 'pypdf':
+        command += [engine, str(int(seconds or 0))]
+    return command
 
 
 class LibraryRegistry:
@@ -156,6 +176,29 @@ class LibraryRegistry:
         _atomic_json(self.path, [entry if item['library_id'] == library_id else item for item in self.list()])
         return entry
 
+    def configure_pdf_engine(self, library_id, engine):
+        """Choose how PDFs are read: ``pypdf`` (default) or the optional ``docling`` quality path."""
+        if engine not in PDF_ENGINES:
+            raise ByaxError('invalid_input', 'PDF engine must be pypdf or docling', engine=engine)
+        entry = self.get(library_id)
+        entry['pdf_engine'] = None if engine == 'pypdf' else engine
+        _atomic_json(self.path, [entry if item['library_id'] == library_id else item for item in self.list()])
+        return entry
+
+    def configure_chunking(self, library_id, target_tokens):
+        """Set (or clear, with ``None``) the chunk size in tokens; the next refresh re-chunks every file."""
+        entry = self.get(library_id)
+        if target_tokens is not None and (
+            type(target_tokens) is not int or not MIN_TARGET_TOKENS <= target_tokens <= MAX_TARGET_TOKENS
+        ):
+            raise ByaxError(
+                'invalid_input',
+                f'Chunk target must be between {MIN_TARGET_TOKENS} and {MAX_TARGET_TOKENS} tokens',
+            )
+        entry['chunk_tokens'] = target_tokens
+        _atomic_json(self.path, [entry if item['library_id'] == library_id else item for item in self.list()])
+        return entry
+
     def remove(self, library_id):
         self.get(library_id)
         _atomic_json(self.path, [e for e in self.list() if e['library_id'] != library_id])
@@ -168,41 +211,163 @@ def chunk_heading(locator):
     return ' > '.join(str(part) for part in path if str(part).strip())
 
 
-def chunk_fingerprint(heading, text):
-    return hashlib.sha256('\0'.join((heading or '', text)).encode()).hexdigest()
+def chunk_fingerprint(heading, text, note=''):
+    """Identity of what is embedded: heading, text and (when present) the contextual note."""
+    parts = (heading or '', text) if not note else (heading or '', text, note)
+    return hashlib.sha256('\0'.join(parts).encode()).hexdigest()
 
 
-def chunk_passages(passages, document_id):
-    """Preserve paragraph/page/block locators, splitting only overlong passages."""
-    ordinal = 0
+def _sections(passages):
+    """Consecutive passages sharing a heading path (and PDF page) form one section."""
+    group, key = [], None
     for passage in passages:
-        text = passage['text']
-        heading = chunk_heading(passage.get('locator'))
-        start = 0
-        while start < len(text):
-            end = min(start + CHUNKING['chars'], len(text))
-            if end < len(text):
-                boundary = text.rfind(' ', start + CHUNKING['chars'] // 2, end)
+        locator = passage.get('locator') or {}
+        # PDF annotation notes (locator ``note``) stay one passage each.
+        current = (
+            tuple(str(part) for part in locator.get('heading_path') or ()),
+            locator.get('page'),
+            locator.get('note') and locator.get('ordinal'),
+        )
+        if group and current != key:
+            yield group
+            group = []
+        key = current
+        group.append(passage)
+    if group:
+        yield group
+
+
+def _bare_heading(group, following):
+    """A group of only heading text that introduces the next section adds nothing as a chunk of its own.
+
+    Its words stay searchable: every chunk below it carries the heading path in its heading column.
+    """
+    if following is None:
+        return False
+    path = [str(part) for part in (group[0].get('locator') or {}).get('heading_path') or ()]
+    nxt = [str(part) for part in (following[0].get('locator') or {}).get('heading_path') or ()]
+    if not path or nxt[: len(path)] != path or len(nxt) <= len(path):
+        return False
+    return all(p['text'].strip() == path[-1].strip() for p in group)
+
+
+def _split_spans(text, target, overlap):
+    """(start, end) spans of an overlong passage: at most ``target`` tokens, sentence boundaries preferred."""
+    limit = max(1, tokens_to_chars(target))
+    start = 0
+    while start < len(text):
+        end = min(start + limit, len(text))
+        while end - start > 1 and estimate_tokens(text[start:end]) > target:
+            end = start + max(1, int((end - start) * 0.9))
+        if end < len(text):
+            floor = start + (end - start) // 2
+            window = text[floor:end]
+            cut = max(window.rfind('. '), window.rfind('? '), window.rfind('! '), window.rfind('\n'))
+            if cut >= 0:
+                end = floor + cut + 1
+            else:
+                boundary = text.rfind(' ', floor, end)
                 if boundary > start:
                     end = boundary
-            part = text[start:end]
-            yield {
-                'chunk_id': _identity('chunk_', document_id, ordinal, part),
-                'text': part,
-                'heading': heading,
-                'fingerprint': chunk_fingerprint(heading, part),
-                'ordinal': ordinal,
-                'locator': {**passage['locator'], 'start': start, 'end': end},
-            }
-            ordinal += 1
-            if end == len(text):
-                break
-            start = max(start + 1, end - CHUNKING['overlap'])
+        yield start, end
+        if end >= len(text):
+            break
+        start = max(start + 1, end - overlap)
+
+
+def chunk_passages(passages, document_id, *, target_tokens=None):
+    """Structure-aware chunks (v3): merge short paragraphs, never cross a heading, keep a parent pointer.
+
+    * Passages merge (joined by a blank line) while the estimated token count stays within
+      ``target_tokens``; a PDF page is never merged with another page.
+    * A passage longer than the target splits at sentence, then word, boundaries with overlap.
+    * ``text`` is the source text exactly as extracted, so quotes verify against it. The heading path
+      lives in the ``heading`` field and is added only to the indexed (full-text and embedded) form.
+    * ``locator`` keeps the first passage's coordinates (page, ordinal, block, heading_path), adds
+      ``start``/``end`` offsets within the section text and ``parent``, the section's identity, which
+      expands a hit to its whole section (``LibraryIndex.read_section``).
+    """
+    target = int(target_tokens or CHUNKING['target_tokens'])
+    if not MIN_TARGET_TOKENS <= target <= MAX_TARGET_TOKENS:
+        raise ByaxError(
+            'invalid_input',
+            f'Chunk target must be between {MIN_TARGET_TOKENS} and {MAX_TARGET_TOKENS} tokens',
+        )
+    groups = list(_sections(passages))
+    raw = []
+    for index, group in enumerate(groups):
+        if _bare_heading(group, groups[index + 1] if index + 1 < len(groups) else None):
+            continue
+        heading = chunk_heading(group[0].get('locator'))
+        parent = _identity('sec_', document_id, index, heading)
+        pending = []  # [(passage, offset of the passage within the section text)]
+        position = 0
+
+        def emit(parts, start, end, text, heading=heading, parent=parent):
+            first = parts[0][0].get('locator') or {}
+            locator = {**first, 'start': start, 'end': end, 'parent': parent}
+            last = (parts[-1][0].get('locator') or {}).get('ordinal')
+            if len(parts) > 1 and last is not None:
+                locator['ordinal_end'] = last
+            boxes = [(q[0].get('locator') or {}).get('bbox') for q in parts]
+            if len(parts) > 1 and all(boxes):
+                # Merged paragraphs on one page: the box that covers them all.
+                locator['bbox'] = [
+                    min(b[0] for b in boxes),
+                    min(b[1] for b in boxes),
+                    max(b[2] for b in boxes),
+                    max(b[3] for b in boxes),
+                ]
+            raw.append({'text': text, 'heading': heading, 'locator': locator})
+
+        def flush(pending=pending, emit=emit):
+            if pending:
+                text = '\n\n'.join(p['text'] for p, _ in pending)
+                emit(pending, pending[0][1], pending[0][1] + len(text), text)
+                pending.clear()
+
+        for passage in group:
+            text, offset = passage['text'], position
+            position += len(text) + 2
+            if estimate_tokens(text) > target:
+                flush()
+                for start, end in _split_spans(text, target, CHUNKING['overlap']):
+                    emit([(passage, offset)], offset + start, offset + end, text[start:end])
+                continue
+            if pending and estimate_tokens('\n\n'.join([p['text'] for p, _ in pending] + [text])) > target:
+                flush()
+            pending.append((passage, offset))
+        flush()
+    for ordinal, chunk in enumerate(raw):
+        yield {
+            **chunk,
+            'chunk_id': _identity('chunk_', document_id, ordinal, chunk['text']),
+            'fingerprint': chunk_fingerprint(chunk['heading'], chunk['text']),
+            'ordinal': ordinal,
+        }
 
 
 class LibraryIndex:
-    def __init__(self, library, cache_dir=None, *, limits=None):
+    def __init__(self, library, cache_dir=None, *, limits=None, chunk_tokens=None):
         self.library = library
+        # Chunk size is configurable per library (``chunk_tokens``) or per index (harness sweeps).
+        tokens = chunk_tokens or library.get('chunk_tokens') or CHUNKING['target_tokens']
+        if type(tokens) is not int or not MIN_TARGET_TOKENS <= tokens <= MAX_TARGET_TOKENS:
+            raise ByaxError(
+                'invalid_input',
+                f'Chunk target must be between {MIN_TARGET_TOKENS} and {MAX_TARGET_TOKENS} tokens',
+            )
+        engine = library.get('pdf_engine') or 'pypdf'
+        if engine not in PDF_ENGINES:
+            raise ByaxError('invalid_input', 'PDF engine must be pypdf or docling', engine=engine)
+        self.pdf_engine = engine
+        # A non-default PDF engine is part of the chunking identity: switching re-parses PDFs and
+        # makes vectors made from the other engine's text stale.
+        self.chunking = {
+            **CHUNKING,
+            'target_tokens': tokens,
+            **({'pdf_engine': engine} if engine != 'pypdf' else {}),
+        }
         library_id = _library_id(library['library_id'])
         if cache_dir is None:
             from platformdirs import user_cache_path
@@ -239,17 +404,18 @@ class LibraryIndex:
             if upgraded:
                 # Old text stays searchable (reported stale) until the refresh job rebuilds it.
                 db.execute(
-                    'INSERT INTO search(rowid, chunk_id, heading, text) '
-                    "SELECT rowid, chunk_id, COALESCE(heading, ''), text FROM chunks"
+                    'INSERT INTO search(rowid, chunk_id, heading, text, context) '
+                    "SELECT c.rowid, c.chunk_id, COALESCE(c.heading, ''), c.text, COALESCE(x.note, '') "
+                    'FROM chunks c LEFT JOIN contexts x ON x.chunk_id=c.chunk_id'
                 )
                 if self.trigram:
                     db.execute(
                         'INSERT INTO search_tri(rowid, chunk_id, text) SELECT rowid, chunk_id, text FROM chunks'
                     )
             recorded = db.execute("SELECT value FROM meta WHERE key='chunking'").fetchone()
-            if recorded and json.loads(recorded[0]) != CHUNKING:
+            if recorded and json.loads(recorded[0]) != self.chunking:
                 db.execute("UPDATE files SET status='stale', size=-1")
-            db.execute("INSERT OR REPLACE INTO meta VALUES ('chunking', ?)", (json.dumps(CHUNKING),))
+            db.execute("INSERT OR REPLACE INTO meta VALUES ('chunking', ?)", (json.dumps(self.chunking),))
             db.execute("INSERT OR REPLACE INTO meta VALUES ('schema', ?)", (str(SCHEMA),))
 
     @staticmethod
@@ -267,9 +433,13 @@ class LibraryIndex:
                 if column not in columns:
                     db.execute(f'ALTER TABLE chunks ADD COLUMN {column} TEXT')
             db.execute("UPDATE files SET status='stale', size=-1")
+        elif recorded == '2':
+            # Schema 2 -> 3 adds the contextual-note column and the chunker changed: keep the old text
+            # searchable (reported stale) and let the refresh job re-chunk every file.
+            db.execute("UPDATE files SET status='stale', size=-1")
         else:
             # An unknown (for example newer) schema is discarded and rebuilt from scratch.
-            for table in ('chunks', 'documents', 'files', 'vector_store'):
+            for table in ('chunks', 'documents', 'files', 'vector_store', 'contexts'):
                 db.execute(f'DROP TABLE IF EXISTS {table}')
 
     @contextmanager
@@ -354,11 +524,23 @@ class LibraryIndex:
             digest = hashlib.sha256(raw).hexdigest()
             with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as errors:
                 result_path = Path(temporary) / 'result.json'
-                deadline = time.monotonic() + self.limits['parse_seconds']
+                docling = self.pdf_engine == 'docling' and path.suffix.lower() == '.pdf'
+                seconds = self.limits['docling_parse_seconds'] if docling else self.limits['parse_seconds']
+                deadline = time.monotonic() + seconds
                 process = subprocess.Popen(
-                    _parser_command(snapshot, self.limits['text_chars'], result_path),
+                    _parser_command(
+                        snapshot,
+                        self.limits['text_chars'],
+                        result_path,
+                        'docling' if docling else 'pypdf',
+                        seconds,
+                    ),
                     stdout=output,
                     stderr=errors,
+                    # Docling must run offline on the installed layout model, never fetch one.
+                    env={**os.environ, 'HF_HUB_OFFLINE': '1', 'TRANSFORMERS_OFFLINE': '1'}
+                    if docling
+                    else None,
                 )
                 try:
                     while process.poll() is None:
@@ -424,7 +606,13 @@ class LibraryIndex:
                         old['document_id'] if old else None,
                         'stale' if old else 'indexing',
                         owner,
-                        time.time() + self.limits['parse_seconds'] + 30,
+                        time.time()
+                        + (
+                            self.limits['docling_parse_seconds']
+                            if self.pdf_engine == 'docling' and key.lower().endswith('.pdf')
+                            else self.limits['parse_seconds']
+                        )
+                        + 30,
                     ),
                 )
             try:
@@ -442,7 +630,9 @@ class LibraryIndex:
                 if (current.st_size, current.st_mtime_ns) != (stat.st_size, stat.st_mtime_ns):
                     raise ValueError('File changed during indexing; refresh again')
                 document_id = _identity('doc_', self.library['library_id'], digest)
-                chunks = list(chunk_passages(passages, document_id))
+                chunks = list(
+                    chunk_passages(passages, document_id, target_tokens=self.chunking['target_tokens'])
+                )
                 with self._db() as db:
                     db.execute('BEGIN IMMEDIATE')
                     lease = db.execute('SELECT lease FROM files WHERE path=?', (key,)).fetchone()
@@ -464,6 +654,9 @@ class LibraryIndex:
                     self._delete_search(db, 'SELECT rowid FROM chunks WHERE document_id=?', (document_id,))
                     db.execute('DELETE FROM chunks WHERE document_id=?', (document_id,))
                     for chunk in chunks:
+                        note = self._note(db, chunk)
+                        if note:
+                            chunk['fingerprint'] = chunk_fingerprint(chunk['heading'], chunk['text'], note)
                         rowid = db.execute(
                             'INSERT INTO chunks (chunk_id, document_id, ordinal, locator, heading, text, '
                             'fingerprint) VALUES (?,?,?,?,?,?,?)',
@@ -478,8 +671,8 @@ class LibraryIndex:
                             ),
                         ).lastrowid
                         db.execute(
-                            'INSERT INTO search(rowid, chunk_id, heading, text) VALUES (?,?,?,?)',
-                            (rowid, chunk['chunk_id'], chunk['heading'], chunk['text']),
+                            'INSERT INTO search(rowid, chunk_id, heading, text, context) VALUES (?,?,?,?,?)',
+                            (rowid, chunk['chunk_id'], chunk['heading'], chunk['text'], note),
                         )
                         if self.trigram:
                             db.execute(
@@ -503,6 +696,8 @@ class LibraryIndex:
         with self._db() as db:
             db.execute('BEGIN IMMEDIATE')
             self._collect_orphans(db)
+            # Notes survive re-chunking of an edited file (looked up by text) and go once nothing uses them.
+            db.execute('DELETE FROM contexts WHERE chunk_id NOT IN (SELECT chunk_id FROM chunks)')
         result = self.status()
         result.update(processed=processed, cancelled=bool(cancel_event and cancel_event.is_set()))
         return result
@@ -599,9 +794,119 @@ class LibraryIndex:
             'schema': SCHEMA,
             'trigram': self.trigram,
             'retrieval_policy': self.library.get('retrieval_policy', 'ask'),
-            'chunking': CHUNKING,
+            'chunking': self.chunking,
+            'contexts': self.context_counts(),
             'limits': self.limits,
         }
+
+    @staticmethod
+    def _note(db, chunk):
+        """The contextual note written for a chunk with exactly this heading and text, else an empty string."""
+        row = db.execute(
+            'SELECT note, generator FROM contexts WHERE text_fingerprint=? ORDER BY chunk_id LIMIT 1',
+            (chunk['fingerprint'],),
+        ).fetchone()
+        if row is None:
+            return ''
+        # Chunk identities include the document, so an edited file renumbers its chunks; a note is
+        # reused for any chunk whose heading and text are unchanged.
+        db.execute(
+            'INSERT OR REPLACE INTO contexts VALUES (?,?,?,?)',
+            (chunk['chunk_id'], chunk['fingerprint'], row[0], row[1]),
+        )
+        return row[0]
+
+    def pending_contexts(self, limit=None):
+        """Current chunks that have no contextual note yet, in index order."""
+        with self._db() as db:
+            rows = [
+                dict(row)
+                for row in db.execute(
+                    """SELECT c.chunk_id, c.document_id, c.heading, c.text FROM chunks c
+                       LEFT JOIN contexts x ON x.chunk_id=c.chunk_id WHERE x.chunk_id IS NULL ORDER BY c.rowid"""
+                )
+                if any(not p['stale'] for p in self._paths(db, row['document_id']))
+            ]
+            for row in rows:
+                row['path'] = self._paths(db, row['document_id'])[0]['path']
+        return rows[:limit] if limit else rows
+
+    def set_contexts(self, notes, generator=''):
+        """Store ``[(chunk_id, note)]`` in the separate notes table and the full-text context column.
+
+        A note changes what is indexed and embedded for the chunk (so its vector becomes stale) but is
+        never part of ``chunks.text``: it is not returned as a passage, not quoted and not cited.
+        """
+        stored = 0
+        with self._db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            for chunk_id, note in notes:
+                row = db.execute(
+                    'SELECT rowid, heading, text FROM chunks WHERE chunk_id=?', (chunk_id,)
+                ).fetchone()
+                note = ' '.join(str(note).split())
+                if row is None or not note:
+                    continue
+                base = chunk_fingerprint(row['heading'], row['text'])
+                db.execute(
+                    'INSERT OR REPLACE INTO contexts VALUES (?,?,?,?)',
+                    (chunk_id, base, note, generator or ''),
+                )
+                db.execute(
+                    'UPDATE chunks SET fingerprint=? WHERE chunk_id=?',
+                    (chunk_fingerprint(row['heading'], row['text'], note), chunk_id),
+                )
+                db.execute('DELETE FROM search WHERE rowid=?', (row['rowid'],))
+                db.execute(
+                    'INSERT INTO search(rowid, chunk_id, heading, text, context) VALUES (?,?,?,?,?)',
+                    (row['rowid'], chunk_id, row['heading'] or '', row['text'], note),
+                )
+                stored += 1
+        return stored
+
+    def clear_contexts(self):
+        """Remove every note and restore the plain chunk fingerprints and full-text rows."""
+        with self._db() as db:
+            db.execute('BEGIN IMMEDIATE')
+            rows = db.execute(
+                'SELECT rowid, chunk_id, heading, text FROM chunks WHERE chunk_id IN (SELECT chunk_id FROM contexts)'
+            ).fetchall()
+            for row in rows:
+                db.execute(
+                    'UPDATE chunks SET fingerprint=? WHERE chunk_id=?',
+                    (chunk_fingerprint(row['heading'], row['text']), row['chunk_id']),
+                )
+                db.execute('DELETE FROM search WHERE rowid=?', (row['rowid'],))
+                db.execute(
+                    'INSERT INTO search(rowid, chunk_id, heading, text, context) VALUES (?,?,?,?,?)',
+                    (row['rowid'], row['chunk_id'], row['heading'] or '', row['text'], ''),
+                )
+            db.execute('DELETE FROM contexts')
+        return len(rows)
+
+    def context_counts(self):
+        with self._db() as db:
+            total = db.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
+            notes = db.execute(
+                'SELECT COUNT(*) FROM contexts WHERE chunk_id IN (SELECT chunk_id FROM chunks)'
+            ).fetchone()[0]
+        return {'notes': notes, 'chunks': total}
+
+    def read_section(self, document_id, chunk_id, limit=20000, *, offset=0):
+        """Expand a hit to its whole section: every chunk sharing its ``parent`` pointer, in order."""
+        with self._db() as db:
+            row = db.execute(
+                'SELECT locator FROM chunks WHERE chunk_id=? AND document_id=?', (chunk_id, document_id)
+            ).fetchone()
+        if row is None:
+            raise ByaxError('not_found', 'Library passage is unavailable')
+        parent = json.loads(row['locator']).get('parent')
+        if not parent:
+            # Chunks from an older chunker have no section: the passage is its own section.
+            result = self.read(document_id, chunk_id=chunk_id, limit=limit, offset=offset)
+        else:
+            result = self.read(document_id, limit=limit, offset=offset, locator={'parent': parent})
+        return {**result, 'section': parent, 'anchor_chunk_id': chunk_id}
 
     def embedding_preview(self):
         from .embeddings import embedding_preview
@@ -623,7 +928,9 @@ class LibraryIndex:
         )
 
     def _rows(self, db, table, expression):
-        weights = ','.join(str(w) for w in COLUMN_WEIGHTS) if table == 'search' else '0.0,1.0'
+        weights = (
+            ','.join(str(w) for w in (*COLUMN_WEIGHTS, CONTEXT_WEIGHT)) if table == 'search' else '0.0,1.0'
+        )
         try:
             return db.execute(
                 f"""SELECT c.*,d.content_hash,bm25({table},{weights}) AS score FROM {table}

@@ -1,0 +1,196 @@
+{
+  "measured_at_utc": "2026-10-16T22:11:45Z",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "processor": "x86_64",
+    "logical_cpus": 4,
+    "python": "3.13.16",
+    "onnxruntime": "1.31.0",
+    "engine": "0.3.0",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified.",
+    "load_average_note": "about 4 to 8 during the runs"
+  },
+  "models": {
+    "qwen3-embedding-0.6b-int8": "1",
+    "answerai-colbert-small-v1": "1",
+    "bge-reranker-v2-m3-int8": "1"
+  },
+  "corpus": "pp-corpus",
+  "queries": 15,
+  "rerank_depth": 40,
+  "targets": {
+    "hybrid_p95_ms": 300,
+    "hybrid_with_reranking_p95_ms": 1000
+  },
+  "sizes": [
+    {
+      "chunk_tokens": 200,
+      "chunks": 1421,
+      "embedding": {
+        "seconds": 471.1,
+        "per_chunk_ms": 332,
+        "done": 1421,
+        "state": "ready"
+      },
+      "queries_scored": 14,
+      "queries_without_relevant_chunks": [
+        "Darcy sets out in writing his conduct toward Wickham and toward Bingley"
+      ],
+      "pipelines": {
+        "keyword": {
+          "hit@10": 0.286,
+          "mrr@10": 0.25,
+          "ndcg@10": 0.2,
+          "hit@20": 0.571,
+          "latency_ms": {
+            "p50": 15.4,
+            "p95": 35.5
+          }
+        },
+        "hybrid": {
+          "hit@10": 0.571,
+          "mrr@10": 0.292,
+          "ndcg@10": 0.265,
+          "hit@20": 0.714,
+          "latency_ms": {
+            "p50": 184.6,
+            "p95": 270.5
+          }
+        },
+        "hybrid+answerai-colbert-small-v1": {
+          "hit@10": 0.714,
+          "mrr@10": 0.377,
+          "ndcg@10": 0.366,
+          "hit@20": 0.786,
+          "latency_ms": {
+            "p50": 2546.3,
+            "p95": 3247.5
+          },
+          "latency_ms_repeat_same_query": {
+            "p50": 88.6,
+            "p95": 117.6
+          }
+        }
+      }
+    },
+    {
+      "chunk_tokens": 400,
+      "chunks": 633,
+      "embedding": {
+        "seconds": 1121.3,
+        "per_chunk_ms": 1771,
+        "done": 633,
+        "state": "ready"
+      },
+      "queries_scored": 14,
+      "queries_without_relevant_chunks": [
+        "Darcy sets out in writing his conduct toward Wickham and toward Bingley"
+      ],
+      "pipelines": {
+        "keyword": {
+          "hit@10": 0.714,
+          "mrr@10": 0.419,
+          "ndcg@10": 0.295,
+          "hit@20": 0.857,
+          "latency_ms": {
+            "p50": 16.6,
+            "p95": 25.6
+          }
+        },
+        "hybrid": {
+          "hit@10": 0.786,
+          "mrr@10": 0.517,
+          "ndcg@10": 0.302,
+          "hit@20": 0.857,
+          "latency_ms": {
+            "p50": 261.4,
+            "p95": 397.3
+          }
+        },
+        "hybrid+answerai-colbert-small-v1": {
+          "hit@10": 0.857,
+          "mrr@10": 0.696,
+          "ndcg@10": 0.483,
+          "hit@20": 0.857,
+          "latency_ms": {
+            "p50": 4697.6,
+            "p95": 8109.3
+          },
+          "latency_ms_repeat_same_query": {
+            "p50": 81.1,
+            "p95": 115.7
+          }
+        },
+        "hybrid+bge-reranker-v2-m3-int8": {
+          "hit@10": 0.857,
+          "mrr@10": 0.756,
+          "ndcg@10": 0.462,
+          "hit@20": 0.857,
+          "latency_ms": {
+            "p50": 30461.7,
+            "p95": 36800.8
+          },
+          "latency_ms_repeat_same_query": {
+            "p50": 28866.5,
+            "p95": 34766.0
+          }
+        }
+      }
+    },
+    {
+      "chunk_tokens": 800,
+      "chunks": 280,
+      "embedding": {
+        "seconds": 536.1,
+        "per_chunk_ms": 1915,
+        "done": 280,
+        "state": "ready"
+      },
+      "queries_scored": 15,
+      "queries_without_relevant_chunks": [],
+      "pipelines": {
+        "keyword": {
+          "hit@10": 0.867,
+          "mrr@10": 0.543,
+          "ndcg@10": 0.364,
+          "hit@20": 0.867,
+          "latency_ms": {
+            "p50": 6.6,
+            "p95": 22.1
+          }
+        },
+        "hybrid": {
+          "hit@10": 0.867,
+          "mrr@10": 0.511,
+          "ndcg@10": 0.385,
+          "hit@20": 0.867,
+          "latency_ms": {
+            "p50": 128.5,
+            "p95": 250.5
+          }
+        },
+        "hybrid+answerai-colbert-small-v1": {
+          "hit@10": 0.8,
+          "mrr@10": 0.639,
+          "ndcg@10": 0.519,
+          "hit@20": 0.867,
+          "latency_ms": {
+            "p50": 1488.0,
+            "p95": 4025.4
+          },
+          "latency_ms_repeat_same_query": {
+            "p50": 59.2,
+            "p95": 92.8
+          }
+        }
+      }
+    }
+  ],
+  "notes": [
+    "Measured on a shared 4-core container; other processes (other test runs and builds) were using the CPU. The 400-token run saw a load average near 8, the 200 and 800 runs about 4 to 5, so latencies are upper bounds and are not comparable between sizes.",
+    "Relevance is decided per size by regular expressions over each chunk, so the number of relevant chunks differs with the chunk size: compare pipelines within one size, not metrics across sizes.",
+    "The 400-token run embedded with max_tokens 512 (never reached by a 400 estimated-token chunk); the 200 and 800 runs used max_tokens 1024.",
+    "The bge-reranker-v2-m3 pipeline ran only at 400 tokens: it takes about 30 s for 40 candidates on this CPU.",
+    "Latency columns: first run of each query (reranker document cache cold) and an immediate repeat (warm)."
+  ]
+}

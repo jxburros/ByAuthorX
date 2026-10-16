@@ -83,6 +83,7 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
         registry = registry or LibraryRegistry()
         library = registry.get(identity)
         index = LibraryIndex(library, cache_dir=cache_dir)
+        relocated = False
         try:
             result = index.read(pointer['document_id'], chunk_id=locator.get('chunk'))
         except ByaxError:
@@ -96,7 +97,13 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
             )
             if replaced:
                 return {**base, 'status': 'stale', 'reason': 'The indexed library file changed.'}
-            raise
+            if not locator.get('chunk'):
+                raise
+            # Same file, but a newer chunker numbered its chunks differently: the cited chunk identity is
+            # gone while the document is unchanged. Check the quote against the document's current
+            # chunks instead of failing the citation.
+            relocated = True
+            result = index.read(pointer['document_id'])
     except (ByaxError, OSError, KeyError) as exc:
         return {**base, 'status': 'unverifiable', 'reason': str(exc)}
     if result.get('stale') or result.get('content_hash') != pointer.get('content_hash'):
@@ -106,8 +113,20 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
             'reason': 'Library content changed; refresh and review the citation.',
         }
     passages = result.get('results', [])
-    coordinates = ('page', 'block', 'ordinal', 'heading', 'heading_path', 'start', 'end')
-    for key in coordinates:
+    coordinates = (
+        'page',
+        'block',
+        'ordinal',
+        'ordinal_end',
+        'heading',
+        'heading_path',
+        'start',
+        'end',
+        'parent',
+        'bbox',
+        'note',
+    )
+    for key in () if relocated else coordinates:
         if key in locator:
             passages = [p for p in passages if str(p.get('locator', {}).get(key)) == str(locator[key])]
     if any(key not in (*coordinates, 'chunk', 'label') for key in locator):
@@ -116,6 +135,7 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
         return {**base, 'status': 'unverifiable', 'reason': 'The cited locator has no indexed passage.'}
     snapshot = {
         **base,
+        **({'relocated': True} if relocated else {}),
         'status': 'available',
         'passages': passages,
         'truncated': result.get('truncated', False),

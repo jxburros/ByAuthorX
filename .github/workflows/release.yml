@@ -54,25 +54,28 @@ jobs:
       - name: Sign the installer with signtool (PFX certificate)
         shell: pwsh
         run: |
-          $installer = Get-ChildItem installer -Filter '*-windows-x64-setup.exe' | Select-Object -First 1
-          if (-not $installer) { throw 'No Windows installer artifact found' }
+          $installers = @(Get-ChildItem installer -Filter '*-windows-x64*-setup.exe')
+          if (-not $installers) { throw 'No Windows installer artifact found' }
           New-Item -ItemType Directory -Force release | Out-Null
           if ($env:WINDOWS_CERTIFICATE_PFX -and $env:WINDOWS_CERTIFICATE_PASSWORD) {
             $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
             [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_PFX))
             $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
               Sort-Object FullName | Select-Object -Last 1
-            & $signtool.FullName sign /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "ByAuthorX" $installer.FullName
-            if ($LASTEXITCODE -ne 0) { throw 'signtool sign failed' }
-            & $signtool.FullName verify /pa /v $installer.FullName
-            if ($LASTEXITCODE -ne 0) { throw 'signtool verify failed' }
+            # Every installer variant (lean, and standard when the models mirror is populated) is signed.
+            foreach ($installer in $installers) {
+              & $signtool.FullName sign /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "ByAuthorX" $installer.FullName
+              if ($LASTEXITCODE -ne 0) { throw 'signtool sign failed' }
+              & $signtool.FullName verify /pa /v $installer.FullName
+              if ($LASTEXITCODE -ne 0) { throw 'signtool verify failed' }
+            }
             Remove-Item $pfx
             Set-Content release/signing-status-windows.txt 'signed'
           } else {
-            Write-Warning 'No WINDOWS_CERTIFICATE_PFX secret: publishing the installer unsigned.'
+            Write-Warning 'No WINDOWS_CERTIFICATE_PFX secret: publishing the installers unsigned.'
             Set-Content release/signing-status-windows.txt 'unsigned'
           }
-          Copy-Item $installer.FullName release/
+          foreach ($installer in $installers) { Copy-Item $installer.FullName release/ }
       - uses: actions/upload-artifact@v4
         with:
           name: release-windows
@@ -97,7 +100,7 @@ jobs:
         with:
           enable-cache: true
           python-version: '3.12'
-      - run: uv sync --frozen --extra dev
+      - run: uv sync --frozen --extra dev --extra local-models
       - name: Are all five Apple signing secrets present?
         id: apple
         run: |
@@ -182,12 +185,21 @@ jobs:
         run: |
           mkdir release
           find artifacts/ByAuthorX-ubuntu-24.04-x64 -name '*_amd64.deb' -exec cp {} release/ \;
-          find artifacts/release-windows -name '*-windows-x64-setup.exe' -exec cp {} release/ \;
+          find artifacts/release-windows \( -name '*-windows-x64-setup.exe' -o -name '*-windows-x64-lean-setup.exe' \) -exec cp {} release/ \;
           find artifacts/release-macos -name '*.dmg' -exec cp {} release/ \;
           ls -l release
-          if [ "$(ls release | wc -l)" -ne 3 ]; then
-            echo "::error::Expected exactly one .deb, one Windows installer and one macOS disk image"
+          total="$(ls release | wc -l)"
+          lean="$(ls release | grep -c -- '-lean' || true)"
+          # Lean installers are always built (Ubuntu package and Windows installer) and the macOS disk image has
+          # no variants. The standard installers (bundled on-device models) exist only once the models-v1 mirror
+          # release is populated, so a release has 3 files, or 5 with both variants.
+          if [ "$lean" -ne 2 ] || { [ "$total" -ne 3 ] && [ "$total" -ne 5 ]; }; then
+            echo "::error::Expected the lean .deb and Windows installer and one macOS disk image, plus both standard installers or neither"
             exit 1
+          fi
+          if [ "$total" -eq 3 ]; then
+            echo "::warning::The models-v1 mirror is not populated: publishing the lean variants only"
+            echo "LEAN_ONLY=true" >> "$GITHUB_ENV"
           fi
           (cd release && sha256sum * > SHA256SUMS.txt)
           cat release/SHA256SUMS.txt
@@ -226,7 +238,12 @@ jobs:
             echo "::error::Could not extract release notes for $version"
             exit 1
           fi
-          printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt`.\n' >> release-notes.md
+          printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt` (they cover every variant).\n' >> release-notes.md
+          if [ "${LEAN_ONLY:-}" = "true" ]; then
+            printf '\nThis release has the lean installers only (no bundled on-device search models). Models can be downloaded on request from the app or with `byax models`.\n' >> release-notes.md
+          else
+            printf '\nThe standard installers bundle the on-device search models; the `-lean` installers leave them out.\n' >> release-notes.md
+          fi
           {
             echo
             echo '### Signing status'

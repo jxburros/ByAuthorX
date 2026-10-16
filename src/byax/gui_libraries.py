@@ -383,6 +383,17 @@ class LibraryPanels:
                 return
             ExtractedTextDialog(dialog, library, files).exec()
 
+        def enable_semantic():
+            library = registry.get(selected()) if selected() else None
+            if library:
+                self.enable_semantic_search(library, lambda result: show_status())
+
+        def disable_semantic():
+            library = registry.get(selected()) if selected() else None
+            if library and library.get('embedding'):
+                self.disable_semantic_search(library)
+                show_status()
+
         def attach(library):
             records = copy.deepcopy(self.doc.get('settings', {}).get('libraries', []))
             records = [r for r in records if r['library_id'] != library['library_id']]
@@ -459,6 +470,8 @@ class LibraryPanels:
             ),
             ('Remove', remove),
             ('Preview extracted text…', preview_text),
+            ('Enable on-device semantic search…', enable_semantic),
+            ('Turn off semantic search', disable_semantic),
         ):
             button = QPushButton(self.tr(title))
             button.clicked.connect(guarded(callback))

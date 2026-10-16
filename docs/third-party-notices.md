@@ -21,3 +21,30 @@ LanguageTool (LGPL-2.1-or-later, https://languagetool.org) is an **optional comp
 The built-in grammar rules (`src/byax/resources/grammar`) and the interface-string catalogue are original ByAuthorX data under the project's MIT license. Language packs a user installs keep their own licence and source, which each pack's manifest records and `byax languages --action list --verbose` shows.
 
 The codex test fixture `tests/fixtures/codex/pride-and-prejudice-1-6.json` holds chapters I–VI of Jane Austen's *Pride and Prejudice* (public domain), taken from the Project Gutenberg text of eBook #1342 with the Project Gutenberg header, licence and trademark removed; `scripts/build_codex_fixture.py` records the source file's SHA-256 and the processing. The optional `pyahocorasick` package (BSD-3-Clause) is used for codex mention detection only when a user has installed it; it is not a dependency and is not bundled.
+
+## On-device search (context engine Phase 3)
+
+Licences below were read from the primary sources on 16 October 2026; the licence text shipped by the pinned version controls.
+
+Runtime and optional extras (not part of the core install):
+
+| Component | Use | Licence | Where it is verified |
+| --- | --- | --- | --- |
+| onnxruntime 1.31 | `byauthorx[local-models]`: runs the embedder and rerankers on the CPU; frozen into both installer variants | MIT | PyPI metadata and the project's `LICENSE` |
+| tokenizers 0.23 | `byauthorx[local-models]`: model tokenizers | Apache-2.0 | PyPI classifiers and the project's `LICENSE` |
+| numpy | installed by onnxruntime; speeds exact vector search | BSD-3-Clause (the wheel also records 0BSD, MIT, Zlib and CC0 components) | PyPI metadata |
+| sqlite-vec 0.1.9 | `byauthorx[sqlite-vec]`: optional vector backend (binary quantization with float re-scoring) | MIT or Apache-2.0 (dual), `LICENSE-MIT` and `LICENSE-APACHE` in the repository | github.com/asg017/sqlite-vec |
+| Docling 2.140 | `byauthorx[docling]`: optional PDF engine, run only in the parser subprocess; never bundled in installers | MIT | github.com/docling-project/docling `LICENSE` and PyPI |
+
+The Docling extra pulls PyTorch. On Linux the default PyTorch wheels depend on NVIDIA CUDA runtime packages under NVIDIA's own licence terms; these are installed by the user's package manager, never redistributed by ByAuthorX. Install a CPU build of PyTorch first to avoid them. No GPL or AGPL package was found in the Docling dependency tree on Linux (checked from installed package metadata). **PyMuPDF is deliberately not used**: its AGPL licence conflicts with the project's MIT licence, and pypdf (BSD-3-Clause) stays the default PDF reader.
+
+Models (downloaded on request or bundled in the standard installers; catalogue in `src/byax/resources/models.json`; each model's card is saved next to its files as `MODEL-CARD.md` and the Apache-2.0 text in `models/licences`):
+
+| Model | Licence | Source of the licence statement |
+| --- | --- | --- |
+| Qwen3-Embedding-0.6B, int8 ONNX export of onnx-community, 512 dimensions by Matryoshka truncation | Apache-2.0 | `license: apache-2.0` in the model card of `Qwen/Qwen3-Embedding-0.6B` (the export repository carries no licence of its own and names the model as `base_model`) |
+| bge-reranker-v2-m3, int8 ONNX export of onnx-community | Apache-2.0 | `license: apache-2.0` in the model card of `BAAI/bge-reranker-v2-m3` |
+| answerai-colbert-small-v1 (the repository's `vespa_colbert.onnx`, which includes the projection layer) | Apache-2.0 | `license: apache-2.0` in the model card of `answerdotai/answerai-colbert-small-v1` |
+| docling-layout-heron | Apache-2.0 | `license: apache-2.0` in the model card of `docling-project/docling-layout-heron` |
+
+Downloading a model is not a licence to anything beyond these terms; weights are not covered by the repository's MIT licence. Entailment models (Phase 5) and Qwen3-Reranker have not passed the dependency gate and are not in the catalogue.

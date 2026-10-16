@@ -16,7 +16,9 @@ def cited(tmp_path, monkeypatch):
     root = tmp_path / 'sources'
     root.mkdir()
     path = root / 'notes.txt'
-    path.write_text('Aria is the captain.\n\nBren is the navigator.')
+    # The long middle paragraph keeps the two short ones in separate chunks (the chunker merges short ones).
+    filler = ' '.join(['The harbour was quiet that evening.'] * 60)
+    path.write_text(f'Aria is the captain.\n\n{filler}\n\nBren is the navigator.')
     registry = LibraryRegistry(tmp_path / 'config')
     definition = registry.create('Research', [root])
     index = LibraryIndex(definition, tmp_path / 'cache')

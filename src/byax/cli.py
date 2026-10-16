@@ -385,6 +385,23 @@ ARGUMENTS: dict[str, dict[str, str]] = {
     },
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
+# On-device search models (byax.local_models): list/status/verify are read-only; download, remove and
+# configure are administrative (transport_policy.check_provider_admin).
+COMMANDS['models'] = 'List, download, verify and remove on-device search models; set Fast or Accurate search'
+ARGUMENTS['models'] = {
+    'action': 'string',
+    'name': 'string',
+    'source': 'string',
+    'confirm': 'boolean',
+    'input': 'object',
+    'models_dir': 'string',
+    'config_dir': 'string',
+}
+ARGUMENTS['library'].update(
+    {'confirm': 'boolean', 'rerank': 'string', 'model': 'string', 'section': 'boolean'}
+)
+ARGUMENTS['library-search'].update({'rerank': 'string'})
+ARGUMENTS['library-read'].update({'section': 'boolean'})
 # Manuscript project binder (byax.project); mutating actions are canonical project_* operations.
 COMMANDS['project'] = 'List, reorder, split, merge and annotate manuscript binder items'
 ARGUMENTS['project'] = {
@@ -1637,6 +1654,7 @@ from .drafts import drafts_command
 from .goals import goals_command
 from .grammar import grammar_command
 from .language_packs import languages_command
+from .local_models import models_command
 from .project import project_command
 from .project_index import project_search_command
 from .sync_safety import sync_command
@@ -1695,6 +1713,7 @@ _HANDLERS: dict[str, Handler] = {
     'entity': entity_command,
     'review-package': review_package_command,
     'merge-review': merge_review_command,
+    'models': models_command,
 }
 
 

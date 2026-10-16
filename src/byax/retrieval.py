@@ -27,18 +27,145 @@ def _embedding_provider(embedding_provider, library):
     return embedding_provider
 
 
-def search_library(index, query, *, method='auto', limit=20, offset=0, provider=None, expand=False):
+def resolve_reranker(rerank=None, reranker=None, *, config_dir=None):
+    """The active reranker and a report, never loading or downloading anything.
+
+    ``rerank`` is ``None`` (use the saved setting), ``'fast'``/``False`` (off) or ``'accurate'``/``True``.
+    A ``reranker`` object is used as given. ``Accurate`` without an installed runtime or model falls
+    back to ``Fast`` with a notice; downloading is always the user's explicit action.
+    """
+    from . import local_models
+
+    settings = local_models.load_settings(config_dir)
+    if rerank is None:
+        mode = settings['rerank']
+    elif isinstance(rerank, bool):
+        mode = 'accurate' if rerank else 'fast'
+    elif rerank in local_models.RERANK_MODES:
+        mode = rerank
+    else:
+        raise ByaxError('invalid_input', 'Search quality must be fast or accurate', rerank=rerank)
+    depth = settings['rerank_depth']
+    info = {'mode': mode, 'applied': False, 'depth': depth, 'model': None}
+    if mode == 'fast' and reranker is None:
+        return None, info
+    if reranker is not None:
+        return reranker, {**info, 'mode': 'accurate', 'applied': True, 'model': reranker.identity}
+    name = settings['reranker']
+    try:
+        status = local_models.model_status(name)
+    except ByaxError as exc:
+        return None, {**info, 'notice': f'Accurate search unavailable ({exc.message}); showing Fast results.'}
+    runtime = local_models.runtime_status()
+    if not runtime['installed'] or status['state'] != 'installed':
+        reason = runtime['reason'] if not runtime['installed'] else f'model {name} is not installed'
+        return None, {
+            **info,
+            'model': name,
+            'notice': f'Accurate search unavailable ({reason}); showing Fast results.',
+        }
+    from .local_inference import load_reranker
+
+    return load_reranker(name), {**info, 'applied': True, 'model': f'local:{name}'}
+
+
+def rerank_results(query, results, reranker, depth):
+    """Reorder the first ``depth`` result rows with ``reranker``; the rest keep their order.
+
+    Every moved row records ``rerank_score``, ``rerank_rank`` and the rank it had before.
+    """
+    from .ranking import Hit
+
+    head, tail = list(results[:depth]), list(results[depth:])
+    hits = [Hit.from_result(row) for row in head]
+    rows = {hit.chunk_id: (rank, row) for rank, (hit, row) in enumerate(zip(hits, head, strict=True), 1)}
+    ordered = []
+    for hit in reranker.rerank(query, hits):
+        prior, row = rows[hit.chunk_id]
+        ordered.append(
+            dict(
+                row,
+                rerank_score=hit.payload.get('rerank_score'),
+                rerank_rank=hit.ranks.get('rerank'),
+                prior_rank=prior,
+            )
+        )
+    return ordered + tail
+
+
+def _search_reranked(index, query, reranker, info, *, method, limit, offset, provider, expand):
+    depth = min(info['depth'], int(index.limits['results']))
+    fetch = min(max(depth, offset + limit), int(index.limits['results']))
+    result = search_library(
+        index, query, method=method, limit=fetch, offset=0, provider=provider, expand=expand, rerank='fast'
+    )
+    try:
+        merged = rerank_results(query, result['results'], reranker, depth)
+    except ByaxError as exc:
+        result['rerank'] = {
+            **info,
+            'applied': False,
+            'notice': f'Reranker failed ({exc.message}); Fast results.',
+        }
+        merged = result['results']
+    else:
+        result['rerank'] = {**info, 'candidates': min(depth, len(result['results']))}
+    more = offset + limit < len(merged) or bool(result.get('truncated'))
+    result['results'] = merged[offset : offset + limit]
+    result['offset'] = offset
+    result['truncated'] = more
+    result['continuation'] = offset + len(result['results']) if more else None
+    return result
+
+
+def search_library(
+    index,
+    query,
+    *,
+    method='auto',
+    limit=20,
+    offset=0,
+    provider=None,
+    expand=False,
+    rerank=None,
+    reranker=None,
+):
     """One library search with method selection. Never escalates consent.
+
+    ``rerank='accurate'`` (or the saved setting) reorders the top candidates with a local
+    reranker; ``'fast'`` skips it. The result's ``rerank`` entry says what happened.
 
     ``auto`` uses hybrid search when the library's embeddings are ``ready`` or
     ``partial`` and the query may be embedded under existing consent; otherwise keyword.
     ``hybrid`` asks for it explicitly but still falls back, with a notice, when it cannot
     run. Results always report ``method`` and ``embedding_state``.
     """
-    from .embeddings import embedding_state
-
     if method not in METHODS:
         raise ByaxError('invalid_input', 'Search method must be auto, keyword or hybrid', method=method)
+    active, rerank_info = resolve_reranker(rerank, reranker)
+    if active is not None and type(limit) is int and type(offset) is int and limit >= 1 and offset >= 0:
+        return _search_reranked(
+            index,
+            query,
+            active,
+            rerank_info,
+            method=method,
+            limit=limit,
+            offset=offset,
+            provider=provider,
+            expand=expand,
+        )
+    result = _search_plain(
+        index, query, method=method, limit=limit, offset=offset, provider=provider, expand=expand
+    )
+    if rerank_info.get('notice'):
+        result['rerank'] = rerank_info
+    return result
+
+
+def _search_plain(index, query, *, method, limit, offset, provider, expand):
+    from .embeddings import embedding_state
+
     if provider is None and not index.library.get('embedding'):
         state = {'state': 'disabled'}
     else:
@@ -96,6 +223,8 @@ def retrieve_context(
     pinned=None,
     embedding_provider=None,
     expand=False,
+    rerank=None,
+    reranker=None,
 ):
     from .context_assembly import estimate_tokens
     from .libraries import LibraryIndex, LibraryRegistry
@@ -136,6 +265,7 @@ def retrieve_context(
                 limit=limit,
                 provider=_embedding_provider(embedding_provider, library),
                 expand=expand,
+                rerank='fast',
             )
         except (ByaxError, OSError) as exc:
             omitted.append({'library_id': identity, 'reason': str(exc)})
@@ -177,6 +307,15 @@ def retrieve_context(
     # Global fusion: every library's first hit competes for the first places, so the
     # first attached library can no longer take the whole budget.
     fused, duplicates = dedupe(rrf(lists, names=names))
+    # Optional local reranker over the fused top candidates (Accurate search); never sends text anywhere.
+    active, rerank_info = resolve_reranker(rerank, reranker)
+    if active is not None and len(fused) > 1:
+        depth = min(rerank_info['depth'], len(fused))
+        try:
+            fused = active.rerank(query, fused[:depth]) + fused[depth:]
+            rerank_info['candidates'] = depth
+        except ByaxError as exc:
+            rerank_info.update(applied=False, notice=f'Reranker failed ({exc.message}); Fast results.')
     included, pinned_tier = [], {}
     remaining = max_chars
     # An optional token budget (context_assembly.library_budget) applies beside the character cap,
@@ -216,6 +355,7 @@ def retrieve_context(
         'libraries': libraries,
         'method': method,
         'fusion': {'method': 'rrf', 'k': RRF_K, 'libraries': len(lists)},
+        **({'rerank': rerank_info} if rerank_info['mode'] != 'fast' or rerank_info.get('notice') else {}),
         'remote_bound': remote,
         **(
             {'token_budget': {'maximum': max_tokens, 'used': max_tokens - tokens_left}}

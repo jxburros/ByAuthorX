@@ -261,8 +261,158 @@ Searching with `--method auto` embeds the query only under consent that already 
 Model, dimension and chunking changes make old vectors `stale`: they are never compared
 with the new model, keyword search answers meanwhile, and the next rebuild discards them.
 An interrupted or partly failed rebuild leaves `partial` coverage, which is used and
-disclosed (`coverage`, `notice`). Vectors are float32 values in the index cache. No
-weights are bundled or downloaded automatically.
+disclosed (`coverage`, `notice`). Vectors are float32 values in the index cache. A hosted or
+Ollama embedder needs no model files here; for an embedder that runs inside ByAuthorX see
+[on-device semantic search](#on-device-semantic-search).
+
+## On-device semantic search
+
+Semantic search can run entirely on your computer, with no provider, no account and no Ollama. It is
+the optional extra `byauthorx[local-models]` (ONNX Runtime and tokenizers, MIT and Apache-2.0); the
+installers include it. Without it everything else works and `byax models` reports the runtime as
+`not installed`.
+
+**Models.** A pinned catalogue (`src/byax/resources/models.json`) lists each model's licence (read from
+the model card of the primary source), upstream repository at a fixed commit, mirror URL, size and
+SHA-256. See [third-party notices](third-party-notices.md).
+
+| Model | Role | Size | Notes |
+| --- | --- | --- | --- |
+| Qwen3-Embedding-0.6B (int8 ONNX, truncated to 512 dimensions) | embedder | 625 MB | Apache-2.0. Multilingual. Queries get an instruction prefix, passages do not. Vectors are cut to 512 dimensions (Matryoshka) and re-normalized |
+| answerai-colbert-small-v1 (33M, ONNX with its 96-dimension projection) | reranker (default) | 134 MB | Apache-2.0. English. Late interaction (MaxSim); the fp32 export is used because the int8 file in the same repository lacks the projection layer |
+| bge-reranker-v2-m3 (int8 ONNX cross-encoder) | reranker (optional) | 571 MB | Apache-2.0. Multilingual, accurate and very slow on a CPU (see below) |
+| docling-layout-heron | PDF layout (optional) | 172 MB | Apache-2.0. Only for the Docling PDF engine |
+
+The standard installer bundles the embedder and the small reranker (about 760 MB, under the 800 MB plan
+budget); the lean installer bundles none. Other models install on request. **A model downloads only when
+you ask.** `byax models --action download --name …` prints the plan (source, each file's URL, size and
+SHA-256, the destination, the licence) and downloads nothing until you repeat it with `--confirm`; the
+desktop button (Tools → On-device search…) shows the same facts in a confirmation. Downloads resume from
+`.part` files, every file is checked against the pinned size and SHA-256 before it is used, a mismatch
+discards the file, and the model is checked again when loaded. Nothing is fetched in the background; the
+project's `models-v1` mirror release is used once it is published (until then the pinned upstream
+revision is the source, shown in the plan). Offline, listing, status and verification still work and
+download fails with `network_unavailable`.
+
+**Turning it on.** Semantic indexing starts only when you turn it on for a library: in Tools → Libraries
+choose **Enable on-device semantic search…**, or run `byax library … --action semantic-enable --confirm`.
+The prompt is *Enable on-device semantic search? Nothing leaves this computer.* (the CLI prints it and
+makes no change without `--confirm`). It records the library's embedder as `local:<model>`, then runs the
+usual incremental embedding job. A `local_only` library may use it, because the embedder is not remote.
+`semantic-disable` turns it off and drops the vectors. The chunk text embedded is the stored text with the
+heading path in front (never in the stored text, so quotes still verify).
+
+**Fast and Accurate.** *Fast* (the default) is keyword plus on-device semantic ranking. *Accurate* also
+reorders the best 30 to 50 fused results (`rerank_depth`, default 40) with a local reranker. Choose it in
+Tools → On-device search…, with `byax models --action configure`, or per search with `--rerank`. If the
+runtime or the reranker is not installed, Accurate falls back to Fast and says so. Results keep each
+moved hit's `prior_rank`, `rerank_rank` and `rerank_score`, so the order stays inspectable.
+
+**Measured on 16 October 2026 on a shared 4-core Xeon container at 2.1 GHz (Linux, ONNX Runtime 1.31 CPU,
+other processes running; load average about 4 to 8), which is not target hardware.** Raw data:
+[`benchmarks/0.4-semantic-tier.json`](benchmarks/0.4-semantic-tier.json) and
+[`benchmarks/0.4-vector-search.json`](benchmarks/0.4-vector-search.json).
+
+Chunk target 200 estimated tokens, 1421 chunks, 14 queries scored (embedding 332 ms per chunk):
+
+| Pipeline | hit@10 | MRR@10 | nDCG@10 | hit@20 | latency p50 / p95 (ms) | same query again p50 / p95 (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| keyword | 0.286 | 0.25 | 0.2 | 0.571 | 15.4 / 35.5 |  |
+| hybrid | 0.571 | 0.292 | 0.265 | 0.714 | 184.6 / 270.5 |  |
+| hybrid+answerai-colbert-small-v1 | 0.714 | 0.377 | 0.366 | 0.786 | 2546.3 / 3247.5 | 88.6 / 117.6 |
+
+Chunk target 400 estimated tokens, 633 chunks, 14 queries scored (embedding 1771 ms per chunk):
+
+| Pipeline | hit@10 | MRR@10 | nDCG@10 | hit@20 | latency p50 / p95 (ms) | same query again p50 / p95 (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| keyword | 0.714 | 0.419 | 0.295 | 0.857 | 16.6 / 25.6 |  |
+| hybrid | 0.786 | 0.517 | 0.302 | 0.857 | 261.4 / 397.3 |  |
+| hybrid+answerai-colbert-small-v1 | 0.857 | 0.696 | 0.483 | 0.857 | 4697.6 / 8109.3 | 81.1 / 115.7 |
+| hybrid+bge-reranker-v2-m3-int8 | 0.857 | 0.756 | 0.462 | 0.857 | 30461.7 / 36800.8 | 28866.5 / 34766 |
+
+Chunk target 800 estimated tokens, 280 chunks, 15 queries scored (embedding 1915 ms per chunk):
+
+| Pipeline | hit@10 | MRR@10 | nDCG@10 | hit@20 | latency p50 / p95 (ms) | same query again p50 / p95 (ms) |
+| --- | --- | --- | --- | --- | --- | --- |
+| keyword | 0.867 | 0.543 | 0.364 | 0.867 | 6.6 / 22.1 |  |
+| hybrid | 0.867 | 0.511 | 0.385 | 0.867 | 128.5 / 250.5 |  |
+| hybrid+answerai-colbert-small-v1 | 0.8 | 0.639 | 0.519 | 0.867 | 1488 / 4025.4 | 59.2 / 92.8 |
+
+Corpus: *Pride and Prejudice* (Project Gutenberg), 15 hand-written queries in `scripts/data/pride_queries.json`, relevance decided by regular expressions over chunk text (`scripts/benchmark_semantic.py`). This is a small smoke measurement, not the Phase 0 harness; it covers one novel and one language. Latency includes embedding the query. The host is not reference hardware (`x86_64`, 4 logical CPUs, shared with other processes), so treat the figures as an upper bound for a quiet machine and not as the p95 targets' verdict.
+
+What the numbers say, and what they do not:
+
+- **Hybrid search beat keyword search** at every chunk size (nDCG@10 0.265 against 0.200 at 200 tokens, 0.302 against 0.295 at 400, 0.385 against 0.364 at 800; hit@10 0.571 against 0.286 at 200). With 14 or 15 queries one query is worth 0.07 of hit@10, so only the direction is meaningful.
+- **The ColBERT reranker lifted ranking further** (nDCG@10 0.366, 0.483 and 0.519; MRR@10 0.377, 0.696 and 0.639), and the cross-encoder gave a similar gain at 400 tokens (nDCG@10 0.462, MRR@10 0.756).
+- **Hybrid latency** was within the 300 ms p95 target at 200 and 800 tokens (270 and 250 ms) and above it at 400 tokens (397 ms), the run that shared the host with the heaviest other load.
+- **Reranking is not within the 1 s p95 target.** For 40 candidates the first request took 3.2 to 8.1 s p95 with the small reranker (cold document vectors) and about 35 s with the 571 MB cross-encoder; the same request repeated took about 60 to 120 ms. Precomputing the late-interaction vectors for a library would put Accurate inside the budget; it is not implemented. **Accurate therefore stays off by default**, as the plan requires.
+- **Chunk size is not decided.** The relevant chunks are re-derived per size, so metrics are not comparable between sizes; embedding time per chunk was also measured under different loads (332 ms at 200 tokens on the quietest run). The default stays at the conservative 400 until the Phase 0 harness can sweep fixed relevance judgements.
+
+
+**Vector search.** Exact cosine over float32 vectors, vectorised with numpy when installed, is the default
+and stays exact. `scripts/benchmark_vectors.py` (512 dimensions, same host) measured:
+
+| Vectors | exact numpy p50 / p95 (ms) | pure Python p50 / p95 (ms) | sqlite-vec p50 / p95 (ms) | sqlite-vec recall@10 |
+| --- | --- | --- | --- | --- |
+| 10,000 | 64.3 / 95 | 337.2 / 374.3 | 28.5 / 34.7 | 0.977 |
+| 25,000 | 229.5 / 282.7 | not run | 59.7 / 71.4 | 0.983 |
+| 50,000 | 405.7 / 524 | not run | 119.1 / 140.8 | 0.993 |
+| 100,000 | 728.3 / 928.7 | not run | 220.4 / 235.5 | 0.973 |
+| 200,000 | 1460.7 / 1900.2 | not run | 337.8 / 403.8 | 0.97 |
+
+The hybrid budget is 300 ms p95 for the whole search: the keyword pass (about 20 ms), the query embedding (about 75 ms warm) and fusion also have to fit, which is why the exact search stops at 10,000 vectors (95 ms p95). With sqlite-vec the budget holds to roughly 60,000 chunks on this host (141 ms at 50,000, 236 ms at 100,000, 404 ms at 200,000). A library of 10,000 documents is likely to exceed that, so the LanceDB question stays open until the `scale` fixture is measured with real chunks.
+
+So brute force stays the default up to 10,000 chunks (`vector_store.BRUTE_FORCE_LIMIT`); a library with
+more uses the optional `sqlite-vec` backend (`pip install byauthorx[sqlite-vec]`, MIT or Apache-2.0)
+automatically, or whenever the library's embedding setting names `"vector_backend": "sqlite-vec"`. It keeps the
+float32 table as the source of truth, adds a 1-bit-per-dimension index, takes the 8 times `limit` nearest by
+Hamming distance and re-scores them with the exact float cosine, so the returned scores are exact and only
+the candidate set is approximate. `auto` is the default setting; `sqlite-blob` forces the exact one.
+LanceDB remains an escape hatch behind the same `VectorStore` interface, to be adopted only if the
+`scale` fixture misses its latency target with sqlite-vec; it is not implemented or bundled.
+
+**Chunks.** Chunker v3 merges short paragraphs up to a token target (estimated with
+`context_assembly.estimate_tokens`), never crosses a heading, and splits an overlong paragraph at sentence
+boundaries with 160 characters of overlap. The default target is 400 tokens, chosen conservatively, not
+tuned (the embedder reads at most 1,024 tokens of a chunk, the catalogue's `max_tokens`): set `byax library --action chunking-configure --input '{"target_tokens": 600}'` (50 to 4000) and
+refresh to try another size; `scripts/benchmark_semantic.py --chunk-tokens 200 400 800` sweeps sizes. The
+stored `text` is the source text as extracted, joined by blank lines. A chunk's `heading` carries the heading
+path (full-text index, embeddings), `locator` the first passage's page, ordinal and block, `start`/`end`
+offsets within its section, `ordinal_end` when paragraphs were merged, and `parent`, the section's identity.
+`byax library-read … --chunk-id … --section` returns the whole section of a hit. Changing the chunker
+makes older indexes stale (searchable until the next refresh) and their vectors incompatible. A citation to
+a chunk made by an older chunker is checked against the document's current chunks by its quote instead of
+failing (`relocated: true`).
+
+## Contextual retrieval notes
+
+An opt-in job can write a note of 50 to 100 tokens per chunk that situates it in its document, which helps
+a passage be found by a related question. `byax library … --action contextualize-preview --input
+'{"provider": "my-ollama"}'` lists what a run sends (one passage with its file name and heading path per
+request, never the whole document); `contextualize` runs it as a job that you can cancel and resume.
+A local model (a loopback Ollama endpoint) needs no extra consent; a remote one needs the separate
+`library_embeddings` consent for that provider (or `--allow-remote` for the call), and a `local_only`
+library never uses a remote model. The prompt frames the passage as untrusted data. The note is kept in its
+own table and full-text column and included in the chunk's embedding; it is **never part of the source
+text**: it is not returned as a passage, not shown in the extracted-text preview and not available to quote
+or cite, and a note that repeats eight consecutive words of its passage is dropped. Embeddings made without
+the note become stale, so rebuild them afterwards. Notes survive a refresh of unchanged text and are removed
+by `contextualize-clear`. Late chunking, the zero-LLM alternative, is not implemented.
+
+## PDF quality path (Docling)
+
+pypdf is the default PDF reader and PyMuPDF is not used (AGPL). For scanned-quality layouts the optional
+extra `byauthorx[docling]` (Docling, MIT) can read PDFs with a layout model: reading order and headings,
+the page and a bounding box (`bbox`, top-left origin in PDF points) for every passage, and the PDF's own
+text annotations as separate linked notes (`note` type, page and box). Choose it per library with
+`byax library … --action pdf-engine --input '{"engine": "docling"}'` after installing the extra and the layout
+model (`byax models --action download --name docling-layout-heron --confirm`); the command refuses
+otherwise. Docling runs only inside the isolated parser subprocess, with `HF_HUB_OFFLINE=1`, on the
+installed layout model: it never fetches one. OCR and table-structure models are off, so scanned pages
+without a text layer still yield nothing. Switching engines marks PDFs stale and their vectors
+incompatible. Docling pulls PyTorch (several GB); it is never part of the installers.
+
+Recorded run, 16 October 2026 (Docling 2.140 in a scratch environment, the layout model installed with `byax models`, offline): a generated one-page PDF with two headings and two paragraphs came back in reading order, with the heading path and a top-left bounding box on every passage, in 10 to 26 seconds on 4 shared CPU cores including model load. The automated tests use a stand-in `docling` package, so a newer Docling release can change the item API without failing them; run `scripts/check_docling_pdf.py some.pdf` after upgrading Docling.
 
 ## Storage, bounds and remaining phases
 
@@ -274,19 +424,18 @@ failed files have individual status. Cancellation retains usable completed files
 
 Defaults: 32 MiB/file, two million extracted characters/file, 100,000 chunks/library,
 30 seconds/parser, one parser at a time per indexer, 100 search results and 100,000
-read characters. Paragraph chunks are at most 1,800 characters with up to 160
-characters overlap when splitting an oversized paragraph. Index schema 2 (chunking
-version 2) stores each chunk's heading path and fingerprint, a stemmed full-text index
-with a heading column, a trigram index for substrings and a vocabulary table for
-suggestions. Older index files are marked stale on first open, stay searchable (results
+read characters. Chunks merge short paragraphs up to 400 estimated tokens and never
+cross a heading (chunking version 3; see [chunks](#on-device-semantic-search)). Index schema 3
+stores each chunk's heading path and fingerprint, a stemmed full-text index
+with heading, text and contextual-note columns, a trigram index for substrings, a vocabulary table for
+suggestions and the notes table. Older index files are marked stale on first open, stay searchable (results
 flagged `stale`) and are rebuilt by the next refresh; their old vectors are dropped. LibraryIndex accepts
 explicit `limits` overrides; worker parsing is isolated and archive import limits
 also apply. No performance numbers are claimed without reference-hardware measurement.
 
 The first-release keyword library, citation and context/review paths are implemented.
 Configured embeddings and hybrid ranking (chosen automatically when a library has vectors)
-are available. Reranking models and on-device embedders are later context-engine phases. Optional downloadable
-weights, outside DOI/catalog lookup and Zotero local API remain future capabilities
+are available, with on-device embedding and reranking as described above. Outside DOI/catalog lookup and Zotero local API remain future capabilities
 (the specification's optional installer work and phase 5). PDFs require an extractable
 text layer; OCR is not included. Citation processing dependency licenses are recorded
 in [citation-licenses.md](citation-licenses.md).

@@ -94,12 +94,13 @@ def lock_identity(path: str) -> str:
     return os.path.normcase(path)
 
 
-def apply_parser_limits(memory_bytes: int, cpu_seconds: int) -> dict[str, bool]:
+def apply_parser_limits(memory_bytes: int | None, cpu_seconds: int) -> dict[str, bool]:
     """Apply resource limits to the isolated library parser; report which ones the OS accepted.
 
     Windows has no ``resource`` module. macOS accepts ``RLIMIT_AS`` in some releases, rejects it with
     ``ValueError`` in others and does not enforce it either way, so a refusal is not an error: the
     parent still enforces a wall-clock timeout and an output size cap on every platform.
+    ``memory_bytes=None`` skips the address-space limit.
     """
     applied = {'memory': False, 'cpu': False}
     if sys.platform == 'win32':
@@ -112,6 +113,8 @@ def apply_parser_limits(memory_bytes: int, cpu_seconds: int) -> dict[str, bool]:
         ('RLIMIT_AS', memory_bytes, 'memory'),
         ('RLIMIT_CPU', cpu_seconds, 'cpu'),
     ):
+        if limit is None:  # no address-space cap for a layout model, which needs far more than a text parser
+            continue
         try:
             resource.setrlimit(getattr(resource, name), (limit, limit))
             applied[key] = True

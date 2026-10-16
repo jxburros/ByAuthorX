@@ -1,4 +1,4 @@
-"""Context engine phase 1 retrieval core: index schema 2, fusion, vectors, embeddings and absence."""
+"""Context engine phase 1 retrieval core: index schema 3, fusion, vectors, embeddings and absence."""
 
 import json
 import sqlite3
@@ -66,10 +66,10 @@ def attach(doc, *libraries, role='supplementary'):
     return doc
 
 
-# Index schema 2 ---------------------------------------------------------------------------------
+# Index schema 3 ---------------------------------------------------------------------------------
 
 
-def test_schema_two_records_heading_fingerprint_and_ranks_headings_above_text(make_library):
+def test_schema_records_heading_fingerprint_and_ranks_headings_above_text(make_library):
     _, index, _ = make_library(
         'Notes',
         {
@@ -81,13 +81,14 @@ def test_schema_two_records_heading_fingerprint_and_ranks_headings_above_text(ma
         meta = dict(db.execute('SELECT key, value FROM meta').fetchall())
         rows = db.execute('SELECT heading, fingerprint FROM chunks ORDER BY rowid').fetchall()
         tables = {r[0] for r in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
-    assert meta['schema'] == str(SCHEMA) == '2'
-    assert json.loads(meta['chunking']) == CHUNKING and CHUNKING['version'] == 2
-    assert {'search', 'search_tri', 'vocab', 'chunks'} <= tables
+    assert meta['schema'] == str(SCHEMA) == '3'
+    assert json.loads(meta['chunking']) == CHUNKING and CHUNKING['version'] == 3
+    assert {'search', 'search_tri', 'vocab', 'chunks', 'contexts'} <= tables
     assert ('Lanterns',) in [(r[0],) for r in rows] and all(len(r[1]) == 64 for r in rows)
     result = index.search('lantern')
     # Heading match outranks a body match, and the body under the heading inherits it.
-    assert [h['path'] for h in result['results'][:2]] == ['a.md', 'a.md']
+    # A heading's paragraphs are one chunk now (chunker v3), so the second hit is the body match.
+    assert [h['path'] for h in result['results'][:2]] == ['a.md', 'b.md']
     assert result['results'][0]['heading'] == 'Lanterns'
     assert result['passes'] == ['porter', 'trigram'] and result['method'] == 'keyword'
     assert index.search('heading:kitchen')['results'][0]['path'] == 'b.md'
@@ -150,7 +151,7 @@ def test_schema_one_index_is_marked_stale_kept_searchable_and_rebuilt(make_libra
     db.close()
     upgraded = LibraryIndex(library, cache_dir=make_library.cache)
     status = upgraded.status()
-    assert status['schema'] == 2 and status['stale']
+    assert status['schema'] == SCHEMA and status['stale']
     stale = upgraded.search('copper')['results']
     assert stale[0]['chunk_id'] == 'chunk_old' and stale[0]['stale']
     with upgraded._db() as db:
@@ -214,7 +215,7 @@ def test_mmr_prefers_diverse_passages_and_reranker_seam_is_identity():
 
 
 def test_vector_store_float32_coverage_signatures_and_cosine(make_library):
-    _, index, _ = make_library('Vec', {'a.txt': 'one\n\ntwo\n\nthree'})
+    _, index, _ = make_library('Vec', {'a.txt': 'one', 'b.txt': 'two', 'c.txt': 'three'})
     assert decode(encode([0.5, -1.25])) == (0.5, -1.25)
     store = open_store(index)
     with index._db() as db:
@@ -233,7 +234,9 @@ def test_vector_store_float32_coverage_signatures_and_cosine(make_library):
 
 
 def test_rebuild_is_incremental_batched_and_reports_counts(make_library):
-    _, index, root = make_library('Inc', {'a.txt': 'moon\n\nsea\n\nmoon sea', 'b.txt': 'ocean'})
+    _, index, root = make_library(
+        'Inc', {'a1.txt': 'moon', 'a2.txt': 'sea', 'a3.txt': 'moon sea', 'b.txt': 'ocean'}
+    )
     provider = Embedder(max_batch=2)
     first = index.rebuild_vectors(provider=provider)
     assert (first['done'], first['skipped'], first['failed'], first['total']) == (4, 0, 0, 4)
@@ -249,7 +252,7 @@ def test_rebuild_is_incremental_batched_and_reports_counts(make_library):
 
 
 def test_rebuild_retries_unsent_requests_counts_failures_and_cancels(make_library):
-    _, index, _ = make_library('Retry', {'a.txt': 'moon\n\nsea'})
+    _, index, _ = make_library('Retry', {'a.txt': 'moon', 'b.txt': 'sea'})
     unsent = ByaxError('provider_failure', 'not sent', request_sent=False)
     sleeps = []
     provider = Embedder(max_batch=1, failures=[unsent])
@@ -257,7 +260,7 @@ def test_rebuild_retries_unsent_requests_counts_failures_and_cancels(make_librar
 
     result = rebuild_vectors(index, provider=provider, sleep=sleeps.append)
     assert result['done'] == 2 and result['failed'] == 0 and sleeps
-    _, index2, _ = make_library('Uncertain', {'a.txt': 'moon\n\nsea'})
+    _, index2, _ = make_library('Uncertain', {'a.txt': 'moon', 'b.txt': 'sea'})
     uncertain = ByaxError('uncertain_external_outcome', 'timed out')
     provider = Embedder(max_batch=1, failures=[uncertain])
     result = rebuild_vectors(index2, provider=provider, sleep=sleeps.append)
@@ -269,14 +272,14 @@ def test_rebuild_retries_unsent_requests_counts_failures_and_cancels(make_librar
         def is_set(self):
             return len(provider.calls) >= 1
 
-    _, index3, _ = make_library('Cancel', {'a.txt': 'moon\n\nsea\n\nocean'})
+    _, index3, _ = make_library('Cancel', {'a.txt': 'moon', 'b.txt': 'sea', 'c.txt': 'ocean'})
     provider = Embedder(max_batch=1)
     result = rebuild_vectors(index3, provider=provider, cancel_event=Cancel())
     assert result['cancelled'] and result['done'] == 1
 
 
 def test_changed_signature_marks_vectors_stale_and_never_mixes(make_library):
-    _, index, _ = make_library('Sig', {'a.txt': 'moon\n\nsea'})
+    _, index, _ = make_library('Sig', {'a.txt': 'moon', 'b.txt': 'sea'})
     old = Embedder('model-a')
     index.rebuild_vectors(provider=old)
     new = Embedder('model-b')
@@ -322,7 +325,7 @@ def test_global_fusion_fixes_first_library_starvation(make_library):
 
 
 def test_method_auto_reports_hybrid_or_keyword_per_library(make_library):
-    embedded, index, _ = make_library('Embedded', {'a.txt': 'A lunar eclipse.\n\nTides.'})
+    embedded, index, _ = make_library('Embedded', {'a.txt': 'A lunar eclipse.', 'tides.txt': 'Tides.'})
     plain, _, _ = make_library('Plain', {'b.txt': 'The moon is copper.'})
     provider = Embedder()
     index.rebuild_vectors(provider=provider)

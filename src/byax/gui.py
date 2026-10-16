@@ -74,6 +74,7 @@ from .gui_goals import GoalPanels
 from .gui_icons import themed_icon
 from .gui_languages import LanguagePanels
 from .gui_libraries import LibraryPanels
+from .gui_local_models import LocalModelPanels
 from .gui_motion import MotionController, PenLineAnimation
 from .gui_onboarding import OnboardingPanels
 from .gui_project import BinderPanels
@@ -121,6 +122,7 @@ class MainWindow(
     CompilePanels,
     CodexPanels,
     DocxReviewPanels,
+    LocalModelPanels,
     QMainWindow,
 ):
     def __init__(self, path=None):
@@ -606,6 +608,7 @@ class MainWindow(
             ('Readability report…', self.readability_report),
             ('Codex…', self.codex_panel),
             ('Synced folder safety…', self.sync_safety_details),
+            ('On-device search…', self.local_models_dialog),
             ('Review conflicted copies…', self.review_conflicted_copies),
             ('Languages…', self.show_languages),
         ):
