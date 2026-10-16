@@ -396,23 +396,30 @@ class LibraryPanels:
                 return
 
             def work():
-                hits = []
+                from .retrieval import search_library
+
+                hits, suggestions = [], {}
                 registry = LibraryRegistry()
                 for attachment in attachments:
                     try:
                         library = registry.get(attachment['library_id'])
                         if library:
-                            response = LibraryIndex(library).search(phrase, limit=20)
+                            # Same query syntax and method selection as `byax library-search`.
+                            response = search_library(LibraryIndex(library), phrase, limit=20)
                             hits.extend(
                                 response.get('results', response.get('hits', []))
                                 if isinstance(response, dict)
                                 else response
                             )
+                            for term, options in (response.get('suggestions') or {}).items():
+                                suggestions.setdefault(term, []).extend(o['term'] for o in options)
                     except Exception as exc:
                         logging.getLogger(__name__).info('Library search unavailable: %s', exc)
-                return hits
+                return {'hits': hits, 'suggestions': suggestions}
 
-            def finished(hits):
+            def finished(found):
+                hits = found['hits'] if isinstance(found, dict) else found
+                suggestions = found.get('suggestions', {}) if isinstance(found, dict) else {}
                 if not active['open'] or active['generation'] != generation:
                     return
                 if not context_current():
@@ -427,6 +434,14 @@ class LibraryPanels:
                     if hit.get('stale'):
                         source['verification'] = 'stale'
                     add_result(source, {**hit.get('locator', {}), 'chunk': hit['chunk_id']})
+                if not hits and suggestions:
+                    preview.setPlainText(
+                        self.tr('Did you mean: ')
+                        + '; '.join(
+                            f'{term} → {", ".join(dict.fromkeys(options))}'
+                            for term, options in suggestions.items()
+                        )
+                    )
 
             self.background(self.tr('Searching local libraries…'), work, finished)
 

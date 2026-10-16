@@ -566,6 +566,7 @@ class AIPanel(QWidget):
                 retrieval = retrieve_context(
                     frozen,
                     prompt,
+                    method='auto',
                     remote=remote,
                     profile=getattr(window, 'active_profile', None),
                     target=context.get('target'),
@@ -577,7 +578,23 @@ class AIPanel(QWidget):
                     library_authorized = True
                 context = augment_context(context, retrieval)
                 count = len(retrieval['included'])
-                self._append('note', f'Library retrieval: {count} selected passage(s).')
+                methods = ', '.join(
+                    f'{lib["name"]}: {lib["method"]}'
+                    + (
+                        f' ({lib["embedding_state"]})'
+                        if lib['embedding_state'] not in ('disabled', 'ready')
+                        else ''
+                    )
+                    for lib in retrieval.get('libraries', [])
+                )
+                self._append(
+                    'note',
+                    f'Library retrieval: {count} selected passage(s)'
+                    + (f' · {methods}.' if methods else '.'),
+                )
+                for library in retrieval.get('libraries', []):
+                    if library.get('notice'):
+                        self._append('note', f'{library["name"]}: {library["notice"]}')
                 for omission in retrieval['omitted']:
                     self._append('note', 'Library passage omitted: ' + omission['reason'])
             preview = registry.preview(
@@ -638,6 +655,7 @@ class AIPanel(QWidget):
         reply = result.get('reply') or '(No reply text.)'
         self.messages.append({'role': 'assistant', 'content': reply})
         self._append('assistant', reply)
+        self.verify_absence(reply, frozen)
         if mode != 'work':
             # Chat mode never edits, whatever the model returned.
             return
@@ -647,6 +665,38 @@ class AIPanel(QWidget):
         proposals = result.get('proposals') or []
         if proposals:
             self.offer_proposals(proposals, frozen)
+
+    def verify_absence(self, reply, frozen):
+        """Q14: before a "not in your sources" answer stands, search every eligible source literally."""
+        from .retrieval import absence_claim, describe_absence, verify_absence
+        from .search_query import key_terms
+
+        if not absence_claim(reply):
+            return
+        prompt = next((m['content'] for m in reversed(self.messages) if m['role'] == 'user'), '')
+        quoted = re.findall(r'["“]([^"”]{2,200})["”]', reply)
+        terms = list(dict.fromkeys([q.strip() for q in quoted] + key_terms(prompt)))[:8]
+        if not terms:
+            return
+        profile = getattr(self.window, 'active_profile', None)
+
+        def work():
+            return verify_absence(terms, manuscript=frozen, profile=profile)
+
+        def done(report):
+            if not isValid(self):
+                return
+            self.last_absence_report = report
+            if report['found']:
+                self._append(
+                    'note',
+                    'The reply says something is missing, but literal matches exist. Check these before '
+                    'relying on the answer:\n' + describe_absence(report),
+                )
+            else:
+                self._append('note', describe_absence(report))
+
+        self.window.background(self.tr('Checking sources for literal matches…'), work, done)
 
     def offer_proposals(self, proposals, frozen):
         window = self.window

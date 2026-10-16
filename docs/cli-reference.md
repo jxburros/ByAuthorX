@@ -132,6 +132,42 @@ byax import draft.docx --out draft.byax --json
 byax convert draft.byax --out draft.odt --json
 ```
 
+## Library search syntax
+
+`library-search`, `library --action search` and `context --library-query` accept:
+
+| Syntax | Meaning |
+| --- | --- |
+| `copper moon` | Either word (OR); passages with more matches rank higher |
+| `"copper moon"` | The exact phrase (quoted words are never dropped or spell-expanded) |
+| `NEAR(copper moon, 5)` | Both words within 5 words of each other (default 10, maximum 100) |
+| `-jupiter`, `NOT jupiter` | Exclude passages containing the word or `-"a phrase"` |
+| `cop*` | Words starting with `cop` |
+| `heading:Rosings`, `text:moon` | Match only the heading path or only the body text |
+| `title:journal`, `path:notes/*.md` | Keep results whose file name/top heading or library path matches (`*` wildcards allowed) |
+
+Plain words are stemmed (`moons` finds `moon`). Common words (*the*, *of*) are ignored unless
+nothing else remains. Headings weigh four times body text. Upper-case `AND`/`OR` are ignored
+as connectors. If the stemmed pass returns fewer than `--limit` results, a literal substring
+pass follows (`match: "trigram"`, three characters or more). Unknown `field:` prefixes are
+searched as words and reported in `query.warnings`. Unmatched words return `suggestions`
+("did you mean"); `--expand` searches them too.
+
+```bash
+byax library-search draft.byax --library-id lib_… --query 'heading:Mars "two moons" -Venus' --json
+byax library-search draft.byax --library-id lib_… --query moons --method keyword --json
+byax library-search draft.byax --library-id lib_… --query Phobsos --expand --json
+byax context draft.byax --library-query moons --library-method auto --library-pinned doc_… --json
+byax library draft.byax --action verify-absence --query '"Olympus Mons" Ganymede' --json
+```
+
+`--method auto|keyword|hybrid` (default `auto`) chooses hybrid search when a library's
+embeddings are `ready` or `partial`; results report `method`, `embedding_state`, `coverage` and
+any `notice`. `verify-absence` takes terms from `--query` (quote phrases) or
+`--input` `{"terms": [...]}`, optionally limited by `--library-id`, and reports every literal
+match in the attached libraries and the document. See the
+[library guide](library-and-citations-guide.md#search-syntax-and-methods).
+
 ## Edit envelopes
 
 ```json

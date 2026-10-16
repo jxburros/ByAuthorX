@@ -22,6 +22,9 @@ from pathlib import Path
 
 from .errors import ByaxError
 from .providers import _atomic_json, _default_dir
+from .search_query import COLUMN_WEIGHTS, Query
+from .search_query import parse as parse_query
+from .search_query import suggest as suggest_spelling
 
 SUPPORTED = {'.txt', '.md', '.markdown', '.docx', '.byax', '.pdf'}
 DEFAULT_LIMITS = {
@@ -32,7 +35,28 @@ DEFAULT_LIMITS = {
     'results': 100,
     'context_chars': 100_000,
 }
-CHUNKING = {'version': 1, 'chars': 1800, 'overlap': 160}
+CHUNKING = {'version': 2, 'chars': 1800, 'overlap': 160}
+# Index schema 2: chunk heading and fingerprint, porter FTS with a heading column and
+# prefix indexes, a trigram table for substring matches and an fts5vocab view.
+SCHEMA = 2
+_SCHEMA_TABLES = (
+    'CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT)',
+    'CREATE TABLE IF NOT EXISTS documents (document_id TEXT PRIMARY KEY, content_hash TEXT NOT NULL)',
+    """CREATE TABLE IF NOT EXISTS files
+        (path TEXT PRIMARY KEY, root TEXT, relative_path TEXT, size INTEGER, mtime INTEGER,
+         document_id TEXT, status TEXT, error TEXT, lease TEXT, lease_until REAL)""",
+    """CREATE TABLE IF NOT EXISTS chunks
+        (chunk_id TEXT PRIMARY KEY, document_id TEXT, ordinal INTEGER, locator TEXT,
+         heading TEXT, text TEXT, fingerprint TEXT)""",
+    'CREATE INDEX IF NOT EXISTS chunk_document ON chunks(document_id)',
+    """CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(chunk_id UNINDEXED, heading, text,
+        tokenize="porter unicode61 remove_diacritics 2", prefix='2 3')""",
+    "CREATE VIRTUAL TABLE IF NOT EXISTS vocab USING fts5vocab(search, 'row')",
+)
+MAX_SUGGESTED_TERMS = 8
+_TRIGRAM_TABLE = (
+    "CREATE VIRTUAL TABLE IF NOT EXISTS search_tri USING fts5(chunk_id UNINDEXED, text, tokenize='trigram')"
+)
 
 
 def _identity(prefix, *values):
@@ -138,11 +162,22 @@ class LibraryRegistry:
         return {'removed': library_id, 'user_files_deleted': False}
 
 
+def chunk_heading(locator):
+    """Heading text for the FTS heading column, from the parsed document structure."""
+    path = (locator or {}).get('heading_path') or []
+    return ' > '.join(str(part) for part in path if str(part).strip())
+
+
+def chunk_fingerprint(heading, text):
+    return hashlib.sha256('\0'.join((heading or '', text)).encode()).hexdigest()
+
+
 def chunk_passages(passages, document_id):
     """Preserve paragraph/page/block locators, splitting only overlong passages."""
     ordinal = 0
     for passage in passages:
         text = passage['text']
+        heading = chunk_heading(passage.get('locator'))
         start = 0
         while start < len(text):
             end = min(start + CHUNKING['chars'], len(text))
@@ -154,6 +189,8 @@ def chunk_passages(passages, document_id):
             yield {
                 'chunk_id': _identity('chunk_', document_id, ordinal, part),
                 'text': part,
+                'heading': heading,
+                'fingerprint': chunk_fingerprint(heading, part),
                 'ordinal': ordinal,
                 'locator': {**passage['locator'], 'start': start, 'end': end},
             }
@@ -182,22 +219,58 @@ class LibraryIndex:
         if any(not isinstance(v, (int, float)) or v <= 0 for v in self.limits.values()):
             raise ByaxError('invalid_input', 'Library limits must be positive')
         with self._db() as db:
-            db.executescript("""
-                CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
-                CREATE TABLE IF NOT EXISTS documents
-                    (document_id TEXT PRIMARY KEY, content_hash TEXT NOT NULL);
-                CREATE TABLE IF NOT EXISTS files
-                    (path TEXT PRIMARY KEY, root TEXT, relative_path TEXT, size INTEGER, mtime INTEGER,
-                     document_id TEXT, status TEXT, error TEXT, lease TEXT, lease_until REAL);
-                CREATE TABLE IF NOT EXISTS chunks
-                    (chunk_id TEXT PRIMARY KEY, document_id TEXT, ordinal INTEGER, locator TEXT, text TEXT);
-                CREATE INDEX IF NOT EXISTS chunk_document ON chunks(document_id);
-                CREATE VIRTUAL TABLE IF NOT EXISTS search USING fts5(chunk_id UNINDEXED, text);
-            """)
+            db.execute('BEGIN IMMEDIATE')
+            db.execute(_SCHEMA_TABLES[0])
+            recorded = db.execute("SELECT value FROM meta WHERE key='schema'").fetchone()
+            tables = {row[0] for row in db.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+            upgraded = (recorded is None and 'chunks' in tables) or bool(
+                recorded and recorded[0] != str(SCHEMA)
+            )
+            if upgraded:
+                self._upgrade(db, recorded[0] if recorded else None)
+            for statement in _SCHEMA_TABLES[1:]:
+                db.execute(statement)
+            try:
+                db.execute(_TRIGRAM_TABLE)
+                self.trigram = True
+            except sqlite3.OperationalError:
+                # SQLite before 3.34 has no trigram tokenizer; substring passes are skipped.
+                self.trigram = False
+            if upgraded:
+                # Old text stays searchable (reported stale) until the refresh job rebuilds it.
+                db.execute(
+                    'INSERT INTO search(rowid, chunk_id, heading, text) '
+                    "SELECT rowid, chunk_id, COALESCE(heading, ''), text FROM chunks"
+                )
+                if self.trigram:
+                    db.execute(
+                        'INSERT INTO search_tri(rowid, chunk_id, text) SELECT rowid, chunk_id, text FROM chunks'
+                    )
             recorded = db.execute("SELECT value FROM meta WHERE key='chunking'").fetchone()
             if recorded and json.loads(recorded[0]) != CHUNKING:
                 db.execute("UPDATE files SET status='stale', size=-1")
             db.execute("INSERT OR REPLACE INTO meta VALUES ('chunking', ?)", (json.dumps(CHUNKING),))
+            db.execute("INSERT OR REPLACE INTO meta VALUES ('schema', ?)", (str(SCHEMA),))
+
+    @staticmethod
+    def _upgrade(db, recorded):
+        """Index files are derived data: an upgrade marks files stale for the refresh job."""
+        from .vector_store import drop_legacy
+
+        for table in ('search', 'search_tri', 'vocab'):
+            db.execute(f'DROP TABLE IF EXISTS {table}')
+        drop_legacy(db)
+        if recorded is None:
+            # Schema 1: extend chunks in place, then mark every file for reparsing.
+            columns = {row[1] for row in db.execute('PRAGMA table_info(chunks)')}
+            for column in ('heading', 'fingerprint'):
+                if column not in columns:
+                    db.execute(f'ALTER TABLE chunks ADD COLUMN {column} TEXT')
+            db.execute("UPDATE files SET status='stale', size=-1")
+        else:
+            # An unknown (for example newer) schema is discarded and rebuilt from scratch.
+            for table in ('chunks', 'documents', 'files', 'vector_store'):
+                db.execute(f'DROP TABLE IF EXISTS {table}')
 
     @contextmanager
     def _db(self):
@@ -388,23 +461,31 @@ class LibraryIndex:
                     if total - existing + len(chunks) > self.limits['chunks']:
                         raise ValueError('Maximum library chunk count exceeded')
                     db.execute('INSERT OR IGNORE INTO documents VALUES (?,?)', (document_id, digest))
-                    db.execute(
-                        'DELETE FROM search WHERE chunk_id IN (SELECT chunk_id FROM chunks WHERE document_id=?)',
-                        (document_id,),
-                    )
+                    self._delete_search(db, 'SELECT rowid FROM chunks WHERE document_id=?', (document_id,))
                     db.execute('DELETE FROM chunks WHERE document_id=?', (document_id,))
                     for chunk in chunks:
-                        db.execute(
-                            'INSERT INTO chunks VALUES (?,?,?,?,?)',
+                        rowid = db.execute(
+                            'INSERT INTO chunks (chunk_id, document_id, ordinal, locator, heading, text, '
+                            'fingerprint) VALUES (?,?,?,?,?,?,?)',
                             (
                                 chunk['chunk_id'],
                                 document_id,
                                 chunk['ordinal'],
                                 json.dumps(chunk['locator']),
+                                chunk['heading'],
                                 chunk['text'],
+                                chunk['fingerprint'],
                             ),
+                        ).lastrowid
+                        db.execute(
+                            'INSERT INTO search(rowid, chunk_id, heading, text) VALUES (?,?,?,?)',
+                            (rowid, chunk['chunk_id'], chunk['heading'], chunk['text']),
                         )
-                        db.execute('INSERT INTO search VALUES (?,?)', (chunk['chunk_id'], chunk['text']))
+                        if self.trigram:
+                            db.execute(
+                                'INSERT INTO search_tri(rowid, chunk_id, text) VALUES (?,?,?)',
+                                (rowid, chunk['chunk_id'], chunk['text']),
+                            )
                     db.execute(
                         'UPDATE files SET document_id=?,status=?,error=NULL,lease=NULL,lease_until=NULL WHERE path=? AND lease=?',
                         (document_id, 'ready' if chunks else 'no_text', key, owner),
@@ -426,15 +507,20 @@ class LibraryIndex:
         result.update(processed=processed, cancelled=bool(cancel_event and cancel_event.is_set()))
         return result
 
-    @staticmethod
-    def _collect_orphans(db):
+    def _delete_search(self, db, rowids, args=()):
+        # Full-text rows share their chunk's rowid, so deletes never scan the FTS tables.
+        db.execute(f'DELETE FROM search WHERE rowid IN ({rowids})', args)
+        if self.trigram:
+            db.execute(f'DELETE FROM search_tri WHERE rowid IN ({rowids})', args)
+
+    def _collect_orphans(self, db):
         # Missing files retain status records, but no longer retain their cached text.
         # A live parser's old rows remain available until its replacement commits.
-        db.execute(
-            """DELETE FROM search WHERE chunk_id IN (
-            SELECT chunk_id FROM chunks WHERE document_id NOT IN (
+        self._delete_search(
+            db,
+            """SELECT rowid FROM chunks WHERE document_id NOT IN (
                 SELECT document_id FROM files WHERE document_id IS NOT NULL AND
-                (status != 'missing' OR (lease IS NOT NULL AND lease_until > ?))))""",
+                (status != 'missing' OR (lease IS NOT NULL AND lease_until > ?)))""",
             (time.time(),),
         )
         db.execute(
@@ -444,8 +530,8 @@ class LibraryIndex:
             (time.time(),),
         )
         db.execute('DELETE FROM documents WHERE document_id NOT IN (SELECT document_id FROM chunks)')
-        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='vectors'").fetchone():
-            db.execute('DELETE FROM vectors WHERE chunk_id NOT IN (SELECT chunk_id FROM chunks)')
+        if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='vector_store'").fetchone():
+            db.execute('DELETE FROM vector_store WHERE chunk_id NOT IN (SELECT chunk_id FROM chunks)')
 
     def _finish(self, key, owner, status, error=None):
         with self._db() as db:
@@ -472,8 +558,12 @@ class LibraryIndex:
         return paths
 
     def status(self):
-        from .embeddings import index_embedding_state
+        from .embeddings import embedding_state
 
+        try:
+            embedding = embedding_state(self)
+        except (ByaxError, OSError):
+            embedding = {'state': 'provider_unavailable'}
         with self._db() as db:
             files = []
             for row in db.execute('SELECT * FROM files ORDER BY relative_path'):
@@ -504,7 +594,10 @@ class LibraryIndex:
             'chunks': chunks,
             'files': files,
             'stale': any(f['status'] in {'stale', 'error', 'missing'} for f in files),
-            'embeddings': index_embedding_state(self),
+            'embeddings': embedding['state'],
+            'embedding_coverage': {k: embedding[k] for k in ('embedded', 'total', 'ratio') if k in embedding},
+            'schema': SCHEMA,
+            'trigram': self.trigram,
             'retrieval_policy': self.library.get('retrieval_policy', 'ask'),
             'chunking': CHUNKING,
             'limits': self.limits,
@@ -515,66 +608,209 @@ class LibraryIndex:
 
         return embedding_preview(self)
 
-    def rebuild_vectors(self, *, authorized=False, provider=None, cancel_event=None):
+    def rebuild_vectors(self, *, authorized=False, provider=None, cancel_event=None, progress=None):
         from .embeddings import rebuild_vectors
 
-        return rebuild_vectors(self, authorized=authorized, provider=provider, cancel_event=cancel_event)
+        return rebuild_vectors(
+            self, authorized=authorized, provider=provider, cancel_event=cancel_event, progress=progress
+        )
 
-    def hybrid_search(self, query, *, limit=20, offset=0, authorized=False, provider=None):
+    def hybrid_search(self, query, *, limit=20, offset=0, authorized=False, provider=None, expand=False):
         from .embeddings import hybrid_search
 
         return hybrid_search(
-            self, query, limit=limit, offset=offset, authorized=authorized, provider=provider
+            self, query, limit=limit, offset=offset, authorized=authorized, provider=provider, expand=expand
         )
 
-    def search(self, query, limit=20, offset=0):
-        if not isinstance(query, str) or not query.strip():
+    def _rows(self, db, table, expression):
+        weights = ','.join(str(w) for w in COLUMN_WEIGHTS) if table == 'search' else '0.0,1.0'
+        try:
+            return db.execute(
+                f"""SELECT c.*,d.content_hash,bm25({table},{weights}) AS score FROM {table}
+                    JOIN chunks c ON c.rowid={table}.rowid
+                    JOIN documents d ON d.document_id=c.document_id
+                    WHERE {table} MATCH ? ORDER BY score,c.chunk_id""",
+                (expression,),
+            ).fetchall()
+        except sqlite3.OperationalError as exc:
+            # Expressions are built from quoted word tokens only; report rather than leak SQL.
+            raise ByaxError('invalid_input', 'Search query cannot be evaluated', reason=str(exc)) from exc
+
+    def suggestions(self, query, *, db=None, limit=3):
+        """'Did you mean' spellings for query terms that match nothing, from the index vocabulary."""
+        parsed = query if isinstance(query, Query) else parse_query(query)
+        if db is None:
+            with self._db() as connection:
+                return self.suggestions(parsed, db=connection, limit=limit)
+        found = {}
+        # Bounded work for long prompts: only the first few plain terms are spell-checked.
+        for clause in [c for c in parsed.positive if c.kind == 'term' and not c.prefix][:MAX_SUGGESTED_TERMS]:
+            token = clause.tokens[0]
+            if len(token) < 3 or token.isdigit() or token.casefold() in found:
+                continue
+            if db.execute('SELECT 1 FROM search WHERE search MATCH ? LIMIT 1', (f'"{token}"',)).fetchone():
+                continue
+            vocabulary = db.execute(
+                'SELECT term, doc FROM vocab WHERE length(term) BETWEEN ? AND ?',
+                (len(token) - 3, len(token) + 3),
+            )
+            options = []
+            for option in suggest_spelling(token, ((r[0], r[1]) for r in vocabulary), limit=limit):
+                # The vocabulary holds porter stems; show a spelling that occurs in the text.
+                row = db.execute(
+                    'SELECT text, heading FROM search WHERE search MATCH ? LIMIT 1', (f'"{option["term"]}"',)
+                ).fetchone()
+                surface = None
+                if row:
+                    match = re.search(
+                        r'\b(' + re.escape(option['term']) + r'\w*)', row[1] + ' ' + row[0], re.IGNORECASE
+                    )
+                    surface = match.group(1).casefold() if match else None
+                term = surface or option['term']
+                if all(term != o['term'] for o in options):
+                    options.append(dict(option, term=term))
+            if options:
+                found[token.casefold()] = options
+        return found
+
+    def search(self, query, limit=20, offset=0, *, expand=False):
+        """Ranked keyword search: porter pass, then a trigram pass when it finds fewer than ``limit``.
+
+        ``query`` uses the shared syntax in :mod:`byax.search_query`. Suggestions are
+        reported for unmatched terms; ``expand=True`` also searches the suggested spellings.
+        """
+        if not isinstance(query, (str, Query)) or (isinstance(query, str) and not query.strip()):
             raise ByaxError('invalid_input', 'A search query is required')
         if type(limit) is not int or type(offset) is not int or limit < 1 or offset < 0:
             raise ByaxError('invalid_input', 'Invalid search pagination')
+        if type(expand) is not bool:
+            raise ByaxError('invalid_input', 'expand must be a boolean')
         limit = min(limit, int(self.limits['results']))
-        terms = re.findall(r'\w+', query[:4096], re.UNICODE)
-        if not terms:
-            return {'results': [], 'total': 0, 'truncated': False, 'continuation': None}
-        expression = ' OR '.join('"' + term + '"' for term in terms[:64])
+        parsed = query if isinstance(query, Query) else parse_query(query)
+        report = {'method': 'keyword', 'passes': []}
         with self._db() as db:
-            rows = db.execute(
-                """SELECT c.*,d.content_hash,bm25(search) AS score FROM search
-                                 JOIN chunks c ON c.chunk_id=search.chunk_id
-                                 JOIN documents d ON d.document_id=c.document_id
-                                 WHERE search MATCH ? ORDER BY score,c.chunk_id""",
-                (expression,),
-            )
-            results, total, chars = [], 0, 0
-            for row in rows:
-                paths = self._paths(db, row['document_id'])
-                if not paths:
-                    continue
-                total += 1
-                if total <= offset or len(results) >= limit:
-                    continue
-                remaining = int(self.limits['context_chars']) - chars
-                if remaining <= 0:
-                    continue
-                item = dict(row)
-                item['locator'] = json.loads(item['locator'])
-                item.update(
-                    library_id=self.library['library_id'],
-                    paths=[p['path'] for p in paths],
-                    path=paths[0]['path'],
-                    stale=all(p['stale'] for p in paths),
-                )
-                item['truncated'] = len(item['text']) > remaining
-                item['text'] = item['text'][:remaining]
-                chars += len(item['text'])
-                results.append(item)
-        more = offset + len(results) < total
+            suggestions = self.suggestions(parsed, db=db) if not parsed.empty else {}
+            if expand and suggestions:
+                parsed = parsed.expand(suggestions)
+            report['query'] = parsed.to_dict()
+            if suggestions:
+                report['suggestions'] = suggestions
+            expression = parsed.fts()
+            if expression is None:
+                return {
+                    **report,
+                    'results': [],
+                    'total': 0,
+                    'offset': offset,
+                    'truncated': False,
+                    'continuation': None,
+                }
+            located, seen, paths_cache = [], set(), {}
+
+            def collect(rows, label):
+                for row in rows:
+                    if row['chunk_id'] in seen:
+                        continue
+                    if row['document_id'] not in paths_cache:
+                        paths_cache[row['document_id']] = self._paths(db, row['document_id'])
+                    paths = paths_cache[row['document_id']]
+                    if not paths:
+                        continue
+                    item = dict(row)
+                    item['locator'] = json.loads(item['locator'])
+                    item.update(
+                        library_id=self.library['library_id'],
+                        paths=[p['path'] for p in paths],
+                        path=paths[0]['path'],
+                        stale=all(p['stale'] for p in paths),
+                        match=label,
+                    )
+                    if parsed.accepts(item):
+                        seen.add(row['chunk_id'])
+                        located.append(item)
+
+            collect(self._rows(db, 'search', expression), 'porter')
+            report['passes'].append('porter')
+            # Substring and mid-word matches only when the stemmed pass is short of k hits.
+            trigram = parsed.trigram() if self.trigram else None
+            if trigram and len(located) < limit:
+                collect(self._rows(db, 'search_tri', trigram), 'trigram')
+                report['passes'].append('trigram')
+        results, chars = [], 0
+        for item in located[offset : offset + limit]:
+            remaining = int(self.limits['context_chars']) - chars
+            if remaining <= 0:
+                break
+            item['truncated'] = len(item['text']) > remaining
+            item['text'] = item['text'][:remaining]
+            chars += len(item['text'])
+            results.append(item)
+        more = offset + len(results) < len(located)
         return {
+            **report,
             'results': results,
-            'total': total,
+            'total': len(located),
             'offset': offset,
             'truncated': more,
             'continuation': offset + len(results) if more else None,
+        }
+
+    def literal_matches(self, term, *, limit=20):
+        """Exhaustive lexical lookup of one term or phrase (porter and trigram, no ranking cut-off).
+
+        Used to verify absence: every chunk is considered, stale chunks are reported as such,
+        and ``total`` counts every matching chunk even when only ``limit`` are returned.
+        """
+        tokens = re.findall(r'\w+', term or '', re.UNICODE)
+        literal = (term or '').strip()
+        if not tokens:
+            return {'term': term, 'matches': [], 'total': 0, 'passes': [], 'chunks_searched': 0}
+        found, passes = {}, []
+        with self._db() as db:
+            searched = db.execute('SELECT COUNT(*) FROM chunks').fetchone()[0]
+            expressions = [('search', 'porter', '"' + ' '.join(tokens) + '"')]
+            if self.trigram and len(literal) >= 3:
+                expressions.append(('search_tri', 'trigram', '"' + literal.replace('"', '""') + '"'))
+            paths_cache = {}
+            for table, label, expression in expressions:
+                passes.append(label)
+                for row in self._rows(db, table, expression):
+                    if row['chunk_id'] in found:
+                        found[row['chunk_id']]['passes'].append(label)
+                        continue
+                    if row['document_id'] not in paths_cache:
+                        paths_cache[row['document_id']] = self._paths(db, row['document_id'])
+                    paths = paths_cache[row['document_id']]
+                    if not paths:
+                        continue
+                    text = row['text']
+                    position = text.casefold().find(literal.casefold())
+                    if position < 0:
+                        first = re.search(r'\b' + re.escape(tokens[0][:4]), text, re.IGNORECASE)
+                        position = first.start() if first else 0
+                    found[row['chunk_id']] = {
+                        'chunk_id': row['chunk_id'],
+                        'document_id': row['document_id'],
+                        'library_id': self.library['library_id'],
+                        'content_hash': row['content_hash'],
+                        'path': paths[0]['path'],
+                        'locator': json.loads(row['locator']),
+                        'heading': row['heading'],
+                        'excerpt': text[max(0, position - 80) : position + len(literal) + 80],
+                        'literal': text.casefold().find(literal.casefold()) >= 0,
+                        'stale': all(p['stale'] for p in paths),
+                        'passes': [label],
+                    }
+        ordered = sorted(
+            found.values(), key=lambda m: (not m['literal'], m['path'], m['locator'].get('start', 0))
+        )
+        return {
+            'term': term,
+            'matches': ordered[:limit],
+            'total': len(ordered),
+            'truncated': len(ordered) > limit,
+            'passes': passes,
+            'chunks_searched': searched,
         }
 
     def read(self, document_id, chunk_id=None, limit=20000, *, offset=0, locator=None):

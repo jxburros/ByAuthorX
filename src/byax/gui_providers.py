@@ -308,7 +308,9 @@ def review_document(window, *, check=None, instructions=None):
             from .retrieval import augment_context, retrieve_context
 
             remote = registry.preview(alias, kind='chat')['remote']
-            retrieval = retrieve_context(frozen, text[:4096], profile=profile, remote=remote)
+            # Hybrid where a library's embeddings are ready or partial, keyword otherwise;
+            # the per-library method and embedding state travel in library_retrieval.
+            retrieval = retrieve_context(frozen, text[:4096], profile=profile, remote=remote, method='auto')
             if retrieval['included']:
                 retrieval = select_passages(window, retrieval, alias, remote)
                 if retrieval is None:

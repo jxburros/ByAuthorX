@@ -66,6 +66,42 @@ def _refresh(library, a, doc):
         manager.close()
 
 
+def embed_worker(payload, cancel):
+    from .libraries import LibraryIndex, LibraryRegistry
+
+    library = LibraryRegistry().get(payload['library_id'])
+    return LibraryIndex(library).rebuild_vectors(
+        authorized=payload.get('allow_remote', False), cancel_event=cancel
+    )
+
+
+def _embed(library, a, doc, index):
+    """One incremental rebuild job; the result reports done, skipped and failed chunk counts."""
+    from .cli import envelope
+    from .embeddings import _library_provider
+    from .jobs import JobManager
+
+    provider = _library_provider(index, authorized=a.get('allow_remote', False))
+    # Refuse before queueing, so a missing consent is reported rather than hidden in a job record.
+    provider.authorize()
+    remote = bool(provider.remote)
+    manager = JobManager()
+    try:
+        job = manager.submit(
+            'library-embed',
+            {
+                'library_id': library['library_id'],
+                'allow_remote': a.get('allow_remote', False),
+                'remote': remote,
+            },
+            embed_worker,
+        )
+        result = manager.wait(job['id'])
+        return envelope({'job': result, 'rebuild': result.get('result')}, doc, execution=result['state'])
+    finally:
+        manager.close()
+
+
 def library_command(a, owner=None):
     from .cli import _load, envelope
     from .libraries import LibraryIndex, LibraryRegistry
@@ -119,6 +155,8 @@ def library_command(a, owner=None):
         if action == 'remove' and any(x['library_id'] == identity for x in registry.list()):
             registry.remove(identity)
         return result
+    if action == 'verify-absence':
+        return _verify_absence(a, doc)
     library = attached_library(doc, a.get('library_id'))
     if action == 'refresh':
         return _refresh(library, a, doc)
@@ -129,7 +167,7 @@ def library_command(a, owner=None):
     if action == 'embedding-preview':
         return envelope(index.embedding_preview(), doc)
     if action == 'embed':
-        return envelope(index.rebuild_vectors(authorized=a.get('allow_remote', False)), doc)
+        return _embed(library, a, doc, index)
     if action == 'hybrid':
         return envelope(
             index.hybrid_search(
@@ -143,8 +181,18 @@ def library_command(a, owner=None):
     if action == 'status':
         return envelope(index.status(), doc)
     if action == 'search':
+        from .retrieval import search_library
+
         return envelope(
-            index.search(a.get('query', ''), limit=a.get('limit', 20), offset=a.get('offset', 0)), doc
+            search_library(
+                index,
+                a.get('query', ''),
+                method=a.get('method', 'auto'),
+                limit=a.get('limit', 20),
+                offset=a.get('offset', 0),
+                expand=a.get('expand', False),
+            ),
+            doc,
         )
     if action == 'read':
         return envelope(
@@ -157,6 +205,18 @@ def library_command(a, owner=None):
             doc,
         )
     raise ByaxError('invalid_input', 'Unknown library action', action=action)
+
+
+def _verify_absence(a, doc):
+    from .cli import envelope
+    from .retrieval import verify_absence
+
+    spec = a.get('input') or {}
+    if not isinstance(spec, dict) or set(spec) - {'terms'}:
+        raise ByaxError('invalid_input', 'verify-absence input accepts only {"terms": [...]}')
+    terms = spec.get('terms') if spec.get('terms') is not None else a.get('query', '')
+    libraries = [attached_library(doc, a['library_id'])] if a.get('library_id') else None
+    return envelope(verify_absence(terms, libraries, manuscript=doc, limit=a.get('limit', 20)), doc)
 
 
 def library_search(a, owner=None):

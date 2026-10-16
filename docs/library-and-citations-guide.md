@@ -45,6 +45,7 @@ byax library draft.byax --action create --input create.json
 byax library draft.byax
 byax library draft.byax --action refresh --library-id lib_...
 byax library-search draft.byax --library-id lib_... --query moons --limit 10
+byax library-search draft.byax --library-id lib_... --query 'heading:Mars "two moons" -Venus'
 byax library-read draft.byax --library-id lib_... --document-id doc_... --chunk-id chunk_...
 byax context draft.byax --library-query moons --library-limit 5
 byax source draft.byax --action search --query Mars
@@ -52,6 +53,49 @@ byax source draft.byax --action suggest --target p_... --query moons
 byax cite draft.byax --target p_... --start 0 --end 20 --source source_...
 byax source draft.byax --action bibliography --style apa
 ```
+
+## Search syntax and methods
+
+The desktop Cite search, `library-search`, `library --action search` and context retrieval
+share one syntax ([CLI reference](cli-reference.md#library-search-syntax)): plain words
+(combined with OR), `"quoted phrases"`, `NEAR(a b, 10)`, `-word` to exclude, `word*` for a
+prefix, and the fields `heading:`, `text:`, `title:` and `path:`. Words such as *the* are
+ignored unless the query has nothing else. Headings rank above body text. When the stemmed
+pass finds fewer results than requested, a second literal pass finds substrings and mid-word
+matches (`match: "trigram"`). A word that matches nothing gets "did you mean" suggestions
+from the library's own vocabulary; `--expand` also searches them. The query cannot inject
+search operators: every part becomes a quoted token.
+
+`--method auto` (the default) uses hybrid search for a library whose embeddings are `ready`
+or `partial` and keyword search otherwise. `keyword` never embeds the query; `hybrid` asks
+for it explicitly. Every result reports `method` and `embedding_state`, plus a `notice` when
+it fell back to keyword or when only part of the library has vectors. Auto never asks for
+new consent: if the embedder is remote and has no saved `library_embeddings` consent, or the
+library is `local_only`, the search stays keyword and says why.
+
+Context retrieval (`context --library-query`, the AI tab and model review) takes up to
+`--library-limit` candidates from every eligible library and merges them by reciprocal-rank
+fusion, so the first attached library no longer fills the whole budget. Duplicate passages
+(the same file and location, including the same file in two libraries) are removed, and
+items already attached in full (`--library-pinned`) are reported as the `pinned` tier
+instead of being sent twice. The result lists each library's method and embedding state.
+
+## Verified absence
+
+Before ByAuthorX lets "not found in your sources" stand, it searches literally:
+
+```sh
+byax library draft.byax --action verify-absence --query '"Lady Catherine" Pemberley'
+```
+
+Each term or quoted phrase is looked up exhaustively (stemmed words and literal substrings)
+in every attached library the active profile permits and in the open document. The result
+lists what was searched, every match with its locator, and which terms were not found.
+`exhaustive: false` means a library was unavailable or stale. Paraphrases and synonyms are
+not checked. When an assistant reply claims something is missing, the AI tab runs this
+check in the background and shows any literal matches. A library citation check whose
+quotation is not at the cited locator reports where else the exact text occurs
+(`measured.literal_matches`). The action is read-only and available over MCP and REST.
 
 `source suggest` records pending proposals with passage evidence; it does not insert
 citations or sources until acceptance. `library-search` and `library-read` have MCP
@@ -78,13 +122,21 @@ byax library draft.byax --action embed --library-id lib_...
 byax library draft.byax --action hybrid --library-id lib_... --query moons
 ```
 
-The preview reports provider, documents, character count and exact passages.
+The preview reports provider, documents, character count and the exact passages the
+next rebuild would send. Rebuilds are incremental: a passage whose text and model are
+unchanged is skipped. `embed` runs as one background job and reports `done`, `skipped`
+and `failed` counts; requests are batched (`max_batch`, default 32), and a batch is
+retried with backoff only when the request provably never reached the provider. A
+timeout is never repeated automatically; its passages count as failed.
 A remote embedding call requires independent consent (`--allow-remote` for that
 explicit call, or the separate saved provider setting). Ordinary chat consent does
 not authorize it. A `local_only` library refuses remote embeddings and context.
-Hybrid searches are explicit because embedding the query may contact the provider;
-ordinary library searches remain keyword-only. Model, dimension and chunking changes
-invalidate old vectors. No weights are bundled or downloaded automatically.
+Searching with `--method auto` embeds the query only under consent that already exists.
+Model, dimension and chunking changes make old vectors `stale`: they are never compared
+with the new model, keyword search answers meanwhile, and the next rebuild discards them.
+An interrupted or partly failed rebuild leaves `partial` coverage, which is used and
+disclosed (`coverage`, `notice`). Vectors are float32 values in the index cache. No
+weights are bundled or downloaded automatically.
 
 ## Storage, bounds and remaining phases
 
@@ -97,12 +149,17 @@ failed files have individual status. Cancellation retains usable completed files
 Defaults: 32 MiB/file, two million extracted characters/file, 100,000 chunks/library,
 30 seconds/parser, one parser at a time per indexer, 100 search results and 100,000
 read characters. Paragraph chunks are at most 1,800 characters with up to 160
-characters overlap when splitting an oversized paragraph. LibraryIndex accepts
+characters overlap when splitting an oversized paragraph. Index schema 2 (chunking
+version 2) stores each chunk's heading path and fingerprint, a stemmed full-text index
+with a heading column, a trigram index for substrings and a vocabulary table for
+suggestions. Older index files are marked stale on first open, stay searchable (results
+flagged `stale`) and are rebuilt by the next refresh; their old vectors are dropped. LibraryIndex accepts
 explicit `limits` overrides; worker parsing is isolated and archive import limits
 also apply. No performance numbers are claimed without reference-hardware measurement.
 
 The first-release keyword library, citation and context/review paths are implemented.
-Configured embeddings and explicit hybrid ranking are available. Optional downloadable
+Configured embeddings and hybrid ranking (chosen automatically when a library has vectors)
+are available. Reranking models and on-device embedders are later context-engine phases. Optional downloadable
 weights, outside DOI/catalog lookup and Zotero local API remain future capabilities
 (the specification's optional installer work and phase 5). PDFs require an extractable
 text layer; OCR is not included. Citation processing dependency licenses are recorded

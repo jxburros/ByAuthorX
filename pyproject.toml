@@ -30,6 +30,7 @@ dependencies = [
     "citeproc-py-styles>=0.1,<1",
     "bibtexparser>=1.4,<2",
     "pypdf>=5,<7",
+    "rapidfuzz>=3.9,<4",
 ]
 
 [project.optional-dependencies]
