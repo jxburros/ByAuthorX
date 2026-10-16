@@ -222,6 +222,11 @@ def main():
         action='store_true',
         help='Also measure the 100,000-word manuscript project: open, reorder a chapter, save.',
     )
+    parser.add_argument(
+        '--docx-review',
+        action='store_true',
+        help='Also measure the Word review round trip on the 100,000-word manuscript.',
+    )
     parser.add_argument('--samples', type=int, default=20)
     parser.add_argument('--no-gui', action='store_true', help='Skip GUI startup/latency/idle metrics.')
     parser.add_argument('--startup-samples', type=int, default=5)
@@ -336,6 +341,10 @@ def main():
                     'structural_500ms': entry['metrics']['structural_edit_to_paint']['p95_ms'] <= 500,
                 }
             )
+    if args.docx_review:
+        from benchmark_docx_review import docx_review_metrics
+
+        report['fixtures']['project_100k_docx_review'] = docx_review_metrics(measure, args.samples)
     if args.scaling:
         from benchmark_scaling import scaling_metrics
 

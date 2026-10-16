@@ -30,6 +30,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report and the `project_*` canonical operations |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
+| `docx_review`, `gui_docx_review` | Word review round trip: review copy (Track Changes, restriction, package ID, identity bookmarks, comment threads) pinned as peer `review:<id>`; returned-copy reader (revisions, moves, formatting, comments, located losses) and three-way planner that turns editor changes into `docx_review` proposals and comment threads; File menu actions |
 | `sync_safety`, `gui_sync` | Synced-folder detection, risk report, conflicted-copy discovery and merge-as-proposal (`engine.import_branch` + `propose_merge`), explicit archive of merged copies; the notice bar and review dialog |
 | `brand`, `resources/` | Bundled identity, fonts, tokens and baked UI art |
 
@@ -135,6 +136,20 @@ history limit; storage is not silently reclaimed at the expense of a known peer.
 Unknown revision pins fail atomically. A missing ancestry path fails with a
 structured `missing_target` error; merge no longer guesses a branch fork as its
 base. Old copies distributed without a pin may need manual reconciliation.
+
+The Word review round trip (`docx_review`) uses this mechanism. Sending a review copy applies
+`pin_merge_base` for the peer `review:<id>` together with a `set_metadata` record in
+`metadata.review_packages` (`revision`, `snapshot_hash`, `restrict`, `reviewer`, the copy's
+`sha256`, `status`, `returns`). The document is saved before the DOCX is published. Merging a returned
+copy recomputes the review projection of the pinned revision and checks its hash. It then aligns the
+returned paragraphs to the snapshot by their `_BX…` bookmarks, falling back to text, and plans
+`propose`, `add_comment`, `reply_comment` and `resolve_comment` operations. Comment operations accept
+an optional stable `id` and `date` for this purpose. Changes on a paragraph that is also moved, joined,
+deleted or reformatted share one proposal. Inside a proposal, text edits run from the end of each
+paragraph backwards, so recorded offsets stay exact. A pending proposal edit whose target changes
+without moving its range is re-anchored, so proposals on the same paragraph can be accepted in any
+order. Removing a pin (`unpin_merge_base`) makes the package unmergeable; merge refuses rather than
+guessing a base.
 
 These operations are local history policy, available through canonical apply.
 A future hosted implementation (#81) must authorize pin changes at the host and

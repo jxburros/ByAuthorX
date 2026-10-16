@@ -91,6 +91,8 @@ command's flags.
 | `fonts` | Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts |
 | `project` | List, reorder, split, merge and annotate manuscript binder items |
 | `sync` | Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal |
+| `review-package` | Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on; `--action list` lists packages |
+| `merge-review` | Merge a returned Word review copy as pending proposals and comment threads |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -214,6 +216,37 @@ byax sync Chapter.byax --action archive-conflict --copy-path "Chapter (Sam's con
   overwrites an archived file.
 
 MCP exposes the same command as `byax_sync`; REST scopes both `path` and `copy_path` to its roots.
+
+## Word review round trip
+
+```bash
+byax review-package Chapter.byax --out "Chapter (review).docx" --reviewer "Jane Editor" --json
+byax review-package Chapter.byax --action list --json
+byax merge-review Chapter.byax --reviewed-path "Chapter (review) JE.docx" --json
+```
+
+- `review-package` (`--out`, `--restrict tracked_changes|comments|none`, `--reviewer`, `--overwrite`,
+  `--expect-revision`, `--dry-run`) records the current revision as the snapshot of review package
+  `rv_…`. It does this with `pin_merge_base` for the peer `review:rv_…` and a record in
+  `metadata.review_packages`, then saves the document. Only then does it write the DOCX, with Track
+  Changes on, the chosen `w:documentProtection`, the package ID in custom document properties, a
+  hidden `_BX…` bookmark and `w14:paraId` on each paragraph, and the open comments with exact ranges
+  and replies. The result has `review_package` and an `export_report` of located losses. `--dry-run`
+  writes nothing. `--action list` reports each package with `pinned`, `status` and `returns`.
+- `merge-review` (`--reviewed-path`, `--review-id`, `--expect-revision`, `--dry-run`) matches the
+  file by its custom properties, refusing a copy of another document or another package. The pinned
+  snapshot is the base and the document is ours. The command registers one pending `docx_review`
+  proposal per change. Each carries the exact operations, `author`, and a `review_source` with
+  `kind`, `tracked`, `authors`, `dates`, Word revision IDs and the snapshot `base` range. Comments,
+  replies and done state become comment threads. A change in text you edited after sending is
+  proposed with a `conflict` object (`base`, `ours`, `theirs`). Changes that cannot be placed are
+  listed in `conflicts`. Constructs that cannot be merged are listed in `losses`, each with `target`
+  and a `location` (`part`, `paragraph` or `table`). A file that was already merged returns
+  `already_merged` and changes nothing. A file without the package ID needs `--review-id` (the error
+  lists the `candidates`).
+
+MCP exposes `byax_review_package` and `byax_merge_review`. REST scopes `path`, `out` and
+`reviewed_path` to its roots. Accept or reject the proposals with `byax review --action accept|reject`.
 
 ## Library search syntax
 

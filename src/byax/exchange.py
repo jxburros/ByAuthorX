@@ -1100,7 +1100,10 @@ def _import_docx(doc, raw, losses):
                 f'Unsupported Word body element {child.tag}; original remains attached.',
                 'body',
             )
+    imported_comments = {}
     for comment_id, comment in comments.items():
+        if comment.get('parent') in comments:
+            continue  # replies attach to their thread below
         anchor = anchors.get(comment_id)
         if anchor is None:
             if not doc['blocks']:
@@ -1122,19 +1125,44 @@ def _import_docx(doc, raw, losses):
                 'Comment range spans paragraphs; anchored to the end of its first paragraph.',
                 block['id'],
             )
-        doc['review']['comments'].append(
-            {
-                'id': _id('comment'),
-                'target': block['id'],
-                'start': start,
-                'end': end,
-                'text': comment['text'],
-                'author': comment['author'],
-                'status': 'open',
-                'revision': doc['revision'],
-                'source': 'docx',
-            }
-        )
+        record = {
+            'id': _id('comment'),
+            'target': block['id'],
+            'start': start,
+            'end': end,
+            'text': comment['text'],
+            'author': comment['author'],
+            'status': 'resolved' if comment.get('done') else 'open',
+            'revision': doc['revision'],
+            'source': 'docx',
+        }
+        if comment.get('date'):
+            record['date'] = comment['date']
+        imported_comments[comment_id] = record
+        doc['review']['comments'].append(record)
+    # Word threads replies through commentsExtended.xml (w15:paraIdParent); a reply to a reply joins the root.
+    for comment_id, comment in comments.items():
+        root_id, seen = comment.get('parent'), {comment_id}
+        while root_id in comments and comments[root_id].get('parent') in comments and root_id not in seen:
+            seen.add(root_id)
+            root_id = comments[root_id]['parent']
+        parent = imported_comments.get(root_id)
+        if parent is None:
+            continue
+        reply = {
+            'id': _id('comment'),
+            'parent_id': parent['id'],
+            'target': parent['target'],
+            'text': comment['text'],
+            'author': comment['author'],
+            'status': 'open',
+            'revision': doc['revision'],
+            'replies': [],
+            'source': 'docx',
+        }
+        if comment.get('date'):
+            reply['date'] = comment['date']
+        parent.setdefault('replies', []).append(reply)
 
 
 def _before_text(text, inserted, deleted):
@@ -1187,16 +1215,13 @@ def _docx_notes(archive, kind, w):
 def _docx_comments(archive, w):
     if 'word/comments.xml' not in archive.namelist():
         return {}
+    from .docx_review import comment_threads
+
     root = _parse_xml(archive.read('word/comments.xml'), 'word/comments.xml')
-    return {
-        item.get(w + 'id'): {
-            'author': item.get(w + 'author', ''),
-            'text': '\n'.join(
-                ''.join(t.text or '' for t in p.iter(w + 't')) for p in item.iter(w + 'p')
-            ).strip(),
-        }
-        for item in root.findall(w + 'comment')
-    }
+    extended = None
+    if 'word/commentsExtended.xml' in archive.namelist():
+        extended = _parse_xml(archive.read('word/commentsExtended.xml'), 'word/commentsExtended.xml')
+    return comment_threads(root, extended)
 
 
 def _import_odt(doc, raw, losses):
@@ -2250,12 +2275,20 @@ def _xml_safe(doc, losses):
     return cleaned
 
 
-def _export_docx(doc, path):
+def _export_docx(doc, path, customize=None):
+    """Write ``doc`` as DOCX. ``customize(word, exported)`` may adjust the package before it is saved;
+    ``exported`` lists ``(block, element)`` for every written block in body order."""
     from docx import Document
     from docx.shared import Pt, RGBColor
 
     word = Document()
-    paragraphs = {}
+    paragraphs, exported, runs_by_block = {}, [], {}
+    comment_offsets = {}
+    for comment in doc.get('review', {}).get('comments', []):
+        if comment.get('status') != 'resolved' and isinstance(comment.get('start'), int):
+            comment_offsets.setdefault(comment.get('target'), set()).update(
+                (comment['start'], comment.get('end', comment['start']))
+            )
     from docx.enum.style import WD_STYLE_TYPE
 
     named = {}
@@ -2320,6 +2353,7 @@ def _export_docx(doc, path):
 
                 for row in table.rows[: int(attrs['header_rows'])]:
                     row._tr.get_or_add_trPr().append(OxmlElement('w:tblHeader'))
+            exported.append((block, table._tbl))
             continue
         if kind == 'image':
             asset = doc.get('assets', {}).get(attrs.get('asset'))
@@ -2327,9 +2361,10 @@ def _export_docx(doc, path):
                 word.add_picture(
                     io.BytesIO(base64.b64decode(asset['data'])), width=Pt(attrs.get('width', 288))
                 )
+                exported.append((block, word.element.body[-2]))  # the picture paragraph, before sectPr
             continue
         if kind in ('page_break', 'section_break'):
-            word.add_page_break()
+            exported.append((block, word.add_page_break()._p))
             continue
         paragraph = (
             word.add_heading(level=max(1, min(6, attrs.get('level', 1))))
@@ -2337,6 +2372,7 @@ def _export_docx(doc, path):
             else word.add_paragraph()
         )
         paragraphs[block['id']] = paragraph
+        exported.append((block, paragraph._p))
         if block.get('style') in named and (kind != 'heading' or block['style'] != 'body'):
             paragraph.style = named[block['style']]
         if attrs.get('list'):
@@ -2364,10 +2400,12 @@ def _export_docx(doc, path):
                 0,
                 len(text),
                 *[max(0, min(len(text), int(m.get(k, 0)))) for m in marks for k in ('start', 'end')],
+                *[max(0, min(len(text), offset)) for offset in comment_offsets.get(block['id'], ())],
             }
         )
         for start, end in itertools.pairwise(boundaries):
             run = paragraph.add_run(text[start:end])
+            runs_by_block.setdefault(block['id'], []).append((start, end, run))
             for mark in marks:
                 if mark.get('start', 0) <= start and mark.get('end', 0) >= end:
                     name, value = mark.get('type'), mark.get('value', True)
@@ -2419,14 +2457,11 @@ def _export_docx(doc, path):
         position = 1 if properties is not None else 0
         target._p.insert(position, start)
         target._p.insert(position + 1, end)
-    for comment in doc.get('review', {}).get('comments', []):
-        target = paragraphs.get(comment.get('target'))
-        if target is None or comment.get('status') == 'resolved':
-            continue
-        runs = target.runs or [target.add_run('')]
-        word.add_comment(
-            runs, text=str(comment.get('text', '')), author=str(comment.get('author', '') or 'ByAuthorX')
-        )
+    from .docx_review import export_comments
+
+    export_comments(word, paragraphs, runs_by_block, doc.get('review', {}).get('comments', []))
+    if customize is not None:
+        customize(word, exported)
     word.save(path)
 
 

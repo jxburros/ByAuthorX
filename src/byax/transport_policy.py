@@ -20,6 +20,7 @@ PATH_KEYS = frozenset(
         'csv',
         'reference_dir',
         'copy_path',
+        'reviewed_path',
     )
 )
 
@@ -163,6 +164,27 @@ INTERFACE_INVENTORY = (
         'sync --action merge-conflict',
         'byax.sync_safety.propose_conflicted_copy_merge',
         'Tools > Review conflicted copies…',
+    ),
+    (
+        'Review',
+        'send for review (Word)',
+        'review-package',
+        'byax.docx_review.create_review_package',
+        'File > Send for review (Word)…',
+    ),
+    (
+        'Review',
+        'list review packages',
+        'review-package --action list',
+        'byax.docx_review.review_packages',
+        None,
+    ),
+    (
+        'Review',
+        'merge reviewed Word copy',
+        'merge-review',
+        'byax.docx_review.merge_reviewed_copy',
+        'File > Merge reviewed copy…',
     ),
     (
         'Files',

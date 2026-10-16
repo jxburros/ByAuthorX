@@ -382,6 +382,28 @@ ARGUMENTS['project'] = {
     'request_id': 'string',
     'dry_run': 'boolean',
 }
+# Word review round trip (byax.docx_review): send a review copy, merge the returned file as proposals.
+COMMANDS['review-package'] = (
+    'Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on'
+)
+COMMANDS['merge-review'] = 'Merge a returned Word review copy as pending proposals and comment threads'
+ARGUMENTS['review-package'] = {
+    'path': 'string',
+    'action': 'string',
+    'out': 'string',
+    'restrict': 'string',
+    'reviewer': 'string',
+    'overwrite': 'boolean',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
+ARGUMENTS['merge-review'] = {
+    'path': 'string',
+    'reviewed_path': 'string',
+    'review_id': 'string',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
 REQUIRED = {
     'statistics': ['path'],
     'readability': ['path'],
@@ -418,6 +440,7 @@ REQUIRED.update(
 )
 for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source', 'project', 'sync'):
     REQUIRED[_name] = ['path']
+REQUIRED.update({'review-package': ['path'], 'merge-review': ['path', 'reviewed_path']})
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -1425,6 +1448,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .docx_review import merge_review_command, review_package_command
 from .project import project_command
 from .sync_safety import sync_command
 
@@ -1471,6 +1495,8 @@ _HANDLERS: dict[str, Handler] = {
     'fonts': _cmd_fonts,
     'project': project_command,
     'sync': sync_command,
+    'review-package': review_package_command,
+    'merge-review': merge_review_command,
 }
 
 

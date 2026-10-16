@@ -39,7 +39,7 @@ OP_SCHEMAS = {
     'move_section': ('target', 'after'),
     'reorder_row': ('target index to_index', ''),
     'reorder_column': ('target index to_index', ''),
-    'reply_comment': ('target text', 'author'),
+    'reply_comment': ('target text', 'author id date'),
     'split_block': ('target offset', 'id'),
     'join_blocks': ('target next', ''),
     'apply_style': ('target style', ''),
@@ -54,7 +54,7 @@ OP_SCHEMAS = {
     'remove_row': ('target index', ''),
     'add_column': ('target', 'index values'),
     'remove_column': ('target index', ''),
-    'add_comment': ('target text', 'start end author'),
+    'add_comment': ('target text', 'start end author id date source'),
     'resolve_comment': ('target', ''),
     'add_reference': ('id values', ''),
     'cite': ('target start end source', 'locator quote kind prefix suffix'),
@@ -213,6 +213,7 @@ def _validate_op(op, index):
         'group',
         'origin',
         'object',
+        'date',
     ):
         if key in op and not isinstance(op[key], str) and not (key == 'after' and op[key] is None):
             _error('Expected a string.', f'operations[{index}].{key}')
@@ -850,15 +851,29 @@ def _op_add_comment(doc, op, base_revision, kind, changed, allow_policy_changes)
             _error('Comment ranges require both start and end.', 'range')
         _boundaries(obj.get('text', ''), op['start'], op['end'])
     comment = {k: v for k, v in op.items() if k not in ('type', 'op')}
-    comment.update(id=new_id('comment'), status='open', revision=base_revision)
+    comment.update(id=_comment_id(doc, op), status='open', revision=base_revision)
     doc['review']['comments'].append(comment)
     changed.append(comment['id'])
+
+
+def _comment_id(doc, op):
+    """A caller-supplied stable identity (for example from an imported review file), or a new one."""
+    if 'id' not in op:
+        return new_id('comment')
+    identity = op['id']
+    if not identity.startswith('comment_') or len(identity) > 80:
+        _error('Comment identities start with comment_ and have at most 80 characters.', 'id')
+    try:
+        _find_review(doc, 'comments', identity)
+    except ByaxError:
+        return identity
+    raise ByaxError('conflict', 'Comment identity already exists.', target=identity)
 
 
 def _op_reply_comment(doc, op, base_revision, kind, changed, allow_policy_changes):
     parent = _find_review(doc, 'comments', op['target'])
     reply = {
-        'id': new_id('comment'),
+        'id': _comment_id(doc, op),
         'parent_id': parent['id'],
         'target': parent['target'],
         'text': op['text'],
@@ -867,6 +882,8 @@ def _op_reply_comment(doc, op, base_revision, kind, changed, allow_policy_change
         'revision': base_revision,
         'replies': [],
     }
+    if 'date' in op:
+        reply['date'] = op['date']
     parent.setdefault('replies', []).append(reply)
     changed.extend((parent['id'], reply['id']))
 

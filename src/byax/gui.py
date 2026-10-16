@@ -65,6 +65,7 @@ from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_docx_review import DocxReviewPanels
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
@@ -98,7 +99,14 @@ class Worker(QRunnable):
 
 
 class MainWindow(
-    FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, SyncPanels, QMainWindow
+    FileViews,
+    WorkflowPanels,
+    WorkspacePanels,
+    RibbonPanels,
+    LibraryPanels,
+    SyncPanels,
+    DocxReviewPanels,
+    QMainWindow,
 ):
     def __init__(self, path=None):
         super().__init__()
@@ -194,6 +202,8 @@ class MainWindow(
             (self.tr('Save'), self.save, QKeySequence.Save, 'save'),
             (self.tr('Save as…'), self.save_as, QKeySequence.SaveAs, 'save-as'),
             (self.tr('Export…'), self.export, 'Ctrl+Shift+E', 'export'),
+            (self.tr('Send for review (Word)…'), lambda: self.send_for_review(), None, None),
+            (self.tr('Merge reviewed copy…'), lambda: self.merge_reviewed_word_copy(), None, None),
             (self.tr('Page setup…'), self.page_setup, None, None),
             (self.tr('Print preview…'), self.print_preview, None, None),
             (self.tr('Print…'), self.print_document, QKeySequence.Print, 'print'),
