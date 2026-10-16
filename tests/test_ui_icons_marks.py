@@ -158,7 +158,7 @@ def test_new_stills_loops_and_rules_have_provenance():
 # -- toolbar and menus -----------------------------------------------------------------------------
 def test_toolbar_and_menu_actions_carry_icons(qtbot, monkeypatch, tmp_path):
     window = make_window(qtbot, monkeypatch, tmp_path)
-    bar = window.findChild(QToolBar)
+    bar = window.findChild(QToolBar, 'writingRibbon')
     by_text = {a.text(): a for a in bar.actions() if a.text()}
     for text in ('Bold', 'Italic', 'Underline', 'Comment', 'Check', 'Pages'):
         assert not by_text[text].icon().isNull(), text
@@ -169,12 +169,20 @@ def test_toolbar_and_menu_actions_carry_icons(qtbot, monkeypatch, tmp_path):
         assert by_text[text].text() == text and by_text[text].toolTip()
     for text in ('Comment', 'Check', 'Pages'):
         assert bar.widgetForAction(by_text[text]).toolButtonStyle().name == 'ToolButtonTextBesideIcon'
+    from byax.gui_ribbon import walk_menu
+
     iconed = {}
     for menu_action in window.menuBar().actions():
         menu = menu_action.menu()
         iconed[menu_action.text().replace('&', '')] = [
-            a.text() for a in menu.actions() if not a.icon().isNull()
+            a.text() for a in walk_menu(menu) if not a.icon().isNull()
         ]
+    # The new ribbon designs: scripts, paragraph, cite, insert and the Text dropdown.
+    assert {'Superscript', 'Subscript', 'Font and paragraph…', 'Cite…'} <= set(iconed['Format']) | set(
+        iconed['Insert']
+    )
+    for key in ('text', 'insert', 'export'):
+        assert not window.ribbon_actions[key].icon().isNull(), key
     assert {'New', 'Open…', 'Save', 'Export…', 'Print…'} <= set(iconed['File'])
     assert {'Undo', 'Redo', 'Cut', 'Copy', 'Paste', 'Find and replace…'} <= set(iconed['Edit'])
     assert {'Run document checks', 'Add comment…', 'Checkpoint…', 'Revision history…'} <= set(

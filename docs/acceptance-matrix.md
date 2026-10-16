@@ -421,6 +421,7 @@ Additional backlog evidence: `test_backlog_workflows.py` exercises native export
 | Requirement | Implemented behavior | Evidence / limits |
 | --- | --- | --- |
 | #99 ribbon; selectable sidebars | Two formatting rows; local persistent panel selectors for outline/inspector, bookmarks, statistics, scratchpad and Library | `test_gui_workspace.py`; native offscreen GUI checks |
+| Ribbon and inspector redesign | Two ribbon rows beside the logo at its height; a ribbon per file view (ByAuthorX a superset); Export asks in ByAuthorX and defaults to the open format elsewhere; sidebar selectors in the dock titles; Layout sidebar with layers; Proposed changes / Checks / AI / Configure tabs with active checks and Run all; nested, scrolling menus | `test_gui_workspace.py`, `test_gui_review.py`, `test_gui_ai.py`; native offscreen GUI checks |
 | #98 Inspector tab underlines | Selected-tab pen underline clipped to its tab | Pixel regression in `test_gui_workspace.py` |
 | Review selector | Dropdown + Go; spelling moved from AI; grammar, health, repository, factual, voice and custom checks; explicit apply | `test_gui_review.py`, existing AI/provider tests |
 | Library spec phase 1 | Local registry/relink, safe mixed parsers, SQLite WAL/FTS, per-file leases/cancellation, bounded read/search, transport restrictions and separate passage consent | `test_libraries.py`, `test_library_interfaces.py`, `test_retrieval.py`; no reference-hardware performance claims |

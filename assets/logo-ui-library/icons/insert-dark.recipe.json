@@ -1,0 +1,106 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Insert"
+    },
+    {
+      "type": "shape",
+      "name": "line-left",
+      "shape": "path",
+      "x": 10,
+      "y": 35,
+      "width": 30,
+      "height": 1,
+      "fill": "none",
+      "path": "M0 0.59 Q15 0.35 30 0.89",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-right",
+      "shape": "path",
+      "x": 56,
+      "y": 35,
+      "width": 30,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.1 Q15 0.88 30 0.55",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "caret",
+      "shape": "path",
+      "x": 29,
+      "y": 47,
+      "width": 37,
+      "height": 28,
+      "fill": "none",
+      "path": "M0.15 27.32 Q8.94 14.96 17.85 2.68 Q19.3 0.65 20.67 2.75 Q27.94 15.04 36.24 26.67",
+      "stroke": "#367B6C",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "line-below",
+      "shape": "path",
+      "x": 18,
+      "y": 85,
+      "width": 60,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 1.22 Q30 0.88 60 1.26",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

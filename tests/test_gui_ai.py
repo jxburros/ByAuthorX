@@ -49,8 +49,12 @@ def mock_chat(monkeypatch, reply):
 
 def test_ai_tab_exists_with_keys_button_and_empty_state(window):
     tabs = [window.inspector.tabText(i) for i in range(window.inspector.count())]
-    assert tabs == ['Review', 'Layers', 'AI']
+    assert tabs == ['Proposed changes', 'Checks', 'AI', 'Configure']
     panel = window.ai_panel
+    # Keys and provider status live in Configure, so the AI tab stays Work and Chat.
+    assert window.configure_panel.isAncestorOf(panel.keys_button)
+    assert window.configure_panel.isAncestorOf(panel.provider_status)
+    assert list(panel.mode_buttons) == ['work', 'chat']
     assert panel.keys_button.text() == 'Add or manage API keys…'
     assert 'No AI provider configured' in panel.provider_status.text()
     assert panel.chat_stack.currentIndex() == 1

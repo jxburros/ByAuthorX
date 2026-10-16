@@ -7,6 +7,24 @@ number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any 
 disagrees or if the version has no entry below. The release workflow publishes a version's
 entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
+## [Unreleased]
+
+### Changed
+
+- The ribbon sits beside the logo in two rows matching its height, and each file view has
+  its own ribbon showing only what that format supports; the ByAuthorX view carries every
+  tool plus track changes, versions and protection. Related commands share dropdowns.
+- New ribbon **Export** button: the ByAuthorX view asks for a format; other views export
+  their own format, with the others on the button's arrow. File → Export as lists them too.
+- Sidebar titles are the panel selectors; the separate dropdown is gone. A new **Layout**
+  panel holds layers and page-layout commands and can open in either sidebar.
+- The Inspector tabs are now **Proposed changes**, **Checks**, **AI** (Work and Chat) and
+  **Configure**. Checks are marked active or inactive, custom checks are named and kept,
+  and **Run all active checks** runs them together. API keys and information repositories
+  moved to Configure; Layers moved to the Layout sidebar.
+- Long menus nest related commands in submenus and scroll instead of splitting into columns.
+- Six new Vixl-drawn icons: superscript, subscript, paragraph, cite, insert and text formatting.
+
 ## [0.2.0] - 2026-10-14
 
 ### Added

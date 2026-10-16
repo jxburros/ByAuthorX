@@ -15,11 +15,22 @@ only opens the releases page; the app never updates itself.
 ## The window
 
 - **Writing view** – continuous editing. **Pages** shows the paginated preview that print and PDF use.
-- **Ribbon** – two rows: font, size, alignment, lists, indents, super/subscript, colors,
-  paragraph formatting and **Cite**.
-- **Side panels** – each has a selector: Outline, Inspector (Review, Layers, AI), Bookmarks,
-  Writing statistics, Personal scratchpad, Library. Panel choices and the scratchpad are local
+- **Ribbon** – the logo beside two rows of tools. Each file view has its own ribbon with only
+  what that format supports: the Markdown ribbon has no underline or font size, plain text keeps
+  find, check, view and export, and the full ByAuthorX view carries every tool plus track
+  changes, versions and protection. Related commands share one dropdown (**Text**, alignment,
+  lists, **Insert**, versions). **Export** in the ByAuthorX view asks for a format; in any other
+  view it exports that view's format, with the other formats on its arrow.
+- **Side panels** – the panel title is the selector: Outline or Inspector, **Layout** (layers,
+  page setup, page masters, sections), Bookmarks, Writing statistics, Personal scratchpad,
+  Library. Layout follows whichever side selects it. Panel choices and the scratchpad are local
   settings, not saved in the document.
+- **Inspector** – **Proposed changes** (pending edits, comments and findings, and **Run all
+  active checks**), **Checks** (every check, marked active or inactive), **AI** (Work and Chat)
+  and **Configure** (API keys, information repositories, profiles, export and appearance).
+- **Menus** – long menus group related commands in submenus (Format → Text, Paragraph, Lists,
+  Styles, Layers; Review → Protection, Versions and drafts) and scroll rather than split into
+  columns.
 - **Status bar** – counters and file-format limits.
 - **View → Theme** (System/Light/Dark), **Reduce motion**, **Hand-drawn marks**.
 
@@ -41,13 +52,16 @@ on disk behind you, the app tells you rather than overwriting.
 
 ## Reviewing your own text
 
-The Inspector's **AI** tab checks spelling locally (selection or whole document) with
-suggestions, exact replacements, a document dictionary and session-only ignore. Review's check
-dropdown + **Go** runs:
+The Inspector's **Checks** tab lists every check with an active checkbox and its own **Run**
+button; **Run all active checks** in **Proposed changes** runs the active ones together:
 
-- *Local*: spelling, grammar, document health.
-- *Needs a configured reviewer*: information repository, factual data, voice consistency and
-  custom instructions.
+- *On this computer*: spelling, grammar, document health. Active by default.
+- *With an AI provider*: information repository, factual accuracy, voice consistency and any
+  number of named custom checks you write. Inactive by default; each asks for authorization.
+
+Spelling results (suggestions, exact replacements, a document dictionary and session-only
+ignore) appear in **Proposed changes** once a spelling check runs. Repositories are the libraries
+and sources set up in **Configure**.
 
 Results are suggestions; text changes require Apply/accept. Spelling and grammar marks are
 interface-only pen strokes and never appear in print or exports.
@@ -55,7 +69,7 @@ interface-only pen strokes and never appear in print or exports.
 ### Assistant: Chat vs Work
 
 A persisted **Chat / Work** switch controls the assistant. *Chat* only answers and never touches
-the document. *Work* may propose exact range edits, which appear in Review as pending proposals;
+the document. *Work* may propose exact range edits, which appear in Proposed changes as pending proposals;
 nothing changes until you accept each one. Remote messages show the exact outbound payload for
 your approval unless that provider's saved policy allows remote calls. Set up keys through
 **Add or manage API keys…**; see [providers](providers.md).

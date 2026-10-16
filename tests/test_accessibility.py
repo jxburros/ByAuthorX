@@ -123,9 +123,10 @@ def test_shortcuts_are_unambiguous_and_toolbar_actions_have_keyboard_routes(wind
         'Ctrl+Alt+M',
     ):
         assert name in seen, name
-    toolbar = window.findChild(QToolBar)
+    # Dropdowns open menus whose commands are in the menu bar; every other ribbon button has a shortcut.
+    toolbar = window.findChild(QToolBar, 'writingRibbon')
     for action in toolbar.actions():
-        if not action.isSeparator() and not isinstance(action, QWidgetAction):
+        if not action.isSeparator() and not isinstance(action, QWidgetAction) and not action.menu():
             assert not action.shortcut().isEmpty(), action.text()
     assert window.style_box.focusPolicy() & Qt.TabFocus
 
@@ -273,11 +274,13 @@ def test_pseudo_locale_changes_menus_toolbar_and_dialogs(app, monkeypatch, tmp_p
         assert isinstance(file_menu, QMenu)
         texts = [a.text() for a in file_menu.actions() if not a.isSeparator()]
         assert '⟦SAVE⟧' in texts and '⟦OPEN…⟧' in texts
-        toolbar_texts = [a.text() for a in window.findChild(QToolBar).actions() if not a.isSeparator()]
+        toolbar_texts = [
+            a.text() for a in window.findChild(QToolBar, 'writingRibbon').actions() if not a.isSeparator()
+        ]
         assert '⟦BOLD⟧' in toolbar_texts
         assert window.status_label.text() == '⟦READY⟧'
         tabs = [window.inspector.tabText(i) for i in range(window.inspector.count())]
-        assert '⟦AI⟧' in tabs and '⟦REVIEW⟧' in tabs
+        assert '⟦AI⟧' in tabs and '⟦PROPOSED CHANGES⟧' in tabs
         window.find_replace()
         assert dialogs[-1][0] == '⟦FIND AND REPLACE⟧'
         assert all(isinstance(a, QAction) for a in all_actions(window))

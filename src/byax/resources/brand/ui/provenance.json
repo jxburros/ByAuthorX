@@ -142,38 +142,38 @@
   },
   "icons-light-16.png": {
     "source": "assets/logo-ui-library/icons/atlas-light-16.png",
-    "source_sha256": "945ec4548e832d3354ee206351ea4373bdc8ef79ebaf5ea31ec71df8d96e2f6c"
+    "source_sha256": "2c2b067f348488b28556bdf7eef62de210655790a200dacb18d1baf5f0bc1c01"
   },
   "icons-light-24.png": {
     "source": "assets/logo-ui-library/icons/atlas-light-24.png",
-    "source_sha256": "b773b1cc039cdc80c45f7c8d5988f0fb65c4c4a352e62678c648c63baa4dd687"
+    "source_sha256": "55619b6aeccbf3d9b0c36b40b2c9c3681a4ff4148581b54f7172cff9aeb9dc4b"
   },
   "icons-light-32.png": {
     "source": "assets/logo-ui-library/icons/atlas-light-32.png",
-    "source_sha256": "02132db2b7b4960964fcc8592308acdf15153c7b2a4093c47eaab1eff09d0bf9"
+    "source_sha256": "8bfbeebe432f7763ebcf3f9bfdb061753dad338e2fffdfe58bd0cb71345a35de"
   },
   "icons-light-48.png": {
     "source": "assets/logo-ui-library/icons/atlas-light-48.png",
-    "source_sha256": "14c7ed0a4a24eeada53f54c45262493281a6b2226770ed312083e7d8c00980b9"
+    "source_sha256": "315c57b95f10e3d1ce48431b39c57aae6d636e9892ad3b5c885cf49e1897b87e"
   },
   "icons-dark-16.png": {
     "source": "assets/logo-ui-library/icons/atlas-dark-16.png",
-    "source_sha256": "a75f61b83025c07154c8ce74d9da86a6d3aa992fa061af59945c1d9944c036ca"
+    "source_sha256": "aa6d79306e501b5a58f3fa79a28398cda2b35331efa81430ec1609dbe6403428"
   },
   "icons-dark-24.png": {
     "source": "assets/logo-ui-library/icons/atlas-dark-24.png",
-    "source_sha256": "4f5d3c3095d566e300b405e1459962b30e0c32896b70a498ab6bef5b0fc3f676"
+    "source_sha256": "0a7286b432fdcde5de82b842ce4c1e5dd70addcf5adb24ca338cdb71bffcda0e"
   },
   "icons-dark-32.png": {
     "source": "assets/logo-ui-library/icons/atlas-dark-32.png",
-    "source_sha256": "3464b6c73843f060055bbae695a45aeb5010917a99abf52763cc5dad3d9b2485"
+    "source_sha256": "193d771b327ba210f7ea33ee8cff694a05c227818061d20c6e51eb9203f6e502"
   },
   "icons-dark-48.png": {
     "source": "assets/logo-ui-library/icons/atlas-dark-48.png",
-    "source_sha256": "a9dee6e97e44b1952e029a033cb9a7ec3194c70d6a039d2fa7676d30c4fe3123"
+    "source_sha256": "31bf1a7c9d0625e683389f773417f7f3664bcbe5637afc7e584abe854d0b7d17"
   },
   "icons.json": {
     "source": "assets/logo-ui-library/icons/atlas.json",
-    "source_sha256": "34bf7d16382cba3e3f977755a33ad2c86554f6a4ebbc5333d9a5acd3faad0ba6"
+    "source_sha256": "1ceebc89be318e2dc845fee7cdb0eb37c3fd9f8f615a64ca26eb05b09f6739d6"
   }
 }

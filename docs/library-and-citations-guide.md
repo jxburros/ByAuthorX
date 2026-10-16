@@ -2,15 +2,17 @@
 
 ## Desktop
 
-The ribbon has two rows. Font family/size, alignment, list/indent controls,
-superscript/subscript, colors, paragraph formatting and Cite are available there.
-Each side panel has a selector: Outline or Inspector, Bookmarks, Writing statistics,
-Personal scratchpad, or Library. Panel choices and the scratchpad are local settings;
-the scratchpad is not saved in the document.
+The ribbon sits beside the logo in two rows and changes with the file view. Font
+family/size, alignment, lists, superscript/subscript, colors, paragraph formatting and
+Cite are available there in views that support them. Each side panel's title is its
+selector: Outline or Inspector, Layout, Bookmarks, Writing statistics, Personal
+scratchpad, or Library. Panel choices and the scratchpad are local settings; the
+scratchpad is not saved in the document.
 
-Review has a check dropdown and Go button. Spelling, grammar and document health
-run locally. Information repository, factual data, voice consistency and custom
-instructions use an explicitly selected AI reviewer. Review results are suggestions;
+The Inspector's Checks tab marks each check active or inactive and can run one on its
+own; Proposed changes runs all active checks. Spelling, grammar and document health run
+locally. Information repository, factual accuracy, voice consistency and custom checks
+use an explicitly selected AI reviewer. Libraries and sources are set up in Configure. Review results are suggestions;
 text changes require Apply/accept. Repository and factual reviews can use attached
 library passages, with a passage picker and separate consent before remote transfer.
 A factual review is evidence checking, not an automatic web fact-checking service.

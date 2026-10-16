@@ -1,0 +1,128 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Cite"
+    },
+    {
+      "type": "shape",
+      "name": "quote-0",
+      "shape": "path",
+      "x": 22,
+      "y": 34,
+      "width": 21,
+      "height": 21,
+      "fill": "#F4EEE3",
+      "path": "M10 1.08 C14.65 1.02 14.17 0.7 17.09 4.35 C20.01 7.99 19.8 7.35 18.77 12 C17.74 16.65 18.21 16.31 14 18.3 C9.79 20.3 10.44 20.08 6.15 17.99 C1.86 15.9 2.14 16.51 1.13 12.02 C0.13 7.53 0.18 8.17 3.13 4.52 C6.09 0.87 5.35 1.14 10 1.08 Z"
+    },
+    {
+      "type": "shape",
+      "name": "quote-tail-0",
+      "shape": "path",
+      "x": 21,
+      "y": 13,
+      "width": 17,
+      "height": 29,
+      "fill": "none",
+      "path": "M3.13 29 C3.68 23.39 0.39 21.61 4.77 12.16 C9.16 2.71 12.45 4.49 16.29 0.65",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "quote-1",
+      "shape": "path",
+      "x": 52,
+      "y": 34,
+      "width": 21,
+      "height": 21,
+      "fill": "#F4EEE3",
+      "path": "M10 0.76 C14.71 0.65 14.27 0.44 17.27 4.2 C20.27 7.97 20.08 7.33 19 12.05 C17.92 16.78 18.37 16.28 14.03 18.37 C9.7 20.46 10.19 20.46 5.99 18.32 C1.8 16.18 2.4 16.55 1.45 11.95 C0.5 7.35 0.29 8.26 3.14 4.53 C5.99 0.8 5.29 0.87 10 0.76 Z"
+    },
+    {
+      "type": "shape",
+      "name": "quote-tail-1",
+      "shape": "path",
+      "x": 51,
+      "y": 14,
+      "width": 17,
+      "height": 29,
+      "fill": "none",
+      "path": "M3.91 28.39 C4.25 22.88 0.79 21.29 4.92 11.86 C9.04 2.42 12.5 4.01 16.29 0.09",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "source",
+      "shape": "path",
+      "x": 17,
+      "y": 70,
+      "width": 62,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.96 2.33 C10.81 1.71 10.35 0.8 30.51 0.46 C50.66 0.13 51.12 1.03 61.43 1.31",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "reference",
+      "shape": "path",
+      "x": 30,
+      "y": 85,
+      "width": 36,
+      "height": 2,
+      "fill": "none",
+      "path": "M0 0.84 Q18 1.71 36 0.61",
+      "stroke": "#F4EEE3",
+      "stroke_width": 4.6,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

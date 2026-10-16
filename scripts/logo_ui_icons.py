@@ -517,3 +517,54 @@ def statistics(a):
     for index, (x, top) in enumerate([(24, 60), (44, 46), (64, 34)]):
         a.ink_poly(f'bar-{index}', [(x, 84), (x, top), (x + 12, top), (x + 12, 84)], radius=1.5, sw=FINE)
     a.pen_curve('trend', [(20, 46), (40, 32), (58, 36), (82, 14)], sw=5.5)
+
+
+# -- ribbon -----------------------------------------------------------------------------------------
+# Appended after the original set so every earlier icon keeps its place in the atlas.
+@icon('superscript', 'format', 'Superscript')
+def superscript(a):
+    a.ink_line('cross-a', 14, 40, 50, 84)
+    a.ink_line('cross-b', 50, 40, 14, 84)
+    a.pen_curve('two', [(60, 22), (65, 13), (75, 13), (79, 21), (62, 42), (82, 42)], sw=5.5)
+
+
+@icon('subscript', 'format', 'Subscript')
+def subscript(a):
+    a.ink_line('cross-a', 14, 12, 50, 56)
+    a.ink_line('cross-b', 50, 12, 14, 56)
+    a.pen_curve('two', [(60, 62), (65, 53), (75, 53), (79, 61), (62, 82), (82, 82)], sw=5.5)
+
+
+@icon('paragraph', 'paragraph', 'Font and paragraph')
+def paragraph(a):
+    a.ink_curve('bowl', [(50, 14), (32, 14), (22, 26), (24, 40), (36, 47), (50, 47)])
+    a.ink_line('stem-a', 50, 14, 50, 78)
+    a.ink_line('stem-b', 66, 14, 66, 78)
+    a.ink_line('cap', 48, 14, 76, 14)
+    a.pen_curve('underline', [(18, 88), (48, 86.5), (78, 88)], sw=5)
+
+
+@icon('cite', 'insert', 'Cite')
+def cite(a):
+    for index, x in enumerate((32, 62)):
+        a.bullet(f'quote-{index}', x, 44, 9)
+        a.ink_curve(f'quote-tail-{index}', [(x - 7, 42), (x - 6, 26), (x + 6, 14)], sw=INK)
+    a.pen_curve('source', [(18, 72), (48, 70.5), (78, 72)], sw=5)
+    a.text_line('reference', 30, 86, 36)
+
+
+@icon('insert', 'insert', 'Insert')
+def insert(a):
+    a.text_line('line-left', 10, 36, 30)
+    a.text_line('line-right', 56, 36, 30)
+    a.pen_poly('caret', [(30, 74), (48, 48), (66, 74)], radius=2.5)
+    a.text_line('line-below', 18, 86, 60)
+
+
+@icon('font', 'format', 'Text formatting')
+def font(a):
+    a.ink_poly('capital', [(8, 76), (30, 14), (52, 76)], radius=2)
+    a.ink_line('capital-bar', 18, 56, 42, 56, sw=FINE + 0.6)
+    a.ink_circle('small-bowl', 70, 64, 11, 12)
+    a.ink_line('small-stem', 82, 48, 82, 77)
+    a.pen_curve('underline', [(10, 88), (48, 86.5), (86, 88)], sw=5)
