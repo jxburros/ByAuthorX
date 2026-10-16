@@ -242,30 +242,36 @@ class WorkflowPanels:
 
         self.report(self.tr('Layers and output visibility'), {'layers': layer_inspector(self.doc)})
 
+    def _other_drafts(self, title):
+        """Names of the drafts other than the one being written; tells the author when there are none."""
+        from . import drafts
+
+        names = [d['name'] for d in drafts.list_drafts(self.doc) if not d['current']]
+        if not names:
+            self.message(
+                title, self.tr('There is no other draft yet. Save one first (Review, Save draft as…).')
+            )
+        return names
+
     def switch_draft(self):
         if not self.flush_edits():
             return
-        names = list(self.doc['history']['branches'])
-        name, ok = QInputDialog.getItem(
-            self, self.tr('Switch draft branch'), self.tr('Branch'), names, 0, False
-        )
+        names = self._other_drafts(self.tr('Switch draft'))
+        if not names:
+            return
+        name, ok = QInputDialog.getItem(self, self.tr('Switch draft'), self.tr('Draft'), names, 0, False)
         if ok:
-            try:
-                self.doc, _ = engine.switch_branch(self.doc, name)
-                self._undo.clear()
-                self._redo.clear()
-                self.dirty = True
-                self.refresh()
-            except Exception as exc:
-                self.error(exc)
+            self.switch_to_draft(name)
 
     def merge_draft(self):
-        names = list(self.doc['history']['branches'])
+        names = self._other_drafts(self.tr('Bring changes from draft'))
+        if not names:
+            return
         name, ok = QInputDialog.getItem(
-            self, self.tr('Compare and merge draft'), self.tr('Source branch'), names, 0, False
+            self, self.tr('Bring changes from draft'), self.tr('Draft to bring changes from'), names, 0, False
         )
         if ok:
-            self.commit([{'type': 'propose_merge', 'source': name}])
+            self.bring_changes_from(name)
 
     def export_profiles(self):
         dialog = QDialog(self)

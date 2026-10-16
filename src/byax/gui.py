@@ -65,15 +65,19 @@ from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_drafts import DraftPanels
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
+from .gui_goals import GoalPanels
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
+from .gui_project import BinderPanels
 from .gui_ribbon import RibbonPanels
 from .gui_sync import SyncPanels
 from .gui_views import FileViews
 from .gui_workflows import WorkflowPanels
 from .gui_workspace import InspectorTabBar, WorkspacePanels
+from .statistics import word_count
 
 TEMPLATE_CHOICES = ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…']
 FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm *.epub);;ByAuthorX (*.byax *.BYAX);;All files (*)'
@@ -98,7 +102,16 @@ class Worker(QRunnable):
 
 
 class MainWindow(
-    FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, SyncPanels, QMainWindow
+    FileViews,
+    WorkflowPanels,
+    WorkspacePanels,
+    RibbonPanels,
+    LibraryPanels,
+    SyncPanels,
+    BinderPanels,
+    GoalPanels,
+    DraftPanels,
+    QMainWindow,
 ):
     def __init__(self, path=None):
         super().__init__()
@@ -181,6 +194,7 @@ class MainWindow(
                 'F&ormat',
                 '&Insert',
                 '&Table',
+                '&Binder',
                 '&Review',
                 '&View',
                 '&Tools',
@@ -455,7 +469,9 @@ class MainWindow(
             (self.tr('Protect selected paragraph'), self.protect, 'protect', self.submenus['protection']),
             (self.tr('Remove selected protection…'), self.unprotect, None, self.submenus['protection']),
             (self.tr('Checkpoint…'), self.checkpoint, 'checkpoint', self.submenus['versions']),
-            (self.tr('Create branch…'), self.branch, 'branch', self.submenus['versions']),
+            (self.tr('Save draft as…'), self.save_draft_as, 'branch', self.submenus['versions']),
+            (self.tr('Drafts…'), self.drafts_dialog, None, self.submenus['versions']),
+            (self.tr('Compare drafts…'), self.compare_drafts_dialog, None, self.submenus['versions']),
             (self.tr('Revision history…'), self.history, 'history', self.submenus['versions']),
         ]:
             menu.addAction(self.action(title, slot, icon=icon))
@@ -494,6 +510,7 @@ class MainWindow(
             (self.tr('Background jobs…'), self.jobs_dialog, 'jobs'),
             (self.tr('Document properties…'), self.document_properties, 'properties'),
             (self.tr('Document statistics'), self.statistics, 'statistics'),
+            (self.tr('Writing goals…'), self.goals_dialog, None),
         ]:
             menus['&Tools'].addAction(self.action(title, slot, icon=icon))
         about = self.action(self.tr('About ByAuthorX'), self.about)
@@ -538,6 +555,7 @@ class MainWindow(
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(300)
         self.addDockWidget(Qt.RightDockWidgetArea, inspector_dock)
+        self.build_binder(menus)
         self.build_workspace_sidebars(outline_dock, inspector_dock)
         self.resizeDocks([outline_dock, inspector_dock], [220, 340], Qt.Horizontal)
         menus['&View'].addAction(outline_dock.toggleViewAction())
@@ -559,6 +577,7 @@ class MainWindow(
         activity_layout.addWidget(self.activity_graphic, alignment=Qt.AlignCenter)
         self.statusBar().addWidget(self.activity_slot)
         self.statusBar().addWidget(self.status_label, 1)
+        self.build_goals()
         self.word_label = QLabel()
         self.word_label.setObjectName('statusCounter')
         self.statusBar().addPermanentWidget(self.word_label)
@@ -584,9 +603,10 @@ class MainWindow(
         ):
             self.submenus['layers'].addAction(self.action(self.tr(label), slot))
         for label, slot in (
-            ('Switch draft branch…', self.switch_draft),
-            ('Compare and merge draft…', self.merge_draft),
-            ('Resolve selected merge conflicts…', self.resolve_merge_conflicts),
+            ('Start alternate draft…', self.branch),
+            ('Switch draft…', self.switch_draft),
+            ('Bring changes from draft…', self.merge_draft),
+            ('Resolve selected draft conflicts…', self.resolve_merge_conflicts),
         ):
             self.submenus['versions'].addAction(self.action(self.tr(label), slot))
         self.export_options_menu.addAction(
@@ -1040,6 +1060,7 @@ class MainWindow(
         self.review_stack.setCurrentIndex(0 if self.review_list.count() else 1)
         self.layer_stack.setCurrentIndex(0 if self.layer_list.count() else 1)
         self._sync_review_actions()
+        self.binder_panel.sync()
 
     def _sync_review_actions(self, *_):
         item = self.review_list.currentItem()
@@ -1059,7 +1080,8 @@ class MainWindow(
             self.projection()
             self.sync_file_view()
         text = model.text_of(self.doc)
-        words = len(text.split())
+        words = word_count(text)
+        self.goals_words_changed(words)
         self.word_label.setText(
             self.tr('{0:,} words   ·   {1:,} characters   ·   {2} min read').format(
                 words, len(text), max(1, round(words / 225))
@@ -1240,11 +1262,13 @@ class MainWindow(
     def new_file(self):
         if self.confirm_discard():
             self.release_lock()
+            self.goals_finish()
             self.doc, self.path, self.dirty = model.new_document(), None, False
             self._undo.clear()
             self._redo.clear()
             self.refresh(0)
             self.refresh_sync_bar()
+            self.goals_begin()
 
     def open_file(self):
         path, _ = QFileDialog.getOpenFileName(self, self.tr('Open document'), '', FILE_FILTER)
@@ -1276,6 +1300,7 @@ class MainWindow(
             else:
                 document, report = import_document(selected)
             self.release_lock()
+            self.goals_finish()
             self.lock = candidate_lock
             self.doc = document
             self.path = selected if backed else None
@@ -1288,6 +1313,7 @@ class MainWindow(
             self.add_recent(selected)
             self.refresh_attached_libraries()
             self.refresh_sync_bar()
+            self.goals_begin()
             if report and report.get('losses'):
                 self.report(self.tr('Import compatibility report'), report)
             return True
@@ -1532,6 +1558,7 @@ class MainWindow(
 
     def closeEvent(self, event):
         if self.confirm_discard():
+            self.goals_finish()
             self.release_lock()
             event.accept()
         else:
@@ -2887,12 +2914,12 @@ class MainWindow(
 
     def branch(self):
         self.flush_edits()
-        name, ok = QInputDialog.getText(self, self.tr('Alternate draft'), self.tr('Branch name'))
+        name, ok = QInputDialog.getText(self, self.tr('Alternate draft'), self.tr('Draft name'))
         if ok and name:
             try:
                 self.doc, _ = engine.branch(self.doc, name)
                 self.dirty = True
-                self.status_label.setText(self.tr('Draft branch: ') + name)
+                self.status_label.setText(self.tr('Now writing in draft: ') + name)
             except Exception as exc:
                 self.error(exc)
 

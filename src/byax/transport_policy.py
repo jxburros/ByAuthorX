@@ -53,6 +53,11 @@ def check_provider_admin(command, arguments):
         )
     if command == 'providers' and arguments.get('action') == 'configure':
         raise ByaxError('unsupported_feature', 'Configure provider aliases through the local CLI or desktop')
+    if command == 'goals' and arguments.get('action') in ('set-daily', 'set-session'):
+        raise ByaxError(
+            'unsupported_feature',
+            'Writing goals are local preferences of the person at this computer; set them through the local CLI or desktop',
+        )
     if command == 'jobs' and arguments.get('action') == 'submit':
         spec = arguments.get('input', {})
         if not isinstance(spec, dict):
@@ -258,7 +263,7 @@ INTERFACE_INVENTORY = (
         'byax.engine.checkpoint',
         'Review > Checkpoint…',
     ),
-    ('History', 'branch', 'history --action branch', 'byax.engine.branch', 'Review > Create branch…'),
+    ('History', 'branch', 'history --action branch', 'byax.engine.branch', 'Review > Start alternate draft…'),
     ('History', 'restore', 'history --action restore', 'byax.engine.restore', 'Review > Revision history…'),
     ('History', 'diff and changes since revision', 'diff', 'byax.engine.diff', 'Review > Revision history…'),
     ('Checks', 'run suites', 'check', 'byax.checks.run_checks', 'Review > Run document checks'),
@@ -388,19 +393,115 @@ INTERFACE_INVENTORY = (
     ),
     ('Jobs and batches', 'per-file batch outcomes', 'batch', 'byax.jobs.run_batch', None),
     ('Jobs and batches', 'template batch', 'template-batch', 'byax.table_io.template_rows', None),
-    # Manuscript project binder (CP A1); the corkboard/outline GUI is a later track (A2).
-    ('Inspection', 'project binder', 'project --action list', 'byax.project.items', None),
-    ('Inspection', 'project tree', 'project --action tree', 'byax.project.tree', None),
+    # Manuscript project binder (CP A1) with its outline and corkboard views (A2).
+    ('Inspection', 'project binder', 'project --action list', 'byax.project.items', 'Binder panel (outline)'),
+    ('Inspection', 'project tree', 'project --action tree', 'byax.project.tree', 'Binder panel (corkboard)'),
     ('Inspection', 'project consistency', 'project --action reconcile', 'byax.project.reconcile', None),
     ('Inspection', 'project block map', 'project --action blocks', 'byax.project.block_map', None),
     ('Output', 'project compile inclusion', 'project --action compile', 'byax.project.compile_plan', None),
-    ('Editing', 'create binder', 'project --action init', 'byax.engine.apply', None),
-    ('Editing', 'add binder item', 'project --action add', 'byax.engine.apply', None),
+    (
+        'Editing',
+        'create binder',
+        'project --action init',
+        'byax.engine.apply',
+        'Binder panel (Create binder)',
+    ),
+    ('Editing', 'add binder item', 'project --action add', 'byax.engine.apply', 'Binder panel (Add after)'),
     ('Editing', 'remove binder item', 'project --action remove', 'byax.engine.apply', None),
-    ('Editing', 'move binder item', 'project --action move', 'byax.engine.apply', None),
-    ('Editing', 'split binder item', 'project --action split', 'byax.engine.apply', None),
-    ('Editing', 'merge binder items', 'project --action merge', 'byax.engine.apply', None),
-    ('Editing', 'binder status', 'project --action set-status', 'byax.engine.apply', None),
-    ('Editing', 'binder word target', 'project --action set-target', 'byax.engine.apply', None),
-    ('Editing', 'binder metadata', 'project --action set-meta', 'byax.engine.apply', None),
+    (
+        'Editing',
+        'move binder item',
+        'project --action move',
+        'byax.engine.apply',
+        'Binder panel (drag, Alt+Up/Down/Left/Right)',
+    ),
+    (
+        'Editing',
+        'split binder item',
+        'project --action split',
+        'byax.engine.apply',
+        'Binder panel (Split at cursor)',
+    ),
+    (
+        'Editing',
+        'merge binder items',
+        'project --action merge',
+        'byax.engine.apply',
+        'Binder panel (Merge with next)',
+    ),
+    ('Editing', 'binder status', 'project --action set-status', 'byax.engine.apply', 'Binder panel (Status)'),
+    (
+        'Editing',
+        'binder word target',
+        'project --action set-target',
+        'byax.engine.apply',
+        'Tools > Writing goals…',
+    ),
+    (
+        'Editing',
+        'binder metadata',
+        'project --action set-meta',
+        'byax.engine.apply',
+        'Binder panel (synopsis, kind)',
+    ),
+    (
+        'Editing',
+        'draft a synopsis (opt-in)',
+        'project --action draft-synopsis',
+        'byax.project.draft_synopsis',
+        'Binder panel (Draft a synopsis…)',
+    ),
+    # Writing goals and sessions (A3): progress is read-only everywhere, goals are local preferences.
+    (
+        'Inspection',
+        'writing goals and progress',
+        'goals --action status',
+        'byax.goals.status',
+        'Tools > Writing goals…',
+    ),
+    (
+        'Inspection',
+        'writing history and streaks',
+        'goals --action history',
+        'byax.goals.history',
+        'Tools > Writing goals…',
+    ),
+    (
+        'Editing',
+        'daily goal',
+        'goals --action set-daily',
+        'byax.goals.GoalStore.set_goal',
+        'Tools > Writing goals…',
+    ),
+    (
+        'Editing',
+        'session goal',
+        'goals --action set-session',
+        'byax.goals.GoalStore.set_goal',
+        'Tools > Writing goals…',
+    ),
+    # Named drafts (A4): branches and delta history under the words draft and compare.
+    ('History', 'list drafts', 'drafts --action list', 'byax.drafts.list_drafts', 'Review > Drafts…'),
+    ('History', 'save draft', 'drafts --action save', 'byax.drafts.save_draft', 'Review > Save draft as…'),
+    (
+        'History',
+        'switch draft',
+        'drafts --action switch',
+        'byax.drafts.switch_draft',
+        'Review > Switch draft…',
+    ),
+    (
+        'History',
+        'compare drafts',
+        'drafts --action compare',
+        'byax.drafts.compare_drafts',
+        'Review > Compare drafts…',
+    ),
+    (
+        'History',
+        'bring changes from draft',
+        'drafts --action bring',
+        'byax.drafts.bring_operation',
+        'Review > Bring changes from draft…',
+    ),
 )

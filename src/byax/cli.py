@@ -377,7 +377,34 @@ ARGUMENTS['project'] = {
     'id': 'string',
     'heading': 'string',
     'delete_content': 'boolean',
+    'alias': 'string',
+    'allow_remote': 'boolean',
+    'config_dir': 'string',
     'input': 'object',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+# Writing goals and sessions (byax.goals): the daily and session goals are local preferences.
+COMMANDS['goals'] = 'Show progress against document, item, daily and session goals; set local goals'
+ARGUMENTS['goals'] = {
+    'path': 'string',
+    'action': 'string',
+    'words': 'integer',
+    'clear': 'boolean',
+    'format': 'string',
+    'limit': 'integer',
+    'config_dir': 'string',
+}
+# Named drafts (byax.drafts): saved states built on branches and delta history.
+COMMANDS['drafts'] = 'List, save, switch, compare and bring changes from named drafts'
+ARGUMENTS['drafts'] = {
+    'path': 'string',
+    'action': 'string',
+    'name': 'string',
+    'note': 'string',
+    'against': 'string',
+    'switch': 'boolean',
     'expect_revision': 'string',
     'request_id': 'string',
     'dry_run': 'boolean',
@@ -416,7 +443,19 @@ REQUIRED.update(
         'cite': ['path', 'target', 'start', 'end', 'source'],
     }
 )
-for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source', 'project', 'sync'):
+for _name in (
+    'inspect',
+    'context',
+    'history',
+    'check',
+    'review',
+    'library',
+    'source',
+    'project',
+    'sync',
+    'goals',
+    'drafts',
+):
     REQUIRED[_name] = ['path']
 
 
@@ -1425,6 +1464,8 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .drafts import drafts_command
+from .goals import goals_command
 from .project import project_command
 from .sync_safety import sync_command
 
@@ -1471,6 +1512,8 @@ _HANDLERS: dict[str, Handler] = {
     'fonts': _cmd_fonts,
     'project': project_command,
     'sync': sync_command,
+    'goals': goals_command,
+    'drafts': drafts_command,
 }
 
 

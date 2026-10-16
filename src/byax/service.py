@@ -45,7 +45,7 @@ class AccessPolicy:
     def _owned(self, command, args):
         state = self.roots[0] / RESERVED
         owned = {}
-        if command in ('providers', 'transcribe'):
+        if command in ('providers', 'transcribe', 'project', 'goals'):
             owned['config_dir'] = state / 'config'
         if command == 'jobs':
             owned['root'] = state / 'jobs'

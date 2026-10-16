@@ -283,6 +283,17 @@ def validate_document(doc, *, include_history=True):
         or not isinstance(history.get('current_branch'), str)
     ):
         fail('History requires revisions, branches and a current branch.', 'history')
+    drafts = history.get('drafts')
+    if drafts is not None and (
+        not isinstance(drafts, dict)
+        or any(
+            not isinstance(name, str)
+            or not isinstance(record, dict)
+            or not isinstance(record.get('note', ''), str)
+            for name, record in drafts.items()
+        )
+    ):
+        fail('Draft records map draft names to objects with a text note.', 'history.drafts')
     if include_history:
         revision_ids = set()
         for record in history['revisions']:

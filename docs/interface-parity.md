@@ -56,7 +56,7 @@ document drifts from it.
 | Review | merge conflicted copy | `byax sync --action merge-conflict` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.propose_conflicted_copy_merge` | Tools > Review conflicted copies… |
 | History | list | `byax history` | `byax_history` | `POST /v1/execute` | `byax.engine.inspect` | Review > Revision history… |
 | History | checkpoint | `byax history --action checkpoint` | `byax_history` | `POST /v1/execute` | `byax.engine.checkpoint` | Review > Checkpoint… |
-| History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Create branch… |
+| History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Start alternate draft… |
 | History | restore | `byax history --action restore` | `byax_history` | `POST /v1/execute` | `byax.engine.restore` | Review > Revision history… |
 | History | diff and changes since revision | `byax diff` | `byax_diff` | `POST /v1/execute` | `byax.engine.diff` | Review > Revision history… |
 | Checks | run suites | `byax check` | `byax_check` | `POST /v1/execute` | `byax.checks.run_checks` | Review > Run document checks |
@@ -162,21 +162,56 @@ Linked asset retrieval requires explicit authorization in the local CLI or deskt
 
 Binder actions are one `project` command. Mutating actions build one canonical `project_*`
 operation and run it through `engine.apply`, so `--expect-revision`, `--request-id` and
-`--dry-run` behave as for `apply`. The corkboard and outline views (track A2) are not built yet.
+`--dry-run` behave as for `apply`. The Binder panel (outline and corkboard views) sends the same
+operations through the window's `commit`; reordering by drag has keyboard equivalents (Alt+Up/Down/Left/Right
+and the Binder menu), and `byax.project.plan_step`/`plan_drop` build the operation lists for both.
+`draft-synopsis` is an opt-in request to a provider you configured (`--alias`, with `--allow-remote` for a
+remote one; `--dry-run` shows the exact payload without sending it). Its result is a pending proposal.
 
 | Family | Operation | CLI | MCP tool | REST | Library | GUI |
 | --- | --- | --- | --- | --- | --- | --- |
-| Inspection | project binder | `byax project --action list` | `byax_project` | `POST /v1/execute` | `byax.project.items` | — (headless) |
-| Inspection | project tree | `byax project --action tree` | `byax_project` | `POST /v1/execute` | `byax.project.tree` | — (headless) |
+| Inspection | project binder | `byax project --action list` | `byax_project` | `POST /v1/execute` | `byax.project.items` | Binder panel (outline) |
+| Inspection | project tree | `byax project --action tree` | `byax_project` | `POST /v1/execute` | `byax.project.tree` | Binder panel (corkboard) |
 | Inspection | project consistency | `byax project --action reconcile` | `byax_project` | `POST /v1/execute` | `byax.project.reconcile` | — (headless) |
 | Inspection | project block map | `byax project --action blocks` | `byax_project` | `POST /v1/execute` | `byax.project.block_map` | — (headless) |
 | Output | project compile inclusion | `byax project --action compile` | `byax_project` | `POST /v1/execute` | `byax.project.compile_plan` | — (headless) |
-| Editing | create binder | `byax project --action init` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | add binder item | `byax project --action add` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | create binder | `byax project --action init` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Create binder) |
+| Editing | add binder item | `byax project --action add` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Add after) |
 | Editing | remove binder item | `byax project --action remove` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | move binder item | `byax project --action move` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | split binder item | `byax project --action split` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | merge binder items | `byax project --action merge` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | binder status | `byax project --action set-status` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | binder word target | `byax project --action set-target` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
-| Editing | binder metadata | `byax project --action set-meta` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | move binder item | `byax project --action move` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (drag, Alt+Up/Down/Left/Right) |
+| Editing | split binder item | `byax project --action split` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Split at cursor) |
+| Editing | merge binder items | `byax project --action merge` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Merge with next) |
+| Editing | binder status | `byax project --action set-status` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Status) |
+| Editing | binder word target | `byax project --action set-target` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Tools > Writing goals… |
+| Editing | binder metadata | `byax project --action set-meta` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (synopsis, kind) |
+| Editing | draft a synopsis (opt-in) | `byax project --action draft-synopsis` | `byax_project` | `POST /v1/execute` | `byax.project.draft_synopsis` | Binder panel (Draft a synopsis…) |
+
+## Writing goals and sessions
+
+`goals` reports progress against the document target and item targets (both stored in the binder and set
+with `project --action set-target`), the daily goal, the session goal and the streak. The daily and
+session goals and the session records are local preferences in the user config directory (keyed by the
+document identity), never part of the document or its history. Reading is available everywhere; setting a
+goal is refused over MCP and REST (`unsupported_feature`) because it writes the preferences of the person
+at this computer, like provider configuration.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | writing goals and progress | `byax goals --action status` | `byax_goals` | `POST /v1/execute` | `byax.goals.status` | Tools > Writing goals… |
+| Inspection | writing history and streaks | `byax goals --action history` | `byax_goals` | `POST /v1/execute` | `byax.goals.history` | Tools > Writing goals… |
+| Editing | daily goal | `byax goals --action set-daily` | `byax_goals` | `POST /v1/execute` | `byax.goals.GoalStore.set_goal` | Tools > Writing goals… |
+| Editing | session goal | `byax goals --action set-session` | `byax_goals` | `POST /v1/execute` | `byax.goals.GoalStore.set_goal` | Tools > Writing goals… |
+
+## Named drafts
+
+`drafts` is the writer-facing view of branches and delta history: save a draft with a note, switch,
+compare two drafts scene by scene, and bring changes from a draft as a reviewable proposal
+(`propose_merge`). The same operations are open to MCP and REST, because they change only the document.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| History | list drafts | `byax drafts --action list` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.list_drafts` | Review > Drafts… |
+| History | save draft | `byax drafts --action save` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.save_draft` | Review > Save draft as… |
+| History | switch draft | `byax drafts --action switch` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.switch_draft` | Review > Switch draft… |
+| History | compare drafts | `byax drafts --action compare` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.compare_drafts` | Review > Compare drafts… |
+| History | bring changes from draft | `byax drafts --action bring` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.bring_operation` | Review > Bring changes from draft… |
