@@ -245,6 +245,10 @@ def import_document(path):
             ) from exc
     elif fmt == 'odt':
         _import_odt(doc, raw, losses)
+    elif fmt == 'epub':
+        from .epub import import_epub
+
+        import_epub(doc, raw, losses)
     elif fmt == 'doc':
         doc, adapter_report = _import_doc(path)
         losses.extend(adapter_report['losses'])
@@ -2842,7 +2846,7 @@ def _exchange_losses(doc, fmt, losses):
                 category,
             )
     if fmt != 'pdf':
-        if doc.get('styles') and fmt not in ('docx', 'odt', 'rtf'):
+        if doc.get('styles') and fmt not in ('docx', 'odt', 'rtf', 'epub'):
             _loss(
                 losses,
                 'named_styles',
@@ -2880,7 +2884,7 @@ def _exchange_losses(doc, fmt, losses):
         if (
             kind in ('footnote', 'toc', 'section_break')
             and fmt != 'pdf'
-            and not (kind == 'footnote' and fmt in ('odt', 'rtf') and attrs.get('reference'))
+            and not (kind == 'footnote' and fmt in ('odt', 'rtf', 'epub') and attrs.get('reference'))
         ):
             _loss(
                 losses,
@@ -2902,13 +2906,15 @@ def _exchange_losses(doc, fmt, losses):
                 _loss(
                     losses,
                     'table_subset',
-                    'Table text/grid exported; widths, spans, cell formatting and pagination policies may be lost.',
+                    'Table text, header rows and spans exported; widths, borders and pagination policies are not.'
+                    if fmt == 'epub'
+                    else 'Table text/grid exported; widths, spans, cell formatting and pagination policies may be lost.',
                     block['id'],
                 )
         mime = doc.get('assets', {}).get(attrs.get('asset'), {}).get('mime')
         if (
             kind == 'image'
-            and fmt not in ('pdf', 'docx', 'odt', 'html', 'htm')
+            and fmt not in ('pdf', 'docx', 'odt', 'html', 'htm', 'epub')
             and not (fmt == 'rtf' and mime in ('image/png', 'image/jpeg'))
         ):
             _loss(
@@ -2917,7 +2923,7 @@ def _exchange_losses(doc, fmt, losses):
                 'Embedded image bytes are not included; source/alternative text is retained where representable.',
                 block['id'],
             )
-        if attrs.get('list') and fmt not in ('pdf', 'md', 'markdown'):
+        if attrs.get('list') and fmt not in ('pdf', 'md', 'markdown', 'epub'):
             _loss(
                 losses,
                 'list_subset',
@@ -2928,11 +2934,11 @@ def _exchange_losses(doc, fmt, losses):
             _loss(
                 losses, 'heading_flattened', 'Heading text retained without heading semantics.', block['id']
             )
-        if attrs.get('alignment') and fmt not in ('pdf', 'docx', 'rtf'):
+        if attrs.get('alignment') and fmt not in ('pdf', 'docx', 'rtf', 'epub'):
             _loss(losses, 'paragraph_format', 'Paragraph alignment is not represented.', block['id'])
 
 
-EXPORT_FORMATS = ('byax', 'txt', 'md', 'markdown', 'html', 'htm', 'rtf', 'docx', 'odt', 'pdf')
+EXPORT_FORMATS = ('byax', 'txt', 'md', 'markdown', 'html', 'htm', 'rtf', 'docx', 'odt', 'pdf', 'epub')
 
 
 def publish_file(stage, destination, *, overwrite=True, owner=None):
@@ -3004,7 +3010,7 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
     if fmt != 'byax':
         from .citation_render import citation_view
 
-        candidate = citation_view(candidate, footnotes=fmt in ('pdf', 'odt', 'rtf'))
+        candidate = citation_view(candidate, footnotes=fmt in ('pdf', 'odt', 'rtf', 'epub'))
     if settings.get('layout'):
         candidate['layout'].update(settings['layout'])
     if settings.get('metadata') == 'omit' or settings.get('include_metadata') is False:
@@ -3052,6 +3058,12 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         )
     ]
     markdown_content = _markdown(candidate, losses, markdown) if markdown is not None else None
+    package = None
+    if fmt == 'epub':
+        from .epub import build_package
+
+        # Built (without I/O) before the preview return so the preview carries the EPUB-specific losses.
+        package = build_package(candidate, settings.get('epub'), losses)
     if preview:
         report = _report(fmt, losses)
         report.update(preview=True, review='required' if losses else 'not_required')
@@ -3105,6 +3117,11 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
             _export_docx(_xml_safe(candidate, losses), stage)
         elif fmt == 'odt':
             _export_odt(candidate, stage)
+        elif fmt == 'epub':
+            from .epub import check_written, write_package
+
+            write_package(package, stage)
+            check_written(stage)
         else:
             if fmt == 'txt':
                 content = _plain(candidate)
@@ -3140,6 +3157,9 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         report['font_dependencies'] = glyph_fallbacks(candidate)
     if markdown:
         report['markdown'] = markdown
+    if package is not None:
+        report['epub'] = package.info
+        report['structure_check'] = 'passed'
     if result:
         report.update(
             {

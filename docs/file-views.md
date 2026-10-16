@@ -43,7 +43,7 @@ A **file view** lets a writer look at, and keep editing, the current document as
 
 - No change to the `.byax` schema, so no migration (see section 11).
 - No claim that DOCX, ODT or RTF views reproduce Word's or another application's fonts or pagination (section 5.4).
-- No new export formats in the first release. HTML and ODT are already export formats, so they get views at no extra cost.
+- No new export formats in the first release. HTML and ODT are already export formats, so they get views at no extra cost. (EPUB was added later through the same registry.)
 - Views do not restrict the engine. CLI, MCP and REST clients keep full access to the master (an opt-in `apply --view` is proposed in section 9).
 - No view state in the document, history or revisions.
 
@@ -57,6 +57,7 @@ A **file view** lets a writer look at, and keep editing, the current document as
 | `odt` | OpenDocument (.odt) | Paged | **Approximate** |
 | `rtf` | Rich Text (.rtf) | Paged | **Approximate** |
 | `html` | HTML | Flow | Semantic |
+| `epub` | EPUB (.epub) | Flow | Semantic: reflowable EPUB 3. Read-only view; no source mode, since the export is a ZIP package |
 | `md` | Markdown | Flow | Semantic (dialect `commonmark+tables`) |
 | `txt` | Plain text | Flow | Semantic |
 
@@ -66,7 +67,7 @@ Fidelity classes decide the label shown with the view:
 - **Approximate:** "Approximate preview. Fonts and page breaks may differ in other applications."
 - **Semantic:** no pagination is shown.
 
-The view list is generated from the registry, not hand-written, so a format added to `EXPORT_FORMATS` cannot be forgotten. Aliases (`markdown`, `htm`) are not separate views. `doc` is import-only and has no view. EPUB and a table-only CSV view are candidates after the first release.
+The view list is generated from the registry, not hand-written, so a format added to `EXPORT_FORMATS` cannot be forgotten. Aliases (`markdown`, `htm`) are not separate views. `doc` is import-only and has no view. `epub` was added with the EPUB exporter (`byax.epub`): it needed only a registry entry, a ribbon and the `epub` branch of the loss rules in `exchange`, and `tests/test_file_views.py::test_view_list_in_this_document_matches_the_registry` fails when this table and the registry disagree. A table-only CSV view is still a candidate.
 
 ## 5. Behavior
 
@@ -207,7 +208,7 @@ Formats with a textual form get a **Rendered | Source** toggle next to the view 
 ### 5.10 Paged and flow views
 
 - Paged views (`pdf`, `docx`, `odt`, `rtf`) pair with the existing print-layout preview. The preview is drawn from the projection, using the view id as the output name (`draw_page(..., output=view)`).
-- Flow views (`html`, `md`, `txt`) have no pages. The print-layout toggle is disabled with the explanation "This format has no pages". The Full view has both.
+- Flow views (`html`, `epub`, `md`, `txt`) have no pages. The print-layout toggle is disabled with the explanation "This format has no pages". The Full view has both.
 - The page preview is paint-only today, so editing happens in the writing view, filtered by the active view.
 
 ## 6. Save and export offer (D1)
@@ -331,7 +332,7 @@ Command gating from the registry. Locked blocks. Edit rules E1 to E9. Edit-invar
 *Done when:* the edit invariant holds under the randomized tests and every rule has a passing test.
 
 **Phase 3: polish and reach.**
-Editable Source mode. Remembered export targets. `apply --view`. EPUB and table-CSV views if wanted.
+Editable Source mode. Remembered export targets. `apply --view`. A table-CSV view if wanted. (The EPUB view shipped with the EPUB exporter.)
 
 ## 14. Risks
 
@@ -390,3 +391,7 @@ Transcribed from `exchange._exchange_losses` and `exchange.markdown_unrepresenta
 | Layers | ✓ | — | — | — | — | — | — |
 
 Cells marked "to verify" are not declared as losses by `_exchange_losses` for that format, so either the exporter carries them or the loss is currently unreported. The round-trip test decides which, and an unreported loss is a bug to fix in the exporter's report, not a reason to show a capability the file does not have.
+
+### EPUB (added after the first release)
+
+The `epub` column is not in the tables above because it was declared in the registry from the exporter's behaviour (`byax.epub`) rather than transcribed. Carried: bold, italic, underline, strikethrough, superscript, subscript, code, links, font family and size, colour, highlight and character styles; headings (the outline becomes the navigation document); nested bullet and ordered lists (restart and start); tables with header rows and spans; embedded PNG, JPEG, GIF and WebP images with alt text; footnotes that have a reference (as EPUB 3 notes); named styles (as CSS); paragraph alignment, spacing and indents. Reported as losses: page and section breaks, the table of contents block, footnotes without a reference, page geometry, review state, links that leave the book, unsupported image types and images without alt text. See [compatibility](compatibility.md).

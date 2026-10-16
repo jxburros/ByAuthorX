@@ -72,8 +72,12 @@ def _entry(ident, label, marks, *, styles=False, attrs=(), images='embedded', ex
         'id': ident,
         'label': label,
         'extensions': [ident] + [k for k, v in ALIASES.items() if v == ident],
-        'fidelity': 'exact' if full else 'semantic' if ident in ('txt', 'md', 'html') else 'approximate',
-        'paged': ident not in ('txt', 'md', 'html'),
+        'fidelity': 'exact'
+        if full
+        else 'semantic'
+        if ident in ('txt', 'md', 'html', 'epub')
+        else 'approximate',
+        'paged': ident not in ('txt', 'md', 'html', 'epub'),
         'blocks': blocks,
         'marks': '*' if full else sorted(marks),
         'styles': styles or full,
@@ -81,11 +85,15 @@ def _entry(ident, label, marks, *, styles=False, attrs=(), images='embedded', ex
         'images': images,
         'image_mimes': ['image/png', 'image/jpeg'] if ident == 'rtf' else '*',
         'tables': {
-            'spans': full or ident == 'odt',
+            'spans': full or ident in ('odt', 'epub'),
             'header_rows': ident != 'txt',
-            'cell_formatting': ident in ('byax', 'pdf', 'html', 'rtf', 'odt'),
+            'cell_formatting': ident in ('byax', 'pdf', 'html', 'rtf', 'odt', 'epub'),
         },
-        'lists': 'full' if full or ident == 'md' else 'flattened' if ident == 'txt' else 'simplified',
+        'lists': 'full'
+        if full or ident in ('md', 'epub')
+        else 'flattened'
+        if ident == 'txt'
+        else 'simplified',
         'layout': 'full' if full else 'geometry' if ident in ('docx', 'odt', 'rtf') else 'none',
         'review': ['comments', 'tracked_changes', 'proposals', 'findings']
         if ident == 'byax'
@@ -127,6 +135,25 @@ FORMATS = {
             extra=('page_break', 'footnote'),
         ),
         _entry('html', 'HTML', BASIC_MARKS | {'code', 'link'}),
+        _entry(
+            'epub',
+            'EPUB (.epub)',
+            BASIC_MARKS
+            | {
+                'code',
+                'link',
+                'font_family',
+                'font_size',
+                'font',
+                'size',
+                'color',
+                'highlight',
+                'character_style',
+            },
+            styles=True,
+            attrs=PARAGRAPH_ATTRS,
+            extra=('footnote',),
+        ),
         _entry('md', 'Markdown', MD_MARKS, images='reference_only'),
         _entry('txt', 'Plain text', set(), images='alt_text_only'),
     )
@@ -166,6 +193,10 @@ RIBBONS = {
     'html': (
         (('style',), ('marks', 'text'), ('check',)),
         (('lists',), ('insert', 'link'), ('find', 'view', 'source'), ('export',)),
+    ),
+    'epub': (
+        (('style',), ('marks', 'text'), ('check',)),
+        (('lists',), ('insert', 'link'), ('find', 'view'), ('export',)),
     ),
     'md': (
         (('style',), ('marks', 'text'), ('check',)),

@@ -42,13 +42,47 @@ only opens the releases page; the app never updates itself.
 | You want to | Do this |
 | --- | --- |
 | Keep a master you can edit later | Save as `.byax` (identities, assets, review, history are kept) |
-| Open Word, ODT, RTF, HTML, TXT | File → Open. These are imports; a compatibility report lists anything lost |
+| Open Word, ODT, RTF, HTML, EPUB, TXT | File → Open. These are imports; a compatibility report lists anything lost |
 | Edit Markdown directly | Markdown opens as an import by default; the first-open chooser or Tools → Markdown opening preference keeps `.md` as the working file |
 | Share a PDF or Word copy | File → Export. Exporting never replaces the master |
-| See how a format will look | Toolbar **File view** selector (PDF, Word, OpenDocument, RTF, HTML, Markdown, plain text). Word/ODT/RTF previews are approximate. The source toggle shows exact read-only export text |
+| Publish an e-book | File → Export → EPUB. See [Exporting an EPUB](#exporting-an-epub) |
+| See how a format will look | Toolbar **File view** selector (PDF, Word, OpenDocument, EPUB, RTF, HTML, Markdown, plain text). Word/ODT/RTF previews are approximate. The source toggle shows exact read-only export text |
 
 Hidden or unsupported content stays in the master; objects simplified in a view are locked there.
 Details: [file views](file-views.md) and [compatibility](compatibility.md).
+
+### Exporting an EPUB
+
+**File → Export → EPUB** (or `byax export draft.byax --out draft.epub`) writes a reflowable EPUB 3. The
+same document and options always give the same bytes; nothing reads the clock.
+
+- **Chapters and contents.** The book splits into one file per level-1 heading, and the contents page
+  (and the older NCX contents) is built from the headings of every level. A document with no headings
+  gets a single contents entry named after the title.
+- **Metadata.** Title, author and language come from the document's metadata. Optional metadata keys
+  `publisher`, `description`, `rights`, `subjects` (a list), `identifier` and `modified` are written
+  when present. The book identifier is derived from the document's identity unless you set
+  `identifier`; the modification date comes from `modified`, else from the document history, else a
+  fixed date, so exporting twice never changes the file.
+- **Cover.** Pick the image in Tools → Document properties (**EPUB cover image**), or set the document
+  metadata `cover` to the key of an image asset, or mark one image block
+  with the `cover` attribute (it is then used as the cover and not repeated in the text). A cover is
+  never chosen implicitly.
+- **Fonts.** Fonts used by the text are embedded only when the font's own embedding permission allows
+  it; any other font is listed in the export report and the reader substitutes one.
+- **Footnotes** that are attached to a paragraph become EPUB 3 footnotes (pop-ups in most readers).
+- **Accessibility.** The package declares access modes, accessibility features, hazards and a
+  summary. Images without alt text are reported in the export report (mark an image `decorative` when
+  it carries no information); this is a report, not a block.
+- **Options.** Chapter split points, an extra stylesheet, the cover, a language override and which
+  blocks to include are given in an export profile's `epub` section (`split_at`, `split_level`,
+  `css`, `cover`, `include`, `language`, `embed_fonts`, `ncx`, `accessibility`), or through the
+  `byax.epub.export_epub` library call.
+
+The export report lists every loss with its location. Page breaks, the contents block, section
+breaks, links that leave the book and unsupported image types are not carried. The built-in structural
+check runs on every export; EPUBCheck can be run on the fixtures with `scripts/epubcheck_fixtures.py`
+(see the [development guide](development.md#epubcheck)).
 
 Autosave writes recovery copies; an explicit **Save** draws a brief checkmark. If the file changes
 on disk behind you, the app tells you rather than overwriting.

@@ -95,7 +95,16 @@ def test_export_button_asks_in_byax_and_defaults_to_the_open_format(qtbot, monke
     row = window.findChild(QToolBar, 'formattingRibbon')
     assert row.widgetForAction(export).popupMode() == QToolButton.InstantPopup
     assert export.menu().defaultAction() is None
-    assert [a.data() for a in export.menu().actions()] == ['pdf', 'docx', 'odt', 'md', 'html', 'rtf', 'txt']
+    assert [a.data() for a in export.menu().actions()] == [
+        'pdf',
+        'docx',
+        'odt',
+        'epub',
+        'md',
+        'html',
+        'rtf',
+        'txt',
+    ]
     window.set_file_view('md')
     assert row.widgetForAction(export).popupMode() == QToolButton.MenuButtonPopup
     assert export.menu().defaultAction().data() == 'md'

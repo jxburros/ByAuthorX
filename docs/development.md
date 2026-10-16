@@ -84,3 +84,20 @@ cancellation and prompt Qt window teardown reduce repeated work; documentation/a
 Match surrounding code (single quotes, type hints on public functions). Never claim a verification the evidence
 does not support. Untrusted text (document content, model output) is data and must not select executables, enable
 retrieval or touch secrets. No network except explicit, user-selected provider calls.
+
+## EPUBCheck
+
+`byax.epub.validate` (the built-in structural check) runs in the normal test suite. EPUBCheck, the
+authoritative validator, needs Java and is optional:
+
+```bash
+uv run python scripts/epubcheck_fixtures.py --out artifacts/epub                      # built-in check only
+uv run python scripts/epubcheck_fixtures.py --out artifacts/epub \
+    --epubcheck /path/to/epubcheck-5.3.0/epubcheck.jar --warnings-fail                 # plus EPUBCheck
+```
+
+The `epubcheck` CI job runs the second form on manual and weekly runs only. It downloads EPUBCheck 5.3.0
+from its release page and verifies the SHA-256 recorded in `.github/workflows/ci.yml` before use. The
+script exports every fixture from `scripts/generate_fixtures.py` plus `epub_rich` (one document that
+exercises lists, tables, spans, footnotes, images with and without alt text, a cover, marks, language
+changes and embedded fonts) and exits non-zero on any error.

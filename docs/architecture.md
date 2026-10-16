@@ -16,6 +16,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `fiction_checks`, `readability`, `prose` | Advisory fiction analysis suite with word lists as data (`resources/fiction`, `resources/readability`) and its incremental dependency units; per-chapter readability indices, style statistics and pacing data; shared sentence, dialogue and syllable primitives |
 | `layout` | Qt typography, pagination and shared page drawing for previews/PDF/images/printing |
 | `exchange` | Safe imports, editable exports, explicit compatibility/loss reports |
+| `epub` | EPUB 3 export (deterministic package, navigation from the outline, permitted embedded fonts, accessibility metadata), EPUB import through the HTML importer and the hostile-archive limits, and the built-in structural validator |
 | `publication` | Selected publication policies, serialized redaction verification, reproduction inventory |
 | `providers` | Six explicitly selected model adapters and local secret references |
 | `transcription`, `jobs` | Recording, reviewed transcript insertion, persistent work state |

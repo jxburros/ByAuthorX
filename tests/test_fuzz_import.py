@@ -14,7 +14,7 @@ from byax.exchange import export_document, import_document
 from byax.model import new_document, validate_document
 
 # python-docx parsing dominates runtime; counts keep the module well under 30 s.
-CASES = {'rtf': 300, 'docx': 150, 'odt': 300, 'html': 300, 'md': 300, 'txt': 200}
+CASES = {'rtf': 300, 'docx': 150, 'odt': 300, 'html': 300, 'md': 300, 'txt': 200, 'epub': 250}
 CASE_SECONDS = 5
 FORMATS = tuple(CASES)
 TOKENS = [
@@ -147,7 +147,7 @@ def test_mutated_imports_raise_only_byax_errors(fmt, seeds, tmp_path):
     path = tmp_path / f'mutated.{fmt}'
     crashes = []
     for case in range(CASES[fmt]):
-        if fmt in ('docx', 'odt') and case % 2:
+        if fmt in ('docx', 'odt', 'epub') and case % 2:
             data = _mutate_package(rng, seed)
         else:
             data = _mutate_bytes(rng, seed)
