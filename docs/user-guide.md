@@ -87,6 +87,38 @@ check runs on every export; EPUBCheck can be run on the fixtures with `scripts/e
 Autosave writes recovery copies; an explicit **Save** draws a brief checkmark. If the file changes
 on disk behind you, the app tells you rather than overwriting.
 
+## Working in synced folders
+
+Dropbox, iCloud Drive, OneDrive, Google Drive, Box, Nextcloud/ownCloud, Syncthing and pCloud folders
+work, with these limits. ByAuthorX does not co-edit live ([the decision](coediting-spike.md) stands):
+the safe pattern is one computer at a time, and a merge you review if two computers did edit.
+
+- **The editing lock is per computer.** It lives in this computer's cache folder, never beside the
+  document, so it cannot stop another computer from editing the synced file. Close the document and let
+  sync finish before switching computers.
+- **Saves are atomic and checked.** A save writes a temporary file and swaps it in. If your sync client
+  delivered a newer version of the file after you opened it, the save is refused and nothing is
+  overwritten; use Save as to keep both. A half-downloaded, empty or online-only file is reported as
+  such rather than opened.
+- **Notice bar.** Opening a document in a synced folder with something risky (a temporary save file
+  left behind, a backup copy beside it, an unfinished download) or with conflicted copies shows a
+  dismissible bar. **Details…** explains it; **Tools → Synced folder safety…** shows it any time.
+- **Conflicted copies.** When two computers edit the same file, your sync client keeps both and names
+  the second one like `Chapter (Sam's conflicted copy 2026-10-14).byax` (Dropbox), `Chapter-LAPTOP.byax`
+  (OneDrive), `Chapter 2.byax` (iCloud), `Chapter (1).byax` (Google Drive, Box),
+  `Chapter (conflicted copy …).byax` (Nextcloud) or `Chapter.sync-conflict-….byax` (Syncthing). A file
+  is only offered when it is a complete package of the same document. **Review conflicted copy…** (or
+  **Tools → Review conflicted copies…**) imports its history and registers one merge in **Proposed
+  changes**. Edits to different sections merge with nothing lost. Edits to the same section become
+  conflicts you resolve with **Review → Versions and drafts → Resolve selected merge conflicts…**.
+  Comments and review items in the copy are listed as not merged. Nothing changes until you accept,
+  and the copy is never deleted. After you accept the merge and save, the review dialog can move the
+  copy into a `ByAuthorX conflicted copies` folder beside the document.
+- **Keep autosave and caches out of the sync folder.** Recovery copies and locks are stored in your
+  user data and cache folders; the check warns if those are themselves inside a synced folder.
+
+The same checks run headless as `byax sync` ([reference](cli-reference.md#sync-folder-safety)).
+
 ## Reviewing your own text
 
 The Inspector's **Checks** tab lists every check with an active checkbox and its own **Run**

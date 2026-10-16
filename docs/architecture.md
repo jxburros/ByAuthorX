@@ -29,6 +29,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report and the `project_*` canonical operations |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
+| `sync_safety`, `gui_sync` | Synced-folder detection, risk report, conflicted-copy discovery and merge-as-proposal (`engine.import_branch` + `propose_merge`), explicit archive of merged copies; the notice bar and review dialog |
 | `brand`, `resources/` | Bundled identity, fonts, tokens and baked UI art |
 
 ## Mutation and persistence
@@ -96,7 +97,7 @@ Tracked changes are range-level records (`insertion`, `deletion`, `replacement`,
 
 Proposals record per-edit identities and dependencies (explicit, plus IDs created by earlier edits and earlier edits of the same target). `accept_proposal`/`reject_proposal` accept an optional `edits` selection that must be dependency-consistent. Acceptance revalidates original object hashes, or for edits the engine itself remapped, the exact anchored text.
 
-Revisions record `history.parents` and compact `history.provenance`. `switch_branch` makes another branch head the working document without creating a revision. `propose_merge(source)` finds the nearest common ancestor (falling back to the branch fork point), plans a field-level three-way merge as a proposal and lists conflicts; `resolve_conflict` chooses ours, theirs or a custom value. Merges never commit without proposal acceptance.
+Revisions record `history.parents` and compact `history.provenance`. `switch_branch` makes another branch head the working document without creating a revision. `propose_merge(source)` finds the nearest common ancestor (falling back to the branch fork point), plans a field-level three-way merge as a proposal and lists conflicts; `resolve_conflict` chooses ours, theirs or a custom value. Merges never commit without proposal acceptance. `import_branch(doc, other, name)` brings a diverged copy of the same document (for example a sync conflicted copy) into history as a branch without a new revision, so the same `propose_merge` and `resolve_conflict` flow merges it; a different document is refused.
 
 ## Request identity retention
 
@@ -104,7 +105,7 @@ Each document keeps full replay records for the newest `settings.request_retenti
 
 ## Packages
 
-Packages contain `manifest.json`, `document.json`, and content-addressed asset members. Import validates member names, sizes, hashes, schemas, and identities before making a document available. Native persistence stages output and replaces it atomically. Source folder exports omit history and replay records by default.
+Packages contain `manifest.json`, `document.json`, and content-addressed asset members. Import validates member names, sizes, hashes, schemas, and identities before making a document available. Native persistence stages output and replaces it atomically; `save_document(expected_stamp=...)` refuses, under the lock and just before the replace, to overwrite a file that changed since it was read. Truncated, empty and placeholder files fail with a clear `invalid_input` and are never modified. See [synced folders](user-guide.md#working-in-synced-folders). Source folder exports omit history and replay records by default.
 
 ## Providers and trust boundaries
 

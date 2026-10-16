@@ -431,6 +431,18 @@ Additional backlog evidence: `test_backlog_workflows.py` exercises native export
 | 100,000-word project opens, reorders a chapter and saves | `project_100k` fixture (103,681 words, 155 items); `scripts/benchmark.py --project` | `test_100k_word_project_opens_reorders_a_chapter_and_saves` (generous 30 s bound); measurements in [benchmarks/0.3-project.json](benchmarks/0.3-project.json) on an unqualified offscreen host (16 October 2026): engine p95 open 17 ms, chapter reorder 97 ms, save 87 ms (20 samples); real window with reduced samples (10): keystroke to paint 21 ms against the 50 ms target and structural edit to paint 162 ms against 500 ms. Paint after a binder move needs the A2 views |
 | CLI, MCP, REST parity | `byax project --action …` dispatched through `cli.execute`; inventory rows | `tests/test_interface_parity.py`, `test_cli_actions_dispatch_through_execute_and_mcp`. No GUI yet (A2 corkboard/outline, A3 goals) |
 
+## Sync-folder safety (competitiveness plan 5.3)
+
+| Requirement | Implemented behavior | Evidence / limits |
+| --- | --- | --- |
+| Detect cloud-synced folders | Provider, confidence and evidence from marker files, provider environment variables, Dropbox `info.json` and folder-name patterns; local only | `tests/test_sync_safety.py` (patterns for nine providers, markers, environment, no network). The Windows registry is not read; detection is a hint, and installed-client behavior on macOS and Windows is unverified |
+| Risky patterns | Placeholders, empty/incomplete files, leftover staging files, backup and other-application lock files, lock or recovery folders inside a synced folder, large package/history, open in another session | `tests/test_sync_safety.py`; open-file blocking is detectable only on Windows and is untested there |
+| Conflicted copies | Dropbox, OneDrive, iCloud, Google Drive/Box, Nextcloud, ownCloud and Syncthing names; offered only if the manifest `document_id` matches; unfinished files wait | `tests/test_sync_safety.py`; names follow English-language client defaults, other locales are not recognised |
+| Merge through review | Copy imported as a branch (`engine.import_branch`) and merged with `propose_merge`; different sections merge with no loss, same section conflicts and resolves with `resolve_conflict`; copy never deleted; explicit archive after an accepted merge | `test_edits_to_different_sections_merge_with_no_loss_through_review`, `test_edits_to_the_same_section_conflict_and_resolve_explicitly`. Comments and review items in the copy are reported as not merged; needs shared retained history |
+| Partial syncs and delayed appearance | Truncated, zero-byte, mixed and bit-flipped packages, `.icloud` placeholders, a file replaced after open (`expected_stamp`), failed or interrupted atomic replace | `tests/test_sync_partial.py`, `tests/test_gui_sync.py`; no real sync client was run |
+| GUI | Non-modal notice bar, "Review conflicted copy…", Tools entries, accessible names | `tests/test_gui_sync.py` (offscreen); physical screen-reader pass unverified |
+| Interfaces | `sync` through CLI, MCP and REST with path scoping | `tests/test_sync_safety.py`, `tests/test_interface_parity.py` |
+
 ## Reference libraries, citations and editor workspace
 
 | Requirement | Implemented behavior | Evidence / limits |
