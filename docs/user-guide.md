@@ -3,6 +3,9 @@
 ByAuthorX is a native desktop word processor. You write in a Qt editor, save editable `.byax`
 documents, and export through the same typography engine used for the paginated preview. The
 document stays yours: nothing is uploaded, no account is needed and there is no telemetry.
+AI is opt-in, not opt-out. No AI feature runs until you configure a provider and choose to use it,
+and you choose the provider yourself. It can be a hosted service with your own key or a local model on your own
+computer (see [providers](providers.md)).
 
 ## Install
 

@@ -52,7 +52,7 @@ The editor includes a continuous writing view, a paginated preview, semantic out
 
 The Inspector's **AI** tab checks spelling locally (selection or whole document) with suggestions, exact replacements, a document dictionary, and session-only ignore. It also links to **Add or manage API keys…** and hosts an assistant chat with a persisted **Chat / Work** switch. Chat mode only answers and never changes the document. Work mode may suggest exact range edits, which are shown to you and, after confirmation, added to Review as pending proposals; nothing changes until you accept each one. Remote messages show the exact outbound payload for authorization unless the provider's saved policy allows remote calls.
 
-Unconfigured AI functions do not prevent writing, saving, printing, or deterministic checks. Each provider requires a chosen model and local configuration; keys stay in OS credential storage or explicit environment references. No accounts, telemetry, or background model polling are required.
+**AI is opt-in, not opt-out.** Nothing sends your writing to a model until you add a provider and choose to use it. You pick the provider: a hosted service with your own key, or a local model that runs on your computer, such as Ollama, whisper.cpp or an OpenAI-compatible local server. Unconfigured AI functions do not prevent writing, saving, printing, or deterministic checks. Each provider requires a chosen model and local configuration; keys stay in OS credential storage or explicit environment references. No accounts, telemetry, or background model polling are required.
 
 ## File views and appearance
 

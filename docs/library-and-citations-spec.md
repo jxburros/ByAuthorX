@@ -109,8 +109,9 @@ Every embedding source shall satisfy one contract: text batch in, vectors out, w
 
 ### 5.3 Installation options
 
-- A standard installer shall not require bundled embedding weights. Keyword retrieval works after a default install.
-- A fuller installer, or an explicit user-initiated download, may provide a local embedding model. A download shall show its source, size and checksum and shall verify the checksum before use. The application shall not download models in the background.
+- Keyword retrieval shall work with no model weights present.
+- The standard installer bundles the on-device search models (a local embedding model and reranker). A lean installer variant omits them. Lean users get the same models through an explicit user-initiated download. The models are mirrored on a project-controlled GitHub Release and pinned by SHA-256 (see the [context engine plan](context-engine-plan.md)). Bundled models run only on this computer. Semantic indexing with them starts only after the user turns it on.
+- A user-initiated download may provide a local embedding model. A download shall show its source, size and checksum and shall verify the checksum before use. The application shall not download models in the background.
 - Users may configure their own model. Model files and executables named in configuration are explicit local integrations; document content cannot select them.
 
 ### 5.4 Retrieval policy
