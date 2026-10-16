@@ -59,6 +59,9 @@ The Inspector's **Checks** tab lists every check with an active checkbox and its
 button; **Run all active checks** in **Proposed changes** runs the active ones together:
 
 - *On this computer*: spelling, grammar, document health. Active by default.
+- *Fiction analysis (advisory)*: dialogue tags, filter words and telling, repeated words and
+  openings, rhythm, sensory balance and invented-name spelling. Local and inactive by default; see
+  [Fiction checks and readability](#fiction-checks-and-readability).
 - *With an AI provider*: information repository, factual accuracy, voice consistency and any
   number of named custom checks you write. Inactive by default; each asks for authorization.
 
@@ -68,6 +71,65 @@ and sources set up in **Configure**.
 
 Results are suggestions; text changes require Apply/accept. Spelling and grammar marks are
 interface-only pen strokes and never appear in print or exports.
+
+### Fiction checks and readability
+
+The fiction checks are word-list and counting rules that run on your computer and only point at
+places to reread; nothing is changed unless you accept a proposal, and only the invented-name rule
+offers one (use the common spelling). They are off until you switch a family on in the **Checks**
+tab (or run `byax check --family fiction`), and even then each rule has a sensitivity so they do
+not nag:
+
+| Family | Rules | Starts at sensitivity |
+| --- | --- | --- |
+| Names | `fiction.name_spelling`: a capitalized word the dictionary does not know that is one edit from a more common spelling | conservative |
+| Repetition | `fiction.phrase_echo` (a three-word phrase repeated within 120 words) | conservative |
+| | `fiction.word_echo` (a word of five or more letters repeated within 30 words) | balanced |
+| | `fiction.sentence_opening` (three sentences in a row starting with the same word) | broad |
+| Dialogue | `fiction.tag_adverb` (an -ly adverb on a speech tag), `fiction.tag_repetition` (one non-"said" tag three times within 120 words) | balanced |
+| | `fiction.tag_bookism` (ornate tags such as *hissed* or *chuckled*) | broad |
+| Style | `fiction.filter_words` (*saw*, *felt*, *noticed* and similar, two or more in a paragraph) | balanced |
+| | `fiction.show_tell` (*was furious*), `fiction.adverb_density` (adverbs per 100 words in a chapter) | broad |
+| Rhythm | `fiction.sentence_rhythm`, `fiction.paragraph_rhythm` (runs of nearly equal length), `fiction.paragraph_length` | broad |
+| Sensory | `fiction.sensory_balance` (a chapter that leans on one sense) | broad |
+
+Dialogue is excluded from the filter-word and telling rules, and chapters are the sections of your
+top-level headings. Echo, rhythm and tag rules look back only within the same section, which is also
+what keeps rechecking fast: editing one paragraph re-runs that paragraph, the following paragraphs
+whose look-back reaches it, its chapter's balance rules and the document-wide name comparison.
+Tune any rule per document or per section with the profile's `fiction` setting, for example
+`{"enabled": ["fiction.show_tell"], "disabled": ["fiction.word_echo"], "thresholds": {"echo_window_words": 20}}`
+(valid thresholds are listed by `byax.fiction_checks.THRESHOLDS`); a section profile may override it,
+so a poetry chapter can switch the rules off. Findings follow the usual rules: exact ranges, statuses,
+intentional exceptions and protected passages. Passages marked intentional (quotation, lyric,
+dialect, verbatim) are skipped. English is the only shipped word list
+(`src/byax/resources/fiction/en.json`); other languages report *unmeasurable* coverage until a
+language file is added. A clean result is never a pass: the coverage always says that voice and
+intent are not judged.
+
+Invented names use the local dictionary and counts only, so a distinct character with a similar
+name can be flagged (the rule needs the common spelling to be used at least twice as often and the
+variant at most three times). The context engine's codex will later supply canonical names through
+`byax.fiction_checks.register_name_source`.
+
+**Tools > Readability report…** (or `byax readability`) gives each chapter and the whole
+manuscript the Flesch Reading Ease, Flesch-Kincaid grade, Gunning fog, SMOG, Coleman-Liau and
+Automated Readability indices, plus average sentence length, a passive-voice count, adverb rate,
+dialogue share, reading time and a pacing series (words, average sentence length and dialogue
+share for every paragraph). The dialog draws the pacing series as a graph you can step through with
+the arrow keys; the same values are in the table beside it. Every index carries a caveat when the
+sample is too short for it (for example SMOG needs 30 sentences and the others about 100 words),
+syllable counting and passive-voice detection are heuristics, and the indices are calibrated for
+English. **Save report as document…** writes the report as a ByAuthorX, Word, Markdown, HTML or PDF
+document and lists any conversion losses.
+
+Published precision and recall for these rules on the seeded and "limits" fixtures are in
+[`benchmarks/0.3-fiction-checks.json`](benchmarks/0.3-fiction-checks.json): on the seeded fixture
+every one of the 18 annotated findings is found with no extras (precision and recall 1.0), the clean
+fixture produces none, and the limits fixture shows where the heuristics are wrong (a literal
+*felt*, an emotion told in words the list lacks, a distinct character called Corin). These are
+small hand-annotated fixtures, not an accuracy estimate for a manuscript. Timing on a 100,000-word
+manuscript is in [`benchmarks/0.3-fiction-performance.json`](benchmarks/0.3-fiction-performance.json).
 
 ### Assistant: Chat vs Work
 

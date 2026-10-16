@@ -561,6 +561,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         for label, slot in (
             ('Linked assets…', self.linked_assets),
             ('Reusable settings…', self.reusable_settings),
+            ('Readability report…', self.readability_report),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
         self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
@@ -2569,7 +2570,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
     def run_all_checks(self):
         self.checks_panel.run_all()
 
-    def run_checks(self, suites=None):
+    def run_checks(self, suites=None, fiction_groups=None):
         from .checks import run_checks
 
         if isinstance(suites, bool):  # QAction.triggered supplies its checked state.
@@ -2596,6 +2597,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
 
         profile = getattr(self, 'active_profile', None)
         profile = profile if profile in frozen.get('profiles', {}) else None
+        if fiction_groups:
+            from .fiction_checks import group_profile
+
+            profile = group_profile(frozen, profile, fiction_groups)
         self.review_empty.set_busy(True)
         self.background(
             self.tr('Checking document…'),
@@ -3370,6 +3375,13 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         report = document_statistics(self.doc, output=self.file_view)
         report['selection'] = counts(self.editor.textCursor().selectedText())
         self.report(self.tr('Document statistics'), report)
+
+    def readability_report(self):
+        from .gui_readability import ReadabilityDialog
+
+        if not self.flush_edits():
+            return
+        ReadabilityDialog(self).exec()
 
     def templates(self):
         kind, ok = QInputDialog.getItem(

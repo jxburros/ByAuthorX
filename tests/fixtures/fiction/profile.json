@@ -1,0 +1,13 @@
+{
+  "name": "Fiction fixture",
+  "sensitivity": "broad",
+  "rule_families": ["fiction"],
+  "fiction": {
+    "thresholds": {
+      "adverb_min_words": 50,
+      "sensory_min_words": 50,
+      "sensory_min_hits": 4,
+      "paragraph_max_words": 60
+    }
+  }
+}

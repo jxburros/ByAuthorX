@@ -54,6 +54,35 @@ AI_CHECKS = (
     ('voice', 'Voice consistency', 'Departures from the active voice profile.', False),
 )
 HEALTH_SUITES = ['structure', 'accessibility', 'requirements', 'print']
+# Deterministic fiction analysis (competitiveness plan 6.2): advisory, local, inactive until chosen.
+FICTION_CHECKS = (
+    (
+        'fiction:dialogue',
+        'Dialogue tags',
+        'Ornate speech tags, adverbs on tags and a tag repeated across nearby lines of dialogue.',
+    ),
+    (
+        'fiction:style',
+        'Filter words and telling',
+        'Filter words (saw, felt, noticed), adverb density and emotions named outright.',
+    ),
+    (
+        'fiction:repetition',
+        'Repeated words and openings',
+        'Words and phrases echoed within a short window and runs of sentences with the same first word.',
+    ),
+    (
+        'fiction:rhythm',
+        'Sentence and paragraph rhythm',
+        'Runs of sentences or paragraphs of nearly equal length, and overlong paragraphs.',
+    ),
+    ('fiction:sensory', 'Sensory balance', 'Chapters that lean almost entirely on one sense.'),
+    (
+        'fiction:names',
+        'Invented-name spelling',
+        'Near-duplicate spellings of invented names, with a proposal to use the common one.',
+    ),
+)
 
 
 class ChecksPanel(QWidget):
@@ -87,6 +116,17 @@ class ChecksPanel(QWidget):
             for kind, label, description, default in checks:
                 self._add_row(rows, kind, self.tr(label), self.tr(description), default)
             layout.addWidget(group)
+        fiction = QGroupBox(self.tr('Fiction analysis (advisory, off by default)'))
+        fiction.setAccessibleName(self.tr('Fiction analysis checks'))
+        rows = QVBoxLayout(fiction)
+        for kind, label, description in FICTION_CHECKS:
+            self._add_row(rows, kind, self.tr(label), self.tr(description), False)
+            self.toggles[kind].setToolTip(
+                self.tr(
+                    'Advisory. Active: included in “Run all active checks”. Nothing is changed automatically.'
+                )
+            )
+        layout.addWidget(fiction)
         self.custom_group = QGroupBox(self.tr('Custom checks'))
         self.custom_rows = QVBoxLayout(self.custom_group)
         self.custom_list = QVBoxLayout()
@@ -239,7 +279,10 @@ class ChecksPanel(QWidget):
         if 'spelling' in kinds:
             self.window.ai_panel.check_spelling()
         suites = (['grammar'] if 'grammar' in kinds else []) + (HEALTH_SUITES if 'health' in kinds else [])
-        if suites:
+        groups = [kind.split(':', 1)[1] for kind in kinds if kind.startswith('fiction:')]
+        if groups:
+            self.window.run_checks(suites + ['fiction'], fiction_groups=groups)
+        elif suites:
             self.window.run_checks(suites)
         remote = [kind for kind in kinds if kind in MODEL_CHECKS or kind.startswith('custom:')]
         if not remote:

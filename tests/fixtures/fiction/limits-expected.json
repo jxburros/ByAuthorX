@@ -1,0 +1,8 @@
+{
+  "note": "Hand-annotated before any run. These paragraphs probe the documented limits of the word-list heuristics: a literal 'felt' (fabric) is not a filter word, 'filled with fury' tells an emotion the list does not match, and Corin is a different character from Corrin.",
+  "findings": [
+    {"rule": "fiction.filter_words", "text": "saw"},
+    {"rule": "fiction.show_tell", "text": "was filled with fury"},
+    {"rule": "fiction.sentence_opening", "text": "Corrin"}
+  ]
+}

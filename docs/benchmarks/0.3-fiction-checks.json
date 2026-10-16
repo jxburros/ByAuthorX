@@ -1,0 +1,598 @@
+{
+  "schema_version": 1,
+  "suite": "fiction",
+  "rule_set_version": 1,
+  "word_lists": {
+    "en": 1
+  },
+  "fixtures": {
+    "seeded": "tests/fixtures/fiction/seeded.md (annotations: seeded-expected.json)",
+    "limits": "tests/fixtures/fiction/limits.md (annotations: limits-expected.json)",
+    "clean": "tests/fixtures/fiction/clean.md",
+    "profile": "tests/fixtures/fiction/profile.json"
+  },
+  "method": "Hand-annotated fixtures; a finding is correct when rule and matched text equal an annotation. Precision = correct / reported; recall = correct / annotated.",
+  "qualification": "Small curated fixtures. \"seeded\" shows each rule firing where intended; \"limits\" probes documented heuristic limits (a literal \"felt\", an unlisted way of telling an emotion, a distinct character with a similar name). Neither is an accuracy estimate for a full manuscript.",
+  "seeded": {
+    "overall": {
+      "true_positives": 18,
+      "reported": 18,
+      "annotated": 18,
+      "precision": 1.0,
+      "recall": 1.0
+    },
+    "groups": {
+      "dialogue": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.tag_adverb",
+          "fiction.tag_bookism",
+          "fiction.tag_repetition"
+        ]
+      },
+      "names": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.name_spelling"
+        ]
+      },
+      "repetition": {
+        "true_positives": 5,
+        "reported": 5,
+        "annotated": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.phrase_echo",
+          "fiction.sentence_opening",
+          "fiction.word_echo"
+        ]
+      },
+      "rhythm": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.paragraph_length",
+          "fiction.paragraph_rhythm",
+          "fiction.sentence_rhythm"
+        ]
+      },
+      "sensory": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.sensory_balance"
+        ]
+      },
+      "style": {
+        "true_positives": 5,
+        "reported": 5,
+        "annotated": 5,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.adverb_density",
+          "fiction.filter_words",
+          "fiction.show_tell"
+        ]
+      }
+    },
+    "rules": {
+      "fiction.adverb_density": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "style"
+      },
+      "fiction.filter_words": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "style"
+      },
+      "fiction.name_spelling": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "names"
+      },
+      "fiction.paragraph_length": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "rhythm"
+      },
+      "fiction.paragraph_rhythm": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "rhythm"
+      },
+      "fiction.phrase_echo": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      },
+      "fiction.sensory_balance": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "sensory"
+      },
+      "fiction.sentence_opening": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      },
+      "fiction.sentence_rhythm": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "rhythm"
+      },
+      "fiction.show_tell": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "style"
+      },
+      "fiction.tag_adverb": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "dialogue"
+      },
+      "fiction.tag_bookism": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "dialogue"
+      },
+      "fiction.tag_repetition": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "dialogue"
+      },
+      "fiction.word_echo": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      }
+    }
+  },
+  "limits": {
+    "overall": {
+      "true_positives": 2,
+      "reported": 5,
+      "annotated": 3,
+      "precision": 0.4,
+      "recall": 0.667
+    },
+    "groups": {
+      "dialogue": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "rules": [
+          "fiction.tag_adverb",
+          "fiction.tag_bookism",
+          "fiction.tag_repetition"
+        ]
+      },
+      "names": {
+        "true_positives": 0,
+        "reported": 1,
+        "annotated": 0,
+        "precision": 0.0,
+        "recall": null,
+        "rules": [
+          "fiction.name_spelling"
+        ]
+      },
+      "repetition": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.phrase_echo",
+          "fiction.sentence_opening",
+          "fiction.word_echo"
+        ]
+      },
+      "rhythm": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "rules": [
+          "fiction.paragraph_length",
+          "fiction.paragraph_rhythm",
+          "fiction.sentence_rhythm"
+        ]
+      },
+      "sensory": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "rules": [
+          "fiction.sensory_balance"
+        ]
+      },
+      "style": {
+        "true_positives": 1,
+        "reported": 3,
+        "annotated": 2,
+        "precision": 0.333,
+        "recall": 0.5,
+        "rules": [
+          "fiction.adverb_density",
+          "fiction.filter_words",
+          "fiction.show_tell"
+        ]
+      }
+    },
+    "rules": {
+      "fiction.adverb_density": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "style"
+      },
+      "fiction.filter_words": {
+        "true_positives": 1,
+        "reported": 3,
+        "annotated": 1,
+        "precision": 0.333,
+        "recall": 1.0,
+        "group": "style"
+      },
+      "fiction.name_spelling": {
+        "true_positives": 0,
+        "reported": 1,
+        "annotated": 0,
+        "precision": 0.0,
+        "recall": null,
+        "group": "names"
+      },
+      "fiction.paragraph_length": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "rhythm"
+      },
+      "fiction.paragraph_rhythm": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "rhythm"
+      },
+      "fiction.phrase_echo": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "repetition"
+      },
+      "fiction.sensory_balance": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "sensory"
+      },
+      "fiction.sentence_opening": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      },
+      "fiction.sentence_rhythm": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "rhythm"
+      },
+      "fiction.show_tell": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 1,
+        "precision": null,
+        "recall": 0.0,
+        "group": "style"
+      },
+      "fiction.tag_adverb": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "dialogue"
+      },
+      "fiction.tag_bookism": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "dialogue"
+      },
+      "fiction.tag_repetition": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "dialogue"
+      },
+      "fiction.word_echo": {
+        "true_positives": 0,
+        "reported": 0,
+        "annotated": 0,
+        "precision": null,
+        "recall": null,
+        "group": "repetition"
+      }
+    }
+  },
+  "combined": {
+    "overall": {
+      "true_positives": 20,
+      "reported": 23,
+      "annotated": 21,
+      "precision": 0.87,
+      "recall": 0.952
+    },
+    "groups": {
+      "dialogue": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.tag_adverb",
+          "fiction.tag_bookism",
+          "fiction.tag_repetition"
+        ]
+      },
+      "names": {
+        "true_positives": 1,
+        "reported": 2,
+        "annotated": 1,
+        "precision": 0.5,
+        "recall": 1.0,
+        "rules": [
+          "fiction.name_spelling"
+        ]
+      },
+      "repetition": {
+        "true_positives": 6,
+        "reported": 6,
+        "annotated": 6,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.phrase_echo",
+          "fiction.sentence_opening",
+          "fiction.word_echo"
+        ]
+      },
+      "rhythm": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.paragraph_length",
+          "fiction.paragraph_rhythm",
+          "fiction.sentence_rhythm"
+        ]
+      },
+      "sensory": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "rules": [
+          "fiction.sensory_balance"
+        ]
+      },
+      "style": {
+        "true_positives": 6,
+        "reported": 8,
+        "annotated": 7,
+        "precision": 0.75,
+        "recall": 0.857,
+        "rules": [
+          "fiction.adverb_density",
+          "fiction.filter_words",
+          "fiction.show_tell"
+        ]
+      }
+    },
+    "rules": {
+      "fiction.adverb_density": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "style"
+      },
+      "fiction.filter_words": {
+        "true_positives": 4,
+        "reported": 6,
+        "annotated": 4,
+        "precision": 0.667,
+        "recall": 1.0,
+        "group": "style"
+      },
+      "fiction.name_spelling": {
+        "true_positives": 1,
+        "reported": 2,
+        "annotated": 1,
+        "precision": 0.5,
+        "recall": 1.0,
+        "group": "names"
+      },
+      "fiction.paragraph_length": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "rhythm"
+      },
+      "fiction.paragraph_rhythm": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "rhythm"
+      },
+      "fiction.phrase_echo": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      },
+      "fiction.sensory_balance": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "sensory"
+      },
+      "fiction.sentence_opening": {
+        "true_positives": 2,
+        "reported": 2,
+        "annotated": 2,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      },
+      "fiction.sentence_rhythm": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "rhythm"
+      },
+      "fiction.show_tell": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 2,
+        "precision": 1.0,
+        "recall": 0.5,
+        "group": "style"
+      },
+      "fiction.tag_adverb": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "dialogue"
+      },
+      "fiction.tag_bookism": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "dialogue"
+      },
+      "fiction.tag_repetition": {
+        "true_positives": 1,
+        "reported": 1,
+        "annotated": 1,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "dialogue"
+      },
+      "fiction.word_echo": {
+        "true_positives": 3,
+        "reported": 3,
+        "annotated": 3,
+        "precision": 1.0,
+        "recall": 1.0,
+        "group": "repetition"
+      }
+    }
+  },
+  "clean": {
+    "findings": 0
+  }
+}
