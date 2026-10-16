@@ -12,7 +12,7 @@
     "dark"
   ],
   "columns": 11,
-  "rows": 5,
+  "rows": 6,
   "names": [
     "bold",
     "italic",
@@ -68,7 +68,13 @@
     "import-audio",
     "jobs",
     "properties",
-    "statistics"
+    "statistics",
+    "superscript",
+    "subscript",
+    "paragraph",
+    "cite",
+    "insert",
+    "font"
   ],
   "groups": {
     "bold": "format",
@@ -125,7 +131,13 @@
     "import-audio": "tools",
     "jobs": "tools",
     "properties": "tools",
-    "statistics": "tools"
+    "statistics": "tools",
+    "superscript": "format",
+    "subscript": "format",
+    "paragraph": "paragraph",
+    "cite": "insert",
+    "insert": "insert",
+    "font": "format"
   },
   "labels": {
     "bold": "Bold",
@@ -182,7 +194,13 @@
     "import-audio": "Import audio",
     "jobs": "Background jobs",
     "properties": "Document properties",
-    "statistics": "Document statistics"
+    "statistics": "Document statistics",
+    "superscript": "Superscript",
+    "subscript": "Subscript",
+    "paragraph": "Font and paragraph",
+    "cite": "Cite",
+    "insert": "Insert",
+    "font": "Text formatting"
   },
   "files": {
     "light-16": "atlas-light-16.png",
@@ -249,10 +267,16 @@
     "import-audio": "43a3caa6b61b0f5df40c970ef9fc3c5fc5e988c55c7ad3138a01b99770039f76",
     "jobs": "c82e4bf4bf2543f28a3cfeded3ecd9da5607e99b647d9824ab7a20d819f44a8b",
     "properties": "ab7435e219db4c8916fa6309be4c539a4e0b3174206a12412c18abd578e0b2b6",
-    "statistics": "9b1b77901464b583a54ebc9fa306f26150d9e3a2926627fa0e6c387a010a3a2a"
+    "statistics": "9b1b77901464b583a54ebc9fa306f26150d9e3a2926627fa0e6c387a010a3a2a",
+    "superscript": "8fe7a5799296e738b29f881967bd264acabdfeb6e76b4040dc697ee2edd74d79",
+    "subscript": "aa9790ad8533aa2ed2197237480d528ab691651495a1ef82cbfc8ea7524fb282",
+    "paragraph": "62554b088d762380aa70ed85f8942de4644412342415e873c3473be34cd34edf",
+    "cite": "f060c73767825fcef0586f2bc7a41fd12b6913b2297b7119f4ded1d7d8cb38c9",
+    "insert": "3c9b92f626a8ac5570a10101c37b29572d46bb2b79b8fdc40008d9d75b147cd3",
+    "font": "3a991cfe42eb64f54f2d199c767ddd6de53b1f0c13523c02502b4822fd7b109c"
   },
   "checks": {
     "passed": true,
-    "icons": 55
+    "icons": 61
   }
 }

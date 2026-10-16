@@ -1,0 +1,91 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 96,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Subscript"
+    },
+    {
+      "type": "shape",
+      "name": "cross-a",
+      "shape": "path",
+      "x": 14,
+      "y": 11,
+      "width": 36,
+      "height": 46,
+      "fill": "none",
+      "path": "M0.32 0.54 Q18.05 22.86 35.57 45.35",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "cross-b",
+      "shape": "path",
+      "x": 14,
+      "y": 12,
+      "width": 37,
+      "height": 45,
+      "fill": "none",
+      "path": "M36.46 0.03 Q18.97 22.79 0.06 44.39",
+      "stroke": "#F4EEE3",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "two",
+      "shape": "path",
+      "x": 59,
+      "y": 49,
+      "width": 25,
+      "height": 41,
+      "fill": "none",
+      "path": "M0.17 13.3 C2.11 9.95 0.76 6.32 5.99 3.27 C11.22 0.21 11.23 1.26 15.86 4.12 C20.5 6.97 24.1 2.16 19.88 11.83 C15.66 21.49 1.91 26.03 3.21 33.12 C4.5 40.21 16.92 33.1 23.77 33.09",
+      "stroke": "#367B6C",
+      "stroke_width": 5.5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

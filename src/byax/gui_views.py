@@ -24,7 +24,7 @@ from .formats import FORMATS, canonical_format, project, supports
 
 
 class FileViews:
-    def build_file_views(self, toolbar, menus, workspace_layout):
+    def build_file_views(self, menus, workspace_layout):
         self.file_view = 'byax'
         self._projection_cache = None
         self._view_report = {'losses': [], 'hidden': [], 'locked': []}
@@ -41,13 +41,11 @@ class FileViews:
             view_menu.addAction(action)
             self._view_actions[ident] = action
         self.file_view_box.activated.connect(lambda: self.set_file_view(self.file_view_box.currentData()))
-        toolbar.addWidget(self.file_view_box)
         self.source_mode = QComboBox()
         self.source_mode.setAccessibleName(self.tr('Rendered or source'))
         self.source_mode.setToolTip(self.tr('Source displays the exact exported text, read-only'))
         self.source_mode.addItems([self.tr('Rendered'), self.tr('Source')])
         self.source_mode.activated.connect(self.set_source_mode)
-        toolbar.addWidget(self.source_mode)
         self.source_editor = QPlainTextEdit()
         self.source_editor.setReadOnly(True)
         self.source_editor.setFont(QFont('monospace', 11))
@@ -76,15 +74,18 @@ class FileViews:
             row.addWidget(button)
         workspace_layout.insertWidget(1, self.export_offer)
         self.export_offer.hide()
-        menus['&File'].addAction(self.action(self.tr('Convert to ByAuthorX…'), self.save_as))
+        export = next(a for a in menus['&File'].actions() if a.text() == self.tr('Export…'))
+        menus['&File'].insertAction(export, self.action(self.tr('Convert to ByAuthorX…'), self.save_as))
         menus['&Tools'].addAction(
             self.action(self.tr('Markdown opening preference…'), self.markdown_preferences)
         )
         # Commands carry explicit capability requirements; unsupported commands remain discoverable.
         requirements = FORMATS['byax']['commands']
         self._capability_actions = []
+        from .gui_ribbon import walk_menu
+
         for menu in menus.values():
-            for action in menu.actions():
+            for action in walk_menu(menu):
                 capability = next(
                     (cap for label, cap in requirements.items() if action.text() == self.tr(label)), None
                 )
@@ -187,6 +188,7 @@ class FileViews:
         self.editor.view_gaps |= {(b, a) for a, b in self.editor.view_gaps}
         self.editor.set_hand_marks(self.hand_marks and self.file_view == 'byax')
         self.hand_marks_action.setEnabled(self.file_view == 'byax')
+        self.populate_ribbon(self.file_view)
         for ident, action in self._view_actions.items():
             action.setChecked(ident == self.file_view)
             action.setEnabled(not self.in_place_markdown() or ident == 'md')

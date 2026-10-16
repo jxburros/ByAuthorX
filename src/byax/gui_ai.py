@@ -83,15 +83,16 @@ class AIPanel(QWidget):
         self.provider_status = QLabel()
         self.provider_status.setObjectName('emptyDescription')
         self.provider_status.setWordWrap(True)
-        layout.addWidget(self.provider_status)
         self.keys_button = QPushButton(self.tr('Add or manage API keys…'))
         self.keys_button.setAccessibleName(self.tr('Add or manage API keys'))
         self.keys_button.setToolTip(self.tr('Open provider settings to add a hosted or local model'))
         self.keys_button.clicked.connect(self.manage_keys)
-        layout.addWidget(self.keys_button)
+        # Provider status and keys are shown in the Configure tab.
 
         self.spelling_widget = self._build_spelling()
+        # Proposed changes shows spelling results once a spelling check runs; checks start it.
         self.spelling_widget.hide()
+        self.spell_button.hide()
         layout.addWidget(self._build_assistant(), 1)
         self.refresh_providers()
 
@@ -163,6 +164,7 @@ class AIPanel(QWidget):
         window = self.window
         if not window.flush_edits():
             return
+        self.spelling_widget.show()
         frozen = copy.deepcopy(window.doc)
         scope = [
             (target, start, end) for target, start, end in window.editor.selection_targets() if start != end
@@ -412,8 +414,8 @@ class AIPanel(QWidget):
         switch.setSpacing(0)
         self.mode_buttons = {}
         for mode, label, tip in (
-            ('chat', self.tr('Chat'), 'Chat: the assistant only answers and never changes the document'),
             ('work', self.tr('Work'), 'Work: the assistant may suggest exact edits for you to review'),
+            ('chat', self.tr('Chat'), 'Chat: the assistant only answers and never changes the document'),
         ):
             button = QToolButton()
             button.setText(label)

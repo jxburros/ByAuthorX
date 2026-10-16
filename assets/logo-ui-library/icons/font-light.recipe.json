@@ -1,0 +1,121 @@
+{
+  "canvas": {
+    "width": 96,
+    "height": 96,
+    "background": "transparent"
+  },
+  "operations": [
+    {
+      "type": "suite-set",
+      "name": "asset-contract",
+      "suite": {
+        "version": 1,
+        "rules": [
+          {
+            "id": "editable-vectors",
+            "kind": "count",
+            "layer_type": "shape",
+            "minimum": 1
+          },
+          {
+            "id": "no-baked-copy",
+            "kind": "count",
+            "layer_type": "text",
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "kind": "palette",
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "tolerance": 42,
+            "max_fraction": 0.005
+          }
+        ]
+      }
+    },
+    {
+      "type": "accessibility",
+      "lang": "en",
+      "title": "Text formatting"
+    },
+    {
+      "type": "shape",
+      "name": "capital",
+      "shape": "path",
+      "x": 8,
+      "y": 14,
+      "width": 44,
+      "height": 63,
+      "fill": "none",
+      "path": "M0.43 62.26 Q10.6 32.13 21.5 2.26 Q22.17 0.37 22.83 2.26 Q33.02 32.04 43.77 61.62",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "capital-bar",
+      "shape": "path",
+      "x": 17,
+      "y": 55,
+      "width": 26,
+      "height": 2,
+      "fill": "none",
+      "path": "M0.85 1.1 Q13.1 0.53 25.33 1.33",
+      "stroke": "#252927",
+      "stroke_width": 5.199999999999999,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "small-bowl",
+      "shape": "path",
+      "x": 58,
+      "y": 51,
+      "width": 24,
+      "height": 26,
+      "fill": "none",
+      "path": "M12 0.83 C15.74 0.73 14.6 0.14 17.68 2.26 C20.77 4.37 19.4 3.6 21.25 7.18 C23.09 10.76 23.1 9.04 23.22 13 C23.34 16.96 23.51 15.57 21.61 19.05 C19.71 22.54 20.74 21.56 17.53 23.46 C14.33 25.35 15.66 24.8 12 24.73 C8.34 24.67 9.69 25.21 6.56 23.27 C3.43 21.33 4.46 22.34 2.61 18.91 C0.76 15.49 1.15 17.03 1.02 13 C0.88 8.97 0.38 10.3 2.2 6.83 C4.02 3.35 3.21 4.57 6.48 2.57 C9.75 0.57 8.26 0.94 12 0.83 Z",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "small-stem",
+      "shape": "path",
+      "x": 81,
+      "y": 47,
+      "width": 2,
+      "height": 31,
+      "fill": "none",
+      "path": "M1.32 0.65 Q0.94 15.5 0.8 30.36",
+      "stroke": "#252927",
+      "stroke_width": 6.0,
+      "line_cap": "round",
+      "line_join": "round"
+    },
+    {
+      "type": "shape",
+      "name": "underline",
+      "shape": "path",
+      "x": 10,
+      "y": 86,
+      "width": 76,
+      "height": 3,
+      "fill": "none",
+      "path": "M0.45 1.11 C12.93 1.16 12.97 0.71 37.89 1.25 C62.81 1.78 62.76 2.23 75.2 2.71",
+      "stroke": "#367B6C",
+      "stroke_width": 5,
+      "line_cap": "round",
+      "line_join": "round"
+    }
+  ]
+}

@@ -1,8 +1,8 @@
 {
   "schema_version": 1,
   "name": "ByAuthorX Logo UI Library",
-  "design_count": 66,
-  "variant_count": 132,
+  "design_count": 72,
+  "variant_count": 144,
   "engine": {
     "name": "Vixl",
     "version": "0.27.0"
@@ -14295,6 +14295,1522 @@
         }
       },
       "use": "Document statistics: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "superscript-light",
+      "design": "superscript",
+      "category": "icons",
+      "group": "format",
+      "theme": "light",
+      "title": "Superscript",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/superscript-light.vixl",
+      "recipe": "icons/superscript-light.recipe.json",
+      "preview": "icons/superscript-light.png",
+      "vector": "icons/superscript-light.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 3,
+          "layers_total": 3,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "2976be60798f050c12ca94bb3d82570fe3198a8e487c3673837baf649b420f28",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "cross-a",
+              "cross-b",
+              "two"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1388,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 42,
+            "maximum_distance": 11,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Superscript: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "superscript-dark",
+      "design": "superscript",
+      "category": "icons",
+      "group": "format",
+      "theme": "dark",
+      "title": "Superscript",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/superscript-dark.vixl",
+      "recipe": "icons/superscript-dark.recipe.json",
+      "preview": "icons/superscript-dark.png",
+      "vector": "icons/superscript-dark.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 3,
+          "layers_total": 3,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "836b4791d20b66101bc831790cde4d686c5c2c58ae055920f01f0465d3f4af8c",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "cross-a",
+              "cross-b",
+              "two"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1388,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 96,
+            "maximum_distance": 12,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Superscript: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "subscript-light",
+      "design": "subscript",
+      "category": "icons",
+      "group": "format",
+      "theme": "light",
+      "title": "Subscript",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/subscript-light.vixl",
+      "recipe": "icons/subscript-light.recipe.json",
+      "preview": "icons/subscript-light.png",
+      "vector": "icons/subscript-light.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 3,
+          "layers_total": 3,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "2976be60798f050c12ca94bb3d82570fe3198a8e487c3673837baf649b420f28",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "cross-a",
+              "cross-b",
+              "two"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1423,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 42,
+            "maximum_distance": 11,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Subscript: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "subscript-dark",
+      "design": "subscript",
+      "category": "icons",
+      "group": "format",
+      "theme": "dark",
+      "title": "Subscript",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/subscript-dark.vixl",
+      "recipe": "icons/subscript-dark.recipe.json",
+      "preview": "icons/subscript-dark.png",
+      "vector": "icons/subscript-dark.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 3,
+          "layers_total": 3,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "836b4791d20b66101bc831790cde4d686c5c2c58ae055920f01f0465d3f4af8c",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 3,
+            "layers": [
+              "cross-a",
+              "cross-b",
+              "two"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1423,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 96,
+            "maximum_distance": 12,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Subscript: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "paragraph-light",
+      "design": "paragraph",
+      "category": "icons",
+      "group": "paragraph",
+      "theme": "light",
+      "title": "Font and paragraph",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/paragraph-light.vixl",
+      "recipe": "icons/paragraph-light.recipe.json",
+      "preview": "icons/paragraph-light.png",
+      "vector": "icons/paragraph-light.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "2976be60798f050c12ca94bb3d82570fe3198a8e487c3673837baf649b420f28",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 5,
+            "layers": [
+              "bowl",
+              "stem-a",
+              "stem-b",
+              "cap",
+              "underline"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1934,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 42,
+            "maximum_distance": 11,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Font and paragraph: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "paragraph-dark",
+      "design": "paragraph",
+      "category": "icons",
+      "group": "paragraph",
+      "theme": "dark",
+      "title": "Font and paragraph",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/paragraph-dark.vixl",
+      "recipe": "icons/paragraph-dark.recipe.json",
+      "preview": "icons/paragraph-dark.png",
+      "vector": "icons/paragraph-dark.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "836b4791d20b66101bc831790cde4d686c5c2c58ae055920f01f0465d3f4af8c",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 5,
+            "layers": [
+              "bowl",
+              "stem-a",
+              "stem-b",
+              "cap",
+              "underline"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1934,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 96,
+            "maximum_distance": 12,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Font and paragraph: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "cite-light",
+      "design": "cite",
+      "category": "icons",
+      "group": "insert",
+      "theme": "light",
+      "title": "Cite",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/cite-light.vixl",
+      "recipe": "icons/cite-light.recipe.json",
+      "preview": "icons/cite-light.png",
+      "vector": "icons/cite-light.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 6,
+          "layers_total": 6,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "2976be60798f050c12ca94bb3d82570fe3198a8e487c3673837baf649b420f28",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 6,
+            "layers": [
+              "quote-0",
+              "quote-tail-0",
+              "quote-1",
+              "quote-tail-1",
+              "source",
+              "reference"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1661,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 42,
+            "maximum_distance": 11,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Cite: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "cite-dark",
+      "design": "cite",
+      "category": "icons",
+      "group": "insert",
+      "theme": "dark",
+      "title": "Cite",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/cite-dark.vixl",
+      "recipe": "icons/cite-dark.recipe.json",
+      "preview": "icons/cite-dark.png",
+      "vector": "icons/cite-dark.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 6,
+          "layers_total": 6,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "836b4791d20b66101bc831790cde4d686c5c2c58ae055920f01f0465d3f4af8c",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 6,
+            "layers": [
+              "quote-0",
+              "quote-tail-0",
+              "quote-1",
+              "quote-tail-1",
+              "source",
+              "reference"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1661,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 96,
+            "maximum_distance": 12,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Cite: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "insert-light",
+      "design": "insert",
+      "category": "icons",
+      "group": "insert",
+      "theme": "light",
+      "title": "Insert",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/insert-light.vixl",
+      "recipe": "icons/insert-light.recipe.json",
+      "preview": "icons/insert-light.png",
+      "vector": "icons/insert-light.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "2976be60798f050c12ca94bb3d82570fe3198a8e487c3673837baf649b420f28",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "line-left",
+              "line-right",
+              "caret",
+              "line-below"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1219,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 42,
+            "maximum_distance": 11,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Insert: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "insert-dark",
+      "design": "insert",
+      "category": "icons",
+      "group": "insert",
+      "theme": "dark",
+      "title": "Insert",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/insert-dark.vixl",
+      "recipe": "icons/insert-dark.recipe.json",
+      "preview": "icons/insert-dark.png",
+      "vector": "icons/insert-dark.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 4,
+          "layers_total": 4,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "836b4791d20b66101bc831790cde4d686c5c2c58ae055920f01f0465d3f4af8c",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 4,
+            "layers": [
+              "line-left",
+              "line-right",
+              "caret",
+              "line-below"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 1219,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 96,
+            "maximum_distance": 12,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Insert: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "font-light",
+      "design": "font",
+      "category": "icons",
+      "group": "format",
+      "theme": "light",
+      "title": "Text formatting",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/font-light.vixl",
+      "recipe": "icons/font-light.recipe.json",
+      "preview": "icons/font-light.png",
+      "vector": "icons/font-light.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "2976be60798f050c12ca94bb3d82570fe3198a8e487c3673837baf649b420f28",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 5,
+            "layers": [
+              "capital",
+              "capital-bar",
+              "small-bowl",
+              "small-stem",
+              "underline"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#252927",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 2155,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 42,
+            "maximum_distance": 11,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Text formatting: toolbar and menu icon; set beside its text label.",
+      "family": "logo-ui"
+    },
+    {
+      "id": "font-dark",
+      "design": "font",
+      "category": "icons",
+      "group": "format",
+      "theme": "dark",
+      "title": "Text formatting",
+      "width": 96,
+      "height": 96,
+      "transparent": true,
+      "master": "icons/font-dark.vixl",
+      "recipe": "icons/font-dark.recipe.json",
+      "preview": "icons/font-dark.png",
+      "vector": "icons/font-dark.svg",
+      "exports": [
+        "svg",
+        "png"
+      ],
+      "checks": {
+        "passed": true,
+        "errors": 0,
+        "warnings": 0,
+        "info": 0,
+        "by_action": {
+          "fix": [],
+          "review": [],
+          "informational": []
+        },
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "design checks"
+          ]
+        },
+        "issues": [],
+        "checked": {
+          "checks": [
+            "bounds",
+            "motion",
+            "composition"
+          ],
+          "layers_checked": 5,
+          "layers_total": 5,
+          "text_layers": 0
+        }
+      },
+      "contract": {
+        "version": 1,
+        "suite_hash": "836b4791d20b66101bc831790cde4d686c5c2c58ae055920f01f0465d3f4af8c",
+        "passed": true,
+        "status": "passed",
+        "errors": 0,
+        "needs_review": 0,
+        "coverage": {
+          "mode": "still",
+          "times": [
+            null
+          ]
+        },
+        "results": [
+          {
+            "id": "editable-vectors",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 5,
+            "layers": [
+              "capital",
+              "capital-bar",
+              "small-bowl",
+              "small-stem",
+              "underline"
+            ],
+            "minimum": 1,
+            "maximum": null
+          },
+          {
+            "id": "no-baked-copy",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "count": 0,
+            "layers": [],
+            "minimum": null,
+            "maximum": 0
+          },
+          {
+            "id": "brand-palette",
+            "status": "passed",
+            "severity": "error",
+            "time": null,
+            "passed": true,
+            "palette": null,
+            "colors": [
+              "#F4EEE3",
+              "#367B6C",
+              "#AD283E"
+            ],
+            "pixels_checked": 2155,
+            "outside_pixels": 0,
+            "outside_fraction": 0.0,
+            "max_fraction": 0.005,
+            "tolerance": 96,
+            "maximum_distance": 12,
+            "examples": [],
+            "metric": "maximum RGB channel distance (0–255); alpha below alpha_min excluded"
+          }
+        ],
+        "source": "document",
+        "outcome": {
+          "state": "validated",
+          "execution": "completed",
+          "validation": "passed",
+          "review": "not_required",
+          "review_reasons": [],
+          "validated_by": [
+            "suite"
+          ]
+        }
+      },
+      "use": "Text formatting: toolbar and menu icon; set beside its text label.",
       "family": "logo-ui"
     },
     {

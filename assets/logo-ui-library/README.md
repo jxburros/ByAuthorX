@@ -6,7 +6,7 @@ The pieces a native word processor needs every day, drawn in the logo's own voca
 
 | Category | Designs | What they are for |
 | --- | --- | --- |
-| `icons/` | 55 × light and dark | Toolbar and menu icons. Always set beside a text label or given an accessible name. |
+| `icons/` | 61 × light and dark | Toolbar and menu icons. Always set beside a text label or given an accessible name. |
 | `illustrations/` | 6 × light and dark | Dialog headers and empty states: `checks-clear`, `proofread-marks`, `jobs-empty`, `dictation-ready`, `export-ready`, `provider-keys`. |
 | `animations/` | 2 × light and dark | Task-owned loops: `listening-wave` (dictation recording) and `checking-page` (document checks running). |
 | `rules/` | 3 × light and dark | Quiet hand-inked rules for the chrome: `rule-h`, `rule-v`, `tab-underline`. |

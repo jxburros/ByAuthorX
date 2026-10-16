@@ -59,7 +59,7 @@ A result dialog shows its illustration only when the result proves what the pict
 
 ## Interface icons
 
-The toolbar and menus carry a hand-inked icon set drawn in Vixl from the logo's own pen line, ink blot and mark (55 designs; [see the library](../assets/logo-ui-library/README.md)). Ink draws the object, one pen-green gesture draws the action, and ink red appears only at a point of origin (the start of a comment). Strokes are 6 units on a 96-unit grid, so they stay legible at 16 px.
+The toolbar and menus carry a hand-inked icon set drawn in Vixl from the logo's own pen line, ink blot and mark (61 designs; [see the library](../assets/logo-ui-library/README.md)). Ink draws the object, one pen-green gesture draws the action, and ink red appears only at a point of origin (the start of a comment). Strokes are 6 units on a 96-unit grid, so they stay legible at 16 px.
 
 Icons always accompany a label or an accessible name. Comment, Check and Pages show icon and text in the toolbar. Bold, Italic and Underline are icon-only because their glyphs are the letters themselves, and keep their name, shortcut and tooltip. Menus draw icons at 20 px for actions that have an established image; other actions stay text-only rather than inventing a symbol. About uses the logo's own micro mark from the application icon, never a redraw.
 

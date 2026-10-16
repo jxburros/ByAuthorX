@@ -133,6 +133,56 @@ FORMATS = {
 }
 
 
+# The ribbon each file view shows: two rows of groups, each group a run of ribbon items between separators.
+# Items inside a group are further filtered by ``supports`` (a Markdown ribbon has no underline button).
+# ByAuthorX carries every item any other view uses, plus its own review and version tools.
+RIBBONS = {
+    'byax': (
+        (('style', 'font', 'size'), ('marks', 'text'), ('comment', 'check', 'pages')),
+        (
+            ('align', 'lists'),
+            ('insert', 'link', 'cite', 'paragraph'),
+            ('track', 'versions', 'protect'),
+            ('find', 'view', 'source'),
+            ('export',),
+        ),
+    ),
+    'pdf': (
+        (('style', 'font', 'size'), ('marks', 'text'), ('check', 'pages')),
+        (('align', 'lists'), ('insert', 'link', 'cite', 'paragraph'), ('find', 'view'), ('export',)),
+    ),
+    'docx': (
+        (('style', 'font', 'size'), ('marks', 'text'), ('comment', 'check', 'pages')),
+        (('align', 'lists'), ('insert', 'link', 'cite', 'paragraph'), ('find', 'view'), ('export',)),
+    ),
+    'odt': (
+        (('style', 'font', 'size'), ('marks', 'text'), ('check', 'pages')),
+        (('lists',), ('insert', 'link', 'cite', 'paragraph'), ('find', 'view'), ('export',)),
+    ),
+    'rtf': (
+        (('style', 'size'), ('marks', 'text'), ('check', 'pages')),
+        (('align', 'lists'), ('insert',), ('find', 'view', 'source'), ('export',)),
+    ),
+    'html': (
+        (('style',), ('marks', 'text'), ('check',)),
+        (('lists',), ('insert', 'link'), ('find', 'view', 'source'), ('export',)),
+    ),
+    'md': (
+        (('style',), ('marks', 'text'), ('check',)),
+        (('lists',), ('insert', 'link'), ('find', 'view', 'source'), ('export',)),
+    ),
+    'txt': (
+        (('find', 'check'),),
+        (('view', 'source'), ('export',)),
+    ),
+}
+
+
+def ribbon_items(view: str) -> list[str]:
+    """The ribbon items of a file view, in display order."""
+    return [item for row in RIBBONS[canonical_format(view)] for group in row for item in group]
+
+
 def canonical_format(view: str) -> str:
     view = ALIASES.get(view.lower(), view.lower())
     if view not in FORMATS:

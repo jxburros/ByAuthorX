@@ -20,7 +20,6 @@ from PySide6.QtCore import (
     QObject,
     QRunnable,
     QSettings,
-    QSize,
     QSizeF,
     Qt,
     QThreadPool,
@@ -47,6 +46,7 @@ from PySide6.QtWidgets import (
     QLineEdit,
     QListWidget,
     QMainWindow,
+    QMenu,
     QMessageBox,
     QPlainTextEdit,
     QPushButton,
@@ -54,7 +54,6 @@ from PySide6.QtWidgets import (
     QSizePolicy,
     QStackedWidget,
     QTabWidget,
-    QToolBar,
     QTreeWidget,
     QTreeWidgetItem,
     QVBoxLayout,
@@ -70,6 +69,7 @@ from .gui_editor import PageCanvas, ProofMark, SemanticEditor
 from .gui_icons import themed_icon
 from .gui_libraries import LibraryPanels
 from .gui_motion import MotionController, PenLineAnimation
+from .gui_ribbon import RibbonPanels
 from .gui_views import FileViews
 from .gui_workflows import WorkflowPanels
 from .gui_workspace import InspectorTabBar, WorkspacePanels
@@ -96,7 +96,7 @@ class Worker(QRunnable):
             self.signals.failed.emit(str(exc))
 
 
-class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMainWindow):
+class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, QMainWindow):
     def __init__(self, path=None):
         super().__init__()
         self.setWindowTitle(self.tr('ByAuthorX'))
@@ -191,7 +191,6 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             (self.tr('Save'), self.save, QKeySequence.Save, 'save'),
             (self.tr('Save as…'), self.save_as, QKeySequence.SaveAs, 'save-as'),
             (self.tr('Export…'), self.export, 'Ctrl+Shift+E', 'export'),
-            (self.tr('Redact a sanitized copy…'), self.redact_copy, None, None),
             (self.tr('Page setup…'), self.page_setup, None, None),
             (self.tr('Print preview…'), self.print_preview, None, None),
             (self.tr('Print…'), self.print_document, QKeySequence.Print, 'print'),
@@ -199,6 +198,12 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
         ]
         for title, slot, shortcut, icon in file_actions:
             menus['&File'].addAction(self.action(title, slot, shortcut, icon=icon))
+            if slot == self.export:
+                self.export_as_menu = menus['&File'].addMenu(self.tr('Export as'))
+                self.export_options_menu = menus['&File'].addMenu(self.tr('Export options'))
+                self.export_options_menu.addAction(
+                    self.action(self.tr('Redact a sanitized copy…'), self.redact_copy)
+                )
         self.recent_menu = menus['&File'].addMenu(self.tr('Recent documents'))
         self.update_recents()
         menus['&File'].addSeparator()
@@ -248,15 +253,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             (self.tr('Find and replace…'), self.find_replace, QKeySequence.Find, 'find'),
         ]:
             menus['&Edit'].addAction(self.action(title, slot, key, icon=icon))
-        toolbar = QToolBar(self.tr('Writing tools'))
-        toolbar.setMovable(False)
-        toolbar.setIconSize(QSize(24, 24))
-        toolbar.setToolButtonStyle(Qt.ToolButtonTextBesideIcon)
-        self.addToolBar(toolbar)
-        self.brand_mark = BrandGraphic('wordmark-light.png', 240, clear_space=20)
-        self.brand_mark.setAccessibleName(self.tr('ByAuthorX'))
-        toolbar.addWidget(self.brand_mark)
-        toolbar.addSeparator()
+        self.ribbon_actions = {}
         self.style_box = QComboBox()
         self.style_box.setAccessibleName(self.tr('Paragraph style'))
         self.style_box.setToolTip(self.tr('Paragraph style of the current paragraph'))
@@ -279,8 +276,18 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
         self.style_box.activated.connect(
             lambda: self.apply_style(self.style_box.currentData() or self.style_box.currentText())
         )
-        toolbar.addWidget(self.style_box)
-        toolbar.addSeparator()
+        format_menu = menus['F&ormat']
+        self.submenus = {
+            key: format_menu.addMenu(self.tr(title))
+            for key, title in (
+                ('text', 'Text'),
+                ('paragraph', 'Paragraph'),
+                ('lists', 'Lists'),
+                ('styles', 'Styles'),
+                ('layers', 'Layers'),
+            )
+        }
+        format_menu.addSeparator()
         for label, mark, shortcut in [
             (self.tr('Bold'), 'bold', 'Ctrl+B'),
             (self.tr('Italic'), 'italic', 'Ctrl+I'),
@@ -289,158 +296,172 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             action = self.action(
                 label, lambda checked=False, m=mark: self.format_selection(m, True), shortcut, icon=mark
             )
-            toolbar.addAction(action)
-            # The glyph is the letter itself; the name and shortcut stay in the tooltip.
-            toolbar.widgetForAction(action).setToolButtonStyle(Qt.ToolButtonIconOnly)
-            menus['F&ormat'].addAction(action)
+            self.ribbon_actions[mark] = action
+            format_menu.insertAction(self.submenus['text'].menuAction(), action)
+        text_menu = self.submenus['text']
         for title, mark, icon in [
             (self.tr('Strikethrough'), 'strikethrough', 'strikethrough'),
-            (self.tr('Superscript'), 'superscript', None),
-            (self.tr('Subscript'), 'subscript', None),
+            (self.tr('Superscript'), 'superscript', 'superscript'),
+            (self.tr('Subscript'), 'subscript', 'subscript'),
         ]:
-            menus['F&ormat'].addAction(
+            text_menu.addAction(
                 self.action(title, lambda checked=False, m=mark: self.format_selection(m, True), icon=icon)
             )
-        menus['F&ormat'].addAction(self.action(self.tr('Font and paragraph…'), self.paragraph_format))
-        menus['F&ormat'].addAction(self.action(self.tr('Define named style…'), self.define_style))
-        menus['F&ormat'].addAction(
+        text_menu.addAction(
             self.action(self.tr('Text color…'), lambda: self.choose_color('color'), icon='text-color')
         )
-        menus['F&ormat'].addAction(
+        text_menu.addAction(
             self.action(self.tr('Highlight…'), lambda: self.choose_color('highlight'), icon='highlight')
         )
-        menus['F&ormat'].addAction(self.action(self.tr('Hyperlink…'), self.hyperlink, icon='hyperlink'))
-        menus['F&ormat'].addAction(
+        text_menu.addAction(self.action(self.tr('Hyperlink…'), self.hyperlink, icon='hyperlink'))
+        text_menu.addAction(
             self.action(self.tr('Clear text formatting'), self.clear_formatting, icon='clear-format')
         )
+        self.submenus['paragraph'].addAction(
+            self.action(self.tr('Font and paragraph…'), self.paragraph_format, icon='paragraph')
+        )
+        self.submenus['styles'].addAction(self.action(self.tr('Define named style…'), self.define_style))
         for alignment, title in [
             ('left', self.tr('Align left')),
             ('center', self.tr('Align center')),
             ('right', self.tr('Align right')),
             ('justify', self.tr('Justify')),
         ]:
-            menus['F&ormat'].addAction(
+            self.submenus['paragraph'].addAction(
                 self.action(
                     title,
                     lambda checked=False, a=alignment: self.attributes({'alignment': a}),
                     icon=f'align-{alignment}' if alignment != 'justify' else 'justify',
                 )
             )
-        menus['F&ormat'].addAction(
+        self.submenus['lists'].addAction(
             self.action(
                 self.tr('Bulleted list'),
                 lambda: self.set_list({'kind': 'bullet', 'level': 1}),
                 icon='bullet-list',
             )
         )
-        menus['F&ormat'].addAction(
+        self.submenus['lists'].addAction(
             self.action(
                 self.tr('Numbered list'),
                 lambda: self.set_list({'kind': 'ordered', 'level': 1}),
                 icon='numbered-list',
             )
         )
-        menus['F&ormat'].addAction(
+        self.submenus['lists'].addAction(
             self.action(
                 self.tr('Increase list level'), lambda: self.list_indent(1), 'Alt+Shift+Right', icon='indent'
             )
         )
-        menus['F&ormat'].addAction(
+        self.submenus['lists'].addAction(
             self.action(
                 self.tr('Decrease list level'), lambda: self.list_indent(-1), 'Alt+Shift+Left', icon='outdent'
             )
         )
-        menus['F&ormat'].addAction(
+        self.submenus['lists'].addAction(
             self.action(
                 self.tr('Restart list numbering'), lambda: self.set_list({'restart': True, 'start': 1})
             )
         )
-        menus['F&ormat'].addAction(
+        self.submenus['lists'].addAction(
             self.action(self.tr('Continue list numbering'), lambda: self.set_list({'restart': False}))
         )
-        menus['F&ormat'].addAction(self.action(self.tr('Remove list'), lambda: self.set_list({'kind': None})))
-        toolbar.addSeparator()
-        toolbar.addAction(
-            self.action(
+        self.submenus['lists'].addAction(
+            self.action(self.tr('Remove list'), lambda: self.set_list({'kind': None}))
+        )
+        for key, title, slot, shortcut, description, icon in (
+            (
+                'comment',
                 self.tr('Comment'),
                 self.add_comment,
                 'Ctrl+Alt+M',
-                description=self.tr('Add a comment to the selected text'),
-                icon='comment',
-            )
-        )
-        toolbar.addAction(
-            self.action(
-                self.tr('Check'),
-                self.run_checks,
-                'F7',
-                description=self.tr('Run document checks'),
-                icon='checks',
-            )
-        )
-        toolbar.addAction(
-            self.action(
+                self.tr('Add a comment to the selected text'),
+                'comment',
+            ),
+            ('check', self.tr('Check'), self.run_checks, 'F7', self.tr('Run document checks'), 'checks'),
+            (
+                'pages',
                 self.tr('Pages'),
                 self.toggle_pages,
                 'Ctrl+Alt+P',
-                description=self.tr('Switch between the writing view and the page preview'),
-                icon='pages',
-            )
-        )
-        for title, slot, icon in [
-            (self.tr('Table…'), self.insert_table, 'table'),
-            (self.tr('Image…'), self.insert_image, 'image'),
-            (self.tr('Page break'), self.insert_page_break, 'page-break'),
-            (self.tr('Section / columns…'), self.insert_section, 'columns'),
-            (self.tr('Table of contents'), lambda: self.insert_structure('toc'), 'contents'),
-            (self.tr('Footnote…'), self.insert_footnote, 'footnote'),
-            (self.tr('Bookmark…'), self.add_bookmark, 'bookmark'),
-            (self.tr('Cross reference…'), self.cross_reference, 'hyperlink'),
-            (self.tr('Watermark / layer…'), self.add_layer, 'layers'),
-            (self.tr('Source reference…'), self.add_reference, None),
-            (self.tr('Define template field…'), self.define_field, None),
-            (self.tr('Template fields…'), self.fill_fields, None),
-            (self.tr('Delete selected object'), self.delete_object, None),
+                self.tr('Switch between the writing view and the page preview'),
+                'pages',
+            ),
+        ):
+            self.ribbon_actions[key] = self.action(title, slot, shortcut, description=description, icon=icon)
+        insert_menu = menus['&Insert']
+        self.submenus['references'] = QMenu(self.tr('References'), self)
+        self.submenus['fields'] = QMenu(self.tr('Template fields'), self)
+        for title, slot, icon, menu in [
+            (self.tr('Table…'), self.insert_table, 'table', insert_menu),
+            (self.tr('Image…'), self.insert_image, 'image', insert_menu),
+            (self.tr('Page break'), self.insert_page_break, 'page-break', insert_menu),
+            (self.tr('Section / columns…'), self.insert_section, 'columns', insert_menu),
+            (self.tr('Table of contents'), lambda: self.insert_structure('toc'), 'contents', insert_menu),
+            (self.tr('Footnote…'), self.insert_footnote, 'footnote', insert_menu),
+            (self.tr('Bookmark…'), self.add_bookmark, 'bookmark', insert_menu),
+            (self.tr('Watermark / layer…'), self.add_layer, 'layers', insert_menu),
+            (self.tr('Cross reference…'), self.cross_reference, 'hyperlink', self.submenus['references']),
+            (self.tr('Source reference…'), self.add_reference, None, self.submenus['references']),
+            (self.tr('Define template field…'), self.define_field, None, self.submenus['fields']),
+            (self.tr('Template fields…'), self.fill_fields, None, self.submenus['fields']),
         ]:
-            menus['&Insert'].addAction(self.action(title, slot, icon=icon))
+            menu.addAction(self.action(title, slot, icon=icon))
+        insert_menu.addSeparator()
+        insert_menu.addMenu(self.submenus['references'])
+        insert_menu.addMenu(self.submenus['fields'])
+        insert_menu.addSeparator()
+        insert_menu.addAction(self.action(self.tr('Delete selected object'), self.delete_object))
+        table_menu = menus['&Table']
         for title, kind, icon in [
             (self.tr('Add row'), 'add_row', 'row-add'),
-            (self.tr('Remove row…'), 'remove_row', None),
             (self.tr('Add column'), 'add_column', 'column-add'),
-            (self.tr('Remove column…'), 'remove_column', None),
         ]:
-            menus['&Table'].addAction(
+            table_menu.addAction(
                 self.action(title, lambda checked=False, k=kind: self.table_operation(k), icon=icon)
             )
-        menus['&Table'].addAction(self.action(self.tr('Move row…'), lambda: self.reorder_table('row')))
-        menus['&Table'].addAction(self.action(self.tr('Move column…'), lambda: self.reorder_table('column')))
-        menus['&Table'].addAction(self.action(self.tr('Table properties…'), self.table_properties))
-        menus['&Table'].addAction(self.action(self.tr('Merge cells…'), self.merge_cells))
-        menus['&Table'].addAction(self.action(self.tr('Unmerge selected cell'), self.unmerge_cell))
-        menus['&Table'].addAction(self.action(self.tr('Import CSV as table…'), self.import_csv))
-        menus['&Table'].addAction(
-            self.action(self.tr('Update selected table from CSV…'), self.update_table_csv)
-        )
-        menus['&Table'].addAction(self.action(self.tr('Export selected table as CSV…'), self.export_csv))
-        menus['&Table'].addAction(self.action(self.tr('Delete selected table'), self.delete_table))
-        for title, slot, icon in [
-            (self.tr('Run document checks'), self.run_checks, 'checks'),
-            (self.tr('Checking and voice profiles…'), self.edit_profiles, None),
-            (self.tr('Review with a model…'), self.model_review, 'model-review'),
-            (self.tr('Add comment…'), self.add_comment, 'comment'),
-            (self.tr('Protect selected paragraph'), self.protect, 'protect'),
-            (self.tr('Remove selected protection…'), self.unprotect, None),
-            (self.tr('Move section…'), self.move_section, None),
-            (self.tr('Reply to selected comment…'), self.reply_comment, 'reply'),
-            (self.tr('Checkpoint…'), self.checkpoint, 'checkpoint'),
-            (self.tr('Create branch…'), self.branch, 'branch'),
-            (self.tr('Revision history…'), self.history, 'history'),
+        rows = table_menu.addMenu(self.tr('Rows and columns'))
+        for title, kind in [
+            (self.tr('Remove row…'), 'remove_row'),
+            (self.tr('Remove column…'), 'remove_column'),
         ]:
-            menus['&Review'].addAction(self.action(title, slot, icon=icon))
+            rows.addAction(self.action(title, lambda checked=False, k=kind: self.table_operation(k)))
+        rows.addAction(self.action(self.tr('Move row…'), lambda: self.reorder_table('row')))
+        rows.addAction(self.action(self.tr('Move column…'), lambda: self.reorder_table('column')))
+        cells = table_menu.addMenu(self.tr('Cells'))
+        cells.addAction(self.action(self.tr('Merge cells…'), self.merge_cells))
+        cells.addAction(self.action(self.tr('Unmerge selected cell'), self.unmerge_cell))
+        csv = table_menu.addMenu(self.tr('CSV'))
+        csv.addAction(self.action(self.tr('Import CSV as table…'), self.import_csv))
+        csv.addAction(self.action(self.tr('Update selected table from CSV…'), self.update_table_csv))
+        csv.addAction(self.action(self.tr('Export selected table as CSV…'), self.export_csv))
+        table_menu.addSeparator()
+        table_menu.addAction(self.action(self.tr('Table properties…'), self.table_properties))
+        table_menu.addAction(self.action(self.tr('Delete selected table'), self.delete_table))
+        review_menu = menus['&Review']
+        self.submenus['protection'] = QMenu(self.tr('Protection'), self)
+        self.submenus['versions'] = QMenu(self.tr('Versions and drafts'), self)
+        for title, slot, icon, menu in [
+            (self.tr('Run document checks'), self.run_checks, 'checks', review_menu),
+            (self.tr('Checking and voice profiles…'), self.edit_profiles, None, review_menu),
+            (self.tr('Review with a model…'), self.model_review, 'model-review', review_menu),
+            (self.tr('Add comment…'), self.add_comment, 'comment', review_menu),
+            (self.tr('Reply to selected comment…'), self.reply_comment, 'reply', review_menu),
+            (self.tr('Move section…'), self.move_section, None, review_menu),
+            (self.tr('Protect selected paragraph'), self.protect, 'protect', self.submenus['protection']),
+            (self.tr('Remove selected protection…'), self.unprotect, None, self.submenus['protection']),
+            (self.tr('Checkpoint…'), self.checkpoint, 'checkpoint', self.submenus['versions']),
+            (self.tr('Create branch…'), self.branch, 'branch', self.submenus['versions']),
+            (self.tr('Revision history…'), self.history, 'history', self.submenus['versions']),
+        ]:
+            menu.addAction(self.action(title, slot, icon=icon))
         self.track_action = self.action(
             self.tr('Track changes'), self.toggle_tracking, checkable=True, icon='track-changes'
         )
-        menus['&Review'].addAction(self.track_action)
+        review_menu.addAction(self.track_action)
+        review_menu.addSeparator()
+        review_menu.addMenu(self.submenus['protection'])
+        review_menu.addMenu(self.submenus['versions'])
         menus['&View'].addAction(
             self.action(self.tr('Writing / pages'), self.toggle_pages, 'Ctrl+Alt+L', icon='pages')
         )
@@ -495,82 +516,26 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
         outline_dock.setMinimumWidth(195)
         self.addDockWidget(Qt.LeftDockWidgetArea, outline_dock)
         self.inspector = QTabWidget()
+        self.inspector.setObjectName('inspectorTabs')
         self.inspector.setTabBar(InspectorTabBar(self.inspector))
-        self.review_list = QListWidget()
-        self.review_list.setSelectionMode(QListWidget.ExtendedSelection)
-        self.review_list.setWordWrap(True)
-        # Items wrap to the panel, so they never need sideways scrolling, whatever the face's widths.
-        self.review_list.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-        self.review_list.setAccessibleName(self.tr('Comments, proposals, and findings'))
-        self.review_list.itemActivated.connect(self.review_item)
-        review = QWidget()
-        rv = QVBoxLayout(review)
-        rv.setContentsMargins(8, 12, 8, 12)
-        rv.setSpacing(8)
-        self.review_stack = QStackedWidget()
-        self.review_stack.addWidget(self.review_list)
-        self.review_empty = EmptyPanel(
-            self.tr('No open review items'),
-            self.tr('Comments, suggested edits, and check results appear here.'),
-            graphic='ui/review-empty.png',
-            action=(self.tr('Run document checks'), self.run_checks),
-            busy=('checking-page', 94, self.motion),
-        )
-        self.review_stack.addWidget(self.review_empty)
-        rv.addWidget(self.review_stack)
-        self.review_buttons = []
-        for label, slot in [
-            (self.tr('Open selected item'), self.review_item),
-            (self.tr('Reply to comment…'), self.reply_comment),
-            (self.tr('Resolve / accept…'), self.accept_item),
-            (self.tr('Reject proposal'), self.reject_item),
-        ]:
-            btn = QPushButton(label)
-            if slot == self.accept_item:
-                btn.setProperty('primary', True)
-            btn.clicked.connect(slot)
-            rv.addWidget(btn)
-            self.review_buttons.append(btn)
-        self.review_list.currentRowChanged.connect(self._sync_review_actions)
-        self.inspector.addTab(review, self.tr('Review'))
-        self.layer_list = QListWidget()
-        self.layer_list.setSelectionMode(QListWidget.ExtendedSelection)
-        self.layer_list.setAccessibleName(self.tr('Document layers'))
-        layers = QWidget()
-        ll = QVBoxLayout(layers)
-        ll.setContentsMargins(8, 12, 8, 12)
-        ll.setSpacing(8)
-        self.layer_stack = QStackedWidget()
-        self.layer_stack.addWidget(self.layer_list)
-        self.layer_stack.addWidget(
-            EmptyPanel(
-                self.tr('No document layers'),
-                self.tr('Add a watermark or a layer from the Insert menu.'),
-                graphic=themed_art('layers-empty'),
-            )
-        )
-        ll.addWidget(self.layer_stack)
-        for label, slot in [
-            (self.tr('Add layer…'), self.add_layer),
-            (self.tr('Show / hide'), self.toggle_layer),
-            (self.tr('Lock / unlock'), self.lock_layer),
-        ]:
-            button = QPushButton(label)
-            button.clicked.connect(slot)
-            ll.addWidget(button)
-        self.inspector.addTab(layers, self.tr('Layers'))
+        # The assistant owns the spelling controller and the provider controls that other tabs display.
         self.ai_panel = AIPanel(self)
-        self.inspector.addTab(self.ai_panel, self.tr('AI'))
-        from .gui_review import ReviewChecks
+        self.inspector.addTab(self.build_proposed_changes(), self.tr('Proposed changes'))
+        from .gui_configure import ConfigurePanel
+        from .gui_review import ChecksPanel
 
-        self.review_checks = ReviewChecks(self)
-        rv.insertWidget(0, self.review_checks)
+        self.checks_panel = ChecksPanel(self)
+        self.inspector.addTab(self.checks_panel, self.tr('Checks'))
+        self.inspector.addTab(self.ai_panel, self.tr('AI'))
+        self.configure_panel = ConfigurePanel(self)
+        self.inspector.addTab(self.configure_panel, self.tr('Configure'))
+        self.layout_panel = self.build_layout_panel()
         inspector_dock = QDockWidget(self.tr('Inspector'), self)
         inspector_dock.setWidget(self.inspector)
-        inspector_dock.setMinimumWidth(260)
+        inspector_dock.setMinimumWidth(300)
         self.addDockWidget(Qt.RightDockWidgetArea, inspector_dock)
         self.build_workspace_sidebars(outline_dock, inspector_dock)
-        self.resizeDocks([outline_dock, inspector_dock], [230, 300], Qt.Horizontal)
+        self.resizeDocks([outline_dock, inspector_dock], [220, 340], Qt.Horizontal)
         menus['&View'].addAction(outline_dock.toggleViewAction())
         menus['&View'].addAction(inspector_dock.toggleViewAction())
         for dock in (outline_dock, inspector_dock):
@@ -598,11 +563,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             ('Reusable settings…', self.reusable_settings),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
-        for label, slot in (
-            ('Apply character style…', self.character_style),
-            ('Styles and overrides…', self.formatting_inspector),
-        ):
-            menus['F&ormat'].addAction(self.action(self.tr(label), slot))
+        self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
+        self.submenus['styles'].addAction(
+            self.action(self.tr('Styles and overrides…'), self.formatting_inspector)
+        )
         menus['&View'].addAction(self.action(self.tr('Layer inspector…'), self.layer_inspector))
         for label, slot in (
             ('Edit selected layer…', self.edit_layer_properties),
@@ -611,19 +575,24 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
             ('Move layer up', lambda: self.reorder_selected_layer(-1)),
             ('Move layer down', lambda: self.reorder_selected_layer(1)),
         ):
-            menus['F&ormat'].addAction(self.action(self.tr(label), slot))
-        menus['&Review'].addAction(self.action(self.tr('Switch draft branch…'), self.switch_draft))
-        menus['&Review'].addAction(self.action(self.tr('Compare and merge draft…'), self.merge_draft))
-        menus['&File'].addAction(self.action(self.tr('Export with saved profile…'), self.export_profiles))
-        menus['&File'].addAction(self.action(self.tr('Edit export policies…'), self.edit_export_policies))
+            self.submenus['layers'].addAction(self.action(self.tr(label), slot))
+        for label, slot in (
+            ('Switch draft branch…', self.switch_draft),
+            ('Compare and merge draft…', self.merge_draft),
+            ('Resolve selected merge conflicts…', self.resolve_merge_conflicts),
+        ):
+            self.submenus['versions'].addAction(self.action(self.tr(label), slot))
+        self.export_options_menu.addAction(
+            self.action(self.tr('Export with saved profile…'), self.export_profiles)
+        )
+        self.export_options_menu.addAction(
+            self.action(self.tr('Edit export policies…'), self.edit_export_policies)
+        )
         menus['F&ormat'].addAction(self.action(self.tr('Page masters…'), self.edit_page_masters))
         menus['&Review'].addAction(self.action(self.tr('Section profiles…'), self.edit_section_profiles))
-        menus['&Review'].addAction(
-            self.action(self.tr('Resolve selected merge conflicts…'), self.resolve_merge_conflicts)
-        )
         menus['&Help'].addAction(self.action(self.tr('Download updates…'), self.open_releases))
-        self.build_file_views(toolbar, menus, workspace_layout)
-        self.build_format_ribbon(toolbar, menus)
+        self.build_file_views(menus, workspace_layout)
+        self.build_ribbon(menus)
         theme_menu = menus['&View'].addMenu(self.tr('Theme'))
         for key, label in (('system', 'System'), ('light', 'Light'), ('dark', 'Dark')):
             theme_menu.addAction(self.action(self.tr(label), lambda checked=False, t=key: self.set_theme(t)))
@@ -2589,6 +2558,9 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
 
         ProfileDialog(self).exec()
 
+    def run_all_checks(self):
+        self.checks_panel.run_all()
+
     def run_checks(self, suites=None):
         from .checks import run_checks
 
@@ -3194,26 +3166,43 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, LibraryPanels, QMai
         update()
         dialog.exec()
 
-    def export(self):
+    def export(self, fmt=None):
+        """Export a copy; ``fmt`` (a format id) preselects that format in the save dialog."""
         from .exchange import export_document
         from .publication import export_clean
 
+        if isinstance(fmt, bool):  # QAction.triggered supplies its checked state.
+            fmt = None
         if not self.flush_edits():
             return
-        path, _ = QFileDialog.getSaveFileName(
-            self,
-            self.tr('Export publication copy'),
-            str(
+        filters = [
+            ('pdf', 'PDF (*.pdf)'),
+            ('docx', 'Word (*.docx)'),
+            ('odt', 'OpenDocument (*.odt)'),
+            ('md', 'Markdown (*.md)'),
+            ('html', 'HTML (*.html)'),
+            ('rtf', 'Rich text (*.rtf)'),
+            ('txt', 'Plain text (*.txt)'),
+        ]
+        if fmt:
+            suggestion = str(Path(self.export_suggestion()).with_suffix('.' + fmt))
+        elif getattr(self, '_selected_export_profile', None) in self.doc['profiles'] and self.doc['profiles'][
+            self._selected_export_profile
+        ].get('format'):
+            suggestion = str(
                 Path(self.export_suggestion()).with_suffix(
                     '.' + self.doc['profiles'][self._selected_export_profile]['format']
                 )
             )
-            if getattr(self, '_selected_export_profile', None) in self.doc['profiles']
-            and self.doc['profiles'][self._selected_export_profile].get('format')
-            else self.export_suggestion(),
-            self.tr(
-                'PDF (*.pdf);;Word (*.docx);;OpenDocument (*.odt);;Markdown (*.md);;HTML (*.html);;Rich text (*.rtf);;Plain text (*.txt)'
-            ),
+        else:
+            suggestion = self.export_suggestion()
+        chosen = next((self.tr(label) for ident, label in filters if ident == fmt), '')
+        path, _ = QFileDialog.getSaveFileName(
+            self,
+            self.tr('Export publication copy'),
+            suggestion,
+            ';;'.join(self.tr(label) for _, label in filters),
+            chosen,
         )
         if not path:
             return

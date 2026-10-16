@@ -131,10 +131,21 @@ def stylesheet(colors=None, theme='light'):
             background-position: bottom left; background-origin: border; }}
         QToolBar::separator {{ width: 7px; margin: 6px 6px; background-image: {rule_url('rule-v', theme)};
             background-repeat: no-repeat; background-position: center; }}
+        QToolBar#writingRibbon, QToolBar#formattingRibbon {{ background: transparent; background-image: none;
+            padding: 0px; spacing: 2px; }}
+        QToolBar#writingRibbon::separator, QToolBar#formattingRibbon::separator {{ margin: 4px 4px; }}
+        QToolBar#writingRibbon QToolButton, QToolBar#formattingRibbon QToolButton {{ padding: 5px 7px; }}
+        QWidget#ribbonRows {{ background: transparent; }}
+        QWidget#sidebarTitle {{ background: {c['surface']}; background-image: {rule_url('rule-h', theme)};
+            background-repeat: repeat-x; background-position: bottom left; }}
+        QComboBox#sidebarSelector {{ font-family: {display}; font-size: 16px; border-color: transparent;
+            background: transparent; padding: 2px 6px; }}
+        QComboBox#sidebarSelector:hover {{ border-color: {c['rule']}; }}
+        QToolButton#sidebarTitleButton {{ border: 0; padding: 4px; background: transparent; }}
         QStatusBar {{ background-image: {rule_url('rule-h', theme)}; background-repeat: repeat-x;
             background-position: top left; background-origin: border; }}
         QMenu {{ background: {c['surface']}; color: {c['ink']}; border: 1px solid {c['rule']};
-            icon-size: 20px; }}
+            icon-size: 20px; menu-scrollable: 1; }}
         QMenu::item {{ padding: 8px 24px 8px 12px; }}
         QMenu::separator {{ height: 6px; margin: 4px 10px; background-image: {rule_url('rule-h', theme)};
             background-repeat: repeat-x; background-position: center left; }}
@@ -157,12 +168,14 @@ def stylesheet(colors=None, theme='light'):
             background-repeat: repeat-x; background-position: bottom left; background-origin: border; }}
         QTreeWidget, QListWidget {{ border: 0; background: {c['surface']}; color: {c['ink']}; padding: 8px; }}
         QTreeWidget::item, QListWidget::item {{ padding: 8px; }}
+        QListWidget#proposedChanges::item {{ padding: 8px 2px; }}
         QTreeWidget::item:selected, QListWidget::item:selected {{ background: {c['greenText']}; color: {selected_text}; }}
         QTabWidget::pane {{ border: 1px solid {c['rule']}; border-radius: {panel}px; background: {c['surface']}; }}
         QTabBar::tab {{ padding: 8px 16px 2px 16px; color: {c['muted']}; background: {c['paper']};
             border-bottom: 8px solid transparent; }}
         QTabBar::tab:selected {{ color: {c['greenText']}; background: {c['surface']};
             border-bottom: 8px solid transparent; }}
+        QTabWidget#inspectorTabs QTabBar::tab {{ padding: 8px 9px 2px 9px; }}
         QTextEdit {{ background: {c['surface']}; color: {c['ink']};
             border: 2px solid {c['control']}; border-radius: 8px; padding: 24px;
             selection-background-color: {c['greenText']}; selection-color: {selected_text}; }}
@@ -182,6 +195,7 @@ def stylesheet(colors=None, theme='light'):
         QWidget#emptyPanel {{ background: {c['surface']}; }}
         QLabel#emptyHeading {{ font-family: {display}; font-size: 18px; color: {c['ink']}; }}
         QLabel#emptyDescription {{ font-family: {annotation}; color: {c['ink']}; font-size: 16px; }}
+        QLabel#checkDescription {{ color: {c['muted']}; font-size: 12px; }}
         QLabel#statusCounter {{ font-family: {counter}; color: {c['ink']}; font-size: 13px; }}
     """
 
@@ -189,12 +203,17 @@ def stylesheet(colors=None, theme='light'):
 class BrandGraphic(QWidget):
     """Aspect-preserving, high-DPI drawing of approved exports, without SVG Tiny losses."""
 
-    def __init__(self, filename, width, parent=None, clear_space=0):
+    def __init__(self, filename, width, parent=None, clear_space=0, height=None):
+        """Size by ``width``, or pass ``height`` (clear space included) to fit the art to a fixed height."""
         super().__init__(parent)
         self.pixmap = QPixmap(str(BRAND_ROOT / filename))
         if self.pixmap.isNull():
             raise RuntimeError(f'Missing brand graphic: {filename}')
-        height = round(width * self.pixmap.height() / self.pixmap.width())
+        if height is not None:
+            height -= clear_space * 2
+            width = round(height * self.pixmap.width() / self.pixmap.height())
+        else:
+            height = round(width * self.pixmap.height() / self.pixmap.width())
         self.art_rect = QRectF(clear_space, clear_space, width, height)
         self.setFixedSize(width + clear_space * 2, height + clear_space * 2)
         self.setFocusPolicy(Qt.NoFocus)
