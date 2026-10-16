@@ -63,10 +63,12 @@ DROPDOWNS = {
     ),
     'versions': (
         'Checkpoint…',
-        'Create branch…',
+        'Save draft as…',
+        'Drafts…',
+        'Compare drafts…',
+        'Switch draft…',
+        'Bring changes from draft…',
         'Revision history…',
-        'Switch draft branch…',
-        'Compare and merge draft…',
     ),
 }
 CAPABILITY_OVERRIDES = {

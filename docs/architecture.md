@@ -28,7 +28,9 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `grounding` | Grounding records from native citations (Anthropic custom-content documents; Gemini and Cohere adapters) and `[[cite:ID]]` tokens; the verification cascade (stage 1 quote and fuzzy; entailment and judge plug in later); the writer's citation audit and re-anchoring of changed sources; the record a citation chip opens |
 | `search_query`, `ranking`, `vector_store` | Shared search syntax compiled to safe FTS5 expressions, with RapidFuzz suggestions; `Hit`, reciprocal-rank fusion, de-duplication, MMR and the reranker interface; vector storage behind one interface (float32 BLOBs in the index cache today) |
 | `citations`, `citation_render` | Source records, CSL-JSON/BibTeX/RIS exchange, citation marks and APA/MLA/Chicago rendering |
-| `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report and the `project_*` canonical operations |
+| `project` | Manuscript binder inside one `.byax`: binder items bound to heading IDs, queries (tree, word counts, compile inclusion, item to block map), consistency report, the `project_*` canonical operations, interactive move/drop planners and the opt-in synopsis proposal |
+| `goals`, `drafts` | Writing goals, sessions and streaks (local preferences keyed by document identity, never in the document) and named drafts built on branches with scene-level comparison |
+| `gui_project`, `gui_goals`, `gui_drafts` | Binder panel (outline and corkboard, drag and keyboard reordering, synopsis editing), writing-goals button and dialog, draft save, compare and bring-changes dialogs |
 | `profiles`, `statistics`, `table_io`, `text_merge`, `proof`, `fonts`, `formats`, `transport_policy` | Section profiles and reusable settings; writing statistics; CSV tables; grapheme-safe paragraph merging; contact sheets and overlays; font identity and embedding; file-view projections; outbound transmission policy |
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `grammar`, `language_packs`, `gui_languages` | Offline grammar tiers behind one engine interface: data-driven built-in rules (`resources/grammar`) and an adapter for a local LanguageTool server (loopback only, explicit pinned download, UTF-16 to scalar offset mapping); versioned, checksummed language packs for spelling dictionaries, grammar rules, word lists and interface strings (installed under the user data folder, verified before use, built-in English packs), the translation catalogue and the `QTranslator` plumbing; the Languages dialog and the Checks tab tier status |
@@ -56,7 +58,7 @@ Packages declare `format_version` (package layout, currently 1) and `schema_vers
 | Transition | Change |
 | --- | --- |
 | 1 → 2 | Adds the required `dependencies` object. Image blocks whose `source` is an external URI (and Markdown `external_images` entries) become explicit linked dependency records (`status: unresolved`) referenced by `attrs.link`; the original `source` value is kept. |
-| 2 → 3 | Adds the optional top-level `project` binder (absent until created; a version 2 document that already uses `project` for something else is rejected) and the optional citation-mark `anchor` object (context engine 6.5): `{quote, prefix, suffix, position: {start, end}, content_hash?, state?}`, the source-side selectors for re-anchoring (`prefix`/`suffix` up to 32 characters of source text, `position` in the cited chunk, `state` `anchored` or `unanchored`). The mark's own `prefix`/`suffix` keep their meaning, rendering affixes such as `see `, and are only checked to be text (a non-text affix is rejected rather than rewritten). No data changes; a version 2 mark that already uses `anchor` for something else is rejected. The report counts marks with an anchor and marks with affixes. |
+| 2 → 3 | Adds the optional top-level `project` binder (absent until created; a version 2 document that already uses `project` for something else is rejected), the optional `history.drafts` records of named drafts (draft name to note, save time, revision and words; absent until a draft is saved, so nothing is rewritten) and the optional citation-mark `anchor` object (context engine 6.5): `{quote, prefix, suffix, position: {start, end}, content_hash?, state?}`, the source-side selectors for re-anchoring (`prefix`/`suffix` up to 32 characters of source text, `position` in the cited chunk, `state` `anchored` or `unanchored`). The mark's own `prefix`/`suffix` keep their meaning, rendering affixes such as `see `, and are only checked to be text (a non-text affix is rejected rather than rewritten). No data changes; a version 2 mark that already uses `anchor` for something else is rejected. The report counts marks with an anchor and marks with affixes. |
 
 Policy:
 
@@ -93,6 +95,43 @@ the removed heading blocks the merge. Headings removed or demoted by other edits
 rebound (`project_set_meta` with `heading`) or removed explicitly, never dropped. Exports write the
 binder as headings and report kinds, statuses, targets and synopses as located `binder_metadata`
 losses; clean publication drops the binder with the other metadata.
+
+### Binder views, goals and drafts
+
+The Binder panel (`gui_project`) is a view over this structure, not a second model: it rebuilds from
+`project.items` after every revision and sends every change through the window's `commit`, so a
+reorder is one `engine.apply` envelope (one revision, one undo step). `project.plan_step` (keyboard:
+up, down, outdent, indent) and `project.plan_drop` (drag: before, after, into) turn an interaction into
+that operation list: one `project_move` plus `set_attributes` (and `apply_style` when the heading's style
+tracks its level) so heading levels follow the new nesting, refused when a level would leave 1 to 6 or a
+section would land inside itself. Dragging and keyboard use the same planners, so neither can do what the
+other cannot. The editor document is updated in place for binder-only edits: `project` is not a layout
+input (`layout._render_inputs`), so a status or synopsis change does not rebuild the text.
+
+*Goals* (`goals`) split by who owns the fact. Targets about the manuscript (document and item) are binder
+fields (`project_set_target`) and travel with the file. The daily and session goals and the session
+records are local preferences in `goals.json` under the user config directory, keyed by document
+identity and replaced atomically; they never enter the document, its revisions or its history. A session is
+the word count at open and now (authored counter, `statistics.counts`; `--format` uses the publication
+projection); `written` is the non-negative growth, days add their sessions (bounded to 100 sessions and
+1,000 days per document), and streaks are derived from the day totals. `status` and `history` are read-only
+over every transport; `set-daily`/`set-session` are local only (`transport_policy.check_provider_admin`,
+and REST gives the `goals` command the service-owned config folder).
+
+*Named drafts* (`drafts`) are branches with a name and a note. `save_draft` records the current revision
+as a branch head and fork point (`history.branches`, `history.forks`) and keeps the working branch;
+`history.drafts[name]` holds the note, time and word count. Retention is the existing branch-head
+retention, so history compaction keeps drafts. `compare_drafts` reconstructs both states
+(`engine._revision`), matches binder items by identity and compares each item's own blocks, using
+`compare.compare` on those blocks for the edit counts and summaries of a changed item and
+`compare._moved` for reordering. `bring_operation` is `propose_merge`, so bringing changes is a
+reviewable proposal with the usual conflict handling.
+
+*Synopsis drafting* (`project.draft_synopsis`) is the only model-assisted piece: the chosen provider
+alias receives the item's own text (bounded to 12,000 characters, head and tail when longer) as untrusted
+context with a fixed instruction, through `ProviderRegistry.chat` in chat mode, so remote authorization and
+payload preview are unchanged. The reply becomes a `propose` payload containing one `project_set_meta`
+edit; the synopsis exists only after the proposal is accepted.
 
 ## Review anchors, proposals and branches
 

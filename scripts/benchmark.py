@@ -222,6 +222,11 @@ def main():
         action='store_true',
         help='Also measure the 100,000-word manuscript project: open, reorder a chapter, save.',
     )
+    parser.add_argument(
+        '--project-only',
+        action='store_true',
+        help='With --project, skip the 100-page and 500-page fixtures and measure only the manuscript project.',
+    )
     parser.add_argument('--samples', type=int, default=20)
     parser.add_argument('--no-gui', action='store_true', help='Skip GUI startup/latency/idle metrics.')
     parser.add_argument('--startup-samples', type=int, default=5)
@@ -275,7 +280,7 @@ def main():
         ],
         'fixtures': {},
     }
-    for name in ('mixed_100', 'long_500'):
+    for name in () if args.project and args.project_only else ('mixed_100', 'long_500'):
         doc = make_fixture(name)
         layout = build_document(doc)
         entry = {
@@ -308,7 +313,7 @@ def main():
             'inspection_500ms': entry['metrics']['inspection']['p95_ms'] <= 500,
         }
         report['fixtures'][name] = entry
-    if not args.no_gui:
+    if not args.no_gui and not (args.project and args.project_only):
         for name in ('mixed_100', 'long_500'):
             gui = gui_metrics(make_fixture(name), args)
             entry = report['fixtures'][name]
@@ -336,6 +341,11 @@ def main():
                     'structural_500ms': entry['metrics']['structural_edit_to_paint']['p95_ms'] <= 500,
                 }
             )
+            from benchmark_project import binder_gui_metrics
+
+            binder = binder_gui_metrics(make_fixture('project_100k'), max(3, args.samples // 2), measure)
+            entry['binder'] = binder
+            entry['target_comparison'].update(binder['target_comparison'])
     if args.scaling:
         from benchmark_scaling import scaling_metrics
 

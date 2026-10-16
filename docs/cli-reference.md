@@ -94,6 +94,8 @@ command's flags.
 | `sample` | Copy the bundled sample project (`--out` a `.byax` path or a folder; default: your Documents/ByAuthorX folder) and never edit the bundled file. Over MCP and REST `--out` is required |
 | `grammar` | Grammar tiers: built-in rules and the optional local LanguageTool server (status, rules, check, setup) |
 | `languages` | List, verify, install and remove language packs; report interface translation coverage |
+| `goals` | Show progress against document, item, daily and session goals; set local goals |
+| `drafts` | List, save, switch, compare and bring changes from named drafts |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -194,11 +196,81 @@ document target. `set-meta` input keys: `kind`, `status`, `synopsis`, `target_wo
 one `project_*` canonical operation, also usable in `apply` envelopes
 (`byax schema --topic operations`).
 
+`--action draft-synopsis --target ITEM --alias NAME` is the opt-in model route: it asks the provider
+alias you chose for a three-sentence synopsis of the item's own text and registers the answer as a
+**pending proposal** (a `project_set_meta` edit), never as the synopsis itself. The scene text goes to the
+provider as untrusted context, not as an instruction. A remote provider needs `--allow-remote` (or a saved
+provider policy that allows it); `--dry-run` prints the exact payload and the locality of the provider
+without sending anything. Accept with `byax review --action accept --target PROPOSAL`. `--config-dir`
+selects the provider configuration like `providers`; REST and MCP use the service's own.
+
 EPUB is an export and an import format. `byax export draft.byax --out draft.epub --json` writes a reflowable
 EPUB 3 and returns the located-loss report plus an `epub` section (identifier, chapters, navigation, fonts,
 accessibility metadata). Chapter splits, extra CSS, the cover and other options come from the `epub` section of
 a saved export profile (`--profile NAME`); see the [user guide](user-guide.md#exporting-an-epub). `--dry-run`
 returns the same losses without writing. `byax import book.epub --out book.byax` and `convert` read EPUB like HTML.
+
+## Writing goals
+
+`byax goals PATH --action …` reports progress and keeps two local preferences. Flags: `--action`
+(`status` by default, `history`, `set-daily`, `set-session`), `--words`, `--clear`, `--format`,
+`--limit`, `--config-dir`.
+
+```bash
+byax goals novel.byax --json                              # status
+byax goals novel.byax --format epub --json                # count publication words instead of authored words
+byax goals novel.byax --action history --limit 14 --json  # recent days, sessions, streak
+byax goals novel.byax --action set-daily --words 500
+byax goals novel.byax --action set-session --clear
+```
+
+- `status` returns `goals.document` (words, target, remaining, progress), `goals.items` (every binder item
+  that has a target, with words toward it), `goals.daily` (goal, written today, met), `goals.session`
+  (the goal) and `goals.streak` (`current`, `best` and the `basis`: `goal` or `any_writing`). Words are
+  the shared authored counter (`byax statistics`); `--format` uses the publication projection.
+- The **document and item targets** live in the document's binder; set them with
+  `project --action set-target` (with or without `--target`).
+- The **daily goal, session goal and session records** are local preferences in the per-user
+  configuration folder (`goals.json`, keyed by document identity). They are not part of the document:
+  recording a session never creates a revision or touches history. The desktop records sessions;
+  `history` reads them.
+- A session's `written` is its growth in words, never negative. A day adds its sessions. A streak counts
+  consecutive days that met the daily goal (any writing without one); today does not break a streak
+  until the day is over.
+- `status` and `history` are read-only and available over MCP and REST. `set-daily` and `set-session`
+  write the preferences of the person at this computer, so MCP and REST refuse them with
+  `unsupported_feature`, like `providers --action configure`.
+
+## Named drafts
+
+`byax drafts PATH --action …` is the writer-facing view of branches and history. Flags: `--action`
+(`list` by default, `save`, `switch`, `compare`, `bring`), `--name`, `--note`, `--against`, `--switch`,
+`--expect-revision`, `--request-id`, `--dry-run`.
+
+```bash
+byax drafts novel.byax --json
+byax drafts novel.byax --action save --name "First draft" --note "Before the beta read"
+byax drafts novel.byax --action compare --name "First draft" --json          # First draft -> current draft
+byax drafts novel.byax --action compare --name "First draft" --against "After beta" --json
+byax drafts novel.byax --action switch --name "First draft"
+byax drafts novel.byax --action bring --name "After beta" --note "Try the new ending"
+```
+
+- `list` returns each draft's `name`, `current`, `revision`, `note`, `saved_at` and `words`; the working
+  draft is first.
+- `save` records the current revision under a new name (1 to 80 characters on one line, unique) with an
+  optional note (up to 2,000 characters). The working draft stays current unless `--switch` is given.
+  The note and save time are stored in `history.drafts`; the head is an ordinary branch head, so
+  `history`, `restore` and `switch_branch` see it, and history compaction keeps it.
+- `switch` makes a saved draft the working document without creating a revision.
+- `compare` returns `comparison.items`: one row per binder item with `status` (`unchanged`, `changed`,
+  `added`, `removed`), `words_before`, `words_after`, `word_delta` and, for changed items, the changed
+  `fields`, whether the item `moved`, and `edits` and `summary` from the semantic comparison of its
+  blocks. Text outside every binder item is reported as one extra row. Without a binder
+  `comparison.binder` is false and `comparison.document` carries the whole-document summary.
+  `--name` is the starting draft and `--against` the draft compared to it (default: the working draft).
+- `bring` is `propose_merge`: it registers a reviewable proposal with the changes saved in `--name`
+  (using the common ancestor, with conflicts listed). Nothing changes until `byax review --action accept`.
 
 ## Sync-folder safety
 

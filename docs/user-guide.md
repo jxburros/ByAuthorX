@@ -269,7 +269,7 @@ you were on, so it cannot silently overwrite later edits.
 
 Comments, bookmarks and tracked changes follow the text as it moves. A passage whose text is
 fully deleted becomes *unresolved*; a partial overlap becomes *needs review*. Create named
-checkpoints and branches from History, and restore any retained revision. Restoring cannot weaken
+checkpoints and drafts from History, and restore any retained revision. Restoring cannot weaken
 protections or tracking you have set.
 
 ## Manuscript projects (binder)
@@ -292,8 +292,81 @@ Notes are left out of the compile list by default (`--action compile`). Comments
 tracked changes travel with the text through every binder change. If you delete a heading in the
 editor, its item is kept and reported as orphaned (`--action reconcile`) until you rebind or remove
 it. Word, Markdown and other exports keep the binder order as headings and list statuses and targets
-as losses. The corkboard and outline views come later; every binder action already works from the
-CLI, MCP and REST.
+as losses. Every binder action works from the CLI, MCP and REST as well as the Binder panel below.
+
+### The Binder panel: outline and corkboard
+
+Choose **Binder** in either sidebar's panel selector (or **Binder → Show Binder**, Ctrl+Alt+B). A
+document without a binder shows **Create binder**, which binds the headings and leaves the text alone.
+
+- **Outline** lists parts, chapters and scenes as an indented tree. Each row shows the title, the kind,
+  the status and the words, with the target and a thin progress line when the item has one.
+- **Corkboard** shows cards with the title, status, synopsis, words and target. It shows every scene
+  and note, or the items inside one chapter or part (the scope box above the cards, or **Open in
+  corkboard**).
+- Clicking an item or pressing Enter shows its heading in the editor. Selecting with the arrow keys
+  does not move the editor.
+- **Reordering.** Drag a row or a card before or after another (on an outline row, the middle of the
+  row makes it a child). Everything you can drag has a keyboard route: **Alt+Up** and **Alt+Down**
+  move the selected item earlier or later among its siblings (at the end of a chapter the item
+  crosses into the next or previous one), **Alt+Left** outdents it so it follows its parent, and
+  **Alt+Right** indents it into the item before it. The same commands are in the **Binder** menu,
+  the panel's **Binder actions** button and the context menu (the Menu key or a right click). Each
+  move is one revision you can undo, and comments, bookmarks and tracked changes move with the text.
+  Heading levels follow the new position, so an indented scene becomes one level deeper (with Track
+  changes on, the level changes are recorded as formatting changes like any other heading edit); a move
+  that would pass level six, or put a section inside itself, is refused and explained in the status bar.
+- **Synopsis** is text you write, or nothing. Edit it in the field under the views (Ctrl+Enter or
+  leaving the field saves, Escape restores) or in place on a card (F2). **Draft a synopsis…** is
+  optional: it needs a text provider you configured, shows what will be sent when the provider is
+  remote, and puts the answer in **Proposed changes** as a proposal. Nothing is written until you
+  accept it.
+- **Split at editor cursor…** starts a new item where the editor cursor is (inside the item's own text,
+  after its heading); **Merge with next item** joins an item with the one that follows it and asks
+  first. **Status**, **Word target…**, **Add scene after…** and **Add chapter after…** are in the same
+  menu.
+
+A binder item whose heading was deleted in the editor is not shown but never deleted; the panel says so.
+
+## Writing goals
+
+**Tools → Writing goals…** (or the progress button at the right of the status bar) sets and shows:
+
+- a **document target** and **item targets**, saved in the binder (set an item's in the Binder with
+  **Word target…**);
+- a **daily goal** and a **session goal**, and your **streak** of days that met the daily goal (days with
+  any writing when there is no goal).
+
+Progress counts the words you add: a session's count is its growth in words since you opened the
+document, so deleting text neither counts against you nor makes up for words you wrote earlier. A day's
+total adds its sessions, and a session belongs to the day it started. The words are the same authored
+words the status bar and **Document statistics** report.
+
+The daily and session goals and your session records are kept **on this computer, outside the
+document**, in the per-user configuration folder, keyed by the document's identity. They are never saved
+in the `.byax` file, never create a revision and never appear in history, so sharing or syncing a
+manuscript does not share your writing habits. `byax goals` reads the same information (see the
+[CLI reference](cli-reference.md#writing-goals)).
+
+## Named drafts
+
+A draft is a saved state of the whole manuscript with a name and a note. Drafts are built on the
+document's existing branches and history, so they cost no extra files.
+
+- **Review → Versions and drafts → Save draft as…** saves the document as it is now. You keep writing in
+  the current draft; tick **Switch to the new draft now** to continue in the saved one instead.
+- **Drafts…** lists every draft with its note, save time and word count, and can switch to one.
+  Switching replaces the text you are editing with that draft's text and clears undo for the previous
+  one; your other draft stays exactly as it was.
+- **Compare drafts…** shows, scene by scene, whether each binder item is unchanged, changed, added or
+  removed between two drafts, with the words before and after and the change. Select a row for the
+  wording edits, field changes (status, synopsis…) and moves; Enter shows the scene in the editor. A
+  document without a binder compares as a whole.
+- **Bring changes from draft…** proposes the changes saved in another draft for the current one. It
+  adds a proposal to **Proposed changes**; scenes that changed in both drafts are listed as conflicts
+  to resolve, and nothing changes until you accept.
+
+The command line has the same operations (`byax drafts`, see the [CLI reference](cli-reference.md#named-drafts)).
 
 ## Libraries and citations
 
@@ -311,7 +384,7 @@ checks every citation you made against its source on this computer, without AI. 
 
 ## Keyboard and accessibility
 
-Controls are native, with accessible names. Shortcuts written Ctrl+… in this guide are Cmd+… on macOS
+Controls are native, with accessible names; dragging in the Binder always has Alt+arrow and menu equivalents. Shortcuts written Ctrl+… in this guide are Cmd+… on macOS
 (Qt translates them); the application, preferences and quit entries sit in the macOS application menu.
 Motion respects **View → Reduce motion**, system
 preferences and `BYAX_REDUCED_MOTION=1`. No screen-reader or WCAG certification is claimed; see

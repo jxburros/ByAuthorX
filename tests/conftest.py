@@ -25,6 +25,19 @@ def isolated_language_data(tmp_path_factory, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def isolated_user_config(tmp_path_factory, monkeypatch):
+    """Writing-goal records and other local preferences must never land in the developer's real config."""
+    root = tmp_path_factory.mktemp('user-config')
+    monkeypatch.setenv('XDG_CONFIG_HOME', str(root))
+    monkeypatch.setenv('APPDATA', str(root))
+    from PySide6.QtCore import QSettings
+
+    # Qt reads the settings location once, so point it at the same folder for every format.
+    for format_ in (QSettings.Format.NativeFormat, QSettings.Format.IniFormat):
+        QSettings.setPath(format_, QSettings.Scope.UserScope, str(root))
+
+
+@pytest.fixture(autouse=True)
 def release_test_windows():
     from PySide6.QtCore import QCoreApplication, QEvent
     from PySide6.QtWidgets import QApplication

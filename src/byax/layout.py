@@ -629,10 +629,12 @@ def build_document(doc: dict, _toc_pages=None, _flow=None) -> QTextDocument:
 
 
 def _render_inputs(doc):
+    # The binder (statuses, synopses, targets) never changes how text is laid out, so editing it must not
+    # rebuild the whole editor document.
     return {
         k: v
         for k, v in doc.items()
-        if k not in ('blocks', 'review', 'history', 'requests', 'revision', 'metadata', 'settings')
+        if k not in ('blocks', 'review', 'history', 'requests', 'revision', 'metadata', 'settings', 'project')
     }
 
 
