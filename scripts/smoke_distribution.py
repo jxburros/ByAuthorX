@@ -19,6 +19,11 @@ def main():
     parser.add_argument(
         '--expect-bundled', action='store_true', help='The standard variant: bundled models must be installed'
     )
+    parser.add_argument(
+        '--plain-wheel',
+        action='store_true',
+        help='A wheel installed without the local-models extra: the on-device runtime may be absent',
+    )
     args = parser.parse_args()
     cli, mcp = str(args.cli.resolve()), str(args.mcp.resolve())
     with tempfile.TemporaryDirectory() as directory:
@@ -27,7 +32,9 @@ def main():
         assert run([cli, 'version'])['engine_version']
         assert run([cli, 'capabilities'])['execution'] == 'completed'
         listing = run([cli, 'models'])
-        assert listing['models'] and listing['runtime']['installed'], 'frozen app lacks the on-device runtime'
+        assert listing['models'], 'the model catalogue is missing'
+        if not args.plain_wheel:
+            assert listing['runtime']['installed'], 'frozen app lacks the on-device runtime'
         if args.expect_bundled:
             bundled = [m for m in listing['models'] if m['bundled_by_default']]
             assert bundled and all(m['state'] == 'installed' and m['origin'] == 'bundled' for m in bundled), (

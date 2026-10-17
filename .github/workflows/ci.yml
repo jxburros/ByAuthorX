@@ -76,7 +76,7 @@ jobs:
         run: |
           uv venv /tmp/byax-wheel
           uv pip install --python /tmp/byax-wheel/bin/python dist/*.whl
-          uv run --no-sync python scripts/smoke_distribution.py /tmp/byax-wheel/bin/byax /tmp/byax-wheel/bin/byax-mcp
+          uv run --no-sync python scripts/smoke_distribution.py /tmp/byax-wheel/bin/byax /tmp/byax-wheel/bin/byax-mcp --plain-wheel
       - uses: actions/upload-artifact@v4
         with:
           name: coverage
