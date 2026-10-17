@@ -94,6 +94,9 @@ class ProofMark:
 class SemanticEditor(QTextEdit):
     fileDropped = Signal(str)
     viewEditRequested = Signal(object)
+    # Provenance (context engine plan 10): a paste is committed apart from typing.
+    pasteStarted = Signal(object)
+    pasteFinished = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -286,7 +289,13 @@ class SemanticEditor(QTextEdit):
         if source.hasUrls() and source.urls()[0].isLocalFile():
             self.fileDropped.emit(source.urls()[0].toLocalFile())
         else:
-            self.insertPlainText(source.text())
+            from .gui_provenance import paste_source
+
+            self.pasteStarted.emit(paste_source(source))
+            try:
+                self.insertPlainText(source.text())
+            finally:
+                self.pasteFinished.emit()
 
     def capture_baseline(self):
         self.object_text = {}

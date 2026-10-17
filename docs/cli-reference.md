@@ -70,7 +70,7 @@ command's flags.
 | `fill` | Fill document fields using a JSON values object |
 | `history` | List revisions, checkpoint, branch, or restore |
 | `diff` | Compare semantic content against a saved revision |
-| `check` | Run deterministic validation suites. `--citations` audits every citation mark instead |
+| `check` | Run deterministic validation suites (`--family continuity` for the advisory continuity suite). `--citations` audits every citation mark instead, including version pins |
 | `review` | Inspect, propose, accept, or reject changes and comments |
 | `import` | Import an exchange document into a native package |
 | `save-as` | Save an existing document under another path |
@@ -107,6 +107,7 @@ command's flags.
 | `macro` | List, save, run (or `--dry-run`) and remove saved command macros; steps get the same administrative refusals as transports unless `--allow-admin` is given on the local CLI |
 | `beta-copy` | Write a read-and-comment copy for beta readers: self-contained HTML (or a read-only companion page), PDF or Word |
 | `merge-comments` | Merge beta readers' comment files (and annotated PDFs) as comments and proposals |
+| `provenance` | Report text provenance, write AI-use disclosures and export an optional C2PA sidecar |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -488,6 +489,37 @@ byax codex Novel.byax --action series-attach --series-path ../saga.byaxseries
 `byax entity` (`byax_entity` over MCP) takes the read actions above and always returns the
 AI-visible view; edit actions are refused.
 
+## Provenance, disclosure and continuity
+
+```bash
+byax provenance Novel.byax                                    # report: spans, shares per section, claims
+byax provenance Novel.byax --target h_… --limit 50           # one chapter, block or binder item
+byax provenance Novel.byax --action disclose --style chicago  # APA (default), MLA or Chicago statement
+byax provenance Novel.byax --action propose-disclosure --style apa --after p_…   # as a review proposal
+byax provenance Novel.byax --action export-c2pa --out Novel.c2pa.json [--key-file ed25519.pem]
+byax provenance Novel.byax --action reanchor                  # re-find AI claim sources; proposes operations
+byax provenance Novel.byax --action clear [--target p_…]      # forget the log (local CLI only)
+byax check Novel.byax --family continuity                     # advisory continuity suite
+byax codex Novel.byax --action facts-at --target p_…          # facts in force at a position
+byax codex Novel.byax --action add-trait --target cx_… --name hair --value grey --valid-from item_…
+byax source Essay.byax --action add-draft --draft-path notes.byax
+```
+
+- An edit envelope may carry `provenance: {origin, model?, provider?, provider_kind?, task?, tool?,
+  source?, note?}`; `origin` is `human`, `ai_generated`, `ai_edited` or `pasted`. Only edits that
+  declare an origin are recorded; accepting an AI proposal (one whose `provenance` names a model or
+  provider) records it automatically. MCP and REST refuse `human` and `pasted`, `clear_provenance`
+  and `reanchor_claim` operations, `--action clear` and `--key-file`.
+- `report` returns `counts`, `percentages`, `sections`, `spans` (bounded by `--limit`), `claims`,
+  `records`, `models`, `tasks` and plain-language `lines`. `disclose` returns `disclosure` with
+  `text`, `references` (with the range to italicize), `needs_review`, `basis` and `guidance` (the
+  publisher page the format follows). `export-c2pa` returns `c2pa.path`, `c2pa.signed` and the
+  manifest.
+- Canonical operations: `reanchor_claim {target, grounding}` and `clear_provenance {targets?}`;
+  codex traits accept `valid_from`/`valid_to` in `codex_add` and `codex_add_trait`, and
+  `codex_update_trait` sets or (with `null`) clears them. `facts-at` accepts `--book N` to place the
+  document in its series; otherwise the series member list decides.
+
 ## Word review round trip
 
 ```bash
@@ -682,8 +714,8 @@ Details: [library guide](library-and-citations-guide.md#on-device-semantic-searc
 ```
 
 `byax schema --topic operations --json` lists every canonical operation and its fields. Check
-suites are `publication`, `structure`, `accessibility`, `editorial`, `requirements`, `print` and
-`spelling`. Untrusted envelopes cannot remove protections or disable tracking; those need local
+suites are `publication`, `structure`, `accessibility`, `editorial`, `requirements`, `print`,
+`spelling`, `fiction` and `continuity`. Untrusted envelopes cannot remove protections or disable tracking; those need local
 desktop confirmation (see [architecture](architecture.md#mutation-and-persistence)).
 
 ## Environment variables

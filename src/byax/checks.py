@@ -9,7 +9,7 @@ only units whose fingerprints still match and re-evaluate everything else.
 import copy
 import re
 
-from . import extensions, fiction_checks, language_packs
+from . import continuity, extensions, fiction_checks, language_packs
 from . import grammar as grammar_tiers
 from .errors import ByaxError
 from .model import object_hash, text_of, validate_document
@@ -29,6 +29,7 @@ SUITES = (
     'publication',
     'fiction',
     'extension',
+    'continuity',
 )
 DEFAULT_SUITES = ['structure', 'accessibility', 'requirements', 'print']
 PUBLICATION_SUITES = ('structure', 'accessibility', 'requirements', 'print', 'editorial')
@@ -68,6 +69,8 @@ RULES = {
     'factual.library_citation': ('factual', 'factual', 'conservative', None, 'warning'),
 }
 RULES.update(fiction_checks.RULES)
+# Continuity against the temporal codex (context engine plan 10); off by default.
+RULES.update(continuity.RULES)
 RULES.update(grammar_tiers.RULES)
 # Coverage that deterministic rules never provide; always reported for the suite.
 UNMEASURED = {
@@ -87,6 +90,7 @@ UNMEASURED = {
         'fiction.craft_judgement',
         'Word lists and counts cannot judge voice, intent or effect; these advisory flags only point at places to reread.',
     ),
+    'continuity': continuity.UNMEASURED,
     'factual': (
         'factual.uncited_claims',
         'Uncited factual claims are not identified deterministically; claim interpretation needs a configured reviewer.',
@@ -595,6 +599,8 @@ class _Context:
             result.update(fiction_checks.unit_fingerprints(self))
         if 'extension' in self.suites:
             result.update(extensions.unit_fingerprints(self))
+        if 'continuity' in self.suites:
+            result[continuity.UNIT] = continuity.fingerprint(self)
         if self.selection['kind'] == 'document' and set(self.suites) - BLOCK_SUITES - {
             'consistency',
             'extension',
@@ -633,6 +639,10 @@ class _Context:
             return _evaluate_structure(self, key)
         if key == 'context:consistency':
             return _evaluate_consistency(self, key)
+        if key == continuity.UNIT:
+            sink = _Sink(self, key)
+            continuity.evaluate(self, sink)
+            return sink.findings, sink.coverage
         if key.startswith(('fiction:', 'context:fiction_')):
             sink = _Sink(self, key)
             fiction_checks.evaluate(self, sink, key)

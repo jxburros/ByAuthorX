@@ -13,7 +13,7 @@ from typing import Any
 from . import codex
 from .errors import ByaxError
 
-READ_ACTIONS = ('list', 'get', 'lookup', 'mentions', 'heatmap', 'series')
+READ_ACTIONS = ('list', 'get', 'lookup', 'mentions', 'heatmap', 'series', 'facts-at')
 EDIT_ACTIONS = ('add', 'update', 'remove', 'add-trait', 'update-trait', 'remove-trait', 'propose-fact')
 SERIES_ACTIONS = ('series-attach', 'series-detach', 'series-export')
 # Attaching a series attaches its libraries: local CLI and desktop only (transport_policy).
@@ -73,6 +73,15 @@ def _read(action: str, a: dict[str, Any], doc: Any, path: Any) -> dict[str, Any]
         )
     if action == 'heatmap':
         return codex.heatmap(doc, series=series, for_ai=not hidden)
+    if action == 'facts-at':
+        # Temporal codex (context engine plan 10): the facts in force at a binder item, heading or block.
+        _require(a, 'target')
+        book = a.get('book')
+        if book is None and series is not None:
+            from .continuity import check_view, series_context
+
+            book = series_context(check_view(doc, path))[1]
+        return codex.facts_at(doc, a['target'], series=series, book=book, include_hidden=hidden)
     if info is None:
         return {'series': None}
     shown = {k: v for k, v in info.items() if k != 'series'}
@@ -120,6 +129,9 @@ def _operation(action: str, a: dict[str, Any], doc: Any, path: Any) -> dict[str,
         op = {'type': 'codex_add_trait', 'target': a['target'], 'name': a['name'], 'value': a['value']}
         if a.get('hide_from_ai'):
             op['hide_from_ai'] = True
+        for key in codex.TRAIT_VALIDITY:
+            if a.get(key):
+                op[key] = a[key]
         if payload.get('provenance'):
             op['provenance'] = payload['provenance']
         return op
@@ -132,6 +144,9 @@ def _operation(action: str, a: dict[str, Any], doc: Any, path: Any) -> dict[str,
             values['name'] = a['name']
         if a.get('hide_from_ai') is not None:
             values['hide_from_ai'] = a['hide_from_ai']
+        for key in codex.TRAIT_VALIDITY:
+            if a.get(key) is not None:
+                values[key] = a[key] or None
         return {'type': 'codex_update_trait', 'target': a['target'], 'trait': a['trait'], 'values': values}
     if action == 'remove-trait':
         _require(a, 'target', 'trait')
@@ -240,11 +255,11 @@ def entity_command(a: dict[str, Any], owner: str | None = None) -> dict[str, Any
     from .cli import _load, envelope
 
     action = a.get('action', 'lookup' if a.get('name') or a.get('target') else 'list')
-    if action not in ('list', 'get', 'lookup', 'mentions', 'heatmap'):
+    if action not in ('list', 'get', 'lookup', 'mentions', 'heatmap', 'facts-at'):
         raise ByaxError(
             'unsupported_feature',
             'entity is read-only; edit the codex with the codex command (or propose a fact).',
-            supported=['list', 'get', 'lookup', 'mentions', 'heatmap'],
+            supported=['list', 'get', 'lookup', 'mentions', 'heatmap', 'facts-at'],
         )
     doc = _load(a['path'])
     return envelope(_read(action, dict(a, include_hidden=False), doc, a['path']), doc)

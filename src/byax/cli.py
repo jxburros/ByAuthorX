@@ -529,6 +529,10 @@ ARGUMENTS['codex'] = {
     'expect_revision': 'string',
     'request_id': 'string',
     'dry_run': 'boolean',
+    # Temporal codex (context engine plan 10): trait validity and the series book for facts-at.
+    'valid_from': 'string',
+    'valid_to': 'string',
+    'book': 'integer',
 }
 COMMANDS['entity'] = 'Read-only codex lookup, mentions and heatmap (entries hidden from AI are never shown)'
 ARGUMENTS['entity'] = {
@@ -545,6 +549,7 @@ ARGUMENTS['entity'] = {
         'radius',
         'limit',
         'offset',
+        'book',
     )
 }
 # Word review round trip (byax.docx_review): send a review copy, merge the returned file as proposals.
@@ -685,6 +690,27 @@ for _name in ('project-search', 'codex', 'entity'):
     REQUIRED[_name] = ['path']
 REQUIRED.update({'review-package': ['path'], 'merge-review': ['path', 'reviewed_path']})
 REQUIRED.update({'beta-copy': ['path'], 'merge-comments': ['path', 'comments_path']})
+# Claim-level provenance, AI-use disclosure and the C2PA sidecar (context engine plan 10).
+COMMANDS['provenance'] = (
+    'Report text provenance, write AI-use disclosures and export an optional C2PA sidecar'
+)
+ARGUMENTS['provenance'] = {
+    'path': 'string',
+    'action': 'string',
+    'target': 'string',
+    'style': 'string',
+    'after': 'string',
+    'out': 'string',
+    'key_file': 'string',
+    'overwrite': 'boolean',
+    'limit': 'integer',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+REQUIRED['provenance'] = ['path']
+# Version-pinned citations: cite another .byax draft (byax.version_pins).
+ARGUMENTS['source']['draft_path'] = 'string'
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -1082,7 +1108,7 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
 
         if a.get('suite') or a.get('family'):
             _error('invalid_input', 'Run --citations on its own; it is a separate audit', field='citations')
-        report = audit_citations(doc)
+        report = audit_citations(doc, document_path=a['path'])
         return envelope(report, doc, **({'strict': True} if a.get('strict') else {}))
     suites = a.get('suite')
     if a.get('family'):
@@ -1092,6 +1118,11 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
         if unknown:
             _error('invalid_input', 'Unknown rule family', field='family', supported=sorted(FAMILY_SUITES))
         suites = list(dict.fromkeys([*(suites or []), *(x for f in a['family'] for x in FAMILY_SUITES[f])]))
+    if suites and 'continuity' in suites:
+        from .continuity import check_view
+
+        # Series facts and this book's number in the series (read-only view, never applied).
+        doc = check_view(doc, a['path'])
     result = run_checks(doc, suites=suites, limit=a.get('limit', 100), profile=a.get('profile'))
     if a.get('strict'):
         result = dict(result, strict=True)
@@ -1726,6 +1757,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 from .beta_readers import beta_copy_command, merge_comments_command
 from .cli_codex import codex_command, entity_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .cli_provenance import provenance_command
 from .compile import compile_command
 from .docx_review import merge_review_command, review_package_command
 from .drafts import drafts_command
@@ -1798,6 +1830,7 @@ _HANDLERS: dict[str, Handler] = {
     'macro': macro_command,
     'beta-copy': beta_copy_command,
     'merge-comments': merge_comments_command,
+    'provenance': provenance_command,
 }
 
 

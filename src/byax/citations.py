@@ -74,6 +74,13 @@ def validate_source(source, source_id=None):
             for k in ('library_id', 'document_id', 'content_hash')
         ):
             _error('Library sources require library ID, document ID and content hash.')
+    if 'byax' in result:
+        # Another .byax draft as a source, pinned by content hash (byax.version_pins).
+        from .version_pins import pointer_problem
+
+        problem = pointer_problem(result['byax'])
+        if problem:
+            _error(problem)
     if 'import' in result:
         origin = result['import']
         if not isinstance(origin, dict) or origin.get('origin') not in {

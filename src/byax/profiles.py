@@ -17,7 +17,17 @@ from .providers import _atomic_json
 SENSITIVITY = ('conservative', 'balanced', 'broad')
 EDITING_FREEDOM = ('minimal', 'moderate', 'broad')
 VOICE_PRESERVATION = ('strict', 'balanced', 'flexible')
-RULE_FAMILIES = ('spelling', 'grammar', 'editorial', 'style', 'factual', 'accessibility', 'print', 'fiction')
+RULE_FAMILIES = (
+    'spelling',
+    'grammar',
+    'editorial',
+    'style',
+    'factual',
+    'accessibility',
+    'print',
+    'fiction',
+    'continuity',
+)
 # Rule family -> check suites; shared by profiles and the CLI --family option.
 FAMILY_SUITES = {
     'spelling': ('spelling',),
@@ -29,6 +39,7 @@ FAMILY_SUITES = {
     'print': ('print',),
     'fiction': ('fiction',),
     'extension': ('extension',),
+    'continuity': ('continuity',),
 }
 SOURCE_AUTHORITY = ('exclusive', 'supplementary', 'open')
 APPLICATION_POLICY = ('suggestions_only', 'automatic_direct', 'automatic_cleanup')
