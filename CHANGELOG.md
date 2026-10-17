@@ -9,6 +9,11 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ## [Unreleased]
 
+### Changed
+
+- Documentation: the README now states the current version and summarizes the 0.4 manuscript, publishing and
+  review features, and the documentation screenshots were regenerated so they show the Binder menu.
+
 ## [0.4.1] - 2026-10-17
 
 ### Fixed
