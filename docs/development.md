@@ -78,6 +78,9 @@ tests/fixtures/eval/MANIFEST.json         source URL, licence, attribution and S
 tests/fixtures/eval/thresholds.json       CI floors and tolerances
 src/byax/evaluation.py                    metrics, corpus builder, retrieval configurations
 scripts/eval_retrieval.py                 writes docs/benchmarks/context-<version>-<config>.json
+scripts/eval_quotes.py                    quote verification rates and the near-match threshold sweep
+scripts/eval_chunk_sweep.py               chunk-size sweep; scripts/eval_fusion.py sweeps the fusion's keyword weight
+scripts/build_scale_index.py              builds and keeps the 10,000-document index; scripts/profile_search.py times and profiles it
 scripts/build_eval_corpus.py              rebuilds the committed corpora from Gutenberg and pinned Wikipedia revisions
 scripts/fetch_eval_fixtures.py            downloads and verifies the 30 PLOS papers (3 are committed); never runs in tests
 scripts/build_eval_queries.py             regenerates queries.jsonl (curated entries live in eval_queries_curated.py)
@@ -89,10 +92,16 @@ QT_QPA_PLATFORM=offscreen uv run pytest tests/test_retrieval_eval.py tests/test_
 uv run python scripts/fetch_eval_fixtures.py                     # full papers set, cached outside the repo
 uv run python scripts/eval_retrieval.py --configs keyword hybrid-fake   # full fixtures, writes docs/benchmarks/
 uv run python scripts/eval_retrieval.py --sample --configs keyword hybrid-fake --update-thresholds
+uv run python scripts/eval_retrieval.py --sample --all-sample-queries --configs hybrid-qwen3 hybrid-qwen3-colbert --label qwen3  # needs the local models
 ```
 
+`--label` names the output file and `--scale-work`/`--scale-queries` reuse a kept 10,000-document index
+instead of rebuilding it. `quote_match.NEAR_THRESHOLD` (94) comes from `scripts/eval_quotes.py`; the test
+`test_near_threshold_was_chosen_from_the_published_sweep` ties it to `context-0.4-quotes.json`. Published
+results and their limits: [Context engine benchmarks](benchmarks/context-engine.md).
+
 - **Labels are locators, not chunk IDs**: `{path, page}` for PDFs, `{path, start, end}` (characters of the
-  file's text) otherwise. `.html` files are not indexed by the library parser at 0.3.0, so the harness
+  file's text) otherwise. `.html` files are not indexed by the library parser (`libraries.SUPPORTED`), so the harness
   indexes the text that `evaluation.html_text` extracts and labels offsets in that text.
 - **Add a configuration** by subclassing `evaluation.RetrievalConfig` (`prepare` once per corpus, `search`
   per query) and calling `evaluation.register_config('name', factory)`, or pass a callable

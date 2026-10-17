@@ -1,0 +1,3643 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-17T01:54:13.544871+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "memory_gib": 15.7,
+    "python": "3.13.16",
+    "sqlite": "3.45.1",
+    "engine": "0.3.0",
+    "load_average_1m_5m_15m": [
+      3.52,
+      2.96,
+      2.79
+    ],
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "corpus_mode": "sample",
+  "papers": "committed PDFs only",
+  "fixtures_manifest_sha256": "7533cda51dcc86d61c0ca2ea6a749b3626138126907f1c51d5558312bc2a0e7d",
+  "provider_configuration": "None; local deterministic operations only. No network, no model.",
+  "definitions": {
+    "recall@k": "Share of a query's relevant locators covered by at least one of the top k hits (hit and locator overlap).",
+    "ndcg@10": "Binary gain per hit that newly covers a relevant locator; ideal list is min(locators, 10) gains.",
+    "mrr": "Reciprocal rank of the first hit overlapping any relevant locator within the top 20; 0 when none.",
+    "latency_ms": "Wall time of one search call per query after one untimed warm-up; nearest-rank percentiles. latency_cpu_ms is the process CPU time of the same calls (the host was shared with other jobs: see the load averages).",
+    "index_bytes": "Size of the derived SQLite index after a WAL checkpoint, including stored vectors.",
+    "build_seconds": "LibraryIndex.refresh from an empty cache (parsing, chunking, FTS). prepare_seconds adds embedding.",
+    "absence": "literal probes count as found when any hit overlaps a labelled occurrence; expected-absent probes report whether the engine returned nothing (a lexical OR search never does: semantic absence is reported separately)."
+  },
+  "not_measured": [
+    "Reference-laptop latency: this host is not a qualified reference machine.",
+    "Model-backed embeddings, reranking and entailment (hybrid-fake uses a hashing function, not a model).",
+    "Cross-library queries from webclips into the novels and papers."
+  ],
+  "note": "Hybrid search with the on-device Qwen3-Embedding-0.6B int8 model (local ONNX, no network) on the fast sample subsets, every covered golden query. The full libraries (about 3,900 merged chunks at roughly 1.8 s each) were too slow for this host.",
+  "load_average_at_end_1m_5m_15m": [
+    5.06,
+    4.38,
+    3.51
+  ],
+  "libraries": {
+    "novel": {
+      "library": "novel",
+      "config": {
+        "name": "hybrid-qwen3",
+        "description": "hybrid_search with the on-device embedder qwen3-embedding-0.6b-int8 (local ONNX, no network)."
+      },
+      "queries": {
+        "total": 125,
+        "covered": 74,
+        "evaluated": 74,
+        "skipped_not_in_corpus": 51,
+        "scored": 58,
+        "expected_absent": 16
+      },
+      "metrics": {
+        "recall@5": 0.8621,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.8538,
+        "mrr": 0.8794
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.8,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7918,
+          "mrr": 0.8583
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 0.8,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7047,
+          "mrr": 0.6361
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.8,
+          "recall@20": 0.8667,
+          "ndcg@10": 0.8,
+          "mrr": 0.8118
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 0.9091,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9127,
+          "mrr": 0.9545
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.5,
+          "recall@20": 0.8333,
+          "ndcg@10": 0.7388,
+          "mrr": 1.0
+        }
+      },
+      "absence": {
+        "literal_probes": 9,
+        "literal_found_at_20": 9,
+        "absent_probes": 16,
+        "absent_returned_nothing": 0,
+        "absent_mean_results": 20.0
+      },
+      "latency_ms": {
+        "p50": 156.53,
+        "p95": 218.817,
+        "mean": 149.393,
+        "max": 244.392,
+        "samples": 74
+      },
+      "latency_cpu_ms": {
+        "p50": 446.786,
+        "p95": 627.8,
+        "mean": 436.121
+      },
+      "index": {
+        "documents": 3,
+        "chunks": 116,
+        "bytes": 2334720,
+        "build_seconds": 0.548,
+        "prepare_seconds": 89.765
+      },
+      "alignment": {
+        "hits": 1160,
+        "unmapped": 0,
+        "unmapped_rate": 0.0
+      },
+      "worst": [
+        {
+          "id": "novel-factu-021",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 0.3333333333333333,
+          "ndcg@10": 0.0,
+          "mrr": 0.058823529411764705
+        },
+        {
+          "id": "novel-thema-009",
+          "type": "thematic",
+          "recall@5": 0.3333333333333333,
+          "recall@20": 0.6666666666666666,
+          "ndcg@10": 0.617319681505689,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-conti-002",
+          "type": "continuity",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3010299956639812,
+          "mrr": 0.1111111111111111
+        },
+        {
+          "id": "novel-citat-008",
+          "type": "citation_locating",
+          "recall@5": 0.6666666666666666,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5400753810454857,
+          "mrr": 0.25
+        },
+        {
+          "id": "novel-conti-018",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.43067655807339306,
+          "mrr": 0.25
+        }
+      ],
+      "per_query": [
+        {
+          "id": "novel-known-001",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-002",
+          "type": "known_item_quote",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.852,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-003",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-004",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-006",
+          "type": "known_item_quote",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9325,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-007",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-008",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-009",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-010",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-011",
+          "type": "known_item_quote",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6508,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-012",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-013",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-016",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-017",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-019",
+          "type": "known_item_quote",
+          "recall@5": 0.3333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6173,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-020",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-021",
+          "type": "known_item_quote",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7654,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-022",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-023",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "novel-known-024",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-known-025",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "novel-known-026",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-001",
+          "type": "citation_locating",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8711,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-002",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-003",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-004",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "novel-citat-006",
+          "type": "citation_locating",
+          "recall@5": 0.3333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6105,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-007",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.906,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-008",
+          "type": "citation_locating",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5401,
+          "mrr": 0.25
+        },
+        {
+          "id": "novel-citat-009",
+          "type": "citation_locating",
+          "recall@5": 0.3333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6049,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-010",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8855,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-factu-002",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-factu-003",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-factu-004",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-factu-021",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 0.3333,
+          "ndcg@10": 0.0,
+          "mrr": 0.0588
+        },
+        {
+          "id": "novel-factu-023",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-thema-003",
+          "type": "thematic",
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8603,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-thema-009",
+          "type": "thematic",
+          "recall@5": 0.3333,
+          "recall@20": 0.6667,
+          "ndcg@10": 0.6173,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-citat-011",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-conti-002",
+          "type": "continuity",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.301,
+          "mrr": 0.1111
+        },
+        {
+          "id": "novel-conti-005",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "novel-conti-007",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-conti-010",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "novel-conti-012",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-conti-015",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-conti-017",
+          "type": "continuity",
+          "recall@5": 0.5,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8175,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-conti-018",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "novel-conti-019",
+          "type": "continuity",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "novel-conti-020",
+          "type": "continuity",
+          "recall@5": 0.5,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6053,
+          "mrr": 0.5
+        },
+        {
+          "id": "novel-absen-001",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-002",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-003",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-004",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-006",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-007",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-008",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-010",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-011",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "novel-absen-015",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-016",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-017",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-018",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-019",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-020",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-021",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-022",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-023",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-024",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-025",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-026",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-027",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-028",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-029",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "novel-absen-030",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        }
+      ]
+    },
+    "series": {
+      "library": "series",
+      "config": {
+        "name": "hybrid-qwen3",
+        "description": "hybrid_search with the on-device embedder qwen3-embedding-0.6b-int8 (local ONNX, no network)."
+      },
+      "queries": {
+        "total": 124,
+        "covered": 88,
+        "evaluated": 88,
+        "skipped_not_in_corpus": 36,
+        "scored": 72,
+        "expected_absent": 16
+      },
+      "metrics": {
+        "recall@5": 0.9306,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8425,
+        "mrr": 0.8023
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8426,
+          "mrr": 0.7885
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8154,
+          "mrr": 0.7963
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 0.8929,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7932,
+          "mrr": 0.7281
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "absence": {
+        "literal_probes": 8,
+        "literal_found_at_20": 8,
+        "absent_probes": 16,
+        "absent_returned_nothing": 0,
+        "absent_mean_results": 20.0
+      },
+      "latency_ms": {
+        "p50": 68.415,
+        "p95": 148.715,
+        "mean": 83.026,
+        "max": 241.749,
+        "samples": 88
+      },
+      "latency_cpu_ms": {
+        "p50": 267.369,
+        "p95": 474.531,
+        "mean": 289.268
+      },
+      "index": {
+        "documents": 2,
+        "chunks": 72,
+        "bytes": 1531904,
+        "build_seconds": 0.349,
+        "prepare_seconds": 59.433
+      },
+      "alignment": {
+        "hits": 1440,
+        "unmapped": 0,
+        "unmapped_rate": 0.0
+      },
+      "worst": [
+        {
+          "id": "series-factu-017",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.0625
+        },
+        {
+          "id": "series-factu-018",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.06666666666666667
+        },
+        {
+          "id": "series-known-004",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.2890648263178879,
+          "mrr": 0.1
+        },
+        {
+          "id": "series-known-002",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333333333333333,
+          "mrr": 0.14285714285714285
+        },
+        {
+          "id": "series-known-015",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333333333333333,
+          "mrr": 0.14285714285714285
+        }
+      ],
+      "per_query": [
+        {
+          "id": "series-known-001",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-002",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333,
+          "mrr": 0.1429
+        },
+        {
+          "id": "series-known-003",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-known-004",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.2891,
+          "mrr": 0.1
+        },
+        {
+          "id": "series-known-005",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "series-known-006",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-007",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "series-known-008",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-009",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-010",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "series-known-011",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-012",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-013",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "series-known-014",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-015",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333,
+          "mrr": 0.1429
+        },
+        {
+          "id": "series-known-016",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "series-known-017",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-018",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-known-019",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-020",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-021",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-022",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-known-023",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-024",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-025",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-026",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-027",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-known-028",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-001",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-002",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-003",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-citat-004",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-005",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-citat-006",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "series-citat-007",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-008",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-009",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-010",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-011",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-citat-012",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-factu-001",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-002",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-003",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-004",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-005",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-006",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-007",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "series-factu-008",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-009",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "series-factu-010",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-011",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-012",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-013",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-014",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-015",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-016",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-factu-017",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.0625
+        },
+        {
+          "id": "series-factu-018",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.0667
+        },
+        {
+          "id": "series-factu-026",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "series-thema-001",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-thema-007",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-thema-008",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-thema-009",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-citat-013",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-001",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-002",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-003",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-004",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-005",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-006",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-007",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-009",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-015",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-016",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-017",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-018",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-019",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-020",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-021",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-022",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-023",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-024",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-025",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-026",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-027",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-028",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-029",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "series-absen-030",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        }
+      ]
+    },
+    "humanities": {
+      "library": "humanities",
+      "config": {
+        "name": "hybrid-qwen3",
+        "description": "hybrid_search with the on-device embedder qwen3-embedding-0.6b-int8 (local ONNX, no network)."
+      },
+      "queries": {
+        "total": 109,
+        "covered": 77,
+        "evaluated": 77,
+        "skipped_not_in_corpus": 32,
+        "scored": 67,
+        "expected_absent": 10
+      },
+      "metrics": {
+        "recall@5": 0.9552,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8459,
+        "mrr": 0.7966
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8347,
+          "mrr": 0.7828
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.854,
+          "mrr": 0.8059
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 0.9286,
+          "recall@20": 1.0,
+          "ndcg@10": 0.823,
+          "mrr": 0.7676
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "absence": {
+        "literal_probes": 8,
+        "literal_found_at_20": 8,
+        "absent_probes": 10,
+        "absent_returned_nothing": 0,
+        "absent_mean_results": 20.0
+      },
+      "latency_ms": {
+        "p50": 120.98,
+        "p95": 192.379,
+        "mean": 120.751,
+        "max": 219.409,
+        "samples": 77
+      },
+      "latency_cpu_ms": {
+        "p50": 356.989,
+        "p95": 576.524,
+        "mean": 369.09
+      },
+      "index": {
+        "documents": 1,
+        "chunks": 45,
+        "bytes": 942080,
+        "build_seconds": 0.217,
+        "prepare_seconds": 24.565
+      },
+      "alignment": {
+        "hits": 1340,
+        "unmapped": 0,
+        "unmapped_rate": 0.0
+      },
+      "worst": [
+        {
+          "id": "humanities-citat-013",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333333333333333,
+          "mrr": 0.14285714285714285
+        },
+        {
+          "id": "humanities-known-023",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333333333333333,
+          "mrr": 0.14285714285714285
+        },
+        {
+          "id": "humanities-known-002",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3562071871080222,
+          "mrr": 0.16666666666666666
+        },
+        {
+          "id": "humanities-citat-012",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.38685280723454163,
+          "mrr": 0.2
+        },
+        {
+          "id": "humanities-factu-015",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.38685280723454163,
+          "mrr": 0.2
+        }
+      ],
+      "per_query": [
+        {
+          "id": "humanities-known-001",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "humanities-known-002",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
+        },
+        {
+          "id": "humanities-known-003",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-004",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-005",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-006",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-007",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "humanities-known-008",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-009",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-010",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-011",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "humanities-known-012",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-013",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "humanities-known-014",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "humanities-known-015",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-016",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-017",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-018",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "humanities-known-019",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-020",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-021",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-022",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "humanities-known-023",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333,
+          "mrr": 0.1429
+        },
+        {
+          "id": "humanities-known-024",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-025",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-026",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-027",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-known-028",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-001",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-002",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-003",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-004",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "humanities-citat-005",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-006",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "humanities-citat-007",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-008",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-009",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-010",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-011",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-012",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "humanities-factu-001",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-002",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-003",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-004",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-005",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "humanities-factu-006",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-007",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-008",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-009",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-010",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-011",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-012",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "humanities-factu-013",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-014",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-factu-015",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "humanities-factu-016",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "humanities-factu-017",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "humanities-thema-007",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-citat-013",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3333,
+          "mrr": 0.1429
+        },
+        {
+          "id": "humanities-absen-001",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-absen-002",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "humanities-absen-004",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-absen-005",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "humanities-absen-007",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-absen-008",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-absen-009",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-absen-010",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "humanities-absen-015",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-016",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-017",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-018",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-019",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-020",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-021",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-022",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-023",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "humanities-absen-024",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        }
+      ]
+    },
+    "webclips": {
+      "library": "webclips",
+      "config": {
+        "name": "hybrid-qwen3",
+        "description": "hybrid_search with the on-device embedder qwen3-embedding-0.6b-int8 (local ONNX, no network)."
+      },
+      "queries": {
+        "total": 130,
+        "covered": 95,
+        "evaluated": 95,
+        "skipped_not_in_corpus": 35,
+        "scored": 79,
+        "expected_absent": 16
+      },
+      "metrics": {
+        "recall@5": 0.9367,
+        "recall@20": 1.0,
+        "ndcg@10": 0.859,
+        "mrr": 0.814
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.7,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7987,
+          "mrr": 0.7417
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9005,
+          "mrr": 0.8667
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 0.9333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.875,
+          "mrr": 0.8358
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6345,
+          "mrr": 0.513
+        }
+      },
+      "absence": {
+        "literal_probes": 9,
+        "literal_found_at_20": 9,
+        "absent_probes": 16,
+        "absent_returned_nothing": 0,
+        "absent_mean_results": 20.0
+      },
+      "latency_ms": {
+        "p50": 79.544,
+        "p95": 200.912,
+        "mean": 100.478,
+        "max": 239.773,
+        "samples": 95
+      },
+      "latency_cpu_ms": {
+        "p50": 287.292,
+        "p95": 617.465,
+        "mean": 332.553
+      },
+      "index": {
+        "documents": 7,
+        "chunks": 121,
+        "bytes": 2232320,
+        "build_seconds": 0.981,
+        "prepare_seconds": 92.278
+      },
+      "alignment": {
+        "hits": 1580,
+        "unmapped": 0,
+        "unmapped_rate": 0.0
+      },
+      "worst": [
+        {
+          "id": "webclips-citat-005",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.31546487678572877,
+          "mrr": 0.125
+        },
+        {
+          "id": "webclips-citat-007",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.31546487678572877,
+          "mrr": 0.125
+        },
+        {
+          "id": "webclips-known-021",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.31546487678572877,
+          "mrr": 0.125
+        },
+        {
+          "id": "webclips-citat-002",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3562071871080222,
+          "mrr": 0.16666666666666666
+        },
+        {
+          "id": "webclips-known-028",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3562071871080222,
+          "mrr": 0.16666666666666666
+        }
+      ],
+      "per_query": [
+        {
+          "id": "webclips-known-001",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-002",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-003",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-004",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-005",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-006",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-007",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-008",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-009",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-010",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "webclips-known-011",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-012",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-013",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-014",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-015",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-016",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-017",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "webclips-known-018",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-known-019",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-020",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-021",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3155,
+          "mrr": 0.125
+        },
+        {
+          "id": "webclips-known-022",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "webclips-known-023",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-024",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-025",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-known-026",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-027",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-028",
+          "type": "known_item_quote",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
+        },
+        {
+          "id": "webclips-known-029",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-known-030",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-001",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-002",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
+        },
+        {
+          "id": "webclips-citat-003",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-004",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-005",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3155,
+          "mrr": 0.125
+        },
+        {
+          "id": "webclips-citat-006",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-007",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3155,
+          "mrr": 0.125
+        },
+        {
+          "id": "webclips-citat-008",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-009",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-citat-010",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-001",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-002",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-003",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-004",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-005",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-006",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "webclips-factu-007",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-008",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-009",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-010",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-011",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-012",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-013",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-014",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-015",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-016",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-factu-020",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-factu-024",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-factu-026",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-factu-027",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-factu-028",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-thema-003",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-thema-005",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-thema-006",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "webclips-thema-007",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "webclips-thema-009",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-thema-011",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "webclips-thema-013",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-thema-015",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "webclips-thema-020",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-absen-001",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-002",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-003",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-005",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-006",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-007",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-008",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-009",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-010",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "webclips-absen-011",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-012",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-013",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-014",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-015",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-016",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-017",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-018",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-019",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-020",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-021",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-022",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-023",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-024",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-025",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "webclips-absen-026",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        }
+      ]
+    },
+    "papers": {
+      "library": "papers",
+      "config": {
+        "name": "hybrid-qwen3",
+        "description": "hybrid_search with the on-device embedder qwen3-embedding-0.6b-int8 (local ONNX, no network)."
+      },
+      "queries": {
+        "total": 160,
+        "covered": 48,
+        "evaluated": 48,
+        "skipped_not_in_corpus": 112,
+        "scored": 34,
+        "expected_absent": 14
+      },
+      "metrics": {
+        "recall@5": 0.9706,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8702,
+        "mrr": 0.8282
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9631,
+          "mrr": 0.95
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 0.8333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8859,
+          "mrr": 0.8542
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6988,
+          "mrr": 0.5972
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8978,
+          "mrr": 0.8667
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8436,
+          "mrr": 0.7917
+        }
+      },
+      "absence": {
+        "literal_probes": 10,
+        "literal_found_at_20": 10,
+        "absent_probes": 14,
+        "absent_returned_nothing": 0,
+        "absent_mean_results": 20.0
+      },
+      "latency_ms": {
+        "p50": 114.718,
+        "p95": 198.906,
+        "mean": 116.872,
+        "max": 215.553,
+        "samples": 48
+      },
+      "latency_cpu_ms": {
+        "p50": 337.931,
+        "p95": 582.449,
+        "mean": 369.445
+      },
+      "index": {
+        "documents": 3,
+        "chunks": 63,
+        "bytes": 1277952,
+        "build_seconds": 0.918,
+        "prepare_seconds": 41.541
+      },
+      "alignment": {
+        "hits": 680,
+        "unmapped": 0,
+        "unmapped_rate": 0.0
+      },
+      "worst": [
+        {
+          "id": "papers-citat-004",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.31546487678572877,
+          "mrr": 0.125
+        },
+        {
+          "id": "papers-known-004",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.38685280723454163,
+          "mrr": 0.2
+        },
+        {
+          "id": "papers-factu-001",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.43067655807339306,
+          "mrr": 0.25
+        },
+        {
+          "id": "papers-thema-003",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.43067655807339306,
+          "mrr": 0.25
+        },
+        {
+          "id": "papers-factu-005",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333333333333333
+        }
+      ],
+      "per_query": [
+        {
+          "id": "papers-citat-001",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-citat-002",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-known-001",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-known-002",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-factu-001",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "papers-factu-002",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "papers-thema-001",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-thema-002",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-citat-003",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-citat-004",
+          "type": "citation_locating",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3155,
+          "mrr": 0.125
+        },
+        {
+          "id": "papers-known-003",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-known-004",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
+        },
+        {
+          "id": "papers-factu-003",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "papers-factu-004",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-thema-003",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
+        },
+        {
+          "id": "papers-thema-004",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "papers-citat-005",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-citat-006",
+          "type": "citation_locating",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-known-005",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-known-006",
+          "type": "known_item_quote",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-factu-005",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
+        },
+        {
+          "id": "papers-factu-006",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-thema-005",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-thema-006",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-001",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-002",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-003",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-004",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-005",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
+        },
+        {
+          "id": "papers-absen-007",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-009",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-010",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-011",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-014",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "papers-absen-015",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-016",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-017",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-018",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-019",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-020",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-021",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-022",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-023",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-024",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-025",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-026",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-027",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        },
+        {
+          "id": "papers-absen-028",
+          "type": "absence_probe",
+          "expected_absent": true,
+          "returned": 20
+        }
+      ]
+    }
+  },
+  "summary": {
+    "macro_average": {
+      "recall@5": 0.931,
+      "recall@20": 0.9966,
+      "ndcg@10": 0.8543,
+      "mrr": 0.8241
+    },
+    "queries_evaluated": 382,
+    "latency_ms_p95_max": 218.817,
+    "latency_cpu_ms_p95_max": 627.8,
+    "index_bytes_total": 8318976,
+    "build_seconds_total": 310.595
+  }
+}

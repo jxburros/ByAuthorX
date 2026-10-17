@@ -349,3 +349,16 @@ def test_cited_ids_are_a_subset_of_retrieved_ids(scope):
                     index.read(passage['document_id'], passage['chunk_id'])['results'][0]['text']
                     == passage['text']
                 )
+
+
+@pytest.mark.parametrize('library', LIBRARIES)
+def test_the_exhaustive_absence_pass_never_misses_a_literal_term(library):
+    """`retrieval.verify_absence` (CE §5.6) backs every "not found": zero false absence on the probes whose
+    term occurs literally. Stemmed variants and substrings of longer words are reported by design."""
+    report = ev.verified_absence(sample_corpus(library), sample_queries(library))
+    assert report['literal_probes'] >= 8
+    assert report['false_absence'] == 0, report['false_absence_ids']
+    assert (
+        report['substring_matches_reported'] + report['stem_variants_reported']
+        <= report['absent_term_probes']
+    )

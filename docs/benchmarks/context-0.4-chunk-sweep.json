@@ -1,0 +1,1425 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-17T02:34:15.778997+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "memory_gib": 15.7,
+    "python": "3.13.16",
+    "sqlite": "3.45.1",
+    "engine": "0.3.0",
+    "load_average_1m_5m_15m": [
+      5.11,
+      4.99,
+      4.31
+    ],
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "default_chunk_tokens": 400,
+  "sizes": [
+    200,
+    300,
+    400,
+    600,
+    800,
+    1000
+  ],
+  "summary": {
+    "keyword": {
+      "200": {
+        "recall@5": 0.8914,
+        "recall@20": 0.9597,
+        "ndcg@10": 0.8705,
+        "mrr": 0.8579,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 9451
+      },
+      "300": {
+        "recall@5": 0.8994,
+        "recall@20": 0.9692,
+        "ndcg@10": 0.8749,
+        "mrr": 0.8601,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 6080
+      },
+      "400": {
+        "recall@5": 0.8977,
+        "recall@20": 0.9729,
+        "ndcg@10": 0.8767,
+        "mrr": 0.8631,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 4528
+      },
+      "600": {
+        "recall@5": 0.9006,
+        "recall@20": 0.9685,
+        "ndcg@10": 0.8751,
+        "mrr": 0.8654,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 2994
+      },
+      "800": {
+        "recall@5": 0.9017,
+        "recall@20": 0.9696,
+        "ndcg@10": 0.8705,
+        "mrr": 0.8573,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 2286
+      },
+      "1000": {
+        "recall@5": 0.9188,
+        "recall@20": 0.9693,
+        "ndcg@10": 0.8738,
+        "mrr": 0.859,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 1905
+      }
+    },
+    "hybrid-fake": {
+      "200": {
+        "recall@5": 0.7445,
+        "recall@20": 0.922,
+        "ndcg@10": 0.681,
+        "mrr": 0.6549,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 9451
+      },
+      "300": {
+        "recall@5": 0.6972,
+        "recall@20": 0.9186,
+        "ndcg@10": 0.6483,
+        "mrr": 0.6246,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 6080
+      },
+      "400": {
+        "recall@5": 0.6981,
+        "recall@20": 0.9277,
+        "ndcg@10": 0.6359,
+        "mrr": 0.6079,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 4528
+      },
+      "600": {
+        "recall@5": 0.6916,
+        "recall@20": 0.9407,
+        "ndcg@10": 0.6101,
+        "mrr": 0.5703,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 2994
+      },
+      "800": {
+        "recall@5": 0.6815,
+        "recall@20": 0.9497,
+        "ndcg@10": 0.5933,
+        "mrr": 0.549,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 2286
+      },
+      "1000": {
+        "recall@5": 0.6836,
+        "recall@20": 0.9675,
+        "ndcg@10": 0.5992,
+        "mrr": 0.5511,
+        "libraries": [
+          "novel",
+          "series",
+          "humanities",
+          "webclips",
+          "papers"
+        ],
+        "chunks": 1905
+      }
+    },
+    "hybrid-qwen3": {
+      "200": {
+        "recall@5": 0.8863,
+        "recall@20": 0.9849,
+        "ndcg@10": 0.8962,
+        "mrr": 0.8796,
+        "libraries": [
+          "novel",
+          "papers"
+        ],
+        "chunks": 378
+      },
+      "300": {
+        "recall@5": 0.8712,
+        "recall@20": 0.9849,
+        "ndcg@10": 0.839,
+        "mrr": 0.8194,
+        "libraries": [
+          "novel",
+          "papers"
+        ],
+        "chunks": 241
+      },
+      "400": {
+        "recall@5": 0.8712,
+        "recall@20": 0.9772,
+        "ndcg@10": 0.8219,
+        "mrr": 0.8199,
+        "libraries": [
+          "novel",
+          "papers"
+        ],
+        "chunks": 179
+      },
+      "600": {
+        "recall@5": 0.7803,
+        "recall@20": 0.9924,
+        "ndcg@10": 0.772,
+        "mrr": 0.7288,
+        "libraries": [
+          "novel",
+          "papers"
+        ],
+        "chunks": 119
+      },
+      "800": {
+        "recall@5": 0.8712,
+        "recall@20": 0.9849,
+        "ndcg@10": 0.7742,
+        "mrr": 0.7407,
+        "libraries": [
+          "novel",
+          "papers"
+        ],
+        "chunks": 93
+      },
+      "1000": {
+        "recall@5": 0.7954,
+        "recall@20": 0.9849,
+        "ndcg@10": 0.7881,
+        "mrr": 0.7568,
+        "libraries": [
+          "novel",
+          "papers"
+        ],
+        "chunks": 81
+      }
+    }
+  },
+  "runs": [
+    {
+      "config": "keyword",
+      "chunk_tokens": 200,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.8379,
+        "recall@20": 0.9128,
+        "ndcg@10": 0.8267,
+        "mrr": 0.8088
+      },
+      "chunks": 1239,
+      "index_bytes": 9998336,
+      "latency_ms_p95": 8.466
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 200,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.8814,
+        "recall@20": 0.9417,
+        "ndcg@10": 0.874,
+        "mrr": 0.8666
+      },
+      "chunks": 1721,
+      "index_bytes": 13697024,
+      "latency_ms_p95": 9.862
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 200,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.9108,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.9022,
+        "mrr": 0.9044
+      },
+      "chunks": 2667,
+      "index_bytes": 19861504,
+      "latency_ms_p95": 16.531
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 200,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.9195,
+        "recall@20": 0.9949,
+        "ndcg@10": 0.8848,
+        "mrr": 0.8585
+      },
+      "chunks": 1480,
+      "index_bytes": 9551872,
+      "latency_ms_p95": 12.096
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 200,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.9075,
+        "recall@20": 0.9795,
+        "ndcg@10": 0.8647,
+        "mrr": 0.8512
+      },
+      "chunks": 2344,
+      "index_bytes": 16547840,
+      "latency_ms_p95": 15.713
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 300,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.8593,
+        "recall@20": 0.9388,
+        "ndcg@10": 0.8324,
+        "mrr": 0.8186
+      },
+      "chunks": 811,
+      "index_bytes": 9269248,
+      "latency_ms_p95": 7.514
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 300,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.8964,
+        "recall@20": 0.9741,
+        "ndcg@10": 0.8755,
+        "mrr": 0.8686
+      },
+      "chunks": 1135,
+      "index_bytes": 13447168,
+      "latency_ms_p95": 9.753
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 300,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.9044,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.8957,
+        "mrr": 0.8829
+      },
+      "chunks": 1755,
+      "index_bytes": 19087360,
+      "latency_ms_p95": 17.418
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 300,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.95,
+        "recall@20": 0.9978,
+        "ndcg@10": 0.905,
+        "mrr": 0.8831
+      },
+      "chunks": 923,
+      "index_bytes": 8847360,
+      "latency_ms_p95": 13.338
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 300,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.887,
+        "recall@20": 0.9658,
+        "ndcg@10": 0.8659,
+        "mrr": 0.8475
+      },
+      "chunks": 1456,
+      "index_bytes": 14446592,
+      "latency_ms_p95": 13.323
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 400,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.8456,
+        "recall@20": 0.9511,
+        "ndcg@10": 0.8317,
+        "mrr": 0.8231
+      },
+      "chunks": 604,
+      "index_bytes": 9334784,
+      "latency_ms_p95": 6.391
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 400,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.8811,
+        "recall@20": 0.9741,
+        "ndcg@10": 0.8796,
+        "mrr": 0.8712
+      },
+      "chunks": 849,
+      "index_bytes": 13242368,
+      "latency_ms_p95": 8.457
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 400,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.9056,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.885,
+        "mrr": 0.8686
+      },
+      "chunks": 1308,
+      "index_bytes": 18624512,
+      "latency_ms_p95": 16.915
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 400,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.9693,
+        "recall@20": 0.9971,
+        "ndcg@10": 0.9186,
+        "mrr": 0.9018
+      },
+      "chunks": 677,
+      "index_bytes": 8835072,
+      "latency_ms_p95": 11.419
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 400,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.887,
+        "recall@20": 0.9726,
+        "ndcg@10": 0.8686,
+        "mrr": 0.8506
+      },
+      "chunks": 1090,
+      "index_bytes": 14311424,
+      "latency_ms_p95": 15.812
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 600,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.8287,
+        "recall@20": 0.9312,
+        "ndcg@10": 0.826,
+        "mrr": 0.8104
+      },
+      "chunks": 399,
+      "index_bytes": 10174464,
+      "latency_ms_p95": 7.455
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 600,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.8947,
+        "recall@20": 0.9574,
+        "ndcg@10": 0.8834,
+        "mrr": 0.8844
+      },
+      "chunks": 565,
+      "index_bytes": 13684736,
+      "latency_ms_p95": 8.974
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 600,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.9245,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.8841,
+        "mrr": 0.8848
+      },
+      "chunks": 866,
+      "index_bytes": 21319680,
+      "latency_ms_p95": 17.002
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 600,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.9542,
+        "recall@20": 0.9978,
+        "ndcg@10": 0.9081,
+        "mrr": 0.8921
+      },
+      "chunks": 431,
+      "index_bytes": 9285632,
+      "latency_ms_p95": 11.217
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 600,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.9007,
+        "recall@20": 0.9863,
+        "ndcg@10": 0.8741,
+        "mrr": 0.8552
+      },
+      "chunks": 733,
+      "index_bytes": 13565952,
+      "latency_ms_p95": 15.445
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 800,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.8486,
+        "recall@20": 0.9343,
+        "ndcg@10": 0.8175,
+        "mrr": 0.8024
+      },
+      "chunks": 299,
+      "index_bytes": 8695808,
+      "latency_ms_p95": 7.454
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 800,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.909,
+        "recall@20": 0.9796,
+        "ndcg@10": 0.8929,
+        "mrr": 0.8925
+      },
+      "chunks": 423,
+      "index_bytes": 11685888,
+      "latency_ms_p95": 8.925
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 800,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.9048,
+        "recall@20": 0.9495,
+        "ndcg@10": 0.8721,
+        "mrr": 0.8643
+      },
+      "chunks": 647,
+      "index_bytes": 17637376,
+      "latency_ms_p95": 15.571
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 800,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.9487,
+        "recall@20": 0.9985,
+        "ndcg@10": 0.9009,
+        "mrr": 0.8808
+      },
+      "chunks": 325,
+      "index_bytes": 8511488,
+      "latency_ms_p95": 11.289
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 800,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.8973,
+        "recall@20": 0.9863,
+        "ndcg@10": 0.8691,
+        "mrr": 0.8465
+      },
+      "chunks": 592,
+      "index_bytes": 13008896,
+      "latency_ms_p95": 14.948
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 1000,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.8624,
+        "recall@20": 0.9128,
+        "ndcg@10": 0.8238,
+        "mrr": 0.8085
+      },
+      "chunks": 239,
+      "index_bytes": 7774208,
+      "latency_ms_p95": 10.123
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 1000,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.9295,
+        "recall@20": 0.9907,
+        "ndcg@10": 0.8943,
+        "mrr": 0.8914
+      },
+      "chunks": 342,
+      "index_bytes": 10858496,
+      "latency_ms_p95": 7.842
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 1000,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.896,
+        "recall@20": 0.9596,
+        "ndcg@10": 0.8651,
+        "mrr": 0.8576
+      },
+      "chunks": 517,
+      "index_bytes": 16236544,
+      "latency_ms_p95": 16.52
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 1000,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.9745,
+        "recall@20": 0.9971,
+        "ndcg@10": 0.9173,
+        "mrr": 0.8995
+      },
+      "chunks": 262,
+      "index_bytes": 7966720,
+      "latency_ms_p95": 14.019
+    },
+    {
+      "config": "keyword",
+      "chunk_tokens": 1000,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.9315,
+        "recall@20": 0.9863,
+        "ndcg@10": 0.8685,
+        "mrr": 0.8378
+      },
+      "chunks": 545,
+      "index_bytes": 12570624,
+      "latency_ms_p95": 14.994
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 200,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.7232,
+        "recall@20": 0.8624,
+        "ndcg@10": 0.6649,
+        "mrr": 0.6482
+      },
+      "chunks": 1239,
+      "index_bytes": 10313728,
+      "latency_ms_p95": 24.361
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 200,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.6628,
+        "recall@20": 0.8946,
+        "ndcg@10": 0.6464,
+        "mrr": 0.639
+      },
+      "chunks": 1721,
+      "index_bytes": 14061568,
+      "latency_ms_p95": 29.583
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 200,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.7265,
+        "recall@20": 0.9527,
+        "ndcg@10": 0.6619,
+        "mrr": 0.6397
+      },
+      "chunks": 2667,
+      "index_bytes": 21274624,
+      "latency_ms_p95": 38.075
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 200,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.8122,
+        "recall@20": 0.9656,
+        "ndcg@10": 0.726,
+        "mrr": 0.6906
+      },
+      "chunks": 1480,
+      "index_bytes": 10571776,
+      "latency_ms_p95": 28.795
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 200,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.7979,
+        "recall@20": 0.9349,
+        "ndcg@10": 0.7059,
+        "mrr": 0.6572
+      },
+      "chunks": 2344,
+      "index_bytes": 17952768,
+      "latency_ms_p95": 41.349
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 300,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.6636,
+        "recall@20": 0.8318,
+        "ndcg@10": 0.6013,
+        "mrr": 0.5824
+      },
+      "chunks": 811,
+      "index_bytes": 9797632,
+      "latency_ms_p95": 29.051
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 300,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.6476,
+        "recall@20": 0.9247,
+        "ndcg@10": 0.6049,
+        "mrr": 0.5918
+      },
+      "chunks": 1135,
+      "index_bytes": 13451264,
+      "latency_ms_p95": 33.04
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 300,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.6979,
+        "recall@20": 0.9486,
+        "ndcg@10": 0.6687,
+        "mrr": 0.6616
+      },
+      "chunks": 1755,
+      "index_bytes": 20303872,
+      "latency_ms_p95": 37.554
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 300,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.7784,
+        "recall@20": 0.97,
+        "ndcg@10": 0.7192,
+        "mrr": 0.6833
+      },
+      "chunks": 923,
+      "index_bytes": 9490432,
+      "latency_ms_p95": 28.172
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 300,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.6986,
+        "recall@20": 0.9178,
+        "ndcg@10": 0.6475,
+        "mrr": 0.6039
+      },
+      "chunks": 1456,
+      "index_bytes": 15233024,
+      "latency_ms_p95": 37.487
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 400,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.6651,
+        "recall@20": 0.8823,
+        "ndcg@10": 0.6261,
+        "mrr": 0.6089
+      },
+      "chunks": 604,
+      "index_bytes": 9338880,
+      "latency_ms_p95": 28.777
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 400,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.6518,
+        "recall@20": 0.9103,
+        "ndcg@10": 0.5902,
+        "mrr": 0.5781
+      },
+      "chunks": 849,
+      "index_bytes": 13238272,
+      "latency_ms_p95": 27.221
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 400,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.6667,
+        "recall@20": 0.9385,
+        "ndcg@10": 0.6338,
+        "mrr": 0.6132
+      },
+      "chunks": 1308,
+      "index_bytes": 19189760,
+      "latency_ms_p95": 43.12
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 400,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.8184,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.7338,
+        "mrr": 0.6928
+      },
+      "chunks": 677,
+      "index_bytes": 9043968,
+      "latency_ms_p95": 31.42
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 400,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.6884,
+        "recall@20": 0.9212,
+        "ndcg@10": 0.5958,
+        "mrr": 0.5466
+      },
+      "chunks": 1090,
+      "index_bytes": 14311424,
+      "latency_ms_p95": 36.15
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 600,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.6009,
+        "recall@20": 0.893,
+        "ndcg@10": 0.5412,
+        "mrr": 0.4917
+      },
+      "chunks": 399,
+      "index_bytes": 10170368,
+      "latency_ms_p95": 25.291
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 600,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.6648,
+        "recall@20": 0.9296,
+        "ndcg@10": 0.5931,
+        "mrr": 0.5614
+      },
+      "chunks": 565,
+      "index_bytes": 13684736,
+      "latency_ms_p95": 37.179
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 600,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.6798,
+        "recall@20": 0.9495,
+        "ndcg@10": 0.6201,
+        "mrr": 0.5971
+      },
+      "chunks": 866,
+      "index_bytes": 21323776,
+      "latency_ms_p95": 43.108
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 600,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.8447,
+        "recall@20": 0.9963,
+        "ndcg@10": 0.6988,
+        "mrr": 0.6599
+      },
+      "chunks": 431,
+      "index_bytes": 9281536,
+      "latency_ms_p95": 39.56
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 600,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.6678,
+        "recall@20": 0.9349,
+        "ndcg@10": 0.5972,
+        "mrr": 0.5415
+      },
+      "chunks": 733,
+      "index_bytes": 13856768,
+      "latency_ms_p95": 33.353
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 800,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.607,
+        "recall@20": 0.8945,
+        "ndcg@10": 0.5718,
+        "mrr": 0.5272
+      },
+      "chunks": 299,
+      "index_bytes": 8699904,
+      "latency_ms_p95": 30.783
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 800,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.6914,
+        "recall@20": 0.9574,
+        "ndcg@10": 0.5778,
+        "mrr": 0.5509
+      },
+      "chunks": 423,
+      "index_bytes": 11681792,
+      "latency_ms_p95": 34.679
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 800,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.6498,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.576,
+        "mrr": 0.5309
+      },
+      "chunks": 647,
+      "index_bytes": 17641472,
+      "latency_ms_p95": 39.026
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 800,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.7914,
+        "recall@20": 0.9883,
+        "ndcg@10": 0.6734,
+        "mrr": 0.6254
+      },
+      "chunks": 325,
+      "index_bytes": 8658944,
+      "latency_ms_p95": 35.129
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 800,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.6678,
+        "recall@20": 0.9384,
+        "ndcg@10": 0.5673,
+        "mrr": 0.5104
+      },
+      "chunks": 592,
+      "index_bytes": 13422592,
+      "latency_ms_p95": 36.984
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 1000,
+      "library": "novel",
+      "sample": false,
+      "queries": 125,
+      "metrics": {
+        "recall@5": 0.5963,
+        "recall@20": 0.9495,
+        "ndcg@10": 0.543,
+        "mrr": 0.4946
+      },
+      "chunks": 239,
+      "index_bytes": 7770112,
+      "latency_ms_p95": 36.705
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 1000,
+      "library": "series",
+      "sample": false,
+      "queries": 124,
+      "metrics": {
+        "recall@5": 0.7071,
+        "recall@20": 0.9778,
+        "ndcg@10": 0.5979,
+        "mrr": 0.5661
+      },
+      "chunks": 342,
+      "index_bytes": 10862592,
+      "latency_ms_p95": 35.223
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 1000,
+      "library": "humanities",
+      "sample": false,
+      "queries": 109,
+      "metrics": {
+        "recall@5": 0.6659,
+        "recall@20": 0.9596,
+        "ndcg@10": 0.6062,
+        "mrr": 0.5641
+      },
+      "chunks": 517,
+      "index_bytes": 16240640,
+      "latency_ms_p95": 46.097
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 1000,
+      "library": "webclips",
+      "sample": false,
+      "queries": 130,
+      "metrics": {
+        "recall@5": 0.8255,
+        "recall@20": 0.9985,
+        "ndcg@10": 0.6979,
+        "mrr": 0.6498
+      },
+      "chunks": 262,
+      "index_bytes": 7966720,
+      "latency_ms_p95": 33.838
+    },
+    {
+      "config": "hybrid-fake",
+      "chunk_tokens": 1000,
+      "library": "papers",
+      "sample": false,
+      "queries": 160,
+      "metrics": {
+        "recall@5": 0.6233,
+        "recall@20": 0.9521,
+        "ndcg@10": 0.551,
+        "mrr": 0.4811
+      },
+      "chunks": 545,
+      "index_bytes": 12857344,
+      "latency_ms_p95": 35.829
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 200,
+      "library": "novel",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.9091,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.9264,
+        "mrr": 0.9333
+      },
+      "chunks": 238,
+      "index_bytes": 2977792,
+      "latency_ms_p95": 118.839
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 200,
+      "library": "papers",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.8636,
+        "recall@20": 1.0,
+        "ndcg@10": 0.866,
+        "mrr": 0.8259
+      },
+      "chunks": 140,
+      "index_bytes": 1769472,
+      "latency_ms_p95": 208.235
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 300,
+      "library": "novel",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.8788,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.8561,
+        "mrr": 0.8712
+      },
+      "chunks": 156,
+      "index_bytes": 2576384,
+      "latency_ms_p95": 188.494
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 300,
+      "library": "papers",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.8636,
+        "recall@20": 1.0,
+        "ndcg@10": 0.822,
+        "mrr": 0.7675
+      },
+      "chunks": 85,
+      "index_bytes": 1404928,
+      "latency_ms_p95": 250.726
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 400,
+      "library": "novel",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.7879,
+        "recall@20": 0.9545,
+        "ndcg@10": 0.8277,
+        "mrr": 0.8827
+      },
+      "chunks": 116,
+      "index_bytes": 2334720,
+      "latency_ms_p95": 233.11
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 400,
+      "library": "papers",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.9545,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8162,
+        "mrr": 0.7572
+      },
+      "chunks": 63,
+      "index_bytes": 1277952,
+      "latency_ms_p95": 131.246
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 600,
+      "library": "novel",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.7424,
+        "recall@20": 0.9848,
+        "ndcg@10": 0.7518,
+        "mrr": 0.7283
+      },
+      "chunks": 77,
+      "index_bytes": 2334720,
+      "latency_ms_p95": 233.492
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 600,
+      "library": "papers",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.8182,
+        "recall@20": 1.0,
+        "ndcg@10": 0.7921,
+        "mrr": 0.7293
+      },
+      "chunks": 42,
+      "index_bytes": 1155072,
+      "latency_ms_p95": 214.306
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 800,
+      "library": "novel",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.8333,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.7952,
+        "mrr": 0.806
+      },
+      "chunks": 58,
+      "index_bytes": 2002944,
+      "latency_ms_p95": 183.648
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 800,
+      "library": "papers",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.9091,
+        "recall@20": 1.0,
+        "ndcg@10": 0.7531,
+        "mrr": 0.6754
+      },
+      "chunks": 35,
+      "index_bytes": 1118208,
+      "latency_ms_p95": 215.325
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 1000,
+      "library": "novel",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.7273,
+        "recall@20": 0.9697,
+        "ndcg@10": 0.7868,
+        "mrr": 0.773
+      },
+      "chunks": 47,
+      "index_bytes": 1748992,
+      "latency_ms_p95": 195.638
+    },
+    {
+      "config": "hybrid-qwen3",
+      "chunk_tokens": 1000,
+      "library": "papers",
+      "sample": true,
+      "queries": 24,
+      "metrics": {
+        "recall@5": 0.8636,
+        "recall@20": 1.0,
+        "ndcg@10": 0.7893,
+        "mrr": 0.7405
+      },
+      "chunks": 34,
+      "index_bytes": 1101824,
+      "latency_ms_p95": 251.236
+    }
+  ]
+}

@@ -524,7 +524,9 @@ moved hit's `prior_rank`, `rerank_rank` and `rerank_score`, so the order stays i
 **Measured on 16 October 2026 on a shared 4-core Xeon container at 2.1 GHz (Linux, ONNX Runtime 1.31 CPU,
 other processes running; load average about 4 to 8), which is not target hardware.** Raw data:
 [`benchmarks/0.4-semantic-tier.json`](benchmarks/0.4-semantic-tier.json) and
-[`benchmarks/0.4-vector-search.json`](benchmarks/0.4-vector-search.json).
+[`benchmarks/0.4-vector-search.json`](benchmarks/0.4-vector-search.json). Retrieval quality, quote
+verification, false-absence checks, route accuracy and latency across all fixture libraries are published in
+[Context engine benchmarks](benchmarks/context-engine.md).
 
 Chunk target 200 estimated tokens, 1421 chunks, 14 queries scored (embedding 332 ms per chunk):
 

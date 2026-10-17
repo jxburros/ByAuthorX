@@ -9,7 +9,16 @@ files that were measured on the same host.
 | --- | --- | --- |
 | `0.2-layout-before.json`, `0.2-layout-after.json`, `0.2-scaling.json` | `scripts/benchmark.py` | Layout, commit and GUI latencies (see the [acceptance matrix](../acceptance-matrix.md)) |
 | `context-0.2-baseline.json` | `scripts/eval_retrieval.py --baseline` | Retrieval baseline of the context engine: keyword search on the 0.2.0 engine |
+| `context-0.4-keyword.json`, `-context.json`, `-hybrid-fake.json` | `scripts/eval_retrieval.py --configs <config>` | Full-fixture runs on the 0.4 engine (chunker v3, schema 3): keyword search, `retrieve_context`, hybrid with the hashing embedder |
+| `context-0.4-keyword-sample.json`, `-hybrid-qwen3.json`, `-hybrid-qwen3-colbert.json` | `scripts/eval_retrieval.py --sample --configs <config>` | The same sample of queries with keyword search, the on-device Qwen3 embedder, and Qwen3 plus the ColBERT re-ranker |
+| `context-0.4-quotes.json` | `scripts/eval_quotes.py` | Quote verification: raw against normalised pass rate on 133 genuine PDF quotes and the near-match threshold sweep |
+| `context-0.4-chunk-sweep.json`, `context-0.4-fusion.json` | `scripts/eval_chunk_sweep.py`, `scripts/eval_fusion.py` | Chunk-size sweep (200 to 1,000 tokens) and keyword-weight sweep of the hybrid fusion |
 | `context-<version>-<config>.json` | `scripts/eval_retrieval.py --configs <config>` | The same measurements for another engine version or retrieval configuration |
+
+The results are summarised, with their limits, in [Context engine benchmarks](context-engine.md).
+
+Read [Context engine benchmarks](context-engine.md) first: it tabulates retrieval, citation fidelity, false
+absence, quote verification, route accuracy and latency for 0.4 and compares them with the baseline below.
 
 ## Retrieval evaluation (`context-*.json`)
 
@@ -29,10 +38,10 @@ report has one block per library (`novel`, `series`, `humanities`, `webclips`, `
 | `index` | Documents, chunks, bytes of the derived SQLite index, `build_seconds` (parse, chunk, FTS) and `prepare_seconds` (embedding) |
 | `alignment` | Hits whose chunk could not be mapped back to source offsets (should be 0) |
 
-Labels are locators (`{path, page}` or `{path, start, end}`), never chunk IDs, so a new chunker does not
-invalidate them. A hit is relevant when its own span overlaps a locator.
+Labels are locators (`{path, page}` or `{path, start, end}`), never chunk IDs, so a new chunker (schema 3
+merges lines into chunks of about 400 tokens) does not invalidate them. A hit is relevant when its own span overlaps a locator.
 
-**The 0.2.0 baseline** (`context-0.2-baseline.json`; keyword search, measured on 0.3.0 because the harness
+**The 0.2.0 baseline** (`context-0.2-baseline.json`, still the reference every later file is compared with; keyword search, measured on 0.3.0 because the harness
 needs this checkout and retrieval is unchanged between the two releases). Host: 4 logical CPUs (Intel Xeon
 2.1 GHz), 15.7 GiB, Python 3.13, an unqualified machine that shared its CPUs with other jobs (load average 5.7 at
 the start; process CPU time of the searches is recorded beside wall time as `latency_cpu_ms` and is within

@@ -1,0 +1,1931 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-17T02:05:39.818543+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "memory_gib": 15.7,
+    "python": "3.13.16",
+    "sqlite": "3.45.1",
+    "engine": "0.3.0",
+    "load_average_1m_5m_15m": [
+      4.17,
+      4.47,
+      4.01
+    ],
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "embedder": "qwen3-embedding-0.6b-int8",
+  "summary_macro": {
+    "1": {
+      "recall@5": 0.931,
+      "recall@20": 0.9966,
+      "ndcg@10": 0.8488,
+      "mrr": 0.8157
+    },
+    "2": {
+      "recall@5": 0.9647,
+      "recall@20": 0.9926,
+      "ndcg@10": 0.8832,
+      "mrr": 0.8558
+    },
+    "3": {
+      "recall@5": 0.9788,
+      "recall@20": 0.9915,
+      "ndcg@10": 0.9056,
+      "mrr": 0.8845
+    },
+    "4": {
+      "recall@5": 0.9834,
+      "recall@20": 0.9926,
+      "ndcg@10": 0.9214,
+      "mrr": 0.9034
+    },
+    "keyword": {
+      "recall@5": 0.9811,
+      "recall@20": 0.9915,
+      "ndcg@10": 0.9646,
+      "mrr": 0.9567
+    }
+  },
+  "runs": [
+    {
+      "library": "novel",
+      "keyword_weight": 1,
+      "metrics": {
+        "recall@5": 0.8621,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.8509,
+        "mrr": 0.8708
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.8,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7918,
+          "mrr": 0.8583
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 0.8,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7047,
+          "mrr": 0.6361
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.8,
+          "recall@20": 0.8667,
+          "ndcg@10": 0.8,
+          "mrr": 0.8125
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 0.9091,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9048,
+          "mrr": 0.9318
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.5,
+          "recall@20": 0.8333,
+          "ndcg@10": 0.7388,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9483,
+        "recall@20": 0.9713,
+        "ndcg@10": 0.9315,
+        "mrr": 0.9124
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9604,
+          "mrr": 0.9333
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9131,
+          "mrr": 0.8833
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.6,
+          "recall@20": 0.8,
+          "ndcg@10": 0.6943,
+          "mrr": 0.6333
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.6667,
+          "recall@20": 0.6667,
+          "ndcg@10": 0.4102,
+          "mrr": 0.2917
+        }
+      },
+      "queries": 74
+    },
+    {
+      "library": "novel",
+      "keyword_weight": 2,
+      "metrics": {
+        "recall@5": 0.9224,
+        "recall@20": 0.977,
+        "ndcg@10": 0.8934,
+        "mrr": 0.898
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8665,
+          "mrr": 0.8833
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 0.95,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7848,
+          "mrr": 0.725
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.8,
+          "recall@20": 0.8,
+          "ndcg@10": 0.7466,
+          "mrr": 0.7
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 0.9545,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9665,
+          "mrr": 0.9773
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.5,
+          "recall@20": 0.8333,
+          "ndcg@10": 0.6539,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9483,
+        "recall@20": 0.9713,
+        "ndcg@10": 0.9315,
+        "mrr": 0.9124
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9604,
+          "mrr": 0.9333
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9131,
+          "mrr": 0.8833
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.6,
+          "recall@20": 0.8,
+          "ndcg@10": 0.6943,
+          "mrr": 0.6333
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.6667,
+          "recall@20": 0.6667,
+          "ndcg@10": 0.4102,
+          "mrr": 0.2917
+        }
+      },
+      "queries": 74
+    },
+    {
+      "library": "novel",
+      "keyword_weight": 3,
+      "metrics": {
+        "recall@5": 0.9368,
+        "recall@20": 0.9713,
+        "ndcg@10": 0.9072,
+        "mrr": 0.9138
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9081,
+          "mrr": 0.9333
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.819,
+          "mrr": 0.7833
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.7333,
+          "recall@20": 0.8,
+          "ndcg@10": 0.7167,
+          "mrr": 0.6667
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 0.9848,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9752,
+          "mrr": 0.9773
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.5,
+          "recall@20": 0.6667,
+          "ndcg@10": 0.6539,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9483,
+        "recall@20": 0.9713,
+        "ndcg@10": 0.9315,
+        "mrr": 0.9124
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9604,
+          "mrr": 0.9333
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9131,
+          "mrr": 0.8833
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.6,
+          "recall@20": 0.8,
+          "ndcg@10": 0.6943,
+          "mrr": 0.6333
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.6667,
+          "recall@20": 0.6667,
+          "ndcg@10": 0.4102,
+          "mrr": 0.2917
+        }
+      },
+      "queries": 74
+    },
+    {
+      "library": "novel",
+      "keyword_weight": 4,
+      "metrics": {
+        "recall@5": 0.9598,
+        "recall@20": 0.977,
+        "ndcg@10": 0.9224,
+        "mrr": 0.9239
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9218,
+          "mrr": 0.9333
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.869,
+          "mrr": 0.85
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.7333,
+          "recall@20": 0.8,
+          "ndcg@10": 0.708,
+          "mrr": 0.65
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9961,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.5,
+          "recall@20": 0.8333,
+          "ndcg@10": 0.5673,
+          "mrr": 0.75
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9483,
+        "recall@20": 0.9713,
+        "ndcg@10": 0.9315,
+        "mrr": 0.9124
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9604,
+          "mrr": 0.9333
+        },
+        "continuity": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9131,
+          "mrr": 0.8833
+        },
+        "factual_lookup": {
+          "queries": 5,
+          "recall@5": 0.6,
+          "recall@20": 0.8,
+          "ndcg@10": 0.6943,
+          "mrr": 0.6333
+        },
+        "known_item_quote": {
+          "queries": 22,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 2,
+          "recall@5": 0.6667,
+          "recall@20": 0.6667,
+          "ndcg@10": 0.4102,
+          "mrr": 0.2917
+        }
+      },
+      "queries": 74
+    },
+    {
+      "library": "series",
+      "keyword_weight": 1,
+      "metrics": {
+        "recall@5": 0.9306,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8322,
+        "mrr": 0.7884
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8143,
+          "mrr": 0.75
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8154,
+          "mrr": 0.7963
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 0.8929,
+          "recall@20": 1.0,
+          "ndcg@10": 0.78,
+          "mrr": 0.7102
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9722,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.962,
+        "mrr": 0.9592
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.8947,
+          "mrr": 0.898
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
+        }
+      },
+      "queries": 88
+    },
+    {
+      "library": "series",
+      "keyword_weight": 2,
+      "metrics": {
+        "recall@5": 0.9583,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.8759,
+        "mrr": 0.8446
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9148,
+          "mrr": 0.8846
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.819,
+          "mrr": 0.7971
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 0.9643,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8432,
+          "mrr": 0.7917
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9722,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.962,
+        "mrr": 0.9592
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.8947,
+          "mrr": 0.898
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
+        }
+      },
+      "queries": 88
+    },
+    {
+      "library": "series",
+      "keyword_weight": 3,
+      "metrics": {
+        "recall@5": 0.9722,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.9072,
+        "mrr": 0.8863
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9716,
+          "mrr": 0.9615
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.8453,
+          "mrr": 0.8325
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8794,
+          "mrr": 0.8393
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9722,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.962,
+        "mrr": 0.9592
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.8947,
+          "mrr": 0.898
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
+        }
+      },
+      "queries": 88
+    },
+    {
+      "library": "series",
+      "keyword_weight": 4,
+      "metrics": {
+        "recall@5": 0.9722,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.9179,
+        "mrr": 0.9002
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.849,
+          "mrr": 0.8368
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8912,
+          "mrr": 0.8542
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9722,
+        "recall@20": 0.9861,
+        "ndcg@10": 0.962,
+        "mrr": 0.9592
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 19,
+          "recall@5": 0.8947,
+          "recall@20": 0.9474,
+          "ndcg@10": 0.8947,
+          "mrr": 0.898
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 4,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
+        }
+      },
+      "queries": 88
+    },
+    {
+      "library": "humanities",
+      "keyword_weight": 1,
+      "metrics": {
+        "recall@5": 0.9552,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8346,
+        "mrr": 0.7814
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8063,
+          "mrr": 0.7443
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.854,
+          "mrr": 0.8059
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 0.9286,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8091,
+          "mrr": 0.7491
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9759,
+        "mrr": 0.974
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9231,
+          "mrr": 0.9274
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9639,
+          "mrr": 0.9529
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 77
+    },
+    {
+      "library": "humanities",
+      "keyword_weight": 2,
+      "metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8773,
+        "mrr": 0.843
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8663,
+          "mrr": 0.8526
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.886,
+          "mrr": 0.848
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.851,
+          "mrr": 0.803
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9759,
+        "mrr": 0.974
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9231,
+          "mrr": 0.9274
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9639,
+          "mrr": 0.9529
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 77
+    },
+    {
+      "library": "humanities",
+      "keyword_weight": 3,
+      "metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9077,
+        "mrr": 0.8829
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8947,
+          "mrr": 0.8901
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9113,
+          "mrr": 0.8824
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8951,
+          "mrr": 0.8601
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9759,
+        "mrr": 0.974
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9231,
+          "mrr": 0.9274
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9639,
+          "mrr": 0.9529
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 77
+    },
+    {
+      "library": "humanities",
+      "keyword_weight": 4,
+      "metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9156,
+        "mrr": 0.8928
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9539,
+          "mrr": 0.9375
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8947,
+          "mrr": 0.8897
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9154,
+          "mrr": 0.8873
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9116,
+          "mrr": 0.881
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 0.9851,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9759,
+        "mrr": 0.974
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 8,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 13,
+          "recall@5": 0.9231,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9231,
+          "mrr": 0.9274
+        },
+        "factual_lookup": {
+          "queries": 17,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9639,
+          "mrr": 0.9529
+        },
+        "known_item_quote": {
+          "queries": 28,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 1,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 77
+    },
+    {
+      "library": "webclips",
+      "keyword_weight": 1,
+      "metrics": {
+        "recall@5": 0.9367,
+        "recall@20": 1.0,
+        "ndcg@10": 0.856,
+        "mrr": 0.8098
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.7,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7987,
+          "mrr": 0.7417
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9005,
+          "mrr": 0.8667
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 0.9333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8627,
+          "mrr": 0.8192
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.649,
+          "mrr": 0.5315
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9538,
+        "mrr": 0.9378
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.941,
+          "mrr": 0.9206
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9877,
+          "mrr": 0.9833
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7727,
+          "mrr": 0.6944
+        }
+      },
+      "queries": 95
+    },
+    {
+      "library": "webclips",
+      "keyword_weight": 2,
+      "metrics": {
+        "recall@5": 0.9873,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8837,
+        "mrr": 0.8456
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 0.9,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8287,
+          "mrr": 0.775
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9357,
+          "mrr": 0.9143
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8974,
+          "mrr": 0.8644
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6616,
+          "mrr": 0.5463
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9538,
+        "mrr": 0.9378
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.941,
+          "mrr": 0.9206
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9877,
+          "mrr": 0.9833
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7727,
+          "mrr": 0.6944
+        }
+      },
+      "queries": 95
+    },
+    {
+      "library": "webclips",
+      "keyword_weight": 3,
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8973,
+        "mrr": 0.8622
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8762,
+          "mrr": 0.8333
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9181,
+          "mrr": 0.8905
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9274,
+          "mrr": 0.9028
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6693,
+          "mrr": 0.5556
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9538,
+        "mrr": 0.9378
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.941,
+          "mrr": 0.9206
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9877,
+          "mrr": 0.9833
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7727,
+          "mrr": 0.6944
+        }
+      },
+      "queries": 95
+    },
+    {
+      "library": "webclips",
+      "keyword_weight": 4,
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9059,
+        "mrr": 0.8734
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9131,
+          "mrr": 0.8833
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9202,
+          "mrr": 0.8929
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9318,
+          "mrr": 0.9083
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6838,
+          "mrr": 0.5741
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9538,
+        "mrr": 0.9378
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 21,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.941,
+          "mrr": 0.9206
+        },
+        "known_item_quote": {
+          "queries": 30,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9877,
+          "mrr": 0.9833
+        },
+        "thematic": {
+          "queries": 9,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7727,
+          "mrr": 0.6944
+        }
+      },
+      "queries": 95
+    },
+    {
+      "library": "papers",
+      "keyword_weight": 1,
+      "metrics": {
+        "recall@5": 0.9706,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8702,
+        "mrr": 0.8282
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9631,
+          "mrr": 0.95
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 0.8333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8859,
+          "mrr": 0.8542
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6988,
+          "mrr": 0.5972
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8978,
+          "mrr": 0.8667
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8436,
+          "mrr": 0.7917
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 1.0,
+        "mrr": 1.0
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 48
+    },
+    {
+      "library": "papers",
+      "keyword_weight": 2,
+      "metrics": {
+        "recall@5": 0.9706,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8856,
+        "mrr": 0.848
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9631,
+          "mrr": 0.95
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 0.8333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8927,
+          "mrr": 0.8611
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7603,
+          "mrr": 0.6806
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9051,
+          "mrr": 0.875
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8552,
+          "mrr": 0.8056
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 1.0,
+        "mrr": 1.0
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 48
+    },
+    {
+      "library": "papers",
+      "keyword_weight": 3,
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9084,
+        "mrr": 0.8775
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9631,
+          "mrr": 0.95
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9051,
+          "mrr": 0.875
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7821,
+          "mrr": 0.7083
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9167,
+          "mrr": 0.8889
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9385,
+          "mrr": 0.9167
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 1.0,
+        "mrr": 1.0
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 48
+    },
+    {
+      "library": "papers",
+      "keyword_weight": 4,
+      "metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.945,
+        "mrr": 0.9265
+      },
+      "by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9167,
+          "mrr": 0.8889
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8552,
+          "mrr": 0.8056
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.9167,
+          "mrr": 0.8889
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "keyword_metrics": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 1.0,
+        "mrr": 1.0
+      },
+      "keyword_by_type": {
+        "absence_probe": {
+          "queries": 10,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "citation_locating": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "known_item_quote": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "thematic": {
+          "queries": 6,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        }
+      },
+      "queries": 48
+    }
+  ]
+}

@@ -1,0 +1,181 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-17T02:07:45.163416+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "memory_gib": 15.7,
+    "python": "3.13.16",
+    "sqlite": "3.45.1",
+    "engine": "0.3.0",
+    "load_average_1m_5m_15m": [
+      2.87,
+      3.77,
+      3.8
+    ],
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "papers": "full 30-article set",
+  "current_near_threshold": 94.0,
+  "genuine_quotes": {
+    "quotes": 133,
+    "by_match": {
+      "exact": 86,
+      "normalized": 44,
+      "near": 3,
+      "none": 0
+    },
+    "raw_pass_rate": 0.6466,
+    "normalized_pass_rate": 0.9774,
+    "unverified": 3
+  },
+  "threshold_cases": {
+    "noisy": 120,
+    "reworded": 120,
+    "spliced": 120,
+    "shuffled": 120,
+    "neighbour": 120
+  },
+  "threshold_sweep": [
+    {
+      "threshold": 70,
+      "precision": 0.2549,
+      "recall": 0.9833,
+      "false_positive_rate": 0.7188,
+      "false_positives_by_kind": {
+        "reworded": 120,
+        "spliced": 107,
+        "shuffled": 118,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 75,
+      "precision": 0.3081,
+      "recall": 0.9833,
+      "false_positive_rate": 0.5521,
+      "false_positives_by_kind": {
+        "reworded": 113,
+        "spliced": 47,
+        "shuffled": 105,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 80,
+      "precision": 0.3986,
+      "recall": 0.9833,
+      "false_positive_rate": 0.3708,
+      "false_positives_by_kind": {
+        "reworded": 102,
+        "spliced": 20,
+        "shuffled": 56,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 84,
+      "precision": 0.4876,
+      "recall": 0.9833,
+      "false_positive_rate": 0.2583,
+      "false_positives_by_kind": {
+        "reworded": 84,
+        "spliced": 12,
+        "shuffled": 28,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 86,
+      "precision": 0.5514,
+      "recall": 0.9833,
+      "false_positive_rate": 0.2,
+      "false_positives_by_kind": {
+        "reworded": 75,
+        "spliced": 5,
+        "shuffled": 16,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 88,
+      "precision": 0.6556,
+      "recall": 0.9833,
+      "false_positive_rate": 0.1292,
+      "false_positives_by_kind": {
+        "reworded": 54,
+        "spliced": 2,
+        "shuffled": 6,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 90,
+      "precision": 0.7468,
+      "recall": 0.9833,
+      "false_positive_rate": 0.0833,
+      "false_positives_by_kind": {
+        "reworded": 36,
+        "spliced": 0,
+        "shuffled": 4,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 92,
+      "precision": 0.9147,
+      "recall": 0.9833,
+      "false_positive_rate": 0.0229,
+      "false_positives_by_kind": {
+        "reworded": 10,
+        "spliced": 0,
+        "shuffled": 1,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 94,
+      "precision": 0.9916,
+      "recall": 0.9833,
+      "false_positive_rate": 0.0021,
+      "false_positives_by_kind": {
+        "reworded": 1,
+        "spliced": 0,
+        "shuffled": 0,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 96,
+      "precision": 1.0,
+      "recall": 0.9,
+      "false_positive_rate": 0.0,
+      "false_positives_by_kind": {
+        "reworded": 0,
+        "spliced": 0,
+        "shuffled": 0,
+        "neighbour": 0
+      }
+    },
+    {
+      "threshold": 98,
+      "precision": 1.0,
+      "recall": 0.65,
+      "false_positive_rate": 0.0,
+      "false_positives_by_kind": {
+        "reworded": 0,
+        "spliced": 0,
+        "shuffled": 0,
+        "neighbour": 0
+      }
+    }
+  ],
+  "definitions": {
+    "raw_pass_rate": "Share of genuine quotes found byte for byte in the cited page text.",
+    "normalized_pass_rate": "Share found exactly or after NFC, quote/dash/ligature folding and hyphenation joining.",
+    "precision": "Of altered or genuine-but-noisy quotes accepted as a near match, the share that were the passage's own words.",
+    "recall": "Share of noisy genuine quotes that a near match recovered."
+  }
+}

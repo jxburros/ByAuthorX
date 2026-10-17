@@ -17,9 +17,9 @@ import sys
 import tempfile
 import time
 import uuid
-from stat import S_ISREG
 from contextlib import contextmanager
 from pathlib import Path
+from stat import S_ISREG
 
 from .context_assembly import estimate_tokens, tokens_to_chars
 from .errors import ByaxError
@@ -970,7 +970,7 @@ class LibraryIndex:
             # Expressions are built from quoted word tokens only; report rather than leak SQL.
             raise ByaxError('invalid_input', 'Search query cannot be evaluated', reason=str(exc)) from exc
 
-    def _ranked(self, db, table, expression):
+    def _ranked(self, db, table, expression, limit=None):
         """Matching chunks in rank order straight from the FTS table: id, rowid and score only.
 
         No join: the document and content hash of a row are looked up (``_documents``) only for the rows
@@ -982,11 +982,15 @@ class LibraryIndex:
         try:
             return db.execute(
                 f"""SELECT chunk_id,rowid,bm25({table},{weights}) AS score FROM {table}
-                    WHERE {table} MATCH ? ORDER BY score,chunk_id""",
+                    WHERE {table} MATCH ? ORDER BY score,chunk_id{' LIMIT ' + str(int(limit)) if limit else ''}""",
                 (expression,),
             ).fetchall()
         except sqlite3.OperationalError as exc:
             raise ByaxError('invalid_input', 'Search query cannot be evaluated', reason=str(exc)) from exc
+
+    @staticmethod
+    def _count(db, table, expression):
+        return db.execute(f'SELECT count(*) FROM {table} WHERE {table} MATCH ?', (expression,)).fetchone()[0]
 
     @staticmethod
     def _documents(db, rowids):
@@ -1124,7 +1128,22 @@ class LibraryIndex:
                     seen.add(row['chunk_id'])
                     located.append((row, paths, label, content_hash))
 
-            collect(self._ranked(db, 'search', expression), 'porter')
+            # Only the head of a large ranking is needed: take twice the rows the page examines, count the
+            # rest, and fall back to the full ranking if too many of the head turn out to be unusable.
+            cap = max(2 * needed, 400)
+            head = self._ranked(db, 'search', expression, limit=None if filtered else cap + 1)
+            if len(head) > cap:
+                matches, head = self._count(db, 'search', expression), head[:cap]
+                collect(head, 'porter')
+                if len(located) < needed:
+                    located.clear()
+                    seen.clear()
+                    unchecked = 0
+                    collect(self._ranked(db, 'search', expression), 'porter')
+                else:
+                    unchecked += matches - len(head)
+            else:
+                collect(head, 'porter')
             report['passes'].append('porter')
             # Substring and mid-word matches only when the stemmed pass is short of k hits.
             trigram = parsed.trigram() if self.trigram else None

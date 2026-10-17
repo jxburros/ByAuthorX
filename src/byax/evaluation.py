@@ -427,7 +427,9 @@ def reopen_corpus(name: str, workdir: Path, info: dict) -> Corpus:
     from .libraries import LibraryIndex, LibraryRegistry
 
     root = Path(info['root'])
-    registry = LibraryRegistry(Path(workdir) / name / 'config')
+    registry = LibraryRegistry(
+        root.parent / 'config'
+    )  # the registry that built the index sits beside the corpus
     index = LibraryIndex(info['library'], info['cache'], limits={'chunks': 2_000_000})
     source_map = {
         p.relative_to(root).as_posix(): p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()
@@ -479,6 +481,8 @@ class RetrievalConfig:
     sample_libraries: tuple[str, ...] | None = None
     # Score only these query types (a reranker is judged on the hard ones). None scores everything.
     types: tuple[str, ...] | None = None
+    # Also run the exhaustive lexical absence check (retrieval.verify_absence) over the absence probes.
+    check_absence = False
     samples: ClassVar[dict[str, dict]] = {}  # read-only class data
 
     def prepare(self, corpus: Corpus) -> dict:
@@ -494,7 +498,10 @@ class RetrievalConfig:
 
 class KeywordConfig(RetrievalConfig):
     name = 'keyword'
-    description = 'LibraryIndex.search: FTS5 BM25 over line/paragraph chunks (the 0.2.0 engine).'
+    description = (
+        'LibraryIndex.search: FTS5 BM25 over the index chunks (porter, then trigram when short of hits).'
+    )
+    check_absence = True
 
     def search(self, corpus, query, limit):
         return corpus.index.search(query, limit=min(limit, int(corpus.index.limits['results'])))['results']
@@ -607,7 +614,7 @@ class RerankedConfig(LocalModelConfig):
     """On-device hybrid search followed by a catalogue reranker (late-interaction ColBERT by default) over the
     top candidates, scored on the query types where ranking order matters most."""
 
-    types = ('thematic', 'continuity')  # noqa: RUF012 - read-only class data
+    types = ('thematic', 'continuity')
 
     def __init__(self, reranker='answerai-colbert-small-v1', name='hybrid-qwen3-colbert', depth=40, **kwargs):
         super().__init__(name=name, **kwargs)
@@ -660,9 +667,10 @@ CONFIGS: dict[str, Callable[[], RetrievalConfig]] = {
     'keyword': KeywordConfig,
     'context': ContextConfig,
     'hybrid-fake': HybridConfig,
-    'hybrid-model': lambda: model_hybrid_config(
-        {}
-    ),  # needs provider/dimension: pass a dict to resolve_config
+    'hybrid-qwen3': LocalModelConfig,
+    'hybrid-qwen3-colbert': RerankedConfig,
+    # needs provider and dimension: pass a dict to resolve_config
+    'hybrid-model': lambda: model_hybrid_config({}),
 }
 
 
@@ -846,6 +854,43 @@ def thin_queries(queries: list[dict], limit: int) -> list[dict]:
     return sorted(chosen, key=lambda q: q['id'])
 
 
+def verified_absence(corpus: Corpus, queries: list[dict]) -> dict:
+    """False absence through ``retrieval.verify_absence``, the exhaustive lexical pass behind "not found".
+
+    Literal probes occur in the corpus, so every one must be reported found (a miss is a false absence).
+    Absent-term probes occur nowhere as written, so none may be reported as a literal match; a stemmed
+    variant (soothed for soothing) is listed separately because the pass is stem-based by design. Word
+    pairs that merely never share a passage are semantic absence and not part of this lexical check.
+    """
+    from .retrieval import verify_absence
+
+    def run(term):
+        report = verify_absence(
+            [term], [corpus.library], registry=corpus.registry, cache_dir=corpus.cache_dir, limit=100
+        )
+        return bool(report['found']), any(m.get('literal') for m in report['matches'])
+
+    literal = [
+        q for q in queries if q['type'] == 'absence_probe' and q.get('terms') and not q.get('expected_absent')
+    ]
+    absent = [q for q in queries if q.get('absence_kind') == 'term']
+    missed = [q['id'] for q in literal if not run(q['terms'][0])[0]]
+    outcomes = {q['id']: run(q['query']) for q in absent}
+    stemmed = [i for i, (found, exact) in outcomes.items() if found and not exact]
+    exact = [i for i, (_, hit) in outcomes.items() if hit]
+    return {
+        'literal_probes': len(literal),
+        'false_absence': len(missed),
+        'false_absence_ids': missed,
+        'absent_term_probes': len(absent),
+        'stem_variants_reported': len(stemmed),
+        'stem_variant_ids': stemmed,
+        'substring_matches_reported': len(exact),
+        'substring_match_ids': exact,
+        'method': 'retrieval.verify_absence (porter and trigram passes, no ranking cut-off)',
+    }
+
+
 def evaluate(
     corpus: Corpus,
     queries: list[dict],
@@ -931,6 +976,7 @@ def evaluate(
             'build_seconds': round(corpus.build_seconds, 3),
             'prepare_seconds': round(corpus.prepare_seconds, 3),
         },
+        **({'verified_absence': verified_absence(corpus, applicable)} if config.check_absence else {}),
         'alignment': dict(corpus.alignment),
         'worst': sorted(scored, key=lambda r: (r['recall@20'], r['mrr'], r['id']))[:5],
         'per_query': [{**entry, **{k: round(entry[k], 4) for k in METRICS}} for entry in scored]
@@ -1118,8 +1164,11 @@ def altered_quote_cases(sources: list[str], seed: int = 20261016, per_kind: int 
     vocabulary = sorted({w for _, options in pools for s in options for w in s.split() if len(w) > 5})
     cases = []
     for kind in QUOTE_KINDS:
-        made = 0
-        while made < per_kind:
+        made = attempts = 0
+        while (
+            made < per_kind and attempts < per_kind * 200
+        ):  # a corpus with no usable pairs yields fewer cases
+            attempts += 1
             source, options = rng.choice(pools)
             base = rng.choice(options)
             words = base.split()

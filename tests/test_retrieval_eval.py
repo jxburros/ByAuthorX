@@ -318,3 +318,119 @@ def test_synthetic_scale_corpus_builds_and_answers_needle_queries(tmp_path):
         tmp_path / 'scale' / 'queries.jsonl'
     ).read_text()
     assert again['queries'] == info['queries']
+
+
+# --- keyword search cost (the 100 ms p95 target at 10,000 documents) -----------------------------------
+
+
+def test_search_checks_files_only_for_the_page_it_returns_and_stays_identical(tmp_path, monkeypatch):
+    import sqlite3
+
+    from byax import libraries
+    from byax.libraries import LibraryIndex, LibraryRegistry
+
+    root = tmp_path / 'docs'
+    root.mkdir()
+    for number in range(40):
+        (root / f'd{number:02d}.txt').write_text(f'common word number{number} appears here.\n')
+    library = LibraryRegistry(tmp_path / 'config').create('wide', [root])
+    index = LibraryIndex(library, cache_dir=tmp_path / 'cache')
+    index.refresh()
+    calls = []
+    original = index._paths
+    monkeypatch.setattr(
+        index, '_paths', lambda db, document_id: calls.append(document_id) or original(db, document_id)
+    )
+    exact = index.search('common', limit=5)
+    assert exact['total'] == 40 and 'total_estimated' not in exact and len(calls) == 40
+    calls.clear()
+    monkeypatch.setattr(libraries, 'TOTAL_LOOKAHEAD', 3)
+    cheap = index.search('common', limit=5)
+    assert len(calls) == 8  # the page plus the lookahead, not the 40 matches
+    assert cheap['total'] == 40 and cheap['total_estimated'] is True
+    assert cheap['results'] == exact['results'] and cheap['continuation'] == 5
+    assert index.search('common', limit=5, offset=35)['continuation'] is None
+    with sqlite3.connect(index.path) as db:  # the lookup behind every hit must not scan the files table
+        assert db.execute("SELECT 1 FROM sqlite_master WHERE name='file_document'").fetchone()
+
+
+# --- quote verification benchmark -----------------------------------------------------------------------
+
+
+def test_quote_threshold_sweep_is_deterministic_and_precision_rises_with_the_threshold():
+    words = [
+        'harbour',
+        'lantern',
+        'meadow',
+        'quarrel',
+        'copper',
+        'window',
+        'gentle',
+        'silver',
+        'orchard',
+        'measured',
+        'whispered',
+        'yesterday',
+        'carriage',
+        'evening',
+        'mountain',
+        'library',
+        'pilgrim',
+        'thunder',
+        'bargain',
+        'shadow',
+        'fortune',
+        'wedding',
+        'journey',
+        'letter',
+        'garden',
+        'rumour',
+        'servant',
+        'parlour',
+        'steeple',
+        'blossom',
+        'ledger',
+        'candle',
+        'voyage',
+        'tavern',
+        'cellar',
+        'bridge',
+    ]
+    sources = [
+        ' '.join(
+            ' '.join(words[(start * 7 + n * 3 + k * 5) % len(words)] for k in range(12)).capitalize() + '.'
+            for n in range(8)
+        )
+        for start in range(4)
+    ]
+    first = ev.altered_quote_cases(sources, per_kind=12)
+    assert first == ev.altered_quote_cases(sources, per_kind=12)
+    assert {case['kind'] for case in first} == set(ev.QUOTE_KINDS)
+    sweep = ev.sweep_near_threshold(first, [70.0, 94.0, 99.0])
+    assert (
+        sweep[0]['false_positive_rate'] >= sweep[1]['false_positive_rate'] >= sweep[2]['false_positive_rate']
+    )
+    assert sweep[1]['recall'] >= sweep[2]['recall']
+
+
+def test_genuine_pdf_quotes_pass_after_normalisation_but_not_always_raw():
+    corpus = sample_corpus('papers')
+    queries = [
+        q
+        for q in ev.load_queries('papers')
+        if q['relevant_chunk_locators'] and corpus.covers(q['relevant_chunk_locators'][0])
+    ]
+    rates = ev.quote_pass_rates(ev.genuine_quote_cases(corpus.root, queries))
+    assert rates['quotes'] >= 20 and rates['normalized_pass_rate'] == 1.0
+    assert rates['raw_pass_rate'] < rates['normalized_pass_rate']
+
+
+def test_near_threshold_was_chosen_from_the_published_sweep():
+    from byax import quote_match
+
+    path = Path(__file__).resolve().parents[1] / 'docs' / 'benchmarks' / 'context-0.4-quotes.json'
+    published = json.loads(path.read_text(encoding='utf-8'))
+    sweep = {row['threshold']: row for row in published['threshold_sweep']}
+    chosen = sweep[quote_match.NEAR_THRESHOLD]
+    assert chosen['precision'] >= 0.98 and chosen['recall'] >= 0.95
+    assert sweep[90]['precision'] < 0.9  # the provisional value the plan started from was visibly worse
