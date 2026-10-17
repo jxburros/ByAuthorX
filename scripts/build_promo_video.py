@@ -1,4 +1,4 @@
-"""The ByAuthorX promo film: nine Vixl timeline scenes, a synthesized score, one MP4.
+"""The ByAuthorX promo film: eleven Vixl timeline scenes, a synthesized score, one MP4.
 
 Scenes are ordinary Vixl documents (`docs/promo/scenes/*.vixl`). Every box, arrow, ring and rule is
 a seeded hand-inked stroke from the same drawing kit as the visual guides (scripts/build_visual_guides.py),
@@ -272,8 +272,114 @@ def scene_proposals():
     return s
 
 
+def scene_context():
+    s = Scene('04-context', 11500)
+    m = s.mark()
+    s.text('Meet the context engine.', 110, 120, 1700, 68, INK, lh=1.05)
+    s.appear(m, 200, 700)
+    m = s.mark()
+    s.text('It decides what the assistant sees, and shows you.', 110, 205, 1500, 40, INK, 'scholium')
+    s.appear(m, 800, 700)
+    m = s.mark()
+    s.box(110, 300, 720, 104, SURFACE, INK, SW, 16)
+    s.appear(m, 1200, 700)
+    m = s.mark()
+    s.text('What did I name the innkeeper?', 150, 352, 650, 36, INK)
+    s.type_on(m, 1900, 1300)
+    notes = [('Only what the question needs.', 'A route picks the passages, and says why.', 520, 3300),
+             ('Privacy first.', 'Local-only sources never reach a remote model.', 660, 6000),
+             ('Look, pin, or leave out.', 'Pin it, exclude it, or exclude it and ask again.', 800, 7600)]
+    for head, sub, cy, t0 in notes:
+        m = s.mark()
+        s.text(head, 110, cy, 740, 44, INK)
+        s.text(sub, 110, cy + 52, 740, 30, MUTED, 'scholium')
+        s.wave(110, 480, cy + 30, GREEN, 6, 3.0)
+        s.appear(m, t0, 800)
+    px, py, pw, ph = 900, 250, 910, 650
+    m = s.mark()
+    s.box(px, py, pw, ph, SURFACE, INK, 5, 18)
+    s.text('What the AI saw', px + 40, py + 48, 500, 38, INK)
+    s.text('EXAMPLE', px + pw - 40, py + 48, 200, 19, MUTED, 'onionskin', 'right')
+    s.wave(px + 36, px + pw - 36, py + 86, RULE, 3, 1.5)
+    s.appear(m, 2700, 900)
+    m = s.mark()
+    s.pill(px + 40, py + 112, 320, 56, GREEN, DEEP, SW)
+    s.text('Route: lookup', px + 200, py + 140, 290, 26, '#FFFFFF', align='center')
+    s.text('The request names someone who is not in the nearby text.', px + 40, py + 206, pw - 80, 27, INK, 'scholium')
+    s.appear(m, 3500, 900)
+    rows = [('Codex: the innkeeper', 'stays on this computer', 4500),
+            ('Chapter 3, paragraph 12', 'stays on this computer', 5200),
+            ('Research notes, page 41', 'left out: local-only source', 6100)]
+    for i, (name, tag, t0) in enumerate(rows):
+        y = py + 252 + i * 98
+        m = s.mark()
+        s.box(px + 40, y, pw - 80, 82, PAPER if i < 2 else SURFACE, RULE if i < 2 else INK, 3, 10)
+        s.text(name, px + 66, y + 28, 520, 28, INK)
+        s.text(tag, px + 66, y + 61, 520, 19, MUTED, 'onionskin')
+        if i < 2:
+            s.pill(px + pw - 250, y + 20, 80, 42, SURFACE, INK, 3)
+            s.text('Pin', px + pw - 210, y + 41, 70, 20, INK, align='center')
+            s.pill(px + pw - 156, y + 20, 108, 42, SURFACE, INK, 3)
+            s.text('Exclude', px + pw - 102, y + 41, 100, 20, INK, align='center')
+        s.appear(m, t0, 800)
+    m = s.mark()
+    s.pill(px + 40, py + ph - 120, 400, 64, GREEN, DEEP, SW)
+    s.text('Exclude and re-run', px + 240, py + ph - 88, 380, 26, '#FFFFFF', align='center')
+    s.appear(m, 7500, 800)
+    return s
+
+
+def scene_trust():
+    s = Scene('05-trust', 9500)
+    m = s.mark()
+    s.text('Found, checked, trusted.', 110, 120, 1700, 68, INK, lh=1.05)
+    s.appear(m, 200, 700)
+    cards = [('cite', 'Citations open at the page',
+              'Hover a chip to read the passage. Click to open the source where you recorded it.'),
+             ('find', 'Absence is checked',
+              'Before "not in your sources" stands, it searches literally and shows any matches.'),
+             ('checks', 'Quotes are checked',
+              'A quotation is checked against its source. The audit says where else the exact text occurs.')]
+    for i, (icon, head, body) in enumerate(cards):
+        x, y, w, h = 110 + i * 600, 270, 560, 600
+        t0 = 900 + i * 2200
+        m = s.mark()
+        s.box(x, y, w, h, SURFACE, INK, SW, 16)
+        s.icon(icon, x + 30, y + 30, 76)
+        s.text(head, x + 130, y + 68, w - 160, 34, INK, lh=1.1)
+        s.wave(x + 30, x + w - 30, y + 140, GREEN, 5, 2.2)
+        s.text(body, x + 30, y + 168, w - 60, 28, MUTED, lh=1.3, top=True)
+        s.appear(m, t0, 900)
+        m = s.mark()
+        if i == 0:
+            s.badge(1, x + 90, y + 450, 28)
+            s.arrow([(x + 130, y + 450), (x + 250, y + 450)], GREEN)
+            s.box(x + 270, y + 380, 230, 170, PAPER, INK, 3, 8)
+            for k in range(5):
+                s.wave(x + 292, x + 478 - (k % 2) * 40, y + 410 + k * 28, MUTED, 3, 1.6)
+            s.wave(x + 292, x + 470, y + 466, GREEN, 12, 2.0)
+            s.text('p. 41', x + 385, y + 575, 160, 22, MUTED, 'onionskin', 'center')
+        elif i == 1:
+            for k, label in enumerate(('manuscript', 'codex', 'attached libraries')):
+                yy = y + 400 + k * 62
+                s.pill(x + 70, yy, 330, 48, PAPER, INK, 3)
+                s.text(label, x + 235, yy + 24, 300, 24, INK, align='center')
+                s.path(s.name('tick'), s.hand.poly([(x + 440, yy + 26), (x + 458, yy + 42), (x + 490, yy + 8)], False, 2),
+                       GREEN, 6)
+        else:
+            s.pill(x + 40, y + 390, 480, 52, GREEN, DEEP, SW)
+            s.text('Found at the cited page', x + 280, y + 416, 450, 26, '#FFFFFF', align='center')
+            s.pill(x + 40, y + 470, 480, 52, SURFACE, INK, SW)
+            s.text('Not there: it occurs on p. 44', x + 280, y + 496, 450, 26, INK, align='center')
+        s.appear(m, t0 + 1100, 900)
+    m = s.mark()
+    s.caption('Search, codex and the citation audit work with no AI at all.', 960)
+    s.appear(m, 7700, 900)
+    return s
+
+
 def scene_privacy():
-    s = Scene('04-private', 7200)
+    s = Scene('06-private', 7200)
     s.head('Private by default', 64, 130)
     claims = [('No account', 'Nothing to sign up for. Write the day you install.'),
               ('No telemetry', 'ByAuthorX does not report how you use it.'),
@@ -294,7 +400,7 @@ def scene_privacy():
 
 
 def scene_books():
-    s = Scene('05-books', 8200)
+    s = Scene('07-books', 8200)
     s.head('From a first letter to a finished book', 60, 120)
     m = s.mark()
     s.box(170, 290, 380, 520, SURFACE, INK, SW, 10)
@@ -328,7 +434,7 @@ def scene_books():
 
 
 def scene_automation():
-    s = Scene('06-automation', 9800)
+    s = Scene('08-automation', 9800)
     s.head('Anything you can do in the window, you can automate.', 58, 120)
     m = s.mark()
     s.box(110, 250, 1230, 640, SURFACE, INK, SW, 18)
@@ -359,7 +465,7 @@ def scene_automation():
 
 
 def scene_agents():
-    s = Scene('07-agents', 9800)
+    s = Scene('09-agents', 9800)
     s.head('Your agent can work here too.', 64, 120)
     m = s.mark()
     s.node('a', 'pill', 270, 600, 320, 120, 'Your agent', size=38)
@@ -401,7 +507,7 @@ def scene_agents():
 
 
 def scene_more():
-    s = Scene('08-more', 7800)
+    s = Scene('10-more', 7800)
     s.head('And a good deal more.', 64, 130)
     chips = [('track-changes', 'Word review round trip', "Your editor's tracked changes return as proposals."),
              ('comment', 'Beta-reader copies', 'A web page, PDF or Word copy. Comments come back named.'),
@@ -421,7 +527,7 @@ def scene_more():
 
 
 def scene_close():
-    s = Scene('09-close', 6500)
+    s = Scene('11-close', 6500)
     m = s.mark()
     s.image(LOGO, 520, 230, 880)
     s.appear(m, 200, 800)
@@ -443,7 +549,7 @@ def scene_close():
     return s
 
 
-SCENES = [scene_title, scene_action, scene_proposals, scene_privacy, scene_books, scene_automation, scene_agents,
+SCENES = [scene_title, scene_action, scene_proposals, scene_context, scene_trust, scene_privacy, scene_books, scene_automation, scene_agents,
           scene_more, scene_close]
 
 
