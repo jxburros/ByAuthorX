@@ -55,6 +55,11 @@ AI stays opt-in: nothing here sends your writing anywhere unless you configure a
   the "What the AI saw" inspector with pin, exclude and re-run; a research log; opt-in chapter and book
   summaries; cache-ordered prompts with cache usage and cost estimates; `byax route`, `byax outline`,
   `byax verify-citations`.
+- **On-device support check.** Optional HHEM-2.1-Open entailment (cascade stage 2): advisory
+  supported/partial/unsupported underlines on AI replies and edits, and `byax check --citations --entailment`
+  for paraphrase citations. Off by default; agreement with human labels is published in
+  `docs/benchmarks/0.4-entailment.json`. An optional, consent-gated LLM reranker serves thematic multi-step
+  searches (`byax route --inspect --llm-rerank`).
 - **Provenance.** A per-span log of typed, pasted and AI text (View → Show text origin, `byax provenance`),
   APA/MLA/Chicago AI-use disclosures and an optional unsigned C2PA sidecar.
 - **Extensions.** Versioned out-of-process extensions with scoped permissions for custom checks and export
@@ -80,6 +85,7 @@ AI stays opt-in: nothing here sends your writing anywhere unless you configure a
   treated as ready.
 - Several pending proposals on one paragraph can be accepted in any order.
 - The library parser no longer aborts when macOS refuses its memory limit.
+- Citation claim spans no longer split at abbreviations such as "Mrs." or "e.g.".
 
 ## [0.3.0] - 2026-10-16
 
