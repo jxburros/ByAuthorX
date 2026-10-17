@@ -5,6 +5,7 @@ text line), not against the layout code that produced it.
 """
 
 import io
+import unicodedata
 
 import pytest
 from docx_word import sample_document
@@ -71,7 +72,7 @@ def test_the_pdf_copy_has_the_review_footer_and_names_its_package(sent):
     doc, review_id, data = sent
     reader = PdfReader(io.BytesIO(data))
     assert review_id in reader.metadata.creator and reader.metadata.title == 'The Lighthouse'
-    text = reader.pages[0].extract_text()
+    text = unicodedata.normalize('NFKC', reader.pages[0].extract_text())
     assert f'Review copy {review_id}' in text.replace('\t', ' ')
     assert 'Page' in text and 'The' in text and 'Chapter' in text
     record = doc['metadata']['review_packages'][review_id]
