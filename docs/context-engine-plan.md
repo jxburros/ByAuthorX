@@ -1,6 +1,6 @@
 # Context engine implementation plan
 
-Status: **implemented on the 0.4 development line (Unreleased); see section 14 for what remains**. Written 16 October 2026 against version 0.2.0 (commit `48ca3e3`). The maintainer's decisions are recorded in section 13.
+Status: **implemented on the 0.4.0 release; see section 14 for what remains**. Written 16 October 2026 against version 0.2.0 (commit `48ca3e3`). The maintainer's decisions are recorded in section 13.
 Evidence: [context engine research](research/context-engine/README.md). The two reports are the
 [retrieval and citation report](research/context-engine/retrieval-and-citation-report.md) and the
 [competitor report](research/context-engine/competitor-report.md). Item codes such as Q5, R-rev and V1 refer to roadmap rows in those reports.
