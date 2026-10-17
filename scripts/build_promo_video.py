@@ -623,6 +623,7 @@ def film(projects, draft):
     spec = dict(version=1, width=W, height=H, fps=FPS, quality='draft' if draft else 'final', shots=shots,
                 audio=[dict(source=wav.name, start=0, trim=0, volume=0.9)])
     out = 'ByAuthorX-promo-draft.mp4' if draft else 'ByAuthorX-promo.mp4'
+    (OUT / out).unlink(missing_ok=True)
     request = OUT / 'film-request.json'
     request.write_text(json.dumps(dict(output=out, spec=spec), indent=2))
     subprocess.run(['vixl', 'workflow', 'film-export', '--request', str(request), '--workspace', str(OUT)], check=True)
