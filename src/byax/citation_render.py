@@ -5,6 +5,7 @@ import hashlib
 
 from .citations import render_bibliography, render_citation
 from .errors import ByaxError
+from .version_pins import annotation_for
 
 
 def citation_view(document, *, footnotes=True):
@@ -79,6 +80,8 @@ def citation_view(document, *, footnotes=True):
                 mark.get('prefix', ''),
                 mark.get('suffix', ''),
             )
+            # Version-pinned citations: a recorded superseded source is noted only when asked for.
+            label += annotation_for(references[ident], settings)
             if mode == 'in-text':
                 insertions.append((mark['end'], ' ' + label))
             elif mode == 'numbered':

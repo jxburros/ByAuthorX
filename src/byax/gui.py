@@ -1,6 +1,6 @@
 # ruff: noqa: BLE001
 # GUI event boundaries report errors rather than terminating the application.
-"""ByAuthorX native desktop application (Windows 11 / Ubuntu 24.04)."""
+"""ByAuthorX native desktop application (Windows 11 / Ubuntu 24.04 / macOS 13+ on Apple silicon)."""
 
 from __future__ import annotations
 
@@ -60,22 +60,37 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from . import __version__, engine, gui_a11y, model, storage
+from . import __version__, engine, gui_a11y, gui_platform, model, storage
 from .brand import COLORS, BrandGraphic, app_icon, configure_application
 from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
+from .gui_beta_readers import BetaReaderPanels
+from .gui_bibliography import BibliographyPanels
+from .gui_codex import CodexPanels
+from .gui_compile import CompilePanels
+from .gui_docx_review import DocxReviewPanels
+from .gui_drafts import DraftPanels
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
+from .gui_extensions import ExtensionPanels
+from .gui_goals import GoalPanels
 from .gui_icons import themed_icon
+from .gui_languages import LanguagePanels
 from .gui_libraries import LibraryPanels
+from .gui_local_models import LocalModelPanels
 from .gui_motion import MotionController, PenLineAnimation
+from .gui_onboarding import OnboardingPanels
+from .gui_project import BinderPanels
+from .gui_provenance import ProvenancePanels
 from .gui_ribbon import RibbonPanels
+from .gui_sync import SyncPanels
 from .gui_views import FileViews
 from .gui_workflows import WorkflowPanels
 from .gui_workspace import InspectorTabBar, WorkspacePanels
+from .statistics import word_count
 
 TEMPLATE_CHOICES = ['Letter', 'Resume', 'Report', 'Music press kit', 'Open template file…']
-FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm);;ByAuthorX (*.byax *.BYAX);;All files (*)'
+FILE_FILTER = 'All supported documents (*.byax *.BYAX *.txt *.md *.markdown *.doc *.docx *.odt *.rtf *.html *.htm *.epub);;ByAuthorX (*.byax *.BYAX);;All files (*)'
 
 
 class WorkerSignals(QObject):
@@ -96,7 +111,28 @@ class Worker(QRunnable):
             self.signals.failed.emit(str(exc))
 
 
-class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, LibraryPanels, QMainWindow):
+class MainWindow(
+    FileViews,
+    WorkflowPanels,
+    WorkspacePanels,
+    RibbonPanels,
+    LibraryPanels,
+    SyncPanels,
+    OnboardingPanels,
+    LanguagePanels,
+    ExtensionPanels,
+    BinderPanels,
+    GoalPanels,
+    DraftPanels,
+    CompilePanels,
+    CodexPanels,
+    ProvenancePanels,
+    BibliographyPanels,
+    DocxReviewPanels,
+    LocalModelPanels,
+    BetaReaderPanels,
+    QMainWindow,
+):
     def __init__(self, path=None):
         super().__init__()
         self.setWindowTitle(self.tr('ByAuthorX'))
@@ -178,6 +214,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
                 'F&ormat',
                 '&Insert',
                 '&Table',
+                '&Binder',
                 '&Review',
                 '&View',
                 '&Tools',
@@ -191,6 +228,11 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             (self.tr('Save'), self.save, QKeySequence.Save, 'save'),
             (self.tr('Save as…'), self.save_as, QKeySequence.SaveAs, 'save-as'),
             (self.tr('Export…'), self.export, 'Ctrl+Shift+E', 'export'),
+            (self.tr('Compile…'), self.compile_book, None, None),
+            (self.tr('Send for review (Word)…'), lambda: self.send_for_review(), None, None),
+            (self.tr('Merge reviewed copy…'), lambda: self.merge_reviewed_word_copy(), None, None),
+            (self.tr('Send to beta readers…'), lambda: self.send_to_beta_readers(), None, None),
+            (self.tr('Import reader comments…'), lambda: self.import_reader_comments(), None, None),
             (self.tr('Page setup…'), self.page_setup, None, None),
             (self.tr('Print preview…'), self.print_preview, None, None),
             (self.tr('Print…'), self.print_document, QKeySequence.Print, 'print'),
@@ -207,13 +249,16 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         self.recent_menu = menus['&File'].addMenu(self.tr('Recent documents'))
         self.update_recents()
         menus['&File'].addSeparator()
-        menus['&File'].addAction(self.action(self.tr('Quit'), self.close, QKeySequence.Quit))
+        self.quit_action = self.action(self.tr('Quit'), self.close, QKeySequence.Quit)
+        menus['&File'].addAction(self.quit_action)
         self.editor = SemanticEditor()
         self.editor.motion = self.motion
         self.editor.set_hand_marks(self.hand_marks)
         self._check_marks = ()
         self.editor.fileDropped.connect(self.open_path)
         self.editor.viewEditRequested.connect(self.commit)
+        self.editor.pasteStarted.connect(self.paste_started)
+        self.editor.pasteFinished.connect(self.paste_finished)
         self.editor.cursorPositionChanged.connect(self.selection_changed)
         self.stack = QStackedWidget()
         self.stack.addWidget(self.editor)
@@ -241,6 +286,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         self.view_label.setObjectName('workspaceView')
         document_bar.addWidget(self.view_label)
         workspace_layout.addLayout(document_bar)
+        self.build_sync_bar(workspace_layout)
         workspace_layout.addWidget(self.stack, 1)
         self.setCentralWidget(workspace)
         for title, slot, key, icon in [
@@ -251,6 +297,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             (self.tr('Paste'), self.editor.paste, QKeySequence.Paste, 'paste'),
             (self.tr('Select all'), self.editor.selectAll, QKeySequence.SelectAll, None),
             (self.tr('Find and replace…'), self.find_replace, QKeySequence.Find, 'find'),
+            (self.tr('Find in project…'), self.project_find, 'Ctrl+Shift+F', None),
         ]:
             menus['&Edit'].addAction(self.action(title, slot, key, icon=icon))
         self.ribbon_actions = {}
@@ -451,7 +498,9 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             (self.tr('Protect selected paragraph'), self.protect, 'protect', self.submenus['protection']),
             (self.tr('Remove selected protection…'), self.unprotect, None, self.submenus['protection']),
             (self.tr('Checkpoint…'), self.checkpoint, 'checkpoint', self.submenus['versions']),
-            (self.tr('Create branch…'), self.branch, 'branch', self.submenus['versions']),
+            (self.tr('Save draft as…'), self.save_draft_as, 'branch', self.submenus['versions']),
+            (self.tr('Drafts…'), self.drafts_dialog, None, self.submenus['versions']),
+            (self.tr('Compare drafts…'), self.compare_drafts_dialog, None, self.submenus['versions']),
             (self.tr('Revision history…'), self.history, 'history', self.submenus['versions']),
         ]:
             menu.addAction(self.action(title, slot, icon=icon))
@@ -490,11 +539,16 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             (self.tr('Background jobs…'), self.jobs_dialog, 'jobs'),
             (self.tr('Document properties…'), self.document_properties, 'properties'),
             (self.tr('Document statistics'), self.statistics, 'statistics'),
+            (self.tr('Writing goals…'), self.goals_dialog, None),
         ]:
-            menus['&Tools'].addAction(self.action(title, slot, icon=icon))
+            tool_action = self.action(title, slot, icon=icon)
+            menus['&Tools'].addAction(tool_action)
+            if slot == self.provider_settings:
+                self.provider_settings_action = tool_action
         about = self.action(self.tr('About ByAuthorX'), self.about)
         about.setIcon(app_icon())  # the logo's own micro mark, never a redraw of it
         menus['&Help'].addAction(about)
+        gui_platform.apply_menu_roles(about, self.provider_settings_action, self.quit_action)
         self.outline = QTreeWidget()
         self.outline.setHeaderHidden(True)
         self.outline.setAccessibleName(self.tr('Document outline'))
@@ -534,6 +588,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         inspector_dock.setWidget(self.inspector)
         inspector_dock.setMinimumWidth(300)
         self.addDockWidget(Qt.RightDockWidgetArea, inspector_dock)
+        self.build_binder(menus)
         self.build_workspace_sidebars(outline_dock, inspector_dock)
         self.resizeDocks([outline_dock, inspector_dock], [220, 340], Qt.Horizontal)
         menus['&View'].addAction(outline_dock.toggleViewAction())
@@ -555,19 +610,55 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         activity_layout.addWidget(self.activity_graphic, alignment=Qt.AlignCenter)
         self.statusBar().addWidget(self.activity_slot)
         self.statusBar().addWidget(self.status_label, 1)
+        self.build_goals()
         self.word_label = QLabel()
         self.word_label.setObjectName('statusCounter')
         self.statusBar().addPermanentWidget(self.word_label)
         for label, slot in (
-            ('Linked assets…', self.linked_assets),
-            ('Reusable settings…', self.reusable_settings),
+            ('Readability report…', self.readability_report),
+            ('Codex…', self.codex_panel),
+            ('Provenance…', self.provenance_panel),
+            ('Synced folder safety…', self.sync_safety_details),
+            ('On-device search…', self.local_models_dialog),
+            ('Review conflicted copies…', self.review_conflicted_copies),
+            ('Languages…', self.show_languages),
+            ('Extensions…', self.show_extensions),
+            ('Macros…', self.show_macros),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
+        # Nested so the Tools menu stays within the 20-entry limit (tests/test_gui_workspace.py).
+        for title, entries in (
+            (
+                'Bibliography',
+                (
+                    ('Bibliography health…', self.bibliography_health),
+                    ('Where is this source used…', self.where_used),
+                    ('Import from Zotero…', self.import_from_zotero),
+                    ('Citation styles…', self.citation_styles),
+                ),
+            ),
+            (
+                'Document resources',
+                (('Linked assets…', self.linked_assets), ('Reusable settings…', self.reusable_settings)),
+            ),
+        ):
+            submenu = menus['&Tools'].addMenu(self.tr(title))
+            for label, slot in entries:
+                submenu.addAction(self.action(self.tr(label), slot))
         self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
         self.submenus['styles'].addAction(
             self.action(self.tr('Styles and overrides…'), self.formatting_inspector)
         )
         menus['&View'].addAction(self.action(self.tr('Layer inspector…'), self.layer_inspector))
+        self.provenance_view_action = self.action(
+            self.tr('Show text origin'),
+            self.set_provenance_view,
+            checkable=True,
+            description=self.tr(
+                'Tint text by origin (typed, AI-generated, AI-edited, pasted) with distinct underlines'
+            ),
+        )
+        menus['&View'].addAction(self.provenance_view_action)
         for label, slot in (
             ('Edit selected layer…', self.edit_layer_properties),
             ('Group selected layers…', self.group_selected_layers),
@@ -577,9 +668,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         ):
             self.submenus['layers'].addAction(self.action(self.tr(label), slot))
         for label, slot in (
-            ('Switch draft branch…', self.switch_draft),
-            ('Compare and merge draft…', self.merge_draft),
-            ('Resolve selected merge conflicts…', self.resolve_merge_conflicts),
+            ('Start alternate draft…', self.branch),
+            ('Switch draft…', self.switch_draft),
+            ('Bring changes from draft…', self.merge_draft),
+            ('Resolve selected draft conflicts…', self.resolve_merge_conflicts),
         ):
             self.submenus['versions'].addAction(self.action(self.tr(label), slot))
         self.export_options_menu.addAction(
@@ -591,6 +683,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         menus['F&ormat'].addAction(self.action(self.tr('Page masters…'), self.edit_page_masters))
         menus['&Review'].addAction(self.action(self.tr('Section profiles…'), self.edit_section_profiles))
         menus['&Help'].addAction(self.action(self.tr('Download updates…'), self.open_releases))
+        self.build_onboarding_menu(menus['&Help'])
         self.build_file_views(menus, workspace_layout)
         self.build_ribbon(menus)
         theme_menu = menus['&View'].addMenu(self.tr('Theme'))
@@ -966,6 +1059,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
 
     def update_sidebar(self):
         self.update_workspace_sidebars()
+        self.update_provenance_tint()
         self.outline.clear()
         for block in self.doc['blocks']:
             if block['type'] in ('heading', 'table', 'image', 'footnote', 'section_break') or block.get(
@@ -984,13 +1078,16 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             for record in self.doc['review'].get(kind, []):
                 if record.get('status') in ('resolved', 'accepted', 'rejected'):
                     continue
-                self.review_list.addItem(
+                label = (
                     record.get('text')
                     or record.get('explanation')
                     or record.get('message')
                     or record.get('title')
                     or kind.replace('_', ' ').title()
                 )
+                if kind == 'comments' and record.get('source') in ('beta_reader', 'pdf_review'):
+                    label = f'{record.get("author") or self.tr("Reader")}: {label}'
+                self.review_list.addItem(label)
                 if self.file_view != 'byax' and kind not in FORMATS[self.file_view]['review']:
                     item = self.review_list.item(self.review_list.count() - 1)
                     item.setText(item.text() + self.tr(' (not in this format)'))
@@ -1033,6 +1130,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         self.review_stack.setCurrentIndex(0 if self.review_list.count() else 1)
         self.layer_stack.setCurrentIndex(0 if self.layer_list.count() else 1)
         self._sync_review_actions()
+        self.binder_panel.sync()
 
     def _sync_review_actions(self, *_):
         item = self.review_list.currentItem()
@@ -1052,7 +1150,8 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self.projection()
             self.sync_file_view()
         text = model.text_of(self.doc)
-        words = len(text.split())
+        words = word_count(text)
+        self.goals_words_changed(words)
         self.word_label.setText(
             self.tr('{0:,} words   ·   {1:,} characters   ·   {2} min read').format(
                 words, len(text), max(1, round(words / 225))
@@ -1134,6 +1233,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
                 'schema_version': 1,
                 'expected_revision': old_revision,
                 'origin': 'gui',
+                'provenance': self.declared_provenance(),
                 'operations': operations,
             },
             allow_policy_changes=True,
@@ -1233,10 +1333,13 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
     def new_file(self):
         if self.confirm_discard():
             self.release_lock()
+            self.goals_finish()
             self.doc, self.path, self.dirty = model.new_document(), None, False
             self._undo.clear()
             self._redo.clear()
             self.refresh(0)
+            self.refresh_sync_bar()
+            self.goals_begin()
 
     def open_file(self):
         path, _ = QFileDialog.getOpenFileName(self, self.tr('Open document'), '', FILE_FILTER)
@@ -1268,6 +1371,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             else:
                 document, report = import_document(selected)
             self.release_lock()
+            self.goals_finish()
             self.lock = candidate_lock
             self.doc = document
             self.path = selected if backed else None
@@ -1279,6 +1383,8 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self.refresh(0)
             self.add_recent(selected)
             self.refresh_attached_libraries()
+            self.refresh_sync_bar()
+            self.goals_begin()
             if report and report.get('losses'):
                 self.report(self.tr('Import compatibility report'), report)
             return True
@@ -1322,6 +1428,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             if self.path == path:
                 self._disk_stamp = self.file_stamp(path)
                 self._mark_saved(task['revision'])
+                self.update_project_index(path, self.doc)
 
         self._start_save(path, finished)
         return self.wait_for_save() if wait else True
@@ -1372,7 +1479,10 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         # is a stable model for the worker while editing continues.
         doc = copy.copy(self.doc)
         task = {'path': path, 'revision': doc['revision'], 'ok': None}
-        worker = Worker(lambda: storage.save_document(doc, path, owner=self.owner))
+        # The open file's stamp is rechecked under the lock right before replacing it, so a file a
+        # sync client delivered meanwhile is never overwritten unseen.
+        stamp = self._disk_stamp if path == self.path else storage.UNCHECKED
+        worker = Worker(lambda: storage.save_document(doc, path, owner=self.owner, expected_stamp=stamp))
         self._save_task = task
         self._workers.add(worker)
         if not quiet:
@@ -1462,6 +1572,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self.sync_file_view()
             self._disk_stamp = self.file_stamp(target)
             self.add_recent(target)
+            self.refresh_sync_bar()
             self._mark_saved(task['revision'])
 
         self._start_save(target, finished)
@@ -1519,6 +1630,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
 
     def closeEvent(self, event):
         if self.confirm_discard():
+            self.goals_finish()
             self.release_lock()
             event.accept()
         else:
@@ -2569,7 +2681,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
     def run_all_checks(self):
         self.checks_panel.run_all()
 
-    def run_checks(self, suites=None):
+    def run_checks(self, suites=None, fiction_groups=None):
         from .checks import run_checks
 
         if isinstance(suites, bool):  # QAction.triggered supplies its checked state.
@@ -2596,7 +2708,16 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
 
         profile = getattr(self, 'active_profile', None)
         profile = profile if profile in frozen.get('profiles', {}) else None
+        if fiction_groups:
+            from .fiction_checks import group_profile
+
+            profile = group_profile(frozen, profile, fiction_groups)
         self.review_empty.set_busy(True)
+        if suites and 'continuity' in suites:
+            from .continuity import check_view
+
+            # Series facts and this book's number (a read-only view, never committed).
+            frozen = check_view(frozen, getattr(self, 'path', None))
         self.background(
             self.tr('Checking document…'),
             lambda: run_checks(frozen, suites=suites, profile=profile),
@@ -2870,12 +2991,12 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
 
     def branch(self):
         self.flush_edits()
-        name, ok = QInputDialog.getText(self, self.tr('Alternate draft'), self.tr('Branch name'))
+        name, ok = QInputDialog.getText(self, self.tr('Alternate draft'), self.tr('Draft name'))
         if ok and name:
             try:
                 self.doc, _ = engine.branch(self.doc, name)
                 self.dirty = True
-                self.status_label.setText(self.tr('Draft branch: ') + name)
+                self.status_label.setText(self.tr('Now writing in draft: ') + name)
             except Exception as exc:
                 self.error(exc)
 
@@ -3008,7 +3129,11 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             self.update_pages()
             self.view_label.setText(self.tr('Page preview'))
             if not self._active_tasks:
-                self.status_label.setText(self.tr('Print layout · Ctrl+Alt+L to return to writing'))
+                self.status_label.setText(
+                    self.tr('Print layout · %1 to return to writing').replace(
+                        '%1', gui_platform.native_keys('Ctrl+Alt+L')
+                    )
+                )
         else:
             self.stack.setCurrentIndex(0)
             self.editor.setFocus()
@@ -3187,6 +3312,7 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
             ('pdf', 'PDF (*.pdf)'),
             ('docx', 'Word (*.docx)'),
             ('odt', 'OpenDocument (*.odt)'),
+            ('epub', 'EPUB e-book (*.epub)'),
             ('md', 'Markdown (*.md)'),
             ('html', 'HTML (*.html)'),
             ('rtf', 'Rich text (*.rtf)'),
@@ -3224,9 +3350,15 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         )
         if writer is export_document:
             profile = {**(profile or {}), 'allow_markdown_losses': True}
+
+        def run_export():
+            report = writer(doc, path, profile=profile)
+            hooks = self.run_export_hooks_after(path, Path(path).suffix.lstrip('.').lower(), report)
+            return dict(report, hooks=hooks) if hooks else report
+
         self.background(
             self.tr('Exporting…'),
-            lambda: writer(doc, path, profile=profile),
+            run_export,
             lambda report: self.report(
                 self.tr('Export result and compatibility'),
                 report,
@@ -3355,12 +3487,26 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         ]:
             controls[key] = QLineEdit(self.doc['metadata'].get(key, ''))
             form.addRow(label, controls[key])
+        # The EPUB cover is a metadata key naming an embedded image (see docs/user-guide.md).
+        cover = QComboBox()
+        cover.setAccessibleName(self.tr('EPUB cover image'))
+        cover.setToolTip(self.tr('The image an exported EPUB uses as its cover'))
+        cover.addItem(self.tr('None'), '')
+        for digest, asset in sorted(self.doc['assets'].items()):
+            if asset.get('mime') in ('image/png', 'image/jpeg', 'image/gif', 'image/webp'):
+                cover.addItem(f'{asset.get("name") or self.tr("Image")} ({digest[:8]})', digest)
+        current = cover.findData(self.doc['metadata'].get('cover', ''))
+        cover.setCurrentIndex(max(current, 0))
+        form.addRow(self.tr('EPUB cover image'), cover)
         buttons = QDialogButtonBox(QDialogButtonBox.Ok | QDialogButtonBox.Cancel)
         buttons.accepted.connect(dialog.accept)
         buttons.rejected.connect(dialog.reject)
         form.addRow(buttons)
         if dialog.exec():
-            self.commit([{'type': 'set_metadata', 'values': {k: v.text() for k, v in controls.items()}}])
+            values = {k: v.text() for k, v in controls.items()}
+            if cover.currentData() != self.doc['metadata'].get('cover', ''):
+                values['cover'] = cover.currentData()
+            self.commit([{'type': 'set_metadata', 'values': values}])
 
     def statistics(self):
         from .statistics import counts, document_statistics
@@ -3370,6 +3516,13 @@ class MainWindow(FileViews, WorkflowPanels, WorkspacePanels, RibbonPanels, Libra
         report = document_statistics(self.doc, output=self.file_view)
         report['selection'] = counts(self.editor.textCursor().selectedText())
         self.report(self.tr('Document statistics'), report)
+
+    def readability_report(self):
+        from .gui_readability import ReadabilityDialog
+
+        if not self.flush_edits():
+            return
+        ReadabilityDialog(self).exec()
 
     def templates(self):
         kind, ok = QInputDialog.getItem(
@@ -3498,9 +3651,19 @@ def main(argv=None):
     app.setApplicationName('ByAuthorX')
     app.setOrganizationName('ByAuthorX')
     app.setStyle('Fusion')
+    # Interface language: English unless the person chose a language with an installed strings pack.
+    from .language_packs import install_translator
+
+    install_translator(app, str(QSettings('ByAuthorX', 'ByAuthorX').value('interface/language', '') or ''))
     args = sys.argv[1:] if argv is None else argv
+    # Finder and the Dock deliver documents as events on macOS, possibly before the window exists.
+    opener = gui_platform.FileOpenFilter(app)
+    app.installEventFilter(opener)
     window = MainWindow(args[0] if args else None)
+    opener.attach(window.open_path)
     window.show()
+    if not args:
+        QTimer.singleShot(0, window.maybe_show_tour)
     return app.exec()
 
 

@@ -1,0 +1,321 @@
+{
+  "schema": 1,
+  "catalogue_version": 1,
+  "mirror": {
+    "repository": "jxburros/ByAuthorX",
+    "release_tag": "models-v1",
+    "base_url": "https://github.com/jxburros/ByAuthorX/releases/download/models-v1",
+    "checksums_asset": "SHA256SUMS.txt",
+    "populated": false,
+    "note": "The mirror release has not been created yet; downloads use the pinned upstream revision."
+  },
+  "models": [
+    {
+      "name": "qwen3-embedding-0.6b-int8",
+      "title": "Qwen3-Embedding-0.6B (int8 ONNX, 512 dimensions)",
+      "kind": "embedder",
+      "version": "1",
+      "description": "Dense embedder for on-device semantic search. Multilingual, 32k context; int8 CPU export.",
+      "bundled": true,
+      "licence": {
+        "spdx": "Apache-2.0",
+        "source": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B (model card front matter: license: apache-2.0)",
+        "verified": "2026-10-16"
+      },
+      "upstream": {
+        "model": "Qwen/Qwen3-Embedding-0.6B",
+        "export": "onnx-community/Qwen3-Embedding-0.6B-ONNX",
+        "revision": "c25a394dd583836952667c12f008335071b3f43d",
+        "url": "https://huggingface.co/onnx-community/Qwen3-Embedding-0.6B-ONNX/tree/c25a394dd583836952667c12f008335071b3f43d"
+      },
+      "runtime": {
+        "family": "qwen3-embedding",
+        "pooling": "last_token",
+        "native_dimension": 1024,
+        "dimension": 512,
+        "matryoshka": true,
+        "max_tokens": 1024,
+        "query_instruction": "Given a search query, retrieve relevant passages from the writer's documents"
+      },
+      "size_bytes": 624970057,
+      "files": [
+        {
+          "path": "model.onnx",
+          "role": "model",
+          "size": 613527539,
+          "sha256": "6d0ea863f78b4a84afa3c7fcba1ec341572b5e28121aef77b7092b1dfdf679c7",
+          "url": "https://huggingface.co/onnx-community/Qwen3-Embedding-0.6B-ONNX/resolve/c25a394dd583836952667c12f008335071b3f43d/onnx/model_int8.onnx",
+          "mirror_asset": "qwen3-embedding-0.6b-int8__model.onnx"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "size": 11423705,
+          "sha256": "def76fb086971c7867b829c23a26261e38d9d74e02139253b38aeb9df8b4b50a",
+          "url": "https://huggingface.co/onnx-community/Qwen3-Embedding-0.6B-ONNX/resolve/c25a394dd583836952667c12f008335071b3f43d/tokenizer.json",
+          "mirror_asset": "qwen3-embedding-0.6b-int8__tokenizer.json"
+        },
+        {
+          "path": "config.json",
+          "role": "config",
+          "size": 1576,
+          "sha256": "66a10929782f3c9a3cd5dec90e2a95c60e05736134a63cd54479eeae80bed175",
+          "url": "https://huggingface.co/onnx-community/Qwen3-Embedding-0.6B-ONNX/resolve/c25a394dd583836952667c12f008335071b3f43d/config.json",
+          "mirror_asset": "qwen3-embedding-0.6b-int8__config.json"
+        },
+        {
+          "path": "MODEL-CARD.md",
+          "role": "card",
+          "size": 17237,
+          "sha256": "c34d9b7e5a267ad3fdd13227a253686bc90844ff4744a2a6a86c7c905e3d06f3",
+          "url": "https://huggingface.co/Qwen/Qwen3-Embedding-0.6B/resolve/97b0c614be4d77ee51c0cef4e5f07c00f9eb65b3/README.md",
+          "mirror_asset": "qwen3-embedding-0.6b-int8__MODEL-CARD.md"
+        }
+      ]
+    },
+    {
+      "name": "bge-reranker-v2-m3-int8",
+      "title": "bge-reranker-v2-m3 (int8 ONNX cross-encoder)",
+      "kind": "reranker",
+      "version": "1",
+      "description": "Multilingual cross-encoder reranker. Accurate but large; installed only on request.",
+      "bundled": false,
+      "licence": {
+        "spdx": "Apache-2.0",
+        "source": "https://huggingface.co/BAAI/bge-reranker-v2-m3 (model card front matter: license: apache-2.0)",
+        "verified": "2026-10-16"
+      },
+      "upstream": {
+        "model": "BAAI/bge-reranker-v2-m3",
+        "export": "onnx-community/bge-reranker-v2-m3-ONNX",
+        "revision": "6f5ff65298512715a1e669753bc754d2bc8f367b",
+        "url": "https://huggingface.co/onnx-community/bge-reranker-v2-m3-ONNX/tree/6f5ff65298512715a1e669753bc754d2bc8f367b"
+      },
+      "runtime": {
+        "family": "cross-encoder",
+        "max_tokens": 512,
+        "pad_token_id": 1
+      },
+      "size_bytes": 587828071,
+      "files": [
+        {
+          "path": "model.onnx",
+          "role": "model",
+          "size": 570727094,
+          "sha256": "912fc1215c2dbff6499700534bd8d31253af01573861abbfc43afd1fab6cce5d",
+          "url": "https://huggingface.co/onnx-community/bge-reranker-v2-m3-ONNX/resolve/6f5ff65298512715a1e669753bc754d2bc8f367b/onnx/model_int8.onnx",
+          "mirror_asset": "bge-reranker-v2-m3-int8__model.onnx"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "size": 17082900,
+          "sha256": "8bf8afbfd11306bd872018c53bfdf2e160a56f8edbcf49933324404791c148d3",
+          "url": "https://huggingface.co/onnx-community/bge-reranker-v2-m3-ONNX/resolve/6f5ff65298512715a1e669753bc754d2bc8f367b/tokenizer.json",
+          "mirror_asset": "bge-reranker-v2-m3-int8__tokenizer.json"
+        },
+        {
+          "path": "config.json",
+          "role": "config",
+          "size": 848,
+          "sha256": "122e922dcfed6503c8721e6fe1daf090340c3d95ca7f3aa3a72730b321a51cfd",
+          "url": "https://huggingface.co/onnx-community/bge-reranker-v2-m3-ONNX/resolve/6f5ff65298512715a1e669753bc754d2bc8f367b/config.json",
+          "mirror_asset": "bge-reranker-v2-m3-int8__config.json"
+        },
+        {
+          "path": "MODEL-CARD.md",
+          "role": "card",
+          "size": 17229,
+          "sha256": "c887aa6dd2598f908bf0582ca7068cc816585c7a1b6a07df305b631ede0cb174",
+          "url": "https://huggingface.co/BAAI/bge-reranker-v2-m3/resolve/953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e/README.md",
+          "mirror_asset": "bge-reranker-v2-m3-int8__MODEL-CARD.md"
+        }
+      ]
+    },
+    {
+      "name": "answerai-colbert-small-v1",
+      "title": "answerai-colbert-small-v1 (33M ColBERT reranker, ONNX)",
+      "kind": "reranker",
+      "version": "1",
+      "description": "Small late-interaction (MaxSim) reranker, English. fp32 export that includes the 96-dimension projection.",
+      "bundled": true,
+      "licence": {
+        "spdx": "Apache-2.0",
+        "source": "https://huggingface.co/answerdotai/answerai-colbert-small-v1 (model card front matter: license: apache-2.0)",
+        "verified": "2026-10-16"
+      },
+      "upstream": {
+        "model": "answerdotai/answerai-colbert-small-v1",
+        "export": "answerdotai/answerai-colbert-small-v1",
+        "revision": "934fa8bb4ce2284f4c2baa232d81aca4d076fa5e",
+        "url": "https://huggingface.co/answerdotai/answerai-colbert-small-v1/tree/934fa8bb4ce2284f4c2baa232d81aca4d076fa5e"
+      },
+      "runtime": {
+        "family": "colbert",
+        "max_query_tokens": 32,
+        "max_document_tokens": 300,
+        "embedding_dim": 96,
+        "query_prefix_id": 1,
+        "document_prefix_id": 2
+      },
+      "size_bytes": 133977365,
+      "files": [
+        {
+          "path": "model.onnx",
+          "role": "model",
+          "size": 133257413,
+          "sha256": "9161e64cab96fe5a5366782578e20da3409b26bd171a2a8bc6b9168777950903",
+          "url": "https://huggingface.co/answerdotai/answerai-colbert-small-v1/resolve/934fa8bb4ce2284f4c2baa232d81aca4d076fa5e/vespa_colbert.onnx",
+          "mirror_asset": "answerai-colbert-small-v1__model.onnx"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "size": 711396,
+          "sha256": "d241a60d5e8f04cc1b2b3e9ef7a4921b27bf526d9f6050ab90f9267a1f9e5c66",
+          "url": "https://huggingface.co/answerdotai/answerai-colbert-small-v1/resolve/934fa8bb4ce2284f4c2baa232d81aca4d076fa5e/tokenizer.json",
+          "mirror_asset": "answerai-colbert-small-v1__tokenizer.json"
+        },
+        {
+          "path": "config.json",
+          "role": "config",
+          "size": 767,
+          "sha256": "cf4365f8e080ac3fae2823edae5212e168083d2fef5a7a5e37ee36192c9d6e58",
+          "url": "https://huggingface.co/answerdotai/answerai-colbert-small-v1/resolve/934fa8bb4ce2284f4c2baa232d81aca4d076fa5e/onnx_config.json",
+          "mirror_asset": "answerai-colbert-small-v1__config.json"
+        },
+        {
+          "path": "MODEL-CARD.md",
+          "role": "card",
+          "size": 7789,
+          "sha256": "5852bad161ce37c95108ffd1b1d862abdff536f2c9efb66bdc37db688571a7a1",
+          "url": "https://huggingface.co/answerdotai/answerai-colbert-small-v1/resolve/934fa8bb4ce2284f4c2baa232d81aca4d076fa5e/README.md",
+          "mirror_asset": "answerai-colbert-small-v1__MODEL-CARD.md"
+        }
+      ]
+    },
+    {
+      "name": "docling-layout-heron",
+      "title": "Docling layout model \"heron\" (PDF quality path)",
+      "kind": "layout",
+      "version": "1",
+      "description": "Page layout analysis for the optional Docling PDF engine (byauthorx[docling]). Install it before choosing the Docling engine; Docling is then run offline.",
+      "bundled": false,
+      "licence": {
+        "spdx": "Apache-2.0",
+        "source": "https://huggingface.co/docling-project/docling-layout-heron (model card front matter: license: apache-2.0)",
+        "verified": "2026-10-16"
+      },
+      "upstream": {
+        "model": "docling-project/docling-layout-heron",
+        "export": "docling-project/docling-layout-heron",
+        "revision": "8f39ad3c0b4c58e9c2d2c84a38465abf757272d8",
+        "url": "https://huggingface.co/docling-project/docling-layout-heron/tree/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8"
+      },
+      "runtime": {
+        "family": "docling-layout",
+        "artifacts_folder": "docling-project--docling-layout-heron"
+      },
+      "size_bytes": 171665927,
+      "files": [
+        {
+          "path": "docling-project--docling-layout-heron/model.safetensors",
+          "role": "model",
+          "size": 171658996,
+          "sha256": "00333a43451945aaf89db8ca9c0a17e75d1537c17db60fdb91aa95f4c7929e0c",
+          "url": "https://huggingface.co/docling-project/docling-layout-heron/resolve/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8/model.safetensors",
+          "mirror_asset": "docling-layout-heron__docling-project--docling-layout-heron/model.safetensors"
+        },
+        {
+          "path": "docling-project--docling-layout-heron/config.json",
+          "role": "config",
+          "size": 3268,
+          "sha256": "fdea30805ce2f5666b147fca941dcdd27ad468e27d6ed21902207d3da056a97d",
+          "url": "https://huggingface.co/docling-project/docling-layout-heron/resolve/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8/config.json",
+          "mirror_asset": "docling-layout-heron__docling-project--docling-layout-heron/config.json"
+        },
+        {
+          "path": "docling-project--docling-layout-heron/preprocessor_config.json",
+          "role": "config",
+          "size": 444,
+          "sha256": "cd38cd59999e7a95d68e487fbe5132df3d4e5c32a0836add57e6126ba0c4eaf1",
+          "url": "https://huggingface.co/docling-project/docling-layout-heron/resolve/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8/preprocessor_config.json",
+          "mirror_asset": "docling-layout-heron__docling-project--docling-layout-heron/preprocessor_config.json"
+        },
+        {
+          "path": "MODEL-CARD.md",
+          "role": "card",
+          "size": 3219,
+          "sha256": "175700839bc7808eac6af1d0c23e4f483606ab2276fe01122f4093e61a1a65b6",
+          "url": "https://huggingface.co/docling-project/docling-layout-heron/resolve/8f39ad3c0b4c58e9c2d2c84a38465abf757272d8/README.md",
+          "mirror_asset": "docling-layout-heron__MODEL-CARD.md"
+        }
+      ]
+    },
+    {
+      "name": "hhem-2.1-open-int8",
+      "title": "HHEM-2.1-Open (int8 ONNX entailment checker, English)",
+      "kind": "entailment",
+      "version": "1",
+      "description": "Checks whether a claim is supported by the text it cites (cascade stage 2). English only; advisory. Installed only on request.",
+      "bundled": false,
+      "licence": {
+        "spdx": "Apache-2.0",
+        "source": "https://huggingface.co/vectara/hallucination_evaluation_model (model card front matter: license: apache-2.0); base model https://huggingface.co/google/flan-t5-base (license: apache-2.0)",
+        "verified": "2026-10-17"
+      },
+      "upstream": {
+        "model": "vectara/hallucination_evaluation_model",
+        "export": "vectara/hallucination_evaluation_model",
+        "revision": "de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8",
+        "url": "https://huggingface.co/vectara/hallucination_evaluation_model/tree/de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8",
+        "export_recipe": "scripts/export_hhem_onnx.py"
+      },
+      "runtime": {
+        "family": "hhem-t5",
+        "language": "en",
+        "max_tokens": 1024,
+        "pad_token_id": 0,
+        "prompt": "<pad> Determine if the hypothesis is true given the premise?\n\nPremise: {text1}\n\nHypothesis: {text2}",
+        "supported_at": 0.8,
+        "unsupported_at": 0.65
+      },
+      "size_bytes": 169257809,
+      "files": [
+        {
+          "path": "model.onnx",
+          "role": "model",
+          "size": 166804567,
+          "sha256": "8ac275e8177561ed5d94ef836b83931738d39945f4275b1b179e35f478050dbe",
+          "mirror_only": true,
+          "url": "https://github.com/jxburros/ByAuthorX/releases/download/models-v1/hhem-2.1-open-int8__model.onnx",
+          "mirror_asset": "hhem-2.1-open-int8__model.onnx"
+        },
+        {
+          "path": "MODEL-CARD.md",
+          "role": "card",
+          "size": 15801,
+          "sha256": "85f87c95ca2ced124cc3a2f2ff27ea00874787d460b684ab12755b9eac0f677c",
+          "url": "https://huggingface.co/vectara/hallucination_evaluation_model/resolve/de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8/README.md",
+          "mirror_asset": "hhem-2.1-open-int8__MODEL-CARD.md"
+        },
+        {
+          "path": "tokenizer.json",
+          "role": "tokenizer",
+          "size": 2424064,
+          "sha256": "fe2ebbbbde2985be723e0ce18217853e4020c5e9d35bd07be2c27ab9d3ead57a",
+          "url": "https://huggingface.co/google/flan-t5-base/resolve/7bcac572ce56db69c1ea7c8af255c5d7c9672fc2/tokenizer.json",
+          "mirror_asset": "hhem-2.1-open-int8__tokenizer.json"
+        },
+        {
+          "path": "BASE-MODEL-CARD.md",
+          "role": "card",
+          "size": 13377,
+          "sha256": "b6fb54f6831f3677f537cdb83d6f822e8705d203c605a9ec4c8192bda5a89828",
+          "url": "https://huggingface.co/google/flan-t5-base/resolve/7bcac572ce56db69c1ea7c8af255c5d7c9672fc2/README.md",
+          "mirror_asset": "hhem-2.1-open-int8__BASE-MODEL-CARD.md"
+        }
+      ]
+    }
+  ]
+}

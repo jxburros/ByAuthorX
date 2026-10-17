@@ -160,13 +160,15 @@ def test_safe_docx_and_byax_parsers_preserve_locators(library):
 def test_read_locator_pagination_and_live_status(library):
     root, _, index = library
     path = root / 'notes.md'
-    path.write_text('First Aria paragraph.\n\nSecond Aria paragraph.')
+    path.write_text('# One\n\nFirst Aria paragraph.\n\n# Two\n\nSecond Aria paragraph.')
     index.refresh()
     hit = index.search('Aria')['results'][0]
     first = index.read(hit['document_id'], limit=25)
     assert first['truncated']
-    second = index.read(hit['document_id'], locator={'ordinal': 1})
-    assert second['results'][0]['text'].startswith('Second')
+    # A chunk never crosses a heading, so each section is its own chunk with its own ordinal.
+    second = index.read(hit['document_id'], locator={'ordinal': 2})
+    assert second['results'][0]['text'].startswith('Two')
+    assert 'Second Aria paragraph.' in second['results'][0]['text']
     path.write_text('changed content')
     assert index.status()['stale']
 

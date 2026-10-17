@@ -57,9 +57,6 @@ MAX_FONT_BYTES = 64 * 1024 * 1024
 
 def font_file_info(path):
     """Read identity and declared OS/2 embedding permissions from a TrueType/OpenType file."""
-    import hashlib
-    import struct
-
     from .errors import ByaxError
 
     path = Path(path)
@@ -67,7 +64,16 @@ def font_file_info(path):
         raise ByaxError('missing_dependency', 'Font file is unavailable', target=str(path))
     if path.stat().st_size > MAX_FONT_BYTES:
         raise ByaxError('limit_exceeded', 'Font file exceeds 64 MiB', target=str(path))
-    raw = path.read_bytes()
+    return font_bytes_info(path.read_bytes(), str(path.resolve()))
+
+
+def font_bytes_info(raw, path=''):
+    """Identity and embedding permission of font bytes (``font_file_info`` for data already in memory)."""
+    import hashlib
+    import struct
+
+    from .errors import ByaxError
+
     offset = struct.unpack('>I', raw[12:16])[0] if raw[:4] == b'ttcf' and len(raw) >= 16 else 0
     tables = {}
     try:
@@ -77,7 +83,7 @@ def font_file_info(path):
             tag, _checksum, start, length = struct.unpack('>4sIII', raw[record : record + 16])
             tables[tag] = (start, length)
     except struct.error as exc:
-        raise ByaxError('invalid_input', 'Font table directory is malformed', target=str(path)) from exc
+        raise ByaxError('invalid_input', 'Font table directory is malformed', target=path) from exc
     fs_type = None
     if b'OS/2' in tables and tables[b'OS/2'][1] >= 10:
         start = tables[b'OS/2'][0]
@@ -107,7 +113,7 @@ def font_file_info(path):
     else:
         embedding = 'installable'
     return {
-        'path': str(path.resolve()),
+        'path': path,
         'sha256': hashlib.sha256(raw).hexdigest(),
         'family': names.get(16) or names.get(1),
         'style': names.get(17) or names.get(2),
@@ -125,9 +131,14 @@ def resolve_font_file(family, bold=False, italic=False):
     import os
     import shutil
     import subprocess
+    import sys
 
     path = bundled_font_path(family, bold, italic)
-    if path is None and os.name == 'posix' and shutil.which('fc-match'):
+    if path is None and sys.platform == 'darwin':
+        from .platform_support import find_system_font
+
+        path = find_system_font(family, bold, italic)
+    elif path is None and os.name == 'posix' and shutil.which('fc-match'):
         pattern = f'{family}:weight={"bold" if bold else "regular"}:slant={"italic" if italic else "roman"}'
         result = subprocess.run(
             ['fc-match', '--format=%{file}', pattern], capture_output=True, timeout=5, check=False, text=True

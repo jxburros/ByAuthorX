@@ -6,12 +6,16 @@ authorization, one request per check. Results land in Proposed changes; nothing 
 
 from __future__ import annotations
 
+import copy
+import html
 import json
 import uuid
 
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
     QCheckBox,
+    QDialog,
+    QDialogButtonBox,
     QFrame,
     QGroupBox,
     QHBoxLayout,
@@ -20,9 +24,118 @@ from PySide6.QtWidgets import (
     QPlainTextEdit,
     QPushButton,
     QScrollArea,
+    QTextBrowser,
     QVBoxLayout,
     QWidget,
 )
+
+SUPPORT_RESULTS = ('supported', 'partial', 'unsupported')
+AUDIT_LABELS = {
+    'quote_found': 'Quote found',
+    'near_match': 'Near match',
+    'quote_not_found': 'Quote not found',
+    'source_changed': 'Source changed since citation',
+    'source_unavailable': 'Source unavailable',
+    'not_checkable': 'Not checkable (paraphrase without a quote)',
+    'unanchored': 'Unanchored',
+}
+
+
+def audit_html(report):
+    """The audit as rich text; an unanchored citation's quote is struck through, never hidden."""
+    from .grounding import describe_audit
+
+    rows = [f'<p><b>{html.escape(describe_audit(report)[0])}</b></p>']
+    support = report.get('entailment') or {}
+    if support and not support.get('available', True):
+        rows.append(f'<p><b>Support check not run.</b> {html.escape(support.get("reason", ""))}</p>')
+    for item in report['citations']:
+        quote = html.escape(item.get('quote') or item['text'])
+        if item['status'] == 'unanchored':
+            quote = f'<s>{quote}</s>'
+        message = f'<br>{html.escape(item["message"])}' if item.get('message') else ''
+        check = item.get('entailment') or {}
+        if check.get('result') in SUPPORT_RESULTS:
+            # Underline plus a bracketed glyph and words: the category is never carried by colour alone.
+            from .gui_ai import SUPPORT, support_glyph, support_meaning, support_span
+
+            quote = support_span(quote, check['result']) + support_glyph(check['result'])
+            message += (
+                f'<br><b>Support check (advisory, on this computer):</b> '
+                f'{SUPPORT[check["result"]][0]} {html.escape(support_meaning(check["result"]))}'
+            )
+        elif check.get('reason'):
+            message += f'<br>Support check not run: {html.escape(check["reason"])}'
+        if item.get('superseded'):
+            message += f'<br><b>Superseded:</b> {html.escape(item["superseded"].get("message", ""))}'
+        rows.append(
+            f'<p><b>{html.escape(AUDIT_LABELS[item["status"]])}</b> · {html.escape(str(item["title"]))}'
+            f'<br>“{quote}”{message}</p>'
+        )
+    rows.append(f'<p><i>{html.escape(report["note"])}</i></p>')
+    return ''.join(rows)
+
+
+class CitationAuditDialog(QDialog):
+    """Read-only audit report; proposed re-anchoring is applied only when the author asks."""
+
+    def __init__(self, window, report, revision):
+        super().__init__(window)
+        self.window = window
+        self.report = report
+        self.revision = revision
+        self.setWindowTitle(self.tr('Citation audit'))
+        self.resize(720, 520)
+        layout = QVBoxLayout(self)
+        self.browser = QTextBrowser()
+        self.browser.setAccessibleName(self.tr('Citation audit report'))
+        self.browser.setHtml(audit_html(report))
+        layout.addWidget(self.browser)
+        buttons = QDialogButtonBox(QDialogButtonBox.Close)
+        self.apply_button = buttons.addButton(
+            self.tr('Apply proposed anchor updates'), QDialogButtonBox.ActionRole
+        )
+        self.apply_button.setEnabled(bool(report['operations']))
+        self.apply_button.setToolTip(
+            self.tr('Record re-anchored locators and mark citations that could not be found as unanchored')
+        )
+        self.apply_button.clicked.connect(self.apply)
+        versions = report.get('versions') or {}
+        self.repin_button = buttons.addButton(self.tr('Propose re-pinning…'), QDialogButtonBox.ActionRole)
+        self.repin_button.setEnabled(bool(versions.get('proposals')))
+        self.repin_button.setToolTip(
+            self.tr('Record which citations cite an earlier version and add review proposals to re-pin them')
+        )
+        self.repin_button.clicked.connect(self.propose_repin)
+        buttons.rejected.connect(self.reject)
+        layout.addWidget(buttons)
+
+    def apply(self):
+        window = self.window
+        window.flush_edits()
+        if window.doc['revision'] != self.revision:
+            window.status_label.setText(self.tr('The document changed since the audit. Run it again.'))
+            return False
+        if window.commit(copy.deepcopy(self.report['operations'])):
+            self.apply_button.setEnabled(False)
+            window.status_label.setText(self.tr('Citation anchors updated.'))
+            return True
+        return False
+
+    def propose_repin(self):
+        """Record superseded sources and add one re-pin proposal per source to Review."""
+        window = self.window
+        window.flush_edits()
+        if window.doc['revision'] != self.revision:
+            window.status_label.setText(self.tr('The document changed since the audit. Run it again.'))
+            return False
+        versions = self.report.get('versions') or {}
+        if window.commit(copy.deepcopy(versions.get('operations', []) + versions.get('proposals', []))):
+            self.repin_button.setEnabled(False)
+            window.status_label.setText(self.tr('Re-pin proposals added to Review.'))
+            return True
+        return False
+
 
 MODEL_CHECKS = {
     'repository': 'Check claims against the supplied information repository and source excerpts. '
@@ -35,12 +148,45 @@ MODEL_CHECKS = {
 # (kind, label, description, active by default)
 LOCAL_CHECKS = (
     ('spelling', 'Spelling', 'Local dictionary. Nothing leaves this computer.', True),
-    ('grammar', 'Grammar', 'Local grammar and usage rules.', True),
+    ('grammar', 'Grammar', 'Local grammar and usage rules; the optional LanguageTool tier adds more.', True),
     (
         'health',
         'Document health',
         'Structure, accessibility, requirements and print readiness.',
         True,
+    ),
+    (
+        'citations',
+        'Citation audit',
+        'Checks every citation’s quotation against its source, and whether the source changed. No AI.',
+        False,
+    ),
+    (
+        'support',
+        'Paraphrase support (on-device)',
+        (
+            'Also reads each paraphrased citation against the cited text with an on-device model. '
+            'Advisory; needs the model from Tools → On-device search. Nothing leaves this computer.'
+        ),
+        False,
+    ),
+    (
+        'extensions',
+        'Extension checks',
+        'Checks from extensions you installed and enabled (Tools → Extensions). They run outside the app and only suggest.',
+        False,
+    ),
+    (
+        'continuity',
+        'Continuity',
+        'Eye and hair colour, hair style and age against the codex facts in force in each chapter. Advisory.',
+        False,
+    ),
+    (
+        'bibliography',
+        'Bibliography health',
+        'Reference list, DOIs, retractions, citation placement. Online lookups run only when you ask.',
+        False,
     ),
 )
 AI_CHECKS = (
@@ -54,6 +200,35 @@ AI_CHECKS = (
     ('voice', 'Voice consistency', 'Departures from the active voice profile.', False),
 )
 HEALTH_SUITES = ['structure', 'accessibility', 'requirements', 'print']
+# Deterministic fiction analysis (competitiveness plan 6.2): advisory, local, inactive until chosen.
+FICTION_CHECKS = (
+    (
+        'fiction:dialogue',
+        'Dialogue tags',
+        'Ornate speech tags, adverbs on tags and a tag repeated across nearby lines of dialogue.',
+    ),
+    (
+        'fiction:style',
+        'Filter words and telling',
+        'Filter words (saw, felt, noticed), adverb density and emotions named outright.',
+    ),
+    (
+        'fiction:repetition',
+        'Repeated words and openings',
+        'Words and phrases echoed within a short window and runs of sentences with the same first word.',
+    ),
+    (
+        'fiction:rhythm',
+        'Sentence and paragraph rhythm',
+        'Runs of sentences or paragraphs of nearly equal length, and overlong paragraphs.',
+    ),
+    ('fiction:sensory', 'Sensory balance', 'Chapters that lean almost entirely on one sense.'),
+    (
+        'fiction:names',
+        'Invented-name spelling',
+        'Near-duplicate spellings of invented names, with a proposal to use the common one.',
+    ),
+)
 
 
 class ChecksPanel(QWidget):
@@ -87,6 +262,19 @@ class ChecksPanel(QWidget):
             for kind, label, description, default in checks:
                 self._add_row(rows, kind, self.tr(label), self.tr(description), default)
             layout.addWidget(group)
+            if title == 'On this computer':
+                layout.addWidget(self._grammar_group())
+        fiction = QGroupBox(self.tr('Fiction analysis (advisory, off by default)'))
+        fiction.setAccessibleName(self.tr('Fiction analysis checks'))
+        rows = QVBoxLayout(fiction)
+        for kind, label, description in FICTION_CHECKS:
+            self._add_row(rows, kind, self.tr(label), self.tr(description), False)
+            self.toggles[kind].setToolTip(
+                self.tr(
+                    'Advisory. Active: included in “Run all active checks”. Nothing is changed automatically.'
+                )
+            )
+        layout.addWidget(fiction)
         self.custom_group = QGroupBox(self.tr('Custom checks'))
         self.custom_rows = QVBoxLayout(self.custom_group)
         self.custom_list = QVBoxLayout()
@@ -112,6 +300,38 @@ class ChecksPanel(QWidget):
         self.custom = self._load_custom()
         self._render_custom()
         self.sync()
+
+    # Grammar tiers -----------------------------------------------------------
+
+    def _grammar_group(self):
+        group = QGroupBox(self.tr('Grammar tiers'))
+        group.setAccessibleName(self.tr('Grammar tiers'))
+        rows = QVBoxLayout(group)
+        self.grammar_builtin_label = QLabel()
+        self.grammar_builtin_label.setAccessibleName(self.tr('Built-in grammar rules status'))
+        self.grammar_lt_label = QLabel()
+        self.grammar_lt_label.setAccessibleName(self.tr('LanguageTool status'))
+        self.grammar_lt_label.setWordWrap(True)
+        rows.addWidget(self.grammar_builtin_label)
+        rows.addWidget(self.grammar_lt_label)
+        setup = QPushButton(self.tr('Set up grammar tiers…'))
+        setup.setAccessibleName(self.tr('Set up grammar tiers'))
+        setup.setToolTip(
+            self.tr(
+                'Install or start the optional LanguageTool tier. Nothing is downloaded unless you confirm.'
+            )
+        )
+        setup.clicked.connect(lambda: self.window.show_languages(tab='grammar'))
+        rows.addWidget(setup)
+        self.refresh_grammar_status()
+        return group
+
+    def refresh_grammar_status(self):
+        from .gui_languages import tier_summary
+
+        summary = tier_summary()
+        self.grammar_builtin_label.setText(summary['builtin'])
+        self.grammar_lt_label.setText(summary['languagetool'])
 
     # Rows ------------------------------------------------------------------
 
@@ -234,12 +454,57 @@ class ChecksPanel(QWidget):
     def run_all(self):
         self.run(self.active_checks())
 
+    def run_citation_audit(self, support=False):
+        """Stage 1 over every citation mark (plan 6.4): same report as ``byax check --citations``.
+
+        With ``support`` the paraphrases are also read against their cited text by the on-device
+        entailment model (``--entailment``); when it is not installed the audit says so and still runs.
+        """
+        from .grounding import audit_citations
+
+        window = self.window
+        window.flush_edits()
+        frozen = copy.deepcopy(window.doc)
+
+        def done(report):
+            self.last_audit = report
+            self.audit_dialog = CitationAuditDialog(window, report, frozen['revision'])
+            self.audit_dialog.show()
+
+        path = getattr(window, 'path', None)
+
+        def work():
+            report = audit_citations(frozen, document_path=path)
+            if not support:
+                return report
+            from .grounding_entailment import audit_entailment, availability, try_stage
+
+            state = availability()
+            stage = try_stage() if state['available'] else None
+            if stage is None:
+                return {**report, 'entailment': {**state, 'available': False, 'checked': 0}}
+            return audit_entailment(report, frozen, stage)
+
+        window.background(self.tr('Auditing citations…'), work, done)
+
     def run(self, kinds):
         """Run local checks in the background, then each AI check with its own authorization."""
         if 'spelling' in kinds:
             self.window.ai_panel.check_spelling()
-        suites = (['grammar'] if 'grammar' in kinds else []) + (HEALTH_SUITES if 'health' in kinds else [])
-        if suites:
+        if 'citations' in kinds or 'support' in kinds:
+            self.run_citation_audit(support='support' in kinds)
+        if 'bibliography' in kinds:
+            self.window.bibliography_health()
+        suites = (
+            (['grammar'] if 'grammar' in kinds else [])
+            + (HEALTH_SUITES if 'health' in kinds else [])
+            + (['extension'] if 'extensions' in kinds else [])
+            + (['continuity'] if 'continuity' in kinds else [])
+        )
+        groups = [kind.split(':', 1)[1] for kind in kinds if kind.startswith('fiction:')]
+        if groups:
+            self.window.run_checks(suites + ['fiction'], fiction_groups=groups)
+        elif suites:
             self.window.run_checks(suites)
         remote = [kind for kind in kinds if kind in MODEL_CHECKS or kind.startswith('custom:')]
         if not remote:

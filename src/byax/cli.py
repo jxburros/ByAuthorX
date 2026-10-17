@@ -31,10 +31,11 @@ COMMANDS = {
     'source': 'Search, import, export and suggest citation sources',
     'cite': 'Insert a citation referencing an existing source',
     'statistics': 'Count authored, publication and selected text',
+    'readability': 'Per-chapter readability indices, style statistics and pacing; optionally export a report',
     'collection': 'Inspect, export or apply reusable document settings',
     'dependencies': 'Inspect, explicitly refresh or embed linked assets',
     'view': 'Read a format projection and its located losses without changing the master',
-    'version': 'Engine and schema versions',
+    'version': 'Engine and schema versions; --check-updates makes one explicit GitHub Releases request',
     'capabilities': 'Discover supported features and provider adapters',
     'schema': 'Discover command or canonical operation schemas',
     'new': 'Create a native document',
@@ -65,6 +66,10 @@ COMMANDS = {
     'table': 'Import or export CSV table values while preserving native identities and formatting',
     'template-batch': 'Fill independent copies of a template from CSV field rows',
     'fonts': 'Inspect font identity, substitution, embedding permission and glyph fallbacks; embed permitted fonts',
+    'sync': 'Check synced-folder safety, list conflicted copies, and merge one as a reviewable proposal',
+    'sample': 'Copy the bundled sample project to a folder you choose (never edits the bundled file)',
+    'grammar': 'Grammar tiers: built-in rules and the optional local LanguageTool server (status, rules, check, setup)',
+    'languages': 'List, verify, install and remove language packs; report interface translation coverage',
 }
 # This schema is also used to reject unknown transport arguments and scope paths.
 ARGUMENTS: dict[str, dict[str, str]] = {
@@ -82,6 +87,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'allow_remote': 'boolean',
         'rebuild': 'boolean',
         'expect_revision': 'string',
+        'method': 'string',
+        'expand': 'boolean',
     },
     'library-search': {
         'path': 'string',
@@ -89,6 +96,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'query': 'string',
         'limit': 'integer',
         'offset': 'integer',
+        'method': 'string',
+        'expand': 'boolean',
     },
     'library-read': {
         'offset': 'integer',
@@ -136,6 +145,13 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'start': 'integer',
         'end': 'integer',
     },
+    'readability': {
+        'path': 'string',
+        'target': 'string',
+        'out': 'string',
+        'format': 'string',
+        'overwrite': 'boolean',
+    },
     'collection': {
         'path': 'string',
         'action': 'string',
@@ -152,7 +168,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'allow_network': 'boolean',
     },
     'view': {'path': 'string', 'as': 'string', 'source': 'boolean'},
-    'version': {},
+    'version': {'check_updates': 'boolean'},
+    'sample': {'out': 'string'},
     'capabilities': {'topic': 'string'},
     'schema': {'topic': 'string'},
     'new': {'out': 'string', 'title': 'string', 'text': 'string', 'overwrite': 'boolean'},
@@ -178,6 +195,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'library_query': 'string',
         'library_limit': 'integer',
         'library_chars': 'integer',
+        'library_method': 'string',
+        'library_pinned': 'array',
         'remote_bound': 'boolean',
     },
     'apply': {
@@ -208,9 +227,17 @@ ARGUMENTS: dict[str, dict[str, str]] = {
     'check': {
         'path': 'string',
         'suite': 'array',
+        'family': 'array',
         'profile': 'string',
         'limit': 'integer',
         'strict': 'boolean',
+        # Context engine plan 6.4: audit every citation mark (stage 1; local, no consent).
+        'citations': 'boolean',
+        # Plan 9, stage 2: also check paraphrase citations with the on-device entailment model (local, advisory).
+        'entailment': 'boolean',
+        # Plan 9, stage 3: also put the low-confidence citations to this provider alias (local CLI only).
+        'judge': 'string',
+        'authorize': 'boolean',
     },
     'review': {
         'path': 'string',
@@ -242,6 +269,9 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'dry_run': 'boolean',
         'require_suite': 'array',
         'strict': 'boolean',
+        # Extension export hooks (byax.extensions): run after the export on a read-only copy.
+        'hooks': 'boolean',
+        'hooks_dir': 'string',
     },
     'render': {'path': 'string', 'out': 'string', 'pages': 'array', 'overwrite': 'boolean'},
     'pack': {'path': 'string', 'out': 'string', 'overwrite': 'boolean'},
@@ -285,6 +315,39 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'italic': 'boolean',
     },
     'redact': {'path': 'string', 'out': 'string', 'input': 'object', 'overwrite': 'boolean'},
+    'sync': {
+        'path': 'string',
+        'action': 'string',
+        'copy_path': 'string',
+        'name': 'string',
+        'author': 'string',
+        'expect_revision': 'string',
+        'dry_run': 'boolean',
+    },
+    'grammar': {
+        'action': 'string',
+        'text': 'string',
+        'language': 'string',
+        'engine': 'string',
+        'group': 'string',
+        'port': 'integer',
+        'languagetool_dir': 'string',
+        'java': 'string',
+        'memory_mb': 'integer',
+        'autostart': 'boolean',
+        'include_spelling': 'boolean',
+        'sha256': 'string',
+    },
+    'languages': {
+        'action': 'string',
+        'id': 'string',
+        'language': 'string',
+        'pack_file': 'string',
+        'url': 'string',
+        'sha256': 'string',
+        'replace': 'boolean',
+        'verbose': 'boolean',
+    },
     'proof': {
         'path': 'string',
         'out': 'string',
@@ -330,8 +393,321 @@ ARGUMENTS: dict[str, dict[str, str]] = {
     },
 }
 ARGUMENTS['transact'] = ARGUMENTS['apply']
+# On-device search models (byax.local_models): list/status/verify are read-only; download, remove and
+# configure are administrative (transport_policy.check_provider_admin).
+COMMANDS['models'] = 'List, download, verify and remove on-device search models; set Fast or Accurate search'
+ARGUMENTS['models'] = {
+    'action': 'string',
+    'name': 'string',
+    'source': 'string',
+    'confirm': 'boolean',
+    'input': 'object',
+    'models_dir': 'string',
+    'config_dir': 'string',
+}
+ARGUMENTS['library'].update(
+    {'confirm': 'boolean', 'rerank': 'string', 'model': 'string', 'section': 'boolean'}
+)
+ARGUMENTS['library-search'].update({'rerank': 'string'})
+ARGUMENTS['library-read'].update({'section': 'boolean'})
+# Manuscript project binder (byax.project); mutating actions are canonical project_* operations.
+COMMANDS['project'] = 'List, reorder, split, merge and annotate manuscript binder items'
+ARGUMENTS['project'] = {
+    'path': 'string',
+    'action': 'string',
+    'target': 'string',
+    'after': 'string',
+    'before': 'string',
+    'parent': 'string',
+    'next': 'string',
+    'at': 'string',
+    'offset': 'integer',
+    'text': 'string',
+    'expected_text': 'string',
+    'kind': 'string',
+    'status': 'string',
+    'words': 'integer',
+    'clear': 'boolean',
+    'level': 'integer',
+    'id': 'string',
+    'heading': 'string',
+    'delete_content': 'boolean',
+    'alias': 'string',
+    'allow_remote': 'boolean',
+    'config_dir': 'string',
+    'input': 'object',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+# Writing goals and sessions (byax.goals): the daily and session goals are local preferences.
+COMMANDS['goals'] = 'Show progress against document, item, daily and session goals; set local goals'
+ARGUMENTS['goals'] = {
+    'path': 'string',
+    'action': 'string',
+    'words': 'integer',
+    'clear': 'boolean',
+    'format': 'string',
+    'limit': 'integer',
+    'config_dir': 'string',
+}
+# Named drafts (byax.drafts): saved states built on branches and delta history.
+COMMANDS['drafts'] = 'List, save, switch, compare and bring changes from named drafts'
+ARGUMENTS['drafts'] = {
+    'path': 'string',
+    'action': 'string',
+    'name': 'string',
+    'note': 'string',
+    'against': 'string',
+    'switch': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+# Compile pipeline (byax.compile, CP B2): a project to a print PDF, EPUB, Word or Markdown book.
+COMMANDS['compile'] = 'Compile a manuscript project into a book (PDF, EPUB, Word or Markdown) with preflight'
+ARGUMENTS['compile'] = {
+    'path': 'string',
+    'out': 'string',
+    'action': 'string',
+    'preset': 'string',
+    'preset_file': 'string',
+    'target': 'string',
+    'trim': 'string',
+    'include': 'array',
+    'exclude': 'array',
+    'input': 'object',
+    'name': 'string',
+    'preflight_only': 'boolean',
+    'dry_run': 'boolean',
+    'overwrite': 'boolean',
+    'strict': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+}
+# Manuscript corpus and codex (context engine 8.1, 8.2); see byax.project_index and byax.cli_codex.
+COMMANDS['project-search'] = (
+    'Find across the project folder, run saved searches, and list backlinks and unlinked mentions'
+)
+ARGUMENTS['project-search'] = {
+    'path': 'string',
+    'action': 'string',
+    'query': 'string',
+    'name': 'string',
+    'target': 'string',
+    'bookmark': 'string',
+    'scope': 'string',
+    'kind': 'string',
+    'item': 'string',
+    'documents': 'array',
+    'limit': 'integer',
+    'offset': 'integer',
+    'expand': 'boolean',
+    'rebuild': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+COMMANDS['codex'] = 'List, look up, edit and scan for codex entries; propose facts for review'
+ARGUMENTS['codex'] = {
+    'path': 'string',
+    'action': 'string',
+    'target': 'string',
+    'name': 'string',
+    'kind': 'string',
+    'id': 'string',
+    'text': 'string',
+    'trait': 'string',
+    'value': 'string',
+    'start': 'integer',
+    'end': 'integer',
+    'radius': 'integer',
+    'limit': 'integer',
+    'offset': 'integer',
+    'include_hidden': 'boolean',
+    'hide_from_ai': 'boolean',
+    'input': 'object',
+    'out': 'string',
+    'overwrite': 'boolean',
+    'series_path': 'string',
+    'author': 'string',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+    # Temporal codex (context engine plan 10): trait validity and the series book for facts-at.
+    'valid_from': 'string',
+    'valid_to': 'string',
+    'book': 'integer',
+}
+COMMANDS['entity'] = 'Read-only codex lookup, mentions and heatmap (entries hidden from AI are never shown)'
+ARGUMENTS['entity'] = {
+    key: ARGUMENTS['codex'][key]
+    for key in (
+        'path',
+        'action',
+        'target',
+        'name',
+        'kind',
+        'text',
+        'start',
+        'end',
+        'radius',
+        'limit',
+        'offset',
+        'book',
+    )
+}
+# Assistant routing, the "What the AI saw" inspector and read-only grounding tools (context engine
+# 8.3-8.5) and opt-in chapter summaries (Phase 6); see byax.cli_context.
+COMMANDS['route'] = (
+    'Explain the assistant route (R0-R4) for a request and, with --inspect, what it would see; never calls a model'
+)
+ARGUMENTS['route'] = {
+    'path': 'string',
+    'request': 'string',
+    'target': 'string',
+    'start': 'integer',
+    'end': 'integer',
+    'cursor': 'string',
+    'alias': 'string',
+    'override': 'string',
+    'privacy': 'string',
+    'use_libraries': 'boolean',
+    'inspect': 'boolean',
+    'exclude': 'array',
+    # Phase 6: let this provider order the top candidates of a thematic R3 search (opt-in; local CLI only).
+    'llm_rerank': 'string',
+    'authorize': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'config_dir': 'string',
+}
+COMMANDS['outline'] = 'Read-only outline: headings with depth, word counts per section and binder metadata'
+ARGUMENTS['outline'] = {
+    'path': 'string',
+    'depth': 'integer',
+    'counts': 'boolean',
+    'binder': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+}
+COMMANDS['verify-citations'] = (
+    'Read-only grounding records for a reply checked against indexed sources, or the citation audit'
+)
+ARGUMENTS['verify-citations'] = {
+    'path': 'string',
+    'reply': 'string',
+    'entailment': 'boolean',
+    'input': 'object',
+    'limit': 'integer',
+    'offset': 'integer',
+}
+COMMANDS['summaries'] = (
+    'Chapter and book summaries: status, show, build with a provider you choose (opt-in), propose a synopsis'
+)
+ARGUMENTS['summaries'] = {
+    'path': 'string',
+    'action': 'string',
+    'alias': 'string',
+    'target': 'string',
+    'allow_remote': 'boolean',
+    'rebuild': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'config_dir': 'string',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+# Word review round trip (byax.docx_review): send a review copy, merge the returned file as proposals.
+COMMANDS['review-package'] = (
+    'Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on'
+)
+COMMANDS['merge-review'] = 'Merge a returned Word review copy as pending proposals and comment threads'
+ARGUMENTS['review-package'] = {
+    'path': 'string',
+    'action': 'string',
+    'out': 'string',
+    'restrict': 'string',
+    'reviewer': 'string',
+    'overwrite': 'boolean',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
+ARGUMENTS['merge-review'] = {
+    'path': 'string',
+    'reviewed_path': 'string',
+    'review_id': 'string',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
+# Extension layer (byax.extensions, byax.macros): out-of-process checks and export hooks; saved macros.
+COMMANDS['extensions'] = (
+    'List, inspect, install, enable and run extensions (custom checks and export hooks, out of process)'
+)
+COMMANDS['macro'] = 'List, save, run (or dry-run) and remove saved command macros'
+ARGUMENTS['extensions'] = {
+    'action': 'string',
+    'id': 'string',
+    'check': 'string',
+    'hook': 'string',
+    'document': 'string',
+    'source_path': 'string',
+    'sha256': 'string',
+    'scopes': 'array',
+    'enable': 'boolean',
+    'replace': 'boolean',
+    'overwrite': 'boolean',
+    'exported_file': 'string',
+    'hooks_dir': 'string',
+    'format': 'string',
+    'input': 'object',
+    'token_env': 'string',
+    'ttl': 'integer',
+    'limit': 'integer',
+}
+ARGUMENTS['macro'] = {
+    'action': 'string',
+    'name': 'string',
+    'store': 'string',
+    'document': 'string',
+    'input': 'object',
+    'params': 'object',
+    'dry_run': 'boolean',
+    'allow_admin': 'boolean',
+    'replace': 'boolean',
+    'verbose': 'boolean',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'config_dir': 'string',
+}
+# Beta-reader round trip (byax.beta_readers): read-and-comment copies out, reader comments back in.
+COMMANDS['beta-copy'] = 'Write a read-and-comment copy for beta readers: self-contained HTML, PDF or Word'
+COMMANDS['merge-comments'] = (
+    'Merge beta readers\u2019 comment files (and annotated PDFs) as comments and proposals'
+)
+ARGUMENTS['beta-copy'] = {
+    'path': 'string',
+    'out': 'string',
+    'format': 'string',
+    'reviewer': 'string',
+    'note': 'string',
+    'companion': 'boolean',
+    'overwrite': 'boolean',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
+ARGUMENTS['merge-comments'] = {
+    'path': 'string',
+    'comments_path': 'array',
+    'review_id': 'string',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
 REQUIRED = {
+    'compile': ['path'],
     'statistics': ['path'],
+    'readability': ['path'],
     'collection': ['path'],
     'dependencies': ['path'],
     'view': ['path', 'as'],
@@ -363,8 +739,99 @@ REQUIRED.update(
         'cite': ['path', 'target', 'start', 'end', 'source'],
     }
 )
-for _name in ('inspect', 'context', 'history', 'check', 'review', 'library', 'source'):
+for _name in (
+    'inspect',
+    'context',
+    'history',
+    'check',
+    'review',
+    'library',
+    'source',
+    'project',
+    'sync',
+    'goals',
+    'drafts',
+):
     REQUIRED[_name] = ['path']
+for _name in ('project-search', 'codex', 'entity'):
+    REQUIRED[_name] = ['path']
+REQUIRED.update({'review-package': ['path'], 'merge-review': ['path', 'reviewed_path']})
+REQUIRED.update({'beta-copy': ['path'], 'merge-comments': ['path', 'comments_path']})
+# Claim-level provenance, AI-use disclosure and the C2PA sidecar (context engine plan 10).
+COMMANDS['provenance'] = (
+    'Report text provenance, write AI-use disclosures and export an optional C2PA sidecar'
+)
+ARGUMENTS['provenance'] = {
+    'path': 'string',
+    'action': 'string',
+    'target': 'string',
+    'style': 'string',
+    'after': 'string',
+    'out': 'string',
+    'key_file': 'string',
+    'overwrite': 'boolean',
+    'limit': 'integer',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+# Bibliography health, exchange, CSL styles, Zotero and live excerpts (context engine plan 9);
+# see byax.cli_bibliography. ``bibliography`` takes a document path only for the actions that need one.
+COMMANDS['bibliography'] = (
+    'Bibliography health, RIS exchange, extra CSL styles, Retraction Watch import and Zotero; online checks only on request'
+)
+ARGUMENTS['bibliography'] = {
+    'path': 'string',
+    'action': 'string',
+    'input': 'object',
+    'source_path': 'string',
+    'out': 'string',
+    'overwrite': 'boolean',
+    'text': 'string',
+    'checks': 'array',
+    'online': 'boolean',
+    'archive': 'boolean',
+    'allow_network': 'boolean',
+    'name': 'string',
+    'expect_sha256': 'string',
+    'replace': 'boolean',
+    'collection': 'string',
+    'url': 'string',
+    'no_annotations': 'boolean',
+    'only_zotero': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+REQUIRED['provenance'] = ['path']
+# Version-pinned citations: cite another .byax draft (byax.version_pins).
+ARGUMENTS['source']['draft_path'] = 'string'
+COMMANDS['excerpt'] = 'Live excerpts with a pointer to their source, and where each source is used'
+ARGUMENTS['excerpt'] = {
+    'path': 'string',
+    'action': 'string',
+    'source': 'string',
+    'target': 'string',
+    'chunk_id': 'string',
+    'text': 'string',
+    'start': 'integer',
+    'end': 'integer',
+    'style': 'string',
+    'include_unused': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+REQUIRED['excerpt'] = ['path']
+# Commands whose document path is positional but optional (the action decides whether one is needed).
+OPTIONAL_PATH = frozenset({'bibliography'})
+REQUIRED.update(
+    {'route': ['path', 'request'], 'outline': ['path'], 'verify-citations': ['path'], 'summaries': ['path']}
+)
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -525,6 +992,30 @@ def _cmd_statistics(a: Args, owner: str | None) -> Result:
     )
 
 
+def _cmd_readability(a: Args, owner: str | None) -> Result:
+    from .readability import readability_document, readability_report
+
+    doc = _load(a['path'])
+    report = readability_report(doc, target=a.get('target'))
+    result: Result = {'readability': report}
+    if a.get('out'):
+        from .exchange import export_document
+
+        _destination(a['out'], a.get('overwrite', False), a['path'])
+        title = 'Readability report: ' + (doc.get('metadata', {}).get('title') or 'Untitled')
+        exported = export_document(
+            readability_document(report, title),
+            a['out'],
+            format=a.get('format'),
+            owner=owner,
+            overwrite=a.get('overwrite', False),
+        )
+        for key in ('format', 'outputs', 'losses', 'findings', 'coverage', 'fidelity', 'review'):
+            if key in exported:
+                result[key] = exported[key]
+    return envelope(result, doc)
+
+
 def _cmd_collection(a: Args, owner: str | None) -> Result:
     from . import engine, profiles
 
@@ -603,14 +1094,25 @@ def _cmd_view(a: Args, owner: str | None) -> Result:
 def _cmd_version(a: Args, owner: str | None) -> Result:
     from . import __version__
 
-    return envelope(
-        {
-            'engine_version': __version__,
-            'operation_schema_version': 1,
-            'offset_unit': 'unicode_scalar',
-            'range_end': 'exclusive',
-        }
-    )
+    result = {
+        'engine_version': __version__,
+        'operation_schema_version': 1,
+        'offset_unit': 'unicode_scalar',
+        'range_end': 'exclusive',
+    }
+    if a.get('check_updates'):
+        # The one place a version query touches the network, and only when asked for by name.
+        from .updates import check_for_updates
+
+        result['update_check'] = check_for_updates()
+    return envelope(result)
+
+
+def _cmd_sample(a: Args, owner: str | None) -> Result:
+    from .samples import install_sample
+
+    copied = install_sample(a.get('out'))
+    return envelope({'sample': copied}, outputs=[copied['path']])
 
 
 def _cmd_capabilities(a: Args, owner: str | None) -> Result:
@@ -677,18 +1179,24 @@ def _cmd_context(a: Args, owner: str | None) -> Result:
     )
     if a.get('library_query'):
         from .retrieval import augment_context, retrieve_context
+        from .series import with_series
 
+        # Series-level library attachments take part; the document's own attachments win.
         retrieval = retrieve_context(
-            doc,
+            with_series(doc, a['path']),
             a['library_query'],
             target=a.get('target'),
             profile=a.get('profile'),
             limit=a.get('library_limit', 12),
             max_chars=a.get('library_chars', 12000),
             remote=a.get('remote_bound', False),
+            method=a.get('library_method', 'auto'),
+            pinned=a.get('library_pinned'),
         )
         result = augment_context(result, retrieval)
-    return envelope(result, doc)
+    from .codex import redact_for_ai
+
+    return envelope(redact_for_ai(doc, result), doc)
 
 
 def _cmd_find(a: Args, owner: str | None) -> Result:
@@ -716,7 +1224,47 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
     from .checks import run_checks
 
     doc = _load(a['path'])
-    result = run_checks(doc, suites=a.get('suite'), limit=a.get('limit', 100), profile=a.get('profile'))
+    if (a.get('judge') or a.get('authorize') or a.get('entailment')) and not a.get('citations'):
+        _error('invalid_input', '--judge, --authorize and --entailment apply to --citations', field='judge')
+    if a.get('citations'):
+        from .grounding import audit_citations
+
+        if a.get('suite') or a.get('family'):
+            _error('invalid_input', 'Run --citations on its own; it is a separate audit', field='citations')
+        report = audit_citations(doc, document_path=a['path'])
+        if a.get('entailment'):
+            from .grounding_entailment import audit_entailment
+            from .grounding_entailment import make_stage as entailment_stage
+
+            # Plan 9, stage 2: paraphrases are read against the cited text by a model on this computer.
+            report = audit_entailment(report, doc, entailment_stage())
+        if a.get('judge'):
+            from .grounding_judge import judge_audit, make_stage
+            from .providers import ProviderRegistry
+
+            # Plan 9, stage 3: low-confidence citations go to a second provider, only when asked.
+            stage = make_stage(
+                ProviderRegistry(),
+                a['judge'],
+                authorized=a.get('authorize', False),
+                library_authorized=a.get('authorize', False),
+            )
+            report = judge_audit(report, doc, stage)
+        return envelope(report, doc, **({'strict': True} if a.get('strict') else {}))
+    suites = a.get('suite')
+    if a.get('family'):
+        from .profiles import FAMILY_SUITES
+
+        unknown = sorted(set(a['family']) - set(FAMILY_SUITES))
+        if unknown:
+            _error('invalid_input', 'Unknown rule family', field='family', supported=sorted(FAMILY_SUITES))
+        suites = list(dict.fromkeys([*(suites or []), *(x for f in a['family'] for x in FAMILY_SUITES[f])]))
+    if suites and 'continuity' in suites:
+        from .continuity import check_view
+
+        # Series facts and this book's number in the series (read-only view, never applied).
+        doc = check_view(doc, a['path'])
+    result = run_checks(doc, suites=suites, limit=a.get('limit', 100), profile=a.get('profile'))
     if a.get('strict'):
         result = dict(result, strict=True)
     return envelope(result, doc)
@@ -857,6 +1405,16 @@ def _exchange(command: str) -> Handler:
             )
         if imported:
             result['import_report'] = imported
+        if command == 'export' and a.get('hooks') and not a.get('dry_run'):
+            from .extensions import run_export_hooks
+
+            result['hooks'] = run_export_hooks(
+                a['out'],
+                fmt=(a.get('format') or Path(a['out']).suffix.lstrip('.')).lower(),
+                loss_report={'losses': result.get('losses', []), 'fidelity': result.get('fidelity')},
+                output_dir=a.get('hooks_dir') or a['out'] + '.hooks',
+                overwrite=a.get('overwrite', False),
+            )
         if gate:
             result['required_checks'] = gate
             result['validation'] = gate['validation']
@@ -904,14 +1462,14 @@ def _cmd_providers(a: Args, owner: str | None) -> Result:
     registry = ProviderRegistry(config_dir=a.get('config_dir'))
     action = a.get('action', 'list')
     if action == 'list':
-        return envelope({'providers': registry.list()})
+        return envelope({'providers': registry.list_with_locality()})
     if action == 'configure':
         try:
             config = ProviderConfig(**a.get('input', {}))
         except TypeError as exc:
             _error('invalid_input', str(exc), field='input')
         registry.save(config)
-        return envelope({'providers': registry.list()})
+        return envelope({'providers': registry.list_with_locality()})
     if not a.get('alias'):
         _error('invalid_input', 'Provider action requires --alias')
     if action == 'preview':
@@ -1090,7 +1648,7 @@ def _cmd_template_batch(a: Args, owner: str | None) -> Result:
         template, a['csv'], **{key: a[key] for key in ('encoding', 'dialect', 'delimiter') if key in a}
     )
     fmt = a.get('format', 'byax')
-    if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf'):
+    if fmt not in ('byax', 'pdf', 'docx', 'odt', 'txt', 'md', 'html', 'rtf', 'epub'):
         _error('invalid_input', 'Unsupported template batch output format')
     outcomes = []
     for index, (doc, result) in enumerate(rows, start=1):
@@ -1337,7 +1895,24 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
     _error('invalid_input', 'Use fonts --action inspect, glyphs or embed')
 
 
+from .beta_readers import beta_copy_command, merge_comments_command
+from .cli_bibliography import bibliography_command, excerpt_command
+from .cli_codex import codex_command, entity_command
+from .cli_context import outline_command, route_command, summaries_command, verify_citations_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
+from .cli_provenance import provenance_command
+from .compile import compile_command
+from .docx_review import merge_review_command, review_package_command
+from .drafts import drafts_command
+from .extensions import extensions_command
+from .goals import goals_command
+from .grammar import grammar_command
+from .language_packs import languages_command
+from .local_models import models_command
+from .macros import macro_command
+from .project import project_command
+from .project_index import project_search_command
+from .sync_safety import sync_command
 
 _HANDLERS: dict[str, Handler] = {
     'library': library_command,
@@ -1346,6 +1921,7 @@ _HANDLERS: dict[str, Handler] = {
     'source': source_command,
     'cite': cite_command,
     'statistics': _cmd_statistics,
+    'readability': _cmd_readability,
     'collection': _cmd_collection,
     'dependencies': _cmd_dependencies,
     'view': _cmd_view,
@@ -1379,6 +1955,31 @@ _HANDLERS: dict[str, Handler] = {
     'redact': _cmd_redact,
     'reproduction': _cmd_reproduction,
     'fonts': _cmd_fonts,
+    'project': project_command,
+    'sync': sync_command,
+    'sample': _cmd_sample,
+    'grammar': grammar_command,
+    'languages': languages_command,
+    'goals': goals_command,
+    'drafts': drafts_command,
+    'compile': compile_command,
+    'project-search': project_search_command,
+    'codex': codex_command,
+    'entity': entity_command,
+    'review-package': review_package_command,
+    'merge-review': merge_review_command,
+    'models': models_command,
+    'extensions': extensions_command,
+    'macro': macro_command,
+    'beta-copy': beta_copy_command,
+    'merge-comments': merge_comments_command,
+    'provenance': provenance_command,
+    'bibliography': bibliography_command,
+    'excerpt': excerpt_command,
+    'route': route_command,
+    'outline': outline_command,
+    'verify-citations': verify_citations_command,
+    'summaries': summaries_command,
 }
 
 
@@ -1444,9 +2045,18 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument('--human', action='store_true', default=argparse.SUPPRESS)
         for key, kind in ARGUMENTS[name].items():
             if key == 'path':
-                p.add_argument('path', help='Input document, source directory, or audio file')
+                if name in OPTIONAL_PATH:
+                    p.add_argument(
+                        'path',
+                        nargs='?',
+                        default=argparse.SUPPRESS,
+                        help='Document (not needed for every action)',
+                    )
+                else:
+                    p.add_argument('path', help='Input document, source directory, or audio file')
                 continue
             flag = '--from' if key == 'from_revision' else '--' + key.replace('_', '-')
+            aliases = ('--comments',) if key == 'comments_path' else ()
             options: dict = {'dest': key, 'default': argparse.SUPPRESS}
             if key in REQUIRED.get(name, []):
                 options['required'] = True
@@ -1460,7 +2070,7 @@ def build_parser() -> argparse.ArgumentParser:
                 options['help'] = 'UTF-8 JSON file, or - for stdin'
             elif key == 'pages':
                 options['help'] = '1-based pages/ranges (1,3-5), or affected for the last committed edit'
-            p.add_argument(flag, **options)
+            p.add_argument(flag, *aliases, **options)
     service = sub.add_parser('serve', help='Explicitly start an authenticated, scoped loopback REST service')
     service.add_argument(
         '--root', action='append', required=True, help='Authorized filesystem root; repeat as needed'
@@ -1501,6 +2111,8 @@ def main(argv: list[str] | None = None) -> int:
             if len(raw) > 16 * 1024 * 1024:
                 _error('limit_exceeded', 'JSON input exceeds 16 MiB')
             ns['input'] = json.loads(raw)
+        if isinstance(ns.get('params'), str):
+            ns['params'] = json.loads(ns['params'])  # macro parameters: inline JSON object
         if 'pages' in ns and ns['pages'] != 'affected':
             pages: list[int] = []
             for token in ns['pages'].split(','):

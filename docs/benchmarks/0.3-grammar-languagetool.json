@@ -1,0 +1,63 @@
+{
+ "languagetool_version": "6.6",
+ "language": "en-US",
+ "labelled_errors": 155,
+ "recall_overall": 0.6968,
+ "recall_by_group": {
+  "agreement": 0.8,
+  "confusion": 0.6607,
+  "idiom": 0.7407,
+  "pronoun_case": 1.0,
+  "punctuation": 0.25,
+  "quantity": 0.6667,
+  "usage": 0.2222,
+  "verb_form": 1.0
+ },
+ "matches_overlapping_a_label": 109,
+ "matches_elsewhere_in_sentences_with_errors": 3,
+ "matches_on_clean_sentences": 3,
+ "precision_lower_bound": 0.9478,
+ "open_coverage": {
+  "sentences": 54,
+  "labelled_errors": 39,
+  "found": 24,
+  "recall": 0.6154,
+  "matches_on_clean_sentences": 0,
+  "matches_elsewhere_in_sentences_with_errors": 1
+ },
+ "top_rules": {
+  "HAVE_PART_AGREEMENT": 9,
+  "PERS_PRONOUN_AGREEMENT": 7,
+  "IT_IS": 5,
+  "HE_VERB_AGR": 5,
+  "MODAL_OF": 4,
+  "CONFUSION_OF_ME_I": 4,
+  "FEWER_LESS": 4,
+  "YOUR_YOU_2": 3,
+  "THEIR_IS": 3,
+  "AFFECT_EFFECT": 3,
+  "BASE_FORM": 3,
+  "COMPARISONS_THEN": 2
+ },
+ "latency_ms": {
+  "median": 51.7,
+  "p95": 97.2,
+  "sentences": 299
+ },
+ "environment": {
+  "python": "3.13.16",
+  "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+  "java": [
+   "openjdk version \"21.0.12.1\" 2026-08-18",
+   "OpenJDK Runtime Environment (build 21.0.12.1+1-1-24.04.4-Ubuntu)",
+   "OpenJDK 64-Bit Server VM (build 21.0.12.1+1-1-24.04.4-Ubuntu, mixed mode, sharing)"
+  ]
+ },
+ "measured_on": "2026-10-16",
+ "startup": {
+  "seconds_until_healthy": 1.9,
+  "seconds_first_check": 4.2,
+  "resident_memory_mb": 530,
+  "installed_size_mb": 386
+ }
+}

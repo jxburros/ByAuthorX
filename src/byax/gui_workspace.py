@@ -20,6 +20,7 @@ from PySide6.QtWidgets import (
 )
 
 from .gui_art import EmptyPanel, themed_art
+from .statistics import word_count
 
 
 class InspectorTabBar(QTabBar):
@@ -214,17 +215,25 @@ class WorkspacePanels:
             )
             notes.setPlainText(self.settings.value('workspace/scratchpad', '', type=str))
             notes.textChanged.connect(lambda notes=notes: self.save_workspace_notes(notes))
-            layout_slot = QWidget()
-            slot_layout = QVBoxLayout(layout_slot)
-            slot_layout.setContentsMargins(0, 0, 0, 0)
-            elsewhere = QLabel(self.tr('Layout is open in the other sidebar.'))
-            elsewhere.setObjectName('emptyDescription')
-            elsewhere.setWordWrap(True)
-            elsewhere.setAlignment(Qt.AlignCenter)
-            elsewhere.setMargin(12)
-            slot_layout.addWidget(elsewhere)
+            # Layout and Binder are single panels shared by both sidebars: the selecting side holds
+            # the panel and the other side explains where it is.
+            shared = {}
+            for name, key in (('Layout', 'layout'), ('Binder', 'binder')):
+                slot = QWidget()
+                slot_layout = QVBoxLayout(slot)
+                slot_layout.setContentsMargins(0, 0, 0, 0)
+                note = QLabel(self.tr('{0} is open in the other sidebar.').format(self.tr(name)))
+                note.setObjectName('emptyDescription')
+                note.setWordWrap(True)
+                note.setAlignment(Qt.AlignCenter)
+                note.setMargin(12)
+                slot_layout.addWidget(note)
+                shared[key] = (slot, note)
+            layout_slot, elsewhere = shared['layout']
+            binder_slot, binder_note = shared['binder']
             for label, key, panel in (
                 ('Layout', 'layout', layout_slot),
+                ('Binder', 'binder', binder_slot),
                 ('Bookmarks', 'bookmarks', bookmarks),
                 ('Writing statistics', 'statistics', statistics),
                 ('Personal scratchpad', 'scratchpad', notes),
@@ -238,6 +247,8 @@ class WorkspacePanels:
                 'scratchpad': notes,
                 'layout': layout_slot,
                 'layout-note': elsewhere,
+                'binder': binder_slot,
+                'binder-note': binder_note,
             }
             self.sidebar_selectors[side] = selector
             self.sidebar_stacks[side] = stack
@@ -250,11 +261,16 @@ class WorkspacePanels:
             selector.setCurrentIndex(max(index, 0))
         if self.layout_panel.parentWidget() is None:
             self.place_layout_panel('left')
+        if self.binder_panel.parentWidget() is None:
+            self.place_binder_panel('left')
 
     def select_workspace_sidebar(self, side, index):
         selector = self.sidebar_selectors[side]
         if selector.currentData() == 'layout':
             self.place_layout_panel(side)
+        elif selector.currentData() == 'binder':
+            self.place_binder_panel(side)
+            self.binder_panel.refresh()
         self.sidebar_stacks[side].setCurrentIndex(index)
         self.sidebar_docks[side].setWindowTitle(selector.currentText())
         self.settings.setValue(f'workspace/{side}Sidebar', selector.currentData())
@@ -290,6 +306,6 @@ class WorkspacePanels:
                 bookmarks.addTopLevelItem(item)
             panels['statistics'].setText(
                 self.tr('{0} words\n{1} characters\n{2} document blocks').format(
-                    len(text.split()), len(text), len(self.doc['blocks'])
+                    word_count(text), len(text), len(self.doc['blocks'])
                 )
             )

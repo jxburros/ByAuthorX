@@ -1,0 +1,89 @@
+{
+  "comment": "CI floors for tests/test_retrieval_eval.py on the fast sample (byax.evaluation.SAMPLES, 24 queries per library). Regenerate with: uv run python scripts/eval_retrieval.py --sample --configs keyword hybrid-fake --update-thresholds. A run fails when a metric drops more than the tolerance below its floor; raising a floor is a deliberate edit.",
+  "tolerance": {
+    "recall@5": 0.03,
+    "recall@20": 0.03,
+    "ndcg@10": 0.03,
+    "mrr": 0.03
+  },
+  "latency_p95_ms_max": {
+    "keyword": 250,
+    "hybrid-fake": 1000
+  },
+  "floors": {
+    "keyword": {
+      "novel": {
+        "recall@5": 0.9242,
+        "recall@20": 0.9545,
+        "ndcg@10": 0.9088,
+        "mrr": 0.8939,
+        "queries": 24
+      },
+      "series": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 1.0,
+        "mrr": 1.0,
+        "queries": 24
+      },
+      "humanities": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9773,
+        "mrr": 0.9697,
+        "queries": 24
+      },
+      "webclips": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9664,
+        "mrr": 0.9545,
+        "queries": 24
+      },
+      "papers": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 1.0,
+        "mrr": 1.0,
+        "queries": 24
+      }
+    },
+    "hybrid-fake": {
+      "novel": {
+        "recall@5": 0.7879,
+        "recall@20": 0.9545,
+        "ndcg@10": 0.787,
+        "mrr": 0.7652,
+        "queries": 24
+      },
+      "series": {
+        "recall@5": 0.9545,
+        "recall@20": 1.0,
+        "ndcg@10": 0.7991,
+        "mrr": 0.7501,
+        "queries": 24
+      },
+      "humanities": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9406,
+        "mrr": 0.9205,
+        "queries": 24
+      },
+      "webclips": {
+        "recall@5": 0.9091,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8568,
+        "mrr": 0.8119,
+        "queries": 24
+      },
+      "papers": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.907,
+        "mrr": 0.875,
+        "queries": 24
+      }
+    }
+  }
+}

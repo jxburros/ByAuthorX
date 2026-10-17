@@ -52,6 +52,18 @@ def test_registry_covers_export_formats_and_block_types():
     assert not supports('md', 'tables.spans')
 
 
+def test_view_list_in_this_document_matches_the_registry():
+    """The views table in docs/file-views.md lists exactly the registry's formats, with their labels."""
+    import re
+    from pathlib import Path
+
+    text = (Path(__file__).resolve().parents[1] / 'docs' / 'file-views.md').read_text(encoding='utf-8')
+    section = text.split('## 4. Views', 1)[1].split('\n## ', 1)[0]
+    rows = dict(re.findall(r'^\| `(\w+)` \| ([^|]+) \|', section, re.MULTILINE))
+    assert set(rows) == set(FORMATS)
+    assert all(rows[ident].strip() == entry['label'] for ident, entry in FORMATS.items())
+
+
 @pytest.mark.parametrize('fmt', FORMATS)
 def test_projection_is_pure_deterministic_and_preserves_identities(fmt):
     doc = example()

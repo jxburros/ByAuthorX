@@ -10,7 +10,7 @@ without rewriting anything.
 import copy
 
 from .errors import ByaxError
-from .model import SCHEMA_VERSION, dependency_id, validate_document
+from .model import SCHEMA_VERSION, citation_anchor_problem, dependency_id, validate_document
 
 
 def _v1_to_v2(state):
@@ -82,9 +82,68 @@ def _v1_to_v2(state):
     return transformations
 
 
+def _v2_to_v3(state):
+    """Schema 3 adds the optional manuscript ``project`` binder (CP A1), the optional
+    ``codex`` (CE 8.2; traits may carry ``valid_from``/``valid_to`` positions, CE 10), the
+    optional ``provenance`` log of span origins, AI claims and grounding records (CE 10), the
+    optional ``excerpt`` mark (CE 9, A2: a source back-pointer on excerpted text) and the
+    optional citation ``anchor`` object (CE 6.5: quote, 32-character source prefix and suffix,
+    position, content hash and anchored/unanchored state). No data changes: the binder, codex,
+    provenance log, excerpt marks and anchors are absent until created.
+    Citation ``prefix``/``suffix`` stay what they always were, rendering affixes such as
+    ``see ``; they are only checked to be text.
+    """
+    for field in ('project', 'codex', 'provenance'):
+        if field in state:
+            raise ByaxError(
+                'unsupported_feature',
+                f'A version 2 document already contains an unknown "{field}" construct; '
+                'it cannot be upgraded without risking loss.',
+                field=field,
+            )
+    affixes = anchors = 0
+    for block in state.get('blocks', []):
+        for mark in block.get('marks', []):
+            if isinstance(mark, dict) and mark.get('type') == 'excerpt':
+                raise ByaxError(
+                    'unsupported_feature',
+                    'A version 2 document already contains an unknown "excerpt" mark; '
+                    'it cannot be upgraded without risking loss.',
+                    target=block.get('id'),
+                    field='marks.excerpt',
+                )
+            if not isinstance(mark, dict) or mark.get('type') != 'citation':
+                continue
+            if any(not isinstance(mark.get(key, ''), str) for key in ('prefix', 'suffix')):
+                raise ByaxError(
+                    'unsupported_feature',
+                    'A citation mark has a non-text prefix or suffix; it cannot be upgraded without risking loss.',
+                    target=block.get('id'),
+                )
+            if 'anchor' in mark and citation_anchor_problem(mark['anchor']):
+                raise ByaxError(
+                    'unsupported_feature',
+                    'A version 2 citation mark already uses "anchor" for something else; '
+                    'it cannot be upgraded without risking loss.',
+                    target=block.get('id'),
+                    field='marks.anchor',
+                )
+            affixes += any(key in mark for key in ('prefix', 'suffix'))
+            anchors += 'anchor' in mark
+    return [
+        {'kind': 'added_optional_structure', 'field': 'project', 'count': 0},
+        {'kind': 'added_optional_structure', 'field': 'codex', 'count': 0},
+        {'kind': 'added_optional_structure', 'field': 'provenance', 'count': 0},
+        {'kind': 'citation_anchor_fields', 'field': 'marks.anchor', 'count': anchors},
+        {'kind': 'citation_affixes_checked', 'field': 'marks.prefix/suffix', 'count': affixes},
+        {'kind': 'added_optional_structure', 'field': 'marks.excerpt', 'count': 0},
+    ]
+
+
 # from_version: (to_version, description, transition)
 TRANSITIONS = {
     1: (2, 'Explicit external dependency records for linked images', _v1_to_v2),
+    2: (3, 'Optional manuscript project binder, codex, provenance log and citation anchors', _v2_to_v3),
 }
 SUPPORTED_VERSIONS = frozenset(TRANSITIONS) | {SCHEMA_VERSION}
 
@@ -133,6 +192,11 @@ def reference_problems(doc):
     for name, bookmark in doc.get('settings', {}).get('bookmarks', {}).items():
         if bookmark.get('target') not in ids and bookmark.get('status') != 'orphaned':
             problems.add(('bookmark', name, bookmark.get('target')))
+    project = doc.get('project')
+    if isinstance(project, dict) and isinstance(project.get('items'), dict):
+        for identity, item in project['items'].items():
+            if isinstance(item, dict) and item.get('heading') not in ids:
+                problems.add(('project_item', identity, item.get('heading')))
     return problems
 
 

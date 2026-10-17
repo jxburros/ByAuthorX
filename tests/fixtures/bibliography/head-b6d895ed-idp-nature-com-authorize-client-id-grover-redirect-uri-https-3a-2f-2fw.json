@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "HEAD",
+  "url": "https://idp.nature.com/authorize?client_id=grover&redirect_uri=https%3A%2F%2Fwww.nature.com%2Farticles%2Fnature14539&response_type=cookie"
+ },
+ "response": {
+  "headers": {
+   "location": "https://idp.nature.com/transit?redirect_uri=https%3A%2F%2Fwww.nature.com%2Farticles%2Fnature14539&code=cb0a7285-3687-4eaf-98c1-5fb93784cb6e"
+  },
+  "status": 302,
+  "text": ""
+ }
+}

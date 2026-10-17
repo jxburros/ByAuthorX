@@ -1,6 +1,6 @@
 # Competitiveness implementation plan
 
-Status: **proposed direction, not yet implemented**. Written 16 October 2026 against version 0.3.0.
+Status: **implemented on the 0.4 development line (Unreleased); see section 12 for decisions taken and what remains**. Written 16 October 2026 against version 0.3.0.
 It complements the [context engine plan](context-engine-plan.md), which covers retrieval, citation, grounding and provenance. This plan covers everything else needed to make ByAuthorX a credible choice for people who write books and long documents.
 
 ## 1 Goal
@@ -245,3 +245,36 @@ Sizes are rough and assume one maintainer working with AI assistance. Each phase
 | 5 | Extension surface | Out-of-process only (recommended), or also in-process plugins later | Phase 8 |
 | 6 | Shared project index | One index shared with the context engine's manuscript corpus (recommended) or separate | Before Phase 2 |
 | 7 | Compile presets | Which templates ship first: novel, non-fiction, standard manuscript | Phase 3 |
+
+## 12 Implementation status (17 October 2026)
+
+### Decisions taken
+
+The open decisions in section 11 were settled with the recommended options so that work could proceed. Each can be revisited.
+
+| # | Decision |
+| --- | --- |
+| 1 | Binder as a structure inside one `.byax` (document schema 3) |
+| 2 | Both grammar tiers behind one interface: built-in rules always available, LanguageTool as an opt-in, user-installed local sidecar. Measurements are in [grammar.md](grammar.md) |
+| 3 | Built-in EPUB structural check everywhere, plus an optional EPUBCheck CI job (manual and weekly) |
+| 4 | Apple silicon only (macOS 14+, set by the locked Qt wheels) |
+| 5 | Out-of-process extensions only |
+| 6 | One project index shared by the binder and the manuscript corpus (`project.block_map` feeds `project_index`) |
+| 7 | All three compile presets ship: novel, non-fiction and standard manuscript |
+
+### Status by item
+
+| Item | Status | What remains |
+| --- | --- | --- |
+| A1–A4 Projects | Done: binder and `project_*` operations, outline and corkboard with keyboard equivalents, goals and sessions as local preferences, named drafts with scene-level compare | Draft rename and delete; the OS drag gesture is tested with synthetic drop events only |
+| B1 EPUB | Done; EPUBCheck 5.3.0 passed on every fixture in a recorded local run | The CI job has not yet run on GitHub; no reading-system rendering checks |
+| B2 Compile | Done: presets, preflight, book design, reproducible PDF layout and EPUB bytes, DOCX round trip with no unreported losses | Drop caps do not wrap text; no hyphenation; the PDF is not PDF/X |
+| C1 Word round trip | Done, including two LibreOffice-produced fixtures | No file saved by Microsoft Word itself is in the suite |
+| C2 Beta readers, E5 companion | Done: offline HTML with commenting, PDF and DOCX copies, comment-file and PDF-annotation import | Not run on a physical phone or in Safari; PDF annotations tested only on pypdf-made files |
+| C3 Sync-folder safety | Done | No real sync client was exercised; Windows and macOS untested |
+| D1 Grammar, D4 Languages | Done; per-family precision and recall are published | **Maintainer:** independently re-verify the pinned LanguageTool download hash. No interface translations ship yet (English only) |
+| D2 Fiction, D3 Readability | Done; English word lists | Other languages need word-list packs |
+| E1 macOS, E2 Signing and updates | Implemented: `.app`/`.dmg` build, signing and notarization gated on secrets, manual update check | **Pending maintainer verification:** a macOS CI run, the `.dmg` on a real Mac, and real signatures once secrets are configured. Windows signing covers the installer, not the executables inside |
+| E3 Onboarding | Done: sample project and first-run tour | — |
+| E4 Extensions | Done: versioned manifest, scopes, out-of-process checks and export hooks, macros, scoped REST tokens | Extensions are not sandboxed; resource limits vary by platform (documented in [extensions.md](extensions.md)) |
+

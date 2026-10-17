@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "url": "https://api.crossref.org/works/10.5281/zenodo.3233118"
+ },
+ "response": {
+  "headers": {
+   "content-type": "text/plain"
+  },
+  "status": 404,
+  "text": "Resource not found."
+ }
+}

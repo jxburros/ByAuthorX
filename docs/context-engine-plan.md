@@ -1,6 +1,6 @@
 # Context engine implementation plan
 
-Status: **approved direction, not yet implemented**. Written 16 October 2026 against version 0.2.0 (commit `48ca3e3`). The maintainer's decisions are recorded in section 13.
+Status: **implemented on the 0.4 development line (Unreleased); see section 14 for what remains**. Written 16 October 2026 against version 0.2.0 (commit `48ca3e3`). The maintainer's decisions are recorded in section 13.
 Evidence: [context engine research](research/context-engine/README.md). The two reports are the
 [retrieval and citation report](research/context-engine/retrieval-and-citation-report.md) and the
 [competitor report](research/context-engine/competitor-report.md). Item codes such as Q5, R-rev and V1 refer to roadmap rows in those reports.
@@ -255,14 +255,19 @@ The CLI and GUI search syntax is documented in `docs/cli-reference.md` and the u
 
 ```python
 GroundingRecord = {
-    'answer_span': [start, end],          # in the reply or proposed edit text
-    'chunk_id': str, 'document_id': str, 'library_id': str | None, 'block_id': str | None,
-    'source_span': [start, end] | None,   # within the chunk text
-    'quote': str, 'prefix': str, 'suffix': str,   # 32-character context, for re-anchoring
-    'content_hash': str,                  # source version at citation time
+    'answer_span': [start, end],  # in the reply or proposed edit text
+    'chunk_id': str,
+    'document_id': str,
+    'library_id': str | None,
+    'block_id': str | None,
+    'source_span': [start, end] | None,  # within the chunk text
+    'quote': str,
+    'prefix': str,
+    'suffix': str,  # 32-character context, for re-anchoring
+    'content_hash': str,  # source version at citation time
     'origin': 'native' | 'token' | 'user',
     'state': 'supported' | 'partial' | 'unsupported' | 'not_checkable' | 'unanchored' | 'unverified',
-    'checks': [{'stage': 'quote'|'fuzzy'|'entailment'|'judge', 'result': ..., 'model': ...}],
+    'checks': [{'stage': 'quote' | 'fuzzy' | 'entailment' | 'judge', 'result': ..., 'model': ...}],
 }
 ```
 
@@ -557,3 +562,22 @@ Pending verifications from the research: sqlite-vec, bge-reranker-v2-m3, answera
 
 - **Bundled models and AI opt-in.** The bundled models still need a user's opt-in before indexing (section 7). The maintainer can choose instead to turn on-device semantic indexing on by default, since nothing leaves the computer.
 - **Fixture replacement.** The fixture set can be swapped for material closer to ByAuthorX's target writers, provided the replacement is redistributable.
+
+## 14 Implementation status (17 October 2026)
+
+Every phase is implemented, with tests, on the 0.4 development line. Measured results are published in
+[benchmarks/context-engine.md](benchmarks/context-engine.md) and the files beside it. "Verified" in the
+[acceptance matrix](acceptance-matrix.md) still means a named automated test or recorded maintainer check.
+
+| Phase | Status | What remains |
+| --- | --- | --- |
+| 0 Measurement | Done: fixtures with `MANIFEST.json`, 648 golden queries, `byax.evaluation`, `scripts/eval_retrieval.py`, fidelity tests, the 0.2 baseline, CI floors | Cross-library webclips queries; full-fixture runs of the model-backed configurations (sampled now, because CPU embedding is slow) |
+| 1 Wire and harden | Done: `search_query`, `ranking`, `vector_store`, index schema 2→3, global fusion, pinned tier, verified absence, `quote_match` (near-match threshold 94 from the harness), token budgets, Ollama `num_ctx`, local/remote labels, extracted-text preview; lexical re-rank of the top 100; keyword p95 71 ms at 10,000 documents (was 1.4 s) | Every library and query type is at or above the 0.2 baseline except `humanities` continuity nDCG@10 (−0.0007, documented); the lexical re-rank weights were tuned on the golden queries and need a held-out set; `retrieve_context` p95 at 10,000 documents is 87 ms, a thin margin to the 100 ms target |
+| 2 Click and verify | Done: `GroundingRecord`, Anthropic native citations in CHAT mode, chips, cache-ordered prompts, citation audit, citation `anchor` selectors and `unanchored` | Gemini and Cohere span mapping exists but their request adapters are not wired; native-citation fixtures are written from API references, not live recordings |
+| 3 Local semantic tier | Done: `local_models` catalogue with verified downloads, local embedder, ColBERT and cross-encoder rerankers, sqlite-vec backend, chunker v3, contextual notes, optional Docling, standard and lean installer variants | **Maintainer:** publish the `models-v1` mirror release (`python scripts/build.py --models-help`), then set `mirror.populated`; the standard installer cannot be built until then. "Accurate" reranking stays off by default because its p95 exceeds 1 s on the measured host. Late chunking and LanceDB were not needed |
+| 4 Router, inspector, manuscript, codex | Done: `router` (R0–R4, route accuracy 95.5% on 132 labelled requests), inspector, research log, `project_index`, saved searches, backlinks, `codex` with hide-from-AI, series files, `byax_route`/`byax_outline`/`byax_verify_citations`/`byax_entity` | The in-app R3 loop follows a fixed plan; R2/R3 searches still run on the UI thread; no switch yet for project-index embeddings |
+| 5 Verification and bibliography | Done: entailment stage (HHEM-2.1-Open, Apache-2.0; 73.8% three-way agreement, 4.5% false "supported" held out; off by default), second-provider judge, bibliography health behind `citation_lookup` consent, RIS, CSL styles, Zotero, excerpts | **Maintainer:** rebuild the entailment model with `scripts/export_hhem_onnx.py` and add it to `models-v1`. Zotero support is tested against the documented API format, not a running Zotero 7 |
+| 6 Differentiators | Done: claim-level provenance, APA/MLA/Chicago disclosures, version-pinned citations, temporal codex and continuity checks, hierarchical summaries, optional LLM reranker (CLI and library), published benchmarks | A signed, embedded C2PA manifest needs an SDK and the user's certificate; only an informational sidecar is produced. The LLM reranker has no desktop control yet |
+
+The bundled-models open point in section 13 is unchanged: on-device semantic indexing still waits for the user to turn it on for a library.
+

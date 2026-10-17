@@ -6,8 +6,13 @@ from .errors import ByaxError
 from .model import text_of
 
 
+def word_count(text):
+    """The one word definition behind every count; callers that need only words skip the character scan."""
+    return len(text.split())
+
+
 def counts(text):
-    words = len(text.split())
+    words = word_count(text)
     return {
         'words': words,
         'characters': len(text),

@@ -35,6 +35,7 @@ Other empty states use companion stills in the same way, always beside a readabl
 | Surface | Companion design | Runtime file (`ui/`) |
 | --- | --- | --- |
 | Outline with no headings | `loop-bound-book` | `outline-empty-{light,dark}.png` |
+| Binder with no binder, or an empty binder | `loop-bound-book` (the Outline still) | `outline-empty-{light,dark}.png` |
 | Layers with no layers | `revision-pages` | `layers-empty-{light,dark}.png` |
 | AI chat before the first message | `idea-on-paper` | `ai-empty-{light,dark}.png` |
 | AI chat with no provider configured | `local-copy` | `ai-setup-{light,dark}.png` |
@@ -64,6 +65,8 @@ The toolbar and menus carry a hand-inked icon set drawn in Vixl from the logo's 
 Icons always accompany a label or an accessible name. Comment, Check and Pages show icon and text in the toolbar. Bold, Italic and Underline are icon-only because their glyphs are the letters themselves, and keep their name, shortcut and tooltip. Menus draw icons at 20 px for actions that have an established image; other actions stay text-only rather than inventing a symbol. About uses the logo's own micro mark from the application icon, never a redraw.
 
 `gui_icons.themed_icon(name, widget)` slices the baked atlases (16, 24, 32 and 48 px, rendered from the vectors, not resampled) into a `QIcon`, so every logical size has an exact pixmap on ordinary and 2x displays, and chooses light or dark from the effective palette like the stills. Pressed and checked toolbar buttons use a paper background with a deep-green border instead of a solid green block, so an ink icon never sits on dark green.
+
+The Binder's outline rows and corkboard cards are drawn by item delegates from the same palette tokens (surface, rule, ink, muted, pen green; deep green for the focus and selection outline). Progress toward a target is a 2 to 3 px pen-green line over a rule-coloured track, always beside the written words and target, so colour never carries the meaning alone. A card or row that is being dragged over shows a 3 px deep-green insertion line or outline; dragging is never the only way to move an item (see the user guide). The panel uses no animation beyond the shared view fade.
 
 ## Interface type
 
@@ -97,6 +100,7 @@ The Qt application icon uses the simplified micro mark at 16–24 px and the X/l
 | Trigger | Motion | Completion |
 | --- | --- | --- |
 | Writing/pages switch | New view fades from 35% to full opacity | 180 ms, ease out |
+| Binder outline/corkboard switch | New view fades from 35% to full opacity (same fade as Writing/pages) | 180 ms, ease out; instant under reduced motion |
 | Inspector tab change or dock reveal | Panel content fades in | 180 ms, ease out |
 | Background worker or durable job | Small green pen loop writes, holds, and erases beside the task label | 2.4 s loop, only while work is pending |
 | Explicit successful save | Small checkmark draws beside “Saved locally” | 180 ms, then holds briefly and hides |

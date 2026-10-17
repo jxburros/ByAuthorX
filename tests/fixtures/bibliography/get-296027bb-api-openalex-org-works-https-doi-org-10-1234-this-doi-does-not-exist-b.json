@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "GET",
+  "url": "https://api.openalex.org/works/https://doi.org/10.1234/this-doi-does-not-exist-byax"
+ },
+ "response": {
+  "headers": {
+   "content-type": "text/html; charset=utf-8"
+  },
+  "status": 404,
+  "text": "<!doctype html>\n<html lang=en>\n<title>404 Not Found</title>\n<h1>Not Found</h1>\n<p>The requested URL was not found on the server. If you entered the URL manually please check your spelling and try again.</p>\n"
+ }
+}

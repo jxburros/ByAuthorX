@@ -30,10 +30,26 @@ dependencies = [
     "citeproc-py-styles>=0.1,<1",
     "bibtexparser>=1.4,<2",
     "pypdf>=5,<7",
+    "rapidfuzz>=3.9,<4",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "pytest-qt>=4", "pytest-cov>=5", "ruff>=0.9", "mypy>=1.11", "pyinstaller>=6"]
+# On-device semantic search: ONNX embedder/reranker runtime (MIT) and tokenizers (Apache-2.0).
+local-models = ["onnxruntime>=1.20,<2", "tokenizers>=0.20,<1"]
+# Optional vector backend with binary quantization (MIT/Apache-2.0 dual licence).
+sqlite-vec = ["sqlite-vec>=0.1.6,<0.2"]
+# Optional higher-quality PDF extraction (MIT), run only inside the parser subprocess.
+docling = ["docling>=2.40,<3"]
+dev = [
+    "pytest>=8",
+    "pytest-qt>=4",
+    "pytest-cov>=5",
+    "pytest-timeout>=2.3",
+    "ruff>=0.9",
+    "mypy>=1.11",
+    "pyinstaller>=6",
+    "playwright>=1.49",
+]
 
 [project.scripts]
 byax = "byax.cli:main"
@@ -45,6 +61,17 @@ packages = ["src/byax"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = [
+    "languagetool: needs a local LanguageTool server; set BYAX_LANGUAGETOOL_URL (for example http://127.0.0.1:8081)",
+    "live: makes real requests to Crossref, DataCite, OpenAlex or the Wayback Machine; deselected by default, run with -m live",
+    "eval_models: real on-device models (retrieval evaluation, entailment agreement); needs them installed (BYAX_REAL_MODELS_DIR); deselected by default, run with -m eval_models",
+]
+addopts = "-m 'not live and not eval_models'"
+# A hung test must fail fast with a stack dump instead of eating the CI budget. The thread method works
+# on Windows too (the signal method is POSIX only); it ends the whole run, which is what a wedged
+# process needs. The slowest legitimate test takes well under a minute.
+timeout = 300
+timeout_method = "thread"
 
 [tool.ruff]
 line-length = 110
@@ -54,7 +81,7 @@ quote-style = "single"
 
 [tool.mypy]
 python_version = "3.11"
-files = ["src/byax/engine.py", "src/byax/storage.py", "src/byax/cli.py", "src/byax/service.py", "src/byax/mcp.py", "src/byax/transport_policy.py", "src/byax/citations.py"]
+files = ["src/byax/engine.py", "src/byax/storage.py", "src/byax/cli.py", "src/byax/service.py", "src/byax/mcp.py", "src/byax/transport_policy.py", "src/byax/citations.py", "src/byax/project.py", "src/byax/grammar.py", "src/byax/language_packs.py", "src/byax/compile.py", "src/byax/project_index.py", "src/byax/codex.py", "src/byax/series.py", "src/byax/cli_codex.py", "src/byax/local_models.py", "src/byax/local_inference.py", "src/byax/vector_store.py", "src/byax/contextual.py", "src/byax/provenance.py", "src/byax/disclosure.py", "src/byax/version_pins.py", "src/byax/continuity.py", "src/byax/cli_provenance.py", "src/byax/grounding_entailment.py", "src/byax/llm_rerank.py"]
 follow_imports = "silent"
 ignore_missing_imports = true
 check_untyped_defs = false

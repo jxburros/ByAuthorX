@@ -1,0 +1,1794 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Suffix array - Wikipedia</title>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.24">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="noindex,nofollow,max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Suffix array - Wikipedia">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div id="mw-aria-live-region"></div><a href="#bodyContent">Jump to content</a>
+<div>
+	<header>
+		<div>
+			<nav>
+<div id="vector-main-menu-dropdown"  >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button"    >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox"  ><span></span>
+<span>Main menu</span>
+	</label>
+	<div>
+				<div id="vector-main-menu-unpinned-container">
+<div id="vector-main-menu">
+	<div
+>
+	<div>Main menu</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-navigation"  >
+	<div>
+		Navigation
+	</div>
+	<div>
+		<ul>
+			<li id="n-mainpage-description"><a href="/wiki/Main_Page" accesskey="z"><span>Main page</span></a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents"><span>Contents</span></a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events"><span>Current events</span></a></li><li id="n-randompage"><a href="/wiki/Special:Random" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About"><span>About Wikipedia</span></a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us"><span>Contact us</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-interaction"  >
+	<div>
+		Contribute
+	</div>
+	<div>
+		<ul>
+			<li id="n-help"><a href="/wiki/Help:Contents"><span>Help</span></a></li><li id="n-introduction"><a href="/wiki/Help:Introduction"><span>Learn to edit</span></a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal"><span>Community portal</span></a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_upload_wizard"><span>Upload file</span></a></li><li id="n-specialpages"><a href="/wiki/Special:SpecialPages" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+				</div>
+	</div>
+</div>
+		</nav>
+<a href="/wiki/Main_Page">
+	<img src="/static/images/icons/enwiki-25.svg" alt="" height="50" width="50">
+	<span>
+		<img alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg">
+		<img alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11">
+	</span>
+</a>
+		</div>
+		<div>
+<div id="p-search" role="search">
+	<a href="/wiki/Special:Search" accesskey="f"><span></span>
+<span>Search</span>
+	</a>
+	<div>
+		<div>
+			<form action="/w/index.php" id="searchform">
+				<div id="simpleSearch" >
+					<div>
+						<input
+						 autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" autocapitalize="none" spellcheck="false" accesskey="f" id="searchInput"
+							>
+						<span></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button>Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+			<nav>
+	<div>
+<div id="p-vector-user-menu-preferences"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-userpage"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	<nav>
+<div id="vector-appearance-dropdown"  >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button"    >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox"  ><span></span>
+<span>Appearance</span>
+	</label>
+	<div>
+			<div id="vector-appearance-unpinned-container">
+			</div>
+	</div>
+</div>
+	</nav>
+<div id="p-vector-user-menu-notifications"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-overflow"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport-2"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Suffix+array&amp;returntoquery=oldid%3D1343994068"><span>Create account</span></a>
+</li>
+<li id="pt-login-2"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Suffix+array&amp;returntoquery=oldid%3D1343994068" accesskey="o"><span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+<div id="vector-user-links-dropdown"  >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button"    >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox"  ><span></span>
+<span>Personal tools</span>
+	</label>
+	<div>
+<div id="p-personal"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span></span>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Suffix+array&amp;returntoquery=oldid%3D1343994068"><span></span>
+<span>Create account</span></a>
+</li>
+<li id="pt-login"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Suffix+array&amp;returntoquery=oldid%3D1343994068" accesskey="o"><span></span>
+<span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+</nav>
+		</div>
+	</header>
+</div>
+<div>
+	<div>
+		<div>
+			<div id="siteNotice"></div>
+		</div>
+		<div>
+			<div>
+		<div id="mw-navigation">
+			<nav id="mw-panel">
+				<div id="vector-main-menu-pinned-container">
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div>
+				<nav id="mw-panel-toc">
+					<div id="vector-toc-pinned-container">
+					<div id="vector-toc">
+	<div
+>
+	<h2>Contents</h2>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+		>
+			<a href="#">
+				<div>(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Definition"
+	>
+		<a href="#Definition">
+			<div>
+				<span>1</span>
+				<span>Definition</span>
+			</div>
+		</a>
+		<ul id="toc-Definition-sublist">
+		</ul>
+	</li>
+	<li id="toc-Example"
+	>
+		<a href="#Example">
+			<div>
+				<span>2</span>
+				<span>Example</span>
+			</div>
+		</a>
+		<ul id="toc-Example-sublist">
+		</ul>
+	</li>
+	<li id="toc-Correspondence_to_suffix_trees"
+	>
+		<a href="#Correspondence_to_suffix_trees">
+			<div>
+				<span>3</span>
+				<span>Correspondence to suffix trees</span>
+			</div>
+		</a>
+		<ul id="toc-Correspondence_to_suffix_trees-sublist">
+		</ul>
+	</li>
+	<li id="toc-Space_efficiency"
+	>
+		<a href="#Space_efficiency">
+			<div>
+				<span>4</span>
+				<span>Space efficiency</span>
+			</div>
+		</a>
+		<ul id="toc-Space_efficiency-sublist">
+		</ul>
+	</li>
+	<li id="toc-Construction_algorithms"
+	>
+		<a href="#Construction_algorithms">
+			<div>
+				<span>5</span>
+				<span>Construction algorithms</span>
+			</div>
+		</a>
+		<ul id="toc-Construction_algorithms-sublist">
+		</ul>
+	</li>
+	<li id="toc-Generalized_suffix_array"
+	>
+		<a href="#Generalized_suffix_array">
+			<div>
+				<span>6</span>
+				<span>Generalized suffix array</span>
+			</div>
+		</a>
+		<ul id="toc-Generalized_suffix_array-sublist">
+		</ul>
+	</li>
+	<li id="toc-Applications"
+	>
+		<a href="#Applications">
+			<div>
+				<span>7</span>
+				<span>Applications</span>
+			</div>
+		</a>
+		<ul id="toc-Applications-sublist">
+		</ul>
+	</li>
+	<li id="toc-Enhanced_suffix_arrays"
+	>
+		<a href="#Enhanced_suffix_arrays">
+			<div>
+				<span>8</span>
+				<span>Enhanced suffix arrays</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Enhanced suffix arrays subsection</span>
+			</button>
+		<ul id="toc-Enhanced_suffix_arrays-sublist">
+			<li id="toc-Constructing_the_lcp-interval"
+		>
+			<a href="#Constructing_the_lcp-interval">
+				<div>
+					<span>8.1</span>
+					<span>Constructing the lcp-interval</span>
+				</div>
+			</a>
+			<ul id="toc-Constructing_the_lcp-interval-sublist">
+			</ul>
+		</li>
+		<li id="toc-Constructing_a_child_table"
+		>
+			<a href="#Constructing_a_child_table">
+				<div>
+					<span>8.2</span>
+					<span>Constructing a child table</span>
+				</div>
+			</a>
+			<ul id="toc-Constructing_a_child_table-sublist">
+			</ul>
+		</li>
+		<li id="toc-Constructing_a_suffix_link_table"
+		>
+			<a href="#Constructing_a_suffix_link_table">
+				<div>
+					<span>8.3</span>
+					<span>Constructing a suffix link table</span>
+				</div>
+			</a>
+			<ul id="toc-Constructing_a_suffix_link_table-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Notes"
+	>
+		<a href="#Notes">
+			<div>
+				<span>9</span>
+				<span>Notes</span>
+			</div>
+		</a>
+		<ul id="toc-Notes-sublist">
+		</ul>
+	</li>
+	<li id="toc-References"
+	>
+		<a href="#References">
+			<div>
+				<span>10</span>
+				<span>References</span>
+			</div>
+		</a>
+		<ul id="toc-References-sublist">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+	>
+		<a href="#External_links">
+			<div>
+				<span>11</span>
+				<span>External links</span>
+			</div>
+		</a>
+		<ul id="toc-External_links-sublist">
+		</ul>
+	</li>
+</ul>
+</div>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div>
+			<main id="content">
+				<header>
+					<nav>
+<div id="vector-page-titlebar-toc"  >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button"    >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+	</label>
+	<div>
+							<div id="vector-page-titlebar-toc-unpinned-container">
+			</div>
+	</div>
+</div>
+					</nav>
+					<h1 id="firstHeading"><span lang="en" dir="ltr"><span>Suffix array</span></span></h1>
+<div id="p-lang-btn"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button"   >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox"  ><span></span>
+<span>13 languages</span>
+	</label>
+	<div>
+		<div>
+			<ul>
+				<li><a href="https://ar.wikipedia.org/wiki/%D9%85%D8%B5%D9%81%D9%88%D9%81%D8%A9_%D8%A7%D9%84%D9%84%D9%88%D8%A7%D8%AD%D9%82_%D9%84%D8%B3%D9%84%D8%B3%D9%84%D8%A9_%D9%86%D8%B5%D9%8A%D8%A9" lang="ar" hreflang="ar"><span>العربية</span></a></li><li><a href="https://de.wikipedia.org/wiki/Suffixarray" lang="de" hreflang="de"><span>Deutsch</span></a></li><li><a href="https://es.wikipedia.org/wiki/Arreglo_de_sufijos" lang="es" hreflang="es"><span>Español</span></a></li><li><a href="https://fa.wikipedia.org/wiki/%D8%A2%D8%B1%D8%A7%DB%8C%D9%87_%D9%BE%D8%B3%D9%88%D9%86%D8%AF%DB%8C" lang="fa" hreflang="fa"><span>فارسی</span></a></li><li><a href="https://fr.wikipedia.org/wiki/Tableau_des_suffixes" lang="fr" hreflang="fr"><span>Français</span></a></li><li><a href="https://ja.wikipedia.org/wiki/%E6%8E%A5%E5%B0%BE%E8%BE%9E%E9%85%8D%E5%88%97" lang="ja" hreflang="ja"><span>日本語</span></a></li><li><a href="https://ko.wikipedia.org/wiki/%EC%A0%91%EB%AF%B8%EC%82%AC_%EB%B0%B0%EC%97%B4" lang="ko" hreflang="ko"><span>한국어</span></a></li><li><a href="https://pt.wikipedia.org/wiki/Arranjo_de_sufixos" lang="pt" hreflang="pt"><span>Português</span></a></li><li><a href="https://ru.wikipedia.org/wiki/%D0%A1%D1%83%D1%84%D1%84%D0%B8%D0%BA%D1%81%D0%BD%D1%8B%D0%B9_%D0%BC%D0%B0%D1%81%D1%81%D0%B8%D0%B2" lang="ru" hreflang="ru"><span>Русский</span></a></li><li><a href="https://sr.wikipedia.org/wiki/%D0%A1%D1%83%D1%84%D0%B8%D0%BA%D1%81%D0%BD%D0%B8_%D0%BD%D0%B8%D0%B7" lang="sr" hreflang="sr"><span>Српски / srpski</span></a></li><li><a href="https://th.wikipedia.org/wiki/%E0%B9%81%E0%B8%96%E0%B8%A7%E0%B8%A5%E0%B8%B3%E0%B8%94%E0%B8%B1%E0%B8%9A%E0%B8%8B%E0%B8%B1%E0%B8%9F%E0%B8%9F%E0%B8%B4%E0%B8%81%E0%B8%8B%E0%B9%8C" lang="th" hreflang="th"><span>ไทย</span></a></li><li><a href="https://uk.wikipedia.org/wiki/%D0%A1%D1%83%D1%84%D1%96%D0%BA%D1%81%D0%BD%D0%B8%D0%B9_%D0%BC%D0%B0%D1%81%D0%B8%D0%B2" lang="uk" hreflang="uk"><span>Українська</span></a></li><li><a href="https://zh.wikipedia.org/wiki/%E5%90%8E%E7%BC%80%E6%95%B0%E7%BB%84" lang="zh" hreflang="zh"><span>中文</span></a></li>
+			</ul>
+			<div><span><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q281472#sitelinks-wikipedia">Edit links</a></span></div>
+		</div>
+	</div>
+</div>
+</header>
+				<div>
+					<div>
+						<div id="left-navigation">
+							<nav>
+<div id="p-associated-pages"  >
+	<div>
+		<ul>
+			<li id="ca-nstab-main"><a data-mw-interface  href="/wiki/Suffix_array" accesskey="c"><span>Article</span></a>
+</li>
+<li id="ca-talk"><a data-mw-interface  href="/wiki/Talk:Suffix_array" rel="discussion" accesskey="t"><span>Talk</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="vector-variants-dropdown"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox"  ><span>English</span>
+	</label>
+	<div>
+<div id="p-variants"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+							</nav>
+						</div>
+						<div id="right-navigation">
+							<nav>
+<div id="p-views"  >
+	<div>
+		<ul>
+			<li id="ca-view"><a data-mw-interface  href="/wiki/Suffix_array"><span>Read</span></a>
+</li>
+<li id="ca-edit"><a data-mw-interface  href="/w/index.php?title=Suffix_array&amp;action=edit" accesskey="e"><span>Edit</span></a>
+</li>
+<li id="ca-history"><a data-mw-interface  href="/w/index.php?title=Suffix_array&amp;action=history" accesskey="h"><span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+			</nav>
+							<nav>
+<div id="vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button"    >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox"  ><span></span>
+<span>Tools</span>
+	</label>
+	<div>
+									<div id="vector-page-tools-unpinned-container">
+<div id="vector-page-tools">
+	<div
+>
+	<div>Tools</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-cactions"  >
+	<div>
+		Actions
+	</div>
+	<div>
+		<ul>
+			<li id="ca-view-more"><a data-mw-interface  href="/wiki/Suffix_array"><span></span>
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more"><a data-mw-interface  href="/w/index.php?title=Suffix_array&amp;action=edit" accesskey="e"><span></span>
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more"><a data-mw-interface  href="/w/index.php?title=Suffix_array&amp;action=history" accesskey="h"><span></span>
+<span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="p-tb"  >
+	<div>
+		General
+	</div>
+	<div>
+		<ul>
+			<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Suffix_array" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Suffix_array" rel="nofollow" accesskey="k"><span>Related changes</span></a></li><li id="t-upload"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink"><a href="/w/index.php?title=Suffix_array&amp;oldid=1343994068"><span>Permanent link</span></a></li><li id="t-info"><a href="/w/index.php?title=Suffix_array&amp;action=info"><span>Page information</span></a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Suffix_array&amp;id=1343994068&amp;wpFormIdentifier=titleform"><span>Cite this page</span></a></li><li id="t-urlshortener"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fw%2Findex.php%3Ftitle%3DSuffix_array%26oldid%3D1343994068"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy"><a href="/w/index.php?title=Suffix_array&amp;oldid=1343994068&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-coll-print_export"  >
+	<div>
+		Print/export
+	</div>
+	<div>
+		<ul>
+			<li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Suffix_array&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print"><a href="javascript:print();" rel="alternate" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-wikibase-otherprojects"  >
+	<div>
+		In other projects
+	</div>
+	<div>
+		<ul>
+			<li><a href="https://commons.wikimedia.org/wiki/Category:Suffix_array" hreflang="en"><span>Wikimedia Commons</span></a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q281472" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+									</div>
+	</div>
+</div>
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div>
+						<nav>
+							<div id="vector-page-tools-pinned-container">
+							</div>
+		</nav>
+						<nav>
+							<div id="vector-appearance-pinned-container">
+				<div id="vector-appearance">
+	<div
+>
+	<div>Appearance</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+</div>
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" data-mw-ve-target-container>
+					<div>
+							<div>
+		</div>
+						<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"><div><span></span><div><div id="mw-revision-info-current"><b>This is the <a href="/wiki/Help:Page_history">current revision</a> of this page, as edited by <span id="mw-revision-name"><a href="/wiki/User:AzoraSkybound"><bdi>AzoraSkybound</bdi></a> <span>(<a href="/wiki/User_talk:AzoraSkybound">talk</a> | <a href="/wiki/Special:Contributions/AzoraSkybound">contribs</a>)</span></span> at <span id="mw-revision-date">17:12, 17 March 2026</span><span id="mw-revision-summary"> <span>(Link suggestions feature: 3 links added.)</span></span>. The present address (URL) is a <a href="/wiki/Help:Permanent_link">permanent link</a> to this version.</b><span id="revision-info-current-plain">Revision as of 17:12, 17 March 2026 by <a href="/wiki/User:AzoraSkybound"><bdi>AzoraSkybound</bdi></a> <span>(<a href="/wiki/User_talk:AzoraSkybound">talk</a> | <a href="/wiki/Special:Contributions/AzoraSkybound">contribs</a>)</span> <span>(Link suggestions feature: 3 links added.)</span></span></div><div id="mw-revision-nav">(<a href="/w/index.php?title=Suffix_array&amp;diff=prev&amp;oldid=1343994068">diff</a>) <a href="/w/index.php?title=Suffix_array&amp;direction=prev&amp;oldid=1343994068">← Previous revision</a> | Latest revision (diff) | Newer revision → (diff)</div></div></div></div></div>
+					</div>
+					<div id="mw-content-text"><div lang="en" dir="ltr"><section id="mwAQ"><div about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"Short description","href":"./Template:Short_description"},"params":{"1":{"wt":"Data structure for a string"}},"i":0}}]}'>Data structure for a string</div><span about="#mwt1"></span>
+<span about="#mwt2" typeof="mw:Transclusion" id="mwAw" data-mw='{"parts":[{"template":{"target":{"wt":"Infobox\n","href":"./Template:Infobox"},"params":{"above":{"wt":"Suffix array"},"label1":{"wt":"[[List of data structures|Type]]"},"data1":{"wt":"[[Array data structure|Array]]"},"label2":{"wt":"Invented by"},"data2":{"wt":"{{harvtxt|Manber|Myers|1990}}"},"header3":{"wt":"[[Time complexity]]&lt;br />in [[big O notation]]"},"headerstyle":{"wt":"background:lavender"},"data4":{"wt":"{{aligned table|cols=3|row1header=y|col1header=y|fullwidth=y\n| | Average | Worst case\n&lt;!-- -->\n| Space\n| &lt;math>\\mathcal{O}(n)&lt;/math>\n| &lt;math>\\mathcal{O}(n)&lt;/math>\n&lt;!-- -->\n| Construction\n| &lt;math>\\mathcal{O}(n)&lt;/math>\n| &lt;math>\\mathcal{O}(n)&lt;/math>\n}}"}},"i":0}}]}'></span><table about="#mwt2" id="mwBA"><tbody><tr><th colspan="2">Suffix array</th></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/List_of_data_structures">Type</a></th><td><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Array_data_structure">Array</a></td></tr><tr><th scope="row">Invented by</th><td><a rel="mw:WikiLink" href="#CITEREFManberMyers1990">Manber <span typeof="mw:Entity">&amp;</span> Myers (1990)</a></td></tr><tr><th colspan="2"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Time_complexity">Time complexity</a><br/>in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Big_O_notation">big O notation</a></th></tr><tr><td colspan="2"><table><tbody><tr><th scope="col"></th><th scope="col"> Average</th><th scope="col"> Worst case</th></tr><tr><th scope="row"> Space</th><td> <span typeof="mw:Extension/math" about="#mwt4" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span></td><td> <span typeof="mw:Extension/math" about="#mwt5" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span></td></tr><tr><th scope="row"> Construction</th><td> <span typeof="mw:Extension/math" about="#mwt6" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span></td><td> <span typeof="mw:Extension/math" about="#mwt7" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span></td></tr></tbody></table></td></tr></tbody></table>
+<p id="mwBQ">In <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Computer_science" id="mwBg">computer science</a>, a <b id="mwBw">suffix array</b> is a sorted <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Array_data_structure" id="mwCA">array</a> of all <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_(computer_science)" id="mwCQ">suffixes</a> of a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_(computer_science)" id="mwCg">string</a>. It is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_structure" id="mwCw">data structure</a> used in, among others, full-text indices, data-compression algorithms, and the field of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibliometrics" id="mwDA">bibliometrics</a>.</p>
+<p id="mwDQ">Suffix arrays were introduced by <a rel="mw:WikiLink" href="#CITEREFManberMyers1990" about="#mwt8" typeof="mw:Transclusion" id="mwDg" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Manber"},"2":{"wt":"Myers"},"3":{"wt":"1990"}},"i":0}}]}'>Manber <span typeof="mw:Entity">&amp;</span> Myers (1990)</a> as a simple, space efficient alternative to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree" id="mwDw">suffix trees</a>. They had independently been discovered by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gaston_Gonnet" id="mwEA">Gaston Gonnet</a> in 1987 under the name <i id="mwEQ">PAT array</i> <span about="#mwt9" typeof="mw:Transclusion" id="mwEg" data-mw='{"parts":[{"template":{"target":{"wt":"harv","href":"./Template:Harv"},"params":{"1":{"wt":"Gonnet"},"2":{"wt":"Baeza-Yates"},"3":{"wt":"Snider"},"4":{"wt":"1992"}},"i":0}}]}'>(</span><a rel="mw:WikiLink" href="#CITEREFGonnetBaeza-YatesSnider1992" about="#mwt9">Gonnet, Baeza-Yates <span typeof="mw:Entity">&amp;</span> Snider 1992</a><span about="#mwt9">)</span>.</p>
+<p id="mwEw"><a rel="mw:WikiLink" href="#CITEREFLiLiHuo2016" about="#mwt10" typeof="mw:Transclusion" id="mwFA" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Li"},"2":{"wt":"Li"},"3":{"wt":"Huo"},"4":{"wt":"2016"}},"i":0}}]}'>Li, Li <span typeof="mw:Entity">&amp;</span> Huo (2016)</a> gave the first in-place <span typeof="mw:Extension/math" about="#mwt11" id="mwFQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span> time suffix array construction algorithm that is optimal both in time and space, where <i id="mwFg">in-place</i> means that the algorithm only needs <span typeof="mw:Extension/math" about="#mwt12" id="mwFw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(1)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(1)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mn>1</mn>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(1)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/5aeb15c854068604d35a2dd82a925899fafd3690" alt="{\displaystyle {\mathcal {O}}(1)}"/></span> additional space beyond the input string and the output suffix array.</p>
+<p id="mwGA">Enhanced suffix arrays (ESAs) are suffix arrays with additional tables that reproduce the full functionality of suffix trees preserving the same time and memory complexity.<sup about="#mwt13" id="cite_ref-FOOTNOTEAbouelhodaKurtzOhlebusch2004_1-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEAbouelhodaKurtzOhlebusch2004"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Abouelhoda"},"2":{"wt":"Kurtz"},"3":{"wt":"Ohlebusch"},"4":{"wt":"2004"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1" id="mwGQ"><span id="mwGg"><span id="mwGw">[</span>1<span id="mwHA">]</span></span></a></sup>
+A sorted array of only some (rather than all) suffixes of a string is called a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sparse_suffix_array?action=edit&amp;redlink=1" typeof="mw:LocalizedAttrs" id="mwHQ" data-mw-i18n='{"title":{"lang":"x-page","key":"red-link-title","params":["Sparse suffix array"]}}'>sparse suffix array</a>.<sup about="#mwt16" id="cite_ref-FOOTNOTEIKärkkäinenKempa2014_2-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEIKärkkäinenKempa2014"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEIKärkkäinenKempa2014-2"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"I"},"2":{"wt":"Kärkkäinen"},"3":{"wt":"Kempa"},"4":{"wt":"2014"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEIKärkkäinenKempa2014-2" id="mwHg"><span id="mwHw"><span id="mwIA">[</span>2<span id="mwIQ">]</span></span></a></sup></p>
+<meta property="mw:PageProp/toc" id="mwIg" data-mw='{"autoGenerated":true}'/></section><section id="mwIw"><div><h2 id="Definition">Definition</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=1"><span>edit</span></a><span>]</span></span></div>
+<p id="mwJA">Let <span typeof="mw:Extension/math" about="#mwt19" id="mwJQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S=S[1]S[2]...S[n]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S=S[1]S[2]...S[n]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+        <mo>=</mo>
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mn>1</mn>
+        <mo stretchy="false">]</mo>
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mn>2</mn>
+        <mo stretchy="false">]</mo>
+        <mo>.</mo>
+        <mo>.</mo>
+        <mo>.</mo>
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mi>n</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S=S[1]S[2]...S[n]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/7368634286bb954c1f6acb4885bbb21d0b779cda" alt="{\displaystyle S=S[1]S[2]...S[n]}"/></span> be an <span typeof="mw:Extension/math" about="#mwt20" id="mwJg" data-mw='{"name":"math","attrs":{"display":"inline"},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\textstyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="false" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\textstyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/cc6e1f880981346a604257ebcacdef24c0aca2d6" alt="{\textstyle n}"/></span>-string and let <span typeof="mw:Extension/math" about="#mwt21" id="mwJw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S[i,j]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S[i,j]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo>,</mo>
+        <mi>j</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S[i,j]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/38fe7fdd57ab786563cca51767a3b9717fc63f92" alt="{\displaystyle S[i,j]}"/></span> denote the substring of <span typeof="mw:Extension/math" about="#mwt22" id="mwKA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span> ranging from <span typeof="mw:Extension/math" about="#mwt23" id="mwKQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle i}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>i</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle i}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/add78d8608ad86e54951b8c8bd6c8d8416533d20" alt="{\displaystyle i}"/></span> to <span typeof="mw:Extension/math" about="#mwt24" id="mwKg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle j}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>j</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle j}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2f461e54f5c093e92a55547b9764291390f0b5d0" alt="{\displaystyle j}"/></span> inclusive.</p>
+<p id="mwKw">The suffix array <span typeof="mw:Extension/math" about="#mwt25" id="mwLA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/7daff47fa58cdfd29dc333def748ff5fa4c923e3" alt="{\displaystyle A}"/></span> of <span typeof="mw:Extension/math" about="#mwt26" id="mwLQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span> is now defined to be an array of integers providing the starting positions of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_(computer_science)" id="mwLg">suffixes</a> of <span typeof="mw:Extension/math" about="#mwt27" id="mwLw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span> in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lexicographical_order" id="mwMA">lexicographical order</a>. This means, an entry <span typeof="mw:Extension/math" about="#mwt28" id="mwMQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A[i]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A[i]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A[i]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2a0d7a8a3371fad84f7032042e8d1e1caf6aa15e" alt="{\displaystyle A[i]}"/></span> contains the starting position of the <span typeof="mw:Extension/math" about="#mwt29" id="mwMg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle i}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>i</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle i}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/add78d8608ad86e54951b8c8bd6c8d8416533d20" alt="{\displaystyle i}"/></span>-th smallest suffix in <span typeof="mw:Extension/math" about="#mwt30" id="mwMw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span> and thus for all <span typeof="mw:Extension/math" about="#mwt31" id="mwNA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"1 \\leq i \\leq n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle 1\leq i\leq n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mn>1</mn>
+        <mo>≤</mo>
+        <mi>i</mi>
+        <mo>≤</mo>
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle 1\leq i\leq n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/abbe58b9b83f8b6ec0da570e2249323a8930ef1e" alt="{\displaystyle 1\leq i\leq n}"/></span>: <span typeof="mw:Extension/math" about="#mwt32" id="mwNQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S[A[i-1],n] &lt; S[A[i],n]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S[A[i-1],n]&lt;S[A[i],n]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo>−</mo>
+        <mn>1</mn>
+        <mo stretchy="false">]</mo>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">]</mo>
+        <mo>&lt;</mo>
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+        <mo>,</mo>
+        <mi>n</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S[A[i-1],n]&lt;S[A[i],n]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fa1a146c60a150fd6201ad6370e818bdc45f1cb4" alt="{\displaystyle S[A[i-1],n]&lt;S[A[i],n]}"/></span>.</p>
+<p id="mwNg">Each <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_(computer_science)" id="mwNw">suffix</a> of <span typeof="mw:Extension/math" about="#mwt33" id="mwOA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span> shows up in <span typeof="mw:Extension/math" about="#mwt34" id="mwOQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/7daff47fa58cdfd29dc333def748ff5fa4c923e3" alt="{\displaystyle A}"/></span> exactly once. Suffixes are simple strings. These strings are sorted (as in a paper dictionary), before their starting positions (integer indices) are saved in <span typeof="mw:Extension/math" about="#mwt35" id="mwOg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/7daff47fa58cdfd29dc333def748ff5fa4c923e3" alt="{\displaystyle A}"/></span>.</p>
+</section><section id="mwOw"><div><h2 id="Example">Example</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=2"><span>edit</span></a><span>]</span></span></div>
+<p id="mwPA">Consider the text <span typeof="mw:Extension/math" about="#mwt36" id="mwPQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span>=<code id="mwPg">banana$</code> to be indexed:</p>
+<table id="mwPw">
+<tbody id="mwQA"><tr id="mwQQ">
+<th scope="row" about="#mwt38" typeof="mw:ExpandedAttrs" id="mwQw" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt37\" typeof=\"mw:Transclusion\" id=\"mwQg\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>i</th>
+<td id="mwRA">1</td><td id="mwRQ">2</td><td id="mwRg">3</td><td id="mwRw">4</td><td id="mwSA">5</td><td id="mwSQ">6</td><td id="mwSg">7</td></tr>
+<tr id="mwSw">
+<th scope="row" about="#mwt41" typeof="mw:ExpandedAttrs" id="mwTQ" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt40\" typeof=\"mw:Transclusion\" id=\"mwTA\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'><span typeof="mw:Extension/math" about="#mwt39" id="mwTg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S[i]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S[i]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S[i]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/bcac18d365382145819781be2eb59d84dd8b4496" alt="{\displaystyle S[i]}"/></span></th>
+<td id="mwTw">b</td><td id="mwUA">a</td><td id="mwUQ">n</td><td id="mwUg">a</td><td id="mwUw">n</td><td id="mwVA">a</td><td id="mwVQ">$</td></tr>
+</tbody></table>
+<p id="mwVg">The text ends with the special sentinel letter <code id="mwVw">$</code> that is unique and lexicographically smaller than any other character. The text has the following suffixes:</p>
+<table id="mwWA">
+<tbody id="mwWQ"><tr id="mwWg"><th align="left" id="mwWw">Suffix</th><th align="left" id="mwXA">i</th></tr>
+<tr id="mwXQ">
+<td align="left" id="mwXg">banana$</td><td align="left" id="mwXw">1</td></tr>
+<tr id="mwYA">
+<td align="left" id="mwYQ">anana$</td><td align="left" id="mwYg">2</td></tr>
+<tr id="mwYw">
+<td align="left" id="mwZA">nana$</td><td align="left" id="mwZQ">3</td></tr>
+<tr id="mwZg">
+<td align="left" id="mwZw">ana$</td><td align="left" id="mwaA">4</td></tr>
+<tr id="mwaQ">
+<td align="left" id="mwag">na$</td><td align="left" id="mwaw">5</td></tr>
+<tr id="mwbA">
+<td align="left" id="mwbQ">a$</td><td align="left" id="mwbg">6</td></tr>
+<tr id="mwbw">
+<td align="left" id="mwcA">$</td><td align="left" id="mwcQ">7</td></tr>
+</tbody></table>
+<p id="mwcg">These suffixes can be sorted in ascending order:</p>
+<table id="mwcw">
+<tbody id="mwdA"><tr id="mwdQ"><th align="left" id="mwdg">Suffix</th><th align="left" id="mwdw">i</th></tr>
+<tr id="mweA">
+<td align="left" id="mweQ">$</td><td align="left" id="mweg">7</td></tr>
+<tr id="mwew">
+<td align="left" id="mwfA">a$</td><td align="left" id="mwfQ">6</td></tr>
+<tr id="mwfg">
+<td align="left" id="mwfw">ana$</td><td align="left" id="mwgA">4</td></tr>
+<tr id="mwgQ">
+<td align="left" id="mwgg">anana$</td><td align="left" id="mwgw">2</td></tr>
+<tr id="mwhA">
+<td align="left" id="mwhQ">banana$</td><td align="left" id="mwhg">1</td></tr>
+<tr id="mwhw">
+<td align="left" id="mwiA">na$</td><td align="left" id="mwiQ">5</td></tr>
+<tr id="mwig">
+<td align="left" id="mwiw">nana$</td><td align="left" id="mwjA">3</td></tr>
+</tbody></table>
+<p id="mwjQ">The suffix array <span typeof="mw:Extension/math" about="#mwt42" id="mwjg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/7daff47fa58cdfd29dc333def748ff5fa4c923e3" alt="{\displaystyle A}"/></span> contains the starting positions of these sorted suffixes:</p>
+<table id="mwjw">
+<tbody id="mwkA"><tr id="mwkQ"><th scope="row" about="#mwt44" typeof="mw:ExpandedAttrs" id="mwkw" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt43\" typeof=\"mw:Transclusion\" id=\"mwkg\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>i =</th>
+<td id="mwlA">1</td><td id="mwlQ">2</td><td id="mwlg">3</td><td id="mwlw">4</td><td id="mwmA">5</td><td id="mwmQ">6</td><td id="mwmg">7</td></tr>
+<tr id="mwmw">
+<th scope="row" about="#mwt47" typeof="mw:ExpandedAttrs" id="mwnQ" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt46\" typeof=\"mw:Transclusion\" id=\"mwnA\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'><span typeof="mw:Extension/math" about="#mwt45" id="mwng" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A[i]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A[i]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A[i]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2a0d7a8a3371fad84f7032042e8d1e1caf6aa15e" alt="{\displaystyle A[i]}"/></span> =</th>
+<td id="mwnw">7</td><td id="mwoA">6</td><td id="mwoQ">4</td><td id="mwog">2</td><td id="mwow">1</td><td id="mwpA">5</td><td id="mwpQ">3</td></tr>
+</tbody></table>
+<p id="mwpg">The suffix array with the suffixes written out vertically underneath for clarity:</p>
+<table id="mwpw">
+<tbody id="mwqA"><tr id="mwqQ"><th scope="row" about="#mwt50" typeof="mw:ExpandedAttrs" id="mwqw" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt48\" typeof=\"mw:Transclusion\" id=\"mwqg\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>i =</th>
+<td id="mwrA">1</td><td id="mwrQ">2</td><td id="mwrg">3</td><td id="mwrw">4</td><td id="mwsA">5</td><td id="mwsQ">6</td><td id="mwsg">7</td></tr>
+<tr id="mwsw">
+<th scope="row" about="#mwt54" typeof="mw:ExpandedAttrs" id="mwtQ" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt53\" typeof=\"mw:Transclusion\" id=\"mwtA\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'><span typeof="mw:Extension/math" about="#mwt51" id="mwtg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A[i]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A[i]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A[i]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2a0d7a8a3371fad84f7032042e8d1e1caf6aa15e" alt="{\displaystyle A[i]}"/></span> =</th>
+<td id="mwtw">7</td><td id="mwuA">6</td><td id="mwuQ">4</td><td id="mwug">2</td><td id="mwuw">1</td><td id="mwvA">5</td><td id="mwvQ">3</td></tr>
+<tr id="mwvg">
+<th scope="row" about="#mwt57" typeof="mw:ExpandedAttrs" id="mwwA" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt56\" typeof=\"mw:Transclusion\" id=\"mwvw\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>1</th>
+<td id="mwwQ">$</td><td id="mwwg">a</td><td id="mwww">a</td><td id="mwxA">a</td><td id="mwxQ">b</td><td id="mwxg">n</td><td id="mwxw">n</td></tr>
+<tr id="mwyA">
+<th scope="row" about="#mwt60" typeof="mw:ExpandedAttrs" id="mwyg" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt59\" typeof=\"mw:Transclusion\" id=\"mwyQ\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>2</th>
+<td id="mwyw"></td><td id="mwzA">$</td><td id="mwzQ">n</td><td id="mwzg">n</td><td id="mwzw">a</td><td id="mw0A">a</td><td id="mw0Q">a</td></tr>
+<tr id="mw0g">
+<th scope="row" about="#mwt63" typeof="mw:ExpandedAttrs" id="mw1A" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt62\" typeof=\"mw:Transclusion\" id=\"mw0w\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>3</th>
+<td id="mw1Q"></td><td id="mw1g"></td><td id="mw1w">a</td><td id="mw2A">a</td><td id="mw2Q">n</td><td id="mw2g">$</td><td id="mw2w">n</td></tr>
+<tr id="mw3A">
+<th scope="row" about="#mwt66" typeof="mw:ExpandedAttrs" id="mw3g" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt65\" typeof=\"mw:Transclusion\" id=\"mw3Q\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>4</th>
+<td id="mw3w"></td><td id="mw4A"></td><td id="mw4Q">$</td><td id="mw4g">n</td><td id="mw4w">a</td><td id="mw5A"></td><td id="mw5Q">a</td></tr>
+<tr id="mw5g">
+<th scope="row" about="#mwt69" typeof="mw:ExpandedAttrs" id="mw6A" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt68\" typeof=\"mw:Transclusion\" id=\"mw5w\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>5</th>
+<td id="mw6Q"></td><td id="mw6g"></td><td id="mw6w"></td><td id="mw7A">a</td><td id="mw7Q">n</td><td id="mw7g"></td><td id="mw7w">$</td></tr>
+<tr id="mw8A">
+<th scope="row" about="#mwt72" typeof="mw:ExpandedAttrs" id="mw8g" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt71\" typeof=\"mw:Transclusion\" id=\"mw8Q\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>6</th>
+<td id="mw8w"></td><td id="mw9A"></td><td id="mw9Q"></td><td id="mw9g">$</td><td id="mw9w">a</td><td id="mw-A"></td><td id="mw-Q"></td></tr>
+<tr id="mw-g">
+<th scope="row" about="#mwt75" typeof="mw:ExpandedAttrs" id="mw_A" data-mw='{"attribs":[[{"txt":"scope","html":"&lt;span about=\"#mwt74\" typeof=\"mw:Transclusion\" id=\"mw-w\" data-mw=&apos;{\"parts\":[{\"template\":{\"target\":{\"wt\":\"left header\",\"href\":\"./Template:Left_header\"},\"params\":{},\"i\":0}}]}&apos;>scope=\"row\" style=\"text-align:left;\"&lt;/span>"},{"html":""}]]}'>7</th>
+<td id="mw_Q"></td><td id="mw_g"></td><td id="mw_w"></td><td id="mwAQA"></td><td id="mwAQE">$</td><td id="mwAQI"></td><td id="mwAQM"></td></tr>
+</tbody></table>
+<p id="mwAQQ">So for example, <span typeof="mw:Extension/math" about="#mwt76" id="mwAQU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A[3]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A[3]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mn>3</mn>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A[3]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fad3f1cbea6f7cb9b43da98cb6c31e0043e47713" alt="{\displaystyle A[3]}"/></span> contains the value 4, and therefore refers to the suffix starting at position 4 within <span typeof="mw:Extension/math" about="#mwt77" id="mwAQY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span>, which is the suffix <code id="mwAQc">ana$</code>.</p>
+</section><section id="mwAQg"><div><h2 id="Correspondence_to_suffix_trees">Correspondence to suffix trees</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=3"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAQk">Suffix arrays are closely related to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree" id="mwAQo">suffix trees</a>:</p>
+<ul id="mwAQs"><li id="mwAQw">Suffix arrays can be constructed by performing a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Depth-first_traversal" id="mwAQ0">depth-first traversal</a> of a suffix tree. The suffix array corresponds to the leaf-labels given in the order in which these are visited during the traversal, if edges are visited in the lexicographical order of their first character.</li>
+<li id="mwAQ4">A suffix tree can be constructed in linear time by using a combination of suffix array and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array" id="mwAQ8">LCP array</a>. For a description of the algorithm, see the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array#Suffix_tree_construction" id="mwARA">corresponding section</a> in the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array" id="mwARE">LCP array</a> article.</li></ul>
+<p id="mwARI">It has been shown that every suffix tree algorithm can be systematically replaced with an algorithm that uses a suffix array enhanced with additional information (such as the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array" id="mwARM">LCP array</a>) and solves the same problem in the same time complexity.<sup about="#mwt78" id="cite_ref-FOOTNOTEAbouelhodaKurtzOhlebusch2004_1-1" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEAbouelhodaKurtzOhlebusch2004"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Abouelhoda"},"2":{"wt":"Kurtz"},"3":{"wt":"Ohlebusch"},"4":{"wt":"2004"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1" id="mwARQ"><span id="mwARU"><span id="mwARY">[</span>1<span id="mwARc">]</span></span></a></sup>
+Advantages of suffix arrays over suffix trees include improved space requirements, simpler linear time construction algorithms (e.g., compared to <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ukkonen's_algorithm" id="mwARg">Ukkonen's algorithm</a>) and improved cache locality.<sup about="#mwt81" id="cite_ref-FOOTNOTEAbouelhodaKurtzOhlebusch2002_3-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEAbouelhodaKurtzOhlebusch2002"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2002-3"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Abouelhoda"},"2":{"wt":"Kurtz"},"3":{"wt":"Ohlebusch"},"4":{"wt":"2002"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2002-3" id="mwARk"><span id="mwARo"><span id="mwARs">[</span>3<span id="mwARw">]</span></span></a></sup></p>
+</section><section id="mwAR0"><div><h2 id="Space_efficiency">Space efficiency</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=4"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAR4">Suffix arrays were introduced by <a rel="mw:WikiLink" href="#CITEREFManberMyers1990" about="#mwt84" typeof="mw:Transclusion" id="mwAR8" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Manber"},"2":{"wt":"Myers"},"3":{"wt":"1990"}},"i":0}}]}'>Manber <span typeof="mw:Entity">&amp;</span> Myers (1990)</a> in order to improve over the space requirements of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree" id="mwASA">suffix trees</a>: Suffix arrays store <span typeof="mw:Extension/math" about="#mwt88" id="mwASE" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> integers. Assuming an integer requires <span typeof="mw:Extension/math" about="#mwt89" id="mwASI" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"4"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle 4}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mn>4</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle 4}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/295b4bf1de7cd3500e740e0f4f0635db22d87b42" alt="{\displaystyle 4}"/></span> bytes, a suffix array requires <span typeof="mw:Extension/math" about="#mwt90" id="mwASM" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"4n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle 4n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mn>4</mn>
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle 4n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/42d3d982c0a63d59f04a9ea9aecec75fb107f6a3" alt="{\displaystyle 4n}"/></span> bytes in total. This is significantly less than the <span typeof="mw:Extension/math" about="#mwt91" id="mwASQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"20n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle 20n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mn>20</mn>
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle 20n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3f9ea64e079f0a3871c95d013ad60fba3aecdddf" alt="{\displaystyle 20n}"/></span> bytes which are required by a careful suffix tree implementation.<sup about="#mwt85" id="cite_ref-FOOTNOTEKurtz1999_4-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEKurtz1999"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEKurtz1999-4"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Kurtz"},"2":{"wt":"1999"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEKurtz1999-4" id="mwASU"><span id="mwASY"><span id="mwASc">[</span>4<span id="mwASg">]</span></span></a></sup></p>
+<p id="mwASk">However, in certain applications, the space requirements of suffix arrays may still be prohibitive. Analyzed in bits, a suffix array requires <span typeof="mw:Extension/math" about="#mwt92" id="mwASo" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9981ede263cbf28215d3a70bf30f55db41a6e692" alt="{\displaystyle {\mathcal {O}}(n\log n)}"/></span> space, whereas the original text over an alphabet of size <span typeof="mw:Extension/math" about="#mwt93" id="mwASs" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\sigma"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \sigma }">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>σ</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \sigma }</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/59f59b7c3e6fdb1d0365a494b81fb9a696138c36" alt="{\displaystyle \sigma }"/></span> only requires <span typeof="mw:Extension/math" about="#mwt94" id="mwASw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n \\log \\sigma)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n\log \sigma )}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>σ</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n\log \sigma )}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/92ec16b663d24328da1ccb87aa0403aae0a52569" alt="{\displaystyle {\mathcal {O}}(n\log \sigma )}"/></span> bits.
+For a human genome with <span typeof="mw:Extension/math" about="#mwt95" id="mwAS0" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\sigma = 4"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \sigma =4}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>σ</mi>
+        <mo>=</mo>
+        <mn>4</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \sigma =4}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/b0175571ddfca9b707979289129dd7a499a5b25e" alt="{\displaystyle \sigma =4}"/></span> and <span typeof="mw:Extension/math" about="#mwt96" id="mwAS4" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n = 3.4 \\times 10^9"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n=3.4\times 10^{9}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+        <mo>=</mo>
+        <mn>3.4</mn>
+        <mo>×</mo>
+        <msup>
+          <mn>10</mn>
+          <mrow>
+            <mn>9</mn>
+          </mrow>
+        </msup>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n=3.4\times 10^{9}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2043f775ca7a7041e7e566c67a40d080ff76187e" alt="{\displaystyle n=3.4\times 10^{9}}"/></span> the suffix array would therefore occupy about 16 times more memory than the genome itself.</p>
+<p id="mwAS8">Such discrepancies motivated a trend towards <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_suffix_array" id="mwATA">compressed suffix arrays</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform" id="mwATE">BWT</a>-based compressed full-text indices such as the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FM-index" id="mwATI">FM-index</a>. These data structures require only space within the size of the text or even less.</p>
+</section><section id="mwATM"><div><h2 id="Construction_algorithms">Construction algorithms</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=5"><span>edit</span></a><span>]</span></span></div>
+<p id="mwATQ">A suffix tree can be built in <span typeof="mw:Extension/math" about="#mwt97" id="mwATU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span> and can be converted into a suffix array by traversing the tree depth-first also in <span typeof="mw:Extension/math" about="#mwt98" id="mwATY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span>, so there exist algorithms that can build a suffix array in <span typeof="mw:Extension/math" about="#mwt99" id="mwATc" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span>.</p>
+<p id="mwATg">A naive approach to construct a suffix array is to use a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Comparison_sort" id="mwATk">comparison-based sorting algorithm</a>. These algorithms require <span typeof="mw:Extension/math" about="#mwt100" id="mwATo" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9981ede263cbf28215d3a70bf30f55db41a6e692" alt="{\displaystyle {\mathcal {O}}(n\log n)}"/></span> suffix comparisons, but a suffix comparison runs in <span typeof="mw:Extension/math" about="#mwt101" id="mwATs" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3c7bbe0124ae81792773344bc8709fc2f9c9910d" alt="{\displaystyle {\mathcal {O}}(n)}"/></span> time, so the overall runtime of this approach is <span typeof="mw:Extension/math" about="#mwt102" id="mwATw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n^2 \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n^{2}\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <msup>
+          <mi>n</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msup>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n^{2}\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/ff9d8247a11fce04adfd903d817db246a6d3d44b" alt="{\displaystyle {\mathcal {O}}(n^{2}\log n)}"/></span>.</p>
+<p id="mwAT0">More advanced algorithms take advantage of the fact that the suffixes to be sorted are not arbitrary strings but related to each other. These algorithms strive to achieve the following goals:<sup about="#mwt103" id="cite_ref-FOOTNOTEPuglisiSmythTurpin2007_5-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEPuglisiSmythTurpin2007"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEPuglisiSmythTurpin2007-5"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Puglisi"},"2":{"wt":"Smyth"},"3":{"wt":"Turpin"},"4":{"wt":"2007"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEPuglisiSmythTurpin2007-5" id="mwAT4"><span id="mwAT8"><span id="mwAUA">[</span>5<span id="mwAUE">]</span></span></a></sup></p>
+<ul id="mwAUI"><li id="mwAUM">minimal asymptotic complexity <span typeof="mw:Extension/math" about="#mwt106" id="mwAUQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\Theta(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \Theta (n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi mathvariant="normal">Θ</mi>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle \Theta (n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a6351206e27071559aa4472579095994f650d76b" alt="{\displaystyle \Theta (n)}"/></span></li>
+<li id="mwAUU">lightweight in space, meaning little or no working memory beside the text and the suffix array itself is needed</li>
+<li id="mwAUY">fast in practice</li></ul>
+<p id="mwAUc">One of the first algorithms to achieve all goals is the SA-IS algorithm of <a rel="mw:WikiLink" href="#CITEREFNongZhangChan2009" about="#mwt107" typeof="mw:Transclusion" id="mwAUg" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Nong"},"2":{"wt":"Zhang"},"3":{"wt":"Chan"},"4":{"wt":"2009"}},"i":0}}]}'>Nong, Zhang <span typeof="mw:Entity">&amp;</span> Chan (2009)</a>. The algorithm is also rather simple (<span typeof="mw:Entity" id="mwAUk">&lt;</span> 100 <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Source_lines_of_code" id="mwAUo">LOC</a>) and can be enhanced to simultaneously construct the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array" id="mwAUs">LCP array</a>.<sup about="#mwt108" id="cite_ref-FOOTNOTEFischer2011_6-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEFischer2011"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEFischer2011-6"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Fischer"},"2":{"wt":"2011"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEFischer2011-6" id="mwAUw"><span id="mwAU0"><span id="mwAU4">[</span>6<span id="mwAU8">]</span></span></a></sup> The SA-IS algorithm is one of the fastest known suffix array construction algorithms. A careful implementation by Yuta Mori<sup about="#mwt113" id="cite_ref-7" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-7"}}'><a href="#cite_note-7" id="mwAVA"><span id="mwAVE"><span id="mwAVI">[</span>7<span id="mwAVM">]</span></span></a></sup> outperforms most other linear or super-linear construction approaches.</p>
+<p id="mwAVQ">Beside time and space requirements, suffix array construction algorithms are also differentiated by their supported <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Alphabet_(computer_science)" id="mwAVU">alphabet</a>:  <i id="mwAVY">constant alphabets</i> where the alphabet size is bound by a constant, <i id="mwAVc">integer alphabets</i> where characters are integers in a range depending on <span typeof="mw:Extension/math" about="#mwt117" id="mwAVg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> and <i id="mwAVk">general alphabets</i> where only character comparisons are allowed.<sup about="#mwt114" id="cite_ref-FOOTNOTEBurkhardtKärkkäinen2003_8-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEBurkhardtKärkkäinen2003"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEBurkhardtKärkkäinen2003-8"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Burkhardt"},"2":{"wt":"Kärkkäinen"},"3":{"wt":"2003"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEBurkhardtKärkkäinen2003-8" id="mwAVo"><span id="mwAVs"><span id="mwAVw">[</span>8<span id="mwAV0">]</span></span></a></sup></p>
+<p id="mwAV4">Most suffix array construction algorithms are based on one of the following approaches:<sup about="#mwt118" id="cite_ref-FOOTNOTEPuglisiSmythTurpin2007_5-1" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEPuglisiSmythTurpin2007"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEPuglisiSmythTurpin2007-5"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Puglisi"},"2":{"wt":"Smyth"},"3":{"wt":"Turpin"},"4":{"wt":"2007"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEPuglisiSmythTurpin2007-5" id="mwAV8"><span id="mwAWA"><span id="mwAWE">[</span>5<span id="mwAWI">]</span></span></a></sup></p>
+<ul id="mwAWM"><li id="mwAWQ"><i id="mwAWU">Prefix doubling</i> algorithms are based on a strategy of <a rel="mw:WikiLink" href="#CITEREFKarpMillerRosenberg1972" about="#mwt121" typeof="mw:Transclusion" id="mwAWY" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Karp"},"2":{"wt":"Miller"},"3":{"wt":"Rosenberg"},"4":{"wt":"1972"}},"i":0}}]}'>Karp, Miller <span typeof="mw:Entity">&amp;</span> Rosenberg (1972)</a>. The idea is to find prefixes that honor the lexicographic ordering of suffixes. The assessed prefix length doubles in each iteration of the algorithm until a prefix is unique and provides the rank of the associated suffix.</li>
+<li id="mwAWc"><i id="mwAWg">Recursive</i> algorithms follow the approach of the suffix tree construction algorithm by <a rel="mw:WikiLink" href="#CITEREFFarach1997" about="#mwt122" typeof="mw:Transclusion" id="mwAWk" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Farach"},"2":{"wt":"1997"}},"i":0}}]}'>Farach (1997)</a> to recursively sort a subset of suffixes. This subset is then used to infer a suffix array of the remaining suffixes. Both of these suffix arrays are then merged to compute the final suffix array.</li>
+<li id="mwAWo"><i id="mwAWs">Induced copying</i> algorithms are similar to recursive algorithms in the sense that they use an already sorted subset to induce a fast sort of the remaining suffixes. The difference is that these algorithms favor iteration over recursion to sort the selected suffix subset. A survey of this diverse group of algorithms has been put together by <a rel="mw:WikiLink" href="#CITEREFPuglisiSmythTurpin2007" about="#mwt123" typeof="mw:Transclusion" id="mwAWw" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Puglisi"},"2":{"wt":"Smyth"},"3":{"wt":"Turpin"},"4":{"wt":"2007"}},"i":0}}]}'>Puglisi, Smyth <span typeof="mw:Entity">&amp;</span> Turpin (2007)</a>.</li></ul>
+<p id="mwAW0">A well-known recursive algorithm for integer alphabets is the <i id="mwAW4">DC3 / skew</i> algorithm of <a rel="mw:WikiLink" href="#CITEREFKärkkäinenSanders2003" about="#mwt124" typeof="mw:Transclusion" id="mwAW8" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Kärkkäinen"},"2":{"wt":"Sanders"},"3":{"wt":"2003"}},"i":0}}]}'>Kärkkäinen <span typeof="mw:Entity">&amp;</span> Sanders (2003)</a>. It runs in linear time and has successfully been used as the basis for parallel<sup about="#mwt125" id="cite_ref-FOOTNOTEKullaSanders2007_9-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEKullaSanders2007"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEKullaSanders2007-9"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Kulla"},"2":{"wt":"Sanders"},"3":{"wt":"2007"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEKullaSanders2007-9" id="mwAXA"><span id="mwAXE"><span id="mwAXI">[</span>9<span id="mwAXM">]</span></span></a></sup> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/External_memory_algorithm" id="mwAXQ">external memory</a><sup about="#mwt128" id="cite_ref-FOOTNOTEDementievKärkkäinenMehnertSanders2008_10-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEDementievKärkkäinenMehnertSanders2008"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEDementievKärkkäinenMehnertSanders2008-10"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Dementiev"},"2":{"wt":"Kärkkäinen"},"3":{"wt":"Mehnert"},"4":{"wt":"Sanders"},"5":{"wt":"2008"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEDementievKärkkäinenMehnertSanders2008-10" id="mwAXU"><span id="mwAXY"><span id="mwAXc">[</span>10<span id="mwAXg">]</span></span></a></sup> suffix array construction algorithms.</p>
+<p id="mwAXk">Recent work by <a rel="mw:WikiLink" href="#CITEREFSalsonLecroqLéonardMouchard2010" about="#mwt131" typeof="mw:Transclusion" id="mwAXo" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Salson"},"2":{"wt":"Lecroq"},"3":{"wt":"Léonard"},"4":{"wt":"Mouchard"},"5":{"wt":"2010"}},"i":0}}]}'>Salson et al. (2010)</a> proposes an algorithm for updating the suffix array of a text that has been edited instead of rebuilding a new suffix array from scratch. Even if the theoretical worst-case time complexity is <span typeof="mw:Extension/math" about="#mwt132" id="mwAXs" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(n \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(n\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(n\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9981ede263cbf28215d3a70bf30f55db41a6e692" alt="{\displaystyle {\mathcal {O}}(n\log n)}"/></span>, it appears to perform well in practice: experimental results from the authors showed that their implementation of dynamic suffix arrays is generally more efficient than rebuilding when considering the insertion of a reasonable number of letters in the original text.</p>
+<p id="mwAXw">In practical <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Open_source" id="mwAX0">open source</a> work, a commonly used routine for suffix array construction was qsufsort, based on the 1999 Larsson-Sadakane algorithm.<sup about="#mwt135" id="cite_ref-11" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-11"}}'><a href="#cite_note-11" id="mwAX4"><span id="mwAX8"><span id="mwAYA">[</span>11<span id="mwAYE">]</span></span></a></sup> This routine has been superseded by Yuta Mori's DivSufSort, "the fastest known suffix sorting algorithm in main memory" as of 2017. It too can be modified to compute an LCP array. It uses a induced copying combined with Itoh-Tanaka.<sup about="#mwt138" id="cite_ref-12" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-12"}}'><a href="#cite_note-12" id="mwAYI"><span id="mwAYM"><span id="mwAYQ">[</span>12<span id="mwAYU">]</span></span></a></sup> In 2021 a faster implementation of the algorithm was presented by Ilya Grebnov <sup about="#mwt141" id="cite_ref-13" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-13"}}'><a href="#cite_note-13" id="mwAYY"><span id="mwAYc"><span id="mwAYg">[</span>13<span id="mwAYk">]</span></span></a></sup> which in average showed 65% performance improvement over DivSufSort implementation on the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Silesia_corpus" id="mwAYo">Silesia corpus</a>.<sup about="#mwt144" id="cite_ref-14" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-14"}}'><a href="#cite_note-14" id="mwAYs"><span id="mwAYw"><span id="mwAY0">[</span>14<span id="mwAY4">]</span></span></a></sup></p>
+</section><section id="mwAY8"><div><h2 id="Generalized_suffix_array">Generalized suffix array</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=6"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAZA">The concept of a suffix array can be extended to more than one string. This is called a generalized suffix array (or GSA), a suffix array that contains all suffixes for a set of strings (for example, <span typeof="mw:Extension/math" about="#mwt148" id="mwAZE" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S=S_1,S_2,S_3,...,S_k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S=S_{1},S_{2},S_{3},...,S_{k}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+        <mo>=</mo>
+        <msub>
+          <mi>S</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>S</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>S</mi>
+          <mrow>
+            <mn>3</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>.</mo>
+        <mo>.</mo>
+        <mo>.</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>S</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S=S_{1},S_{2},S_{3},...,S_{k}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/510e5c211d900936d1a79954c45482699b5384f6" alt="{\displaystyle S=S_{1},S_{2},S_{3},...,S_{k}}"/></span> and is lexicographically sorted with all suffixes of each string.<sup about="#mwt145" id="cite_ref-FOOTNOTEShi1996_15-0" rel="dc:references" typeof="mw:Transclusion mw:Extension/ref" data-mw='{"name":"ref","attrs":{"group":"","name":"FOOTNOTEShi1996"},"body":{"id":"mw-reference-text-cite_note-FOOTNOTEShi1996-15"},"parts":[{"template":{"target":{"wt":"sfn","href":"./Template:Sfn"},"params":{"1":{"wt":"Shi"},"2":{"wt":"1996"}},"i":0}}]}'><a href="#cite_note-FOOTNOTEShi1996-15" id="mwAZI"><span id="mwAZM"><span id="mwAZQ">[</span>15<span id="mwAZU">]</span></span></a></sup></p>
+</section><section id="mwAZY"><div><h2 id="Applications">Applications</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=7"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAZc">The suffix array of a string can be used as an <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Index_(search_engine)" id="mwAZg">index</a> to quickly locate every occurrence of a substring pattern <span typeof="mw:Extension/math" about="#mwt149" id="mwAZk" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"P"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle P}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>P</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle P}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/b4dc73bf40314945ff376bd363916a738548d40a" alt="{\displaystyle P}"/></span> within the string <span typeof="mw:Extension/math" about="#mwt150" id="mwAZo" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span>. Finding every occurrence of the pattern is equivalent to finding every suffix that begins with the substring. Thanks to the lexicographical ordering, these suffixes will be grouped together in the suffix array and can be found efficiently with two <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Binary_search" id="mwAZs">binary searches</a>. The first search locates the starting position of the interval, and the second one determines the end position:
+<sup about="#mwt151" id="mwAZ0"><span typeof="mw:Entity">[</span><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wikipedia:Citation_needed"><span>citation needed</span></a></i><span typeof="mw:Entity">]</span></sup></p>
+<div dir="ltr" typeof="mw:Extension/syntaxhighlight" about="#mwt152" id="mwAZ4" data-mw='{"name":"syntaxhighlight","attrs":{"lang":"python"},"body":{"extsrc":"\nn = len(S)\n\ndef search(P: str) -> tuple[int, int]:\n    \"\"\"\n    Return indices (s, r) such that the interval A[s:r] (excluding the end\n    index) represents all suffixes of S that start with the pattern P.\n    \"\"\"\n    # Find starting position of interval\n    l = 0  # in Python, arrays are indexed starting at 0\n    r = n\n    while l &lt; r:\n        mid = (l + r) // 2  # division rounding down to nearest integer\n        # suffixAt(A[i]) is the ith smallest suffix\n        if P > suffixAt(A[mid]):\n            l = mid + 1\n        else:\n            r = mid\n    s = l\n    \n    # Find ending position of interval\n    r = n\n    while l &lt; r:\n        mid = (l + r) // 2\n        if suffixAt(A[mid]).startswith(P):\n            l = mid + 1\n        else:\n            r = mid\n    return (s, r)\n"}}'><pre id="mwAZ8"><span id="mwAaA"></span><span id="mwAaE">n</span> <span id="mwAaI">=</span> <span id="mwAaM">len</span><span id="mwAaQ">(</span><span id="mwAaU">S</span><span id="mwAaY">)</span>
+<span id="mwAac">def</span><span id="mwAag"> </span><span id="mwAak">search</span><span id="mwAao">(</span><span id="mwAas">P</span><span id="mwAaw">:</span> <span id="mwAa0">str</span><span id="mwAa4">)</span> <span id="mwAa8">-></span> <span id="mwAbA">tuple</span><span id="mwAbE">[</span><span id="mwAbI">int</span><span id="mwAbM">,</span> <span id="mwAbQ">int</span><span id="mwAbU">]:</span>
+<span id="mwAbY">    </span><span id="mwAbc">"""</span>
+<span id="mwAbg">    Return indices (s, r) such that the interval A[s:r] (excluding the end</span>
+<span id="mwAbk">    index) represents all suffixes of S that start with the pattern P.</span>
+<span id="mwAbo">    """</span>
+    <span id="mwAbs"># Find starting position of interval</span>
+    <span id="mwAbw">l</span> <span id="mwAb0">=</span> <span id="mwAb4">0</span>  <span id="mwAb8"># in Python, arrays are indexed starting at 0</span>
+    <span id="mwAcA">r</span> <span id="mwAcE">=</span> <span id="mwAcI">n</span>
+    <span id="mwAcM">while</span> <span id="mwAcQ">l</span> <span id="mwAcU">&lt;</span> <span id="mwAcY">r</span><span id="mwAcc">:</span>
+        <span id="mwAcg">mid</span> <span id="mwAck">=</span> <span id="mwAco">(</span><span id="mwAcs">l</span> <span id="mwAcw">+</span> <span id="mwAc0">r</span><span id="mwAc4">)</span> <span id="mwAc8">//</span> <span id="mwAdA">2</span>  <span id="mwAdE"># division rounding down to nearest integer</span>
+        <span id="mwAdI"># suffixAt(A[i]) is the ith smallest suffix</span>
+        <span id="mwAdM">if</span> <span id="mwAdQ">P</span> <span id="mwAdU">></span> <span id="mwAdY">suffixAt</span><span id="mwAdc">(</span><span id="mwAdg">A</span><span id="mwAdk">[</span><span id="mwAdo">mid</span><span id="mwAds">]):</span>
+            <span id="mwAdw">l</span> <span id="mwAd0">=</span> <span id="mwAd4">mid</span> <span id="mwAd8">+</span> <span id="mwAeA">1</span>
+        <span id="mwAeE">else</span><span id="mwAeI">:</span>
+            <span id="mwAeM">r</span> <span id="mwAeQ">=</span> <span id="mwAeU">mid</span>
+    <span id="mwAeY">s</span> <span id="mwAec">=</span> <span id="mwAeg">l</span>
+    <span id="mwAek"># Find ending position of interval</span>
+    <span id="mwAeo">r</span> <span id="mwAes">=</span> <span id="mwAew">n</span>
+    <span id="mwAe0">while</span> <span id="mwAe4">l</span> <span id="mwAe8">&lt;</span> <span id="mwAfA">r</span><span id="mwAfE">:</span>
+        <span id="mwAfI">mid</span> <span id="mwAfM">=</span> <span id="mwAfQ">(</span><span id="mwAfU">l</span> <span id="mwAfY">+</span> <span id="mwAfc">r</span><span id="mwAfg">)</span> <span id="mwAfk">//</span> <span id="mwAfo">2</span>
+        <span id="mwAfs">if</span> <span id="mwAfw">suffixAt</span><span id="mwAf0">(</span><span id="mwAf4">A</span><span id="mwAf8">[</span><span id="mwAgA">mid</span><span id="mwAgE">])</span><span id="mwAgI">.</span><span id="mwAgM">startswith</span><span id="mwAgQ">(</span><span id="mwAgU">P</span><span id="mwAgY">):</span>
+            <span id="mwAgc">l</span> <span id="mwAgg">=</span> <span id="mwAgk">mid</span> <span id="mwAgo">+</span> <span id="mwAgs">1</span>
+        <span id="mwAgw">else</span><span id="mwAg0">:</span>
+            <span id="mwAg4">r</span> <span id="mwAg8">=</span> <span id="mwAhA">mid</span>
+    <span id="mwAhE">return</span> <span id="mwAhI">(</span><span id="mwAhM">s</span><span id="mwAhQ">,</span> <span id="mwAhU">r</span><span id="mwAhY">)</span>
+</pre></div>
+<p id="mwAhc">Finding the substring pattern <span typeof="mw:Extension/math" about="#mwt155" id="mwAhg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"P"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle P}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>P</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle P}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/b4dc73bf40314945ff376bd363916a738548d40a" alt="{\displaystyle P}"/></span> of length <span typeof="mw:Extension/math" about="#mwt156" id="mwAhk" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> in the string <span typeof="mw:Extension/math" about="#mwt157" id="mwAho" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"S"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle S}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>S</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle S}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4611d85173cd3b508e67077d4a1252c9c05abca2" alt="{\displaystyle S}"/></span> of length <span typeof="mw:Extension/math" about="#mwt158" id="mwAhs" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> takes <span typeof="mw:Extension/math" about="#mwt159" id="mwAhw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(m \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(m\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(m\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4c8701e5543dcc0eced4426296c6d67db31db5bb" alt="{\displaystyle {\mathcal {O}}(m\log n)}"/></span> time, given that a single suffix comparison needs to compare <span typeof="mw:Extension/math" about="#mwt160" id="mwAh0" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> characters. <a rel="mw:WikiLink" href="#CITEREFManberMyers1990" about="#mwt153" typeof="mw:Transclusion" id="mwAh4" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Manber"},"2":{"wt":"Myers"},"3":{"wt":"1990"}},"i":0}}]}'>Manber <span typeof="mw:Entity">&amp;</span> Myers (1990)</a> describe how this bound can be improved to <span typeof="mw:Extension/math" about="#mwt161" id="mwAh8" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(m + \\log n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(m+\log n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo>+</mo>
+        <mi>log</mi>
+        <mo>⁡</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(m+\log n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c33048ecbc367c7aa852f6e354e69f48844b5ac1" alt="{\displaystyle {\mathcal {O}}(m+\log n)}"/></span> time using <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array" id="mwAiA">LCP</a> information. The idea is that a pattern comparison does not need to re-compare certain characters, when it is already known that these are part of the longest common prefix of the pattern and the current search interval. <a rel="mw:WikiLink" href="#CITEREFAbouelhodaKurtzOhlebusch2004" about="#mwt154" typeof="mw:Transclusion" id="mwAiE" data-mw='{"parts":[{"template":{"target":{"wt":"harvtxt","href":"./Template:Harvtxt"},"params":{"1":{"wt":"Abouelhoda"},"2":{"wt":"Kurtz"},"3":{"wt":"Ohlebusch"},"4":{"wt":"2004"}},"i":0}}]}'>Abouelhoda, Kurtz <span typeof="mw:Entity">&amp;</span> Ohlebusch (2004)</a> improve the bound even further and achieve a search time of <span typeof="mw:Extension/math" about="#mwt162" id="mwAiI" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(m)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(m)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(m)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/089694843af30c69c8b1d6287c3d8f0e2868499c" alt="{\displaystyle {\mathcal {O}}(m)}"/></span> for constant alphabet size, as known from <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree" id="mwAiM">suffix trees</a>.</p>
+<p id="mwAiQ">Suffix sorting algorithms can be used to compute the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform" id="mwAiU">Burrows–Wheeler transform (BWT)</a>. The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform" id="mwAiY">BWT</a> requires sorting of all cyclic permutations of a string. If this string ends in a special end-of-string character that is lexicographically smaller than all other character (i.e., $), then the order of the sorted rotated <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform" id="mwAic">BWT</a> matrix corresponds to the order of suffixes in a suffix array. The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform" id="mwAig">BWT</a> can therefore be computed in linear time by first constructing a suffix array of the text and then deducing the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Burrows–Wheeler_transform" id="mwAik">BWT</a> string: <span typeof="mw:Extension/math" about="#mwt163" id="mwAio" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"BWT[i] = S[A[i]-1]"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle BWT[i]=S[A[i]-1]}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>B</mi>
+        <mi>W</mi>
+        <mi>T</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+        <mo>=</mo>
+        <mi>S</mi>
+        <mo stretchy="false">[</mo>
+        <mi>A</mi>
+        <mo stretchy="false">[</mo>
+        <mi>i</mi>
+        <mo stretchy="false">]</mo>
+        <mo>−</mo>
+        <mn>1</mn>
+        <mo stretchy="false">]</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle BWT[i]=S[A[i]-1]}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a461b668e8ffa1c9fcf4dff9aae56e57bdbd1937" alt="{\displaystyle BWT[i]=S[A[i]-1]}"/></span>.</p>
+<p id="mwAis">Suffix arrays can also be used to look up substrings in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Example-based_machine_translation" id="mwAiw">example-based machine translation</a>, demanding much less storage than a full <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Phrase_table?action=edit&amp;redlink=1" typeof="mw:LocalizedAttrs" id="mwAi0" data-mw-i18n='{"title":{"lang":"x-page","key":"red-link-title","params":["Phrase table"]}}'>phrase table</a> as used in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Statistical_machine_translation" id="mwAi4">Statistical machine translation</a>.</p>
+<p id="mwAi8">Many additional applications of the suffix array require the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array" id="mwAjA">LCP array</a>. Some of these are detailed in the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array#Applications" id="mwAjE">application section</a> of the latter.</p>
+</section><section id="mwAjI"><div><h2 id="Enhanced_suffix_arrays">Enhanced suffix arrays</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=8"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAjM">Suffix trees are powerful data structures that have wide application in areas of pattern and string matching, indexing and textual statistics. However, it occupies a significant amount of space and thus has a drawback in many real-time applications that require processing a considerably large amount of data like genome analysis. To overcome this drawback, the Enhanced Suffix Array was developed. It is a data structure consisting of a suffix array and an additional table called the child table that contains the information about the parent-child relationship between the nodes in the suffix tree. The node branching data structure for this tree is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Linked_list" id="mwAjQ">linked list</a>. Enhanced suffix arrays are superior to suffix trees in terms of both space efficiency and time complexity and are easy to implement. Moreover, they can be applied to any algorithm that uses a suffix tree by using an abstract concept called LCP-interval trees. The time complexity for searching a pattern of length <span typeof="mw:Extension/math" about="#mwt164" id="mwAjU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> in an enhanced suffix array is <span typeof="mw:Extension/math" about="#mwt165" id="mwAjY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\mathcal{O}(m|\\Sigma|)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle {\mathcal {O}}(m|\Sigma |)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mrow>
+          <mrow>
+            <mi mathvariant="script">O</mi>
+          </mrow>
+        </mrow>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mrow>
+          <mo stretchy="false">|</mo>
+        </mrow>
+        <mi mathvariant="normal">Σ</mi>
+        <mrow>
+          <mo stretchy="false">|</mo>
+        </mrow>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle {\mathcal {O}}(m|\Sigma |)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f81a63dfc7b06ee439d655074d390d6548a77abc" alt="{\displaystyle {\mathcal {O}}(m|\Sigma |)}"/></span>.</p>
+<p id="mwAjc">The enhanced suffix array is composed of two arrays:</p>
+<ol id="mwAjg"><li id="mwAjk">pos array pos[1,...n]: It represents a sorted list of all S suffixes. Only the initial positions of the suffixes are stored in the array to reduce the space complexity since the suffixes are too large.</li>
+<li id="mwAjo">lcp array lcp[1,...n]: It is an array of n integers that maintains the lengths of the longest common prefix of two consecutive suffixes stored in the pos array.</li></ol>
+<section id="mwAjs"><div><h3 id="Constructing_the_lcp-interval">Constructing the lcp-interval</h3><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=9"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAjw">For a suffix array of S, the lcp-interval associated with the corresponding node of suffix tree of S can be defined as:</p>
+<blockquote about="#mwt166" id="mwAj4"><p>Interval [i,..j], 0 ≤ i ≤ j ≤ n is an lcp-interval of lcp-value, if</p>
+<ol><li>lcptab[i] &lt; l,</li>
+<li>lcptab[k] ≥ l for all i + 1 ≤ k ≤ j,</li>
+<li>lcptab[k] = l for some i + 1 ≤ k ≤ j if i ≠ j and l = n − i + 1 if i = j,</li>
+<li>lcptab[j + 1] &lt; l.</li></ol></blockquote>
+<p id="mwAj8">The length of the longest common prefix of pos[i − 1] and pos[i] is stored in lcp[i],where 2 ≤ i ≤ n. The lcp-interval portrays the same parent-child relationship as that among the associated nodes in the suffix tree of S.This shows that if the corresponding node of [i..j] is a child of the corresponding node of [k..l], a lcp-interval [i..j] is a child interval of another lcp-interval [k..l]. If [k..l] is a child interval of [i..j], a lcp-interval [i..j] is the parent interval of a lcp-interval [k..l].</p>
+</section><section id="mwAkA"><div><h3 id="Constructing_a_child_table">Constructing a child table</h3><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=10"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAkE">The child table <i id="mwAkI">cldtab</i> is composed of three n arrays, <i id="mwAkM">up</i>, <i id="mwAkQ">down</i> and <i id="mwAkU">nextlIndex</i>. The information about the edges of the corresponding suffix tree is stored and maintained by the <i id="mwAkY">up</i> and <i id="mwAkc">down</i> arrays. The <i id="mwAkg">nextlIndex</i> array stores the links in the linked list used for node branching the suffix tree.</p>
+<p id="mwAkk">The <i id="mwAko">up</i>, <i id="mwAks">down</i> and <i id="mwAkw">nextlIndex</i> array are defined as follows:</p>
+<ol id="mwAk0"><li id="mwAk4">The element <i id="mwAk8">up[i]</i> records the starting index of the longest lcp-second interval’s child interval, which ends at index <i id="mwAlA">i-1</i>.</li>
+<li id="mwAlE">The initial index of the second child interval of the longest lcp-interval, starting at index <i id="mwAlI">i</i> is stored in the element <i id="mwAlM">down[i]</i>.</li>
+<li id="mwAlQ"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/If_and_only_if" id="mwAlU">If and only if</a> the interval is neither the first child nor the final child of its parent, the element <i id="mwAlY">nextlIndex[i]</i> contains the first index of the next sibling interval of the longest lcp-interval, starting at index <i id="mwAlc">i</i>.</li></ol>
+<p id="mwAlg">By performing a bottom-up traversal of the lcp-interval of the tree, the child table can be constructed in linear time. The <i id="mwAlk">up/down</i> values and the <i id="mwAlo">nextlIndex</i> values can be computed separately by using two distinct algorithms.</p>
+</section><section id="mwAls"><div><h3 id="Constructing_a_suffix_link_table">Constructing a suffix link table</h3><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=11"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAlw">The suffix links for an enhanced suffix array can be computed by generating the suffix link interval [<i id="mwAl0">1,..,r</i>] for each [i,..j] interval during the preprocessing. The left and right elements l and r of the interval are maintained in the first index of [i,..,j]. The table for this interval ranges from 0 to n. The suffix link table is constructed by the left-to-right breadth-first traversal of the lcp-interval tree. Every time an <i id="mwAl4">l</i>-interval is computed, it is added to the list of l-intervals, which is referred to as the l-list. When the lcp-value > 0, for every <i id="mwAl8">l</i>-interval[i,..,j] in the list, link[i] is calculated. The interval [<i id="mwAmA">l</i>,..,<i id="mwAmE">r</i>] is computed by a binary search in(<i id="mwAmI">l</i>-1)-list, where <i id="mwAmM">l</i> is the largest left boundary amongst all the <i id="mwAmQ">l</i>-1 intervals. The suffix link interval of [i,..j] is represented by this interval[<i id="mwAmU">l,..,r</i>]. The values <i id="mwAmY">l</i> and <i id="mwAmc">r</i> are ultimately stored in the first index of [i,..,j].</p>
+</section></section><section id="mwAmg"><div><h2 id="Notes">Notes</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=12"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt168" typeof="mw:Transclusion" id="mwAmk" data-mw='{"parts":[{"template":{"target":{"wt":"Reflist","href":"./Template:Reflist"},"params":{},"i":0}}]}'></span><div about="#mwt168" id="mwAmo">
+<div typeof="mw:Extension/references" about="#mwt170" id="mwAms" data-mw='{"name":"references","attrs":{"group":"","responsive":"1"},"body":{"extsrc":""}}'><ol id="mwAmw"><li about="#cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1" id="cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1"><span rel="mw:referencedBy" id="mwAm0"><a href="#cite_ref-FOOTNOTEAbouelhodaKurtzOhlebusch2004_1-0" id="mwAm4"><span id="mwAm8">1</span></a> <a href="#cite_ref-FOOTNOTEAbouelhodaKurtzOhlebusch2004_1-1" id="mwAnA"><span id="mwAnE">2</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2004-1"><a rel="mw:WikiLink" href="#CITEREFAbouelhodaKurtzOhlebusch2004" id="mwAnI">Abouelhoda, Kurtz <span typeof="mw:Entity" id="mwAnM">&amp;</span> Ohlebusch 2004</a>.</span></li>
+<li about="#cite_note-FOOTNOTEIKärkkäinenKempa2014-2" id="cite_note-FOOTNOTEIKärkkäinenKempa2014-2"><span id="mwAnQ"><a href="#cite_ref-FOOTNOTEIKärkkäinenKempa2014_2-0" rel="mw:referencedBy" id="mwAnU"><span id="mwAnY">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEIKärkkäinenKempa2014-2"><a rel="mw:WikiLink" href="#CITEREFIKärkkäinenKempa2014" id="mwAnc">I, Kärkkäinen <span typeof="mw:Entity" id="mwAng">&amp;</span> Kempa 2014</a>.</span></li>
+<li about="#cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2002-3" id="cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2002-3"><span id="mwAnk"><a href="#cite_ref-FOOTNOTEAbouelhodaKurtzOhlebusch2002_3-0" rel="mw:referencedBy" id="mwAno"><span id="mwAns">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEAbouelhodaKurtzOhlebusch2002-3"><a rel="mw:WikiLink" href="#CITEREFAbouelhodaKurtzOhlebusch2002" id="mwAnw">Abouelhoda, Kurtz <span typeof="mw:Entity" id="mwAn0">&amp;</span> Ohlebusch 2002</a>.</span></li>
+<li about="#cite_note-FOOTNOTEKurtz1999-4" id="cite_note-FOOTNOTEKurtz1999-4"><span id="mwAn4"><a href="#cite_ref-FOOTNOTEKurtz1999_4-0" rel="mw:referencedBy" id="mwAn8"><span id="mwAoA">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEKurtz1999-4"><a rel="mw:WikiLink" href="#CITEREFKurtz1999" id="mwAoE">Kurtz 1999</a>.</span></li>
+<li about="#cite_note-FOOTNOTEPuglisiSmythTurpin2007-5" id="cite_note-FOOTNOTEPuglisiSmythTurpin2007-5"><span rel="mw:referencedBy" id="mwAoI"><a href="#cite_ref-FOOTNOTEPuglisiSmythTurpin2007_5-0" id="mwAoM"><span id="mwAoQ">1</span></a> <a href="#cite_ref-FOOTNOTEPuglisiSmythTurpin2007_5-1" id="mwAoU"><span id="mwAoY">2</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEPuglisiSmythTurpin2007-5"><a rel="mw:WikiLink" href="#CITEREFPuglisiSmythTurpin2007" id="mwAoc">Puglisi, Smyth <span typeof="mw:Entity" id="mwAog">&amp;</span> Turpin 2007</a>.</span></li>
+<li about="#cite_note-FOOTNOTEFischer2011-6" id="cite_note-FOOTNOTEFischer2011-6"><span id="mwAok"><a href="#cite_ref-FOOTNOTEFischer2011_6-0" rel="mw:referencedBy" id="mwAoo"><span id="mwAos">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEFischer2011-6"><a rel="mw:WikiLink" href="#CITEREFFischer2011" id="mwAow">Fischer 2011</a>.</span></li>
+<li about="#cite_note-7" id="cite_note-7"><span id="mwAo0"><a href="#cite_ref-7" rel="mw:referencedBy" id="mwAo4"><span id="mwAo8">↑</span></a></span> <span id="mw-reference-text-cite_note-7"><cite id="CITEREFMori" about="#mwt111">Mori, Yuta. <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20230309123010/https://sites.google.com/site/yuta256/sais" id="mwApE">"sais"</a>. Archived from <a rel="mw:ExtLink nofollow" href="https://sites.google.com/site/yuta256/sais" id="mwApI">the original</a> on 9 Mar 2023<span id="mwApM">. Retrieved <span id="mwApQ">31 Aug</span> 2023</span>.</cite><span about="#mwt111" id="mwApU"></span></span></li>
+<li about="#cite_note-FOOTNOTEBurkhardtKärkkäinen2003-8" id="cite_note-FOOTNOTEBurkhardtKärkkäinen2003-8"><span id="mwApY"><a href="#cite_ref-FOOTNOTEBurkhardtKärkkäinen2003_8-0" rel="mw:referencedBy" id="mwApc"><span id="mwApg">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEBurkhardtKärkkäinen2003-8"><a rel="mw:WikiLink" href="#CITEREFBurkhardtKärkkäinen2003" id="mwApk">Burkhardt <span typeof="mw:Entity" id="mwApo">&amp;</span> Kärkkäinen 2003</a>.</span></li>
+<li about="#cite_note-FOOTNOTEKullaSanders2007-9" id="cite_note-FOOTNOTEKullaSanders2007-9"><span id="mwAps"><a href="#cite_ref-FOOTNOTEKullaSanders2007_9-0" rel="mw:referencedBy" id="mwApw"><span id="mwAp0">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEKullaSanders2007-9"><a rel="mw:WikiLink" href="#CITEREFKullaSanders2007" id="mwAp4">Kulla <span typeof="mw:Entity" id="mwAp8">&amp;</span> Sanders 2007</a>.</span></li>
+<li about="#cite_note-FOOTNOTEDementievKärkkäinenMehnertSanders2008-10" id="cite_note-FOOTNOTEDementievKärkkäinenMehnertSanders2008-10"><span id="mwAqA"><a href="#cite_ref-FOOTNOTEDementievKärkkäinenMehnertSanders2008_10-0" rel="mw:referencedBy" id="mwAqE"><span id="mwAqI">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEDementievKärkkäinenMehnertSanders2008-10"><a rel="mw:WikiLink" href="#CITEREFDementievKärkkäinenMehnertSanders2008" id="mwAqM">Dementiev et al. 2008</a>.</span></li>
+<li about="#cite_note-11" id="cite_note-11"><span id="mwAqQ"><a href="#cite_ref-11" rel="mw:referencedBy" id="mwAqU"><span id="mwAqY">↑</span></a></span> <span id="mw-reference-text-cite_note-11"><cite id="CITEREFLarssonSadakane2007" about="#mwt133">Larsson, N. Jesper; Sadakane, Kunihiko (22 November 2007). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.tcs.2007.07.017" id="mwAqg">"Faster suffix sorting"</a>. <i id="mwAqk">Theoretical Computer Science</i>. <b id="mwAqo">387</b> (3): <span id="mwAqs">258–</span>272. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAqw">doi</a>:<span id="mwAq0"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.tcs.2007.07.017" id="mwAq4">10.1016/j.tcs.2007.07.017</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISSN_(identifier)" id="mwAq8">ISSN</a><span typeof="mw:Entity" id="mwArA"> </span><a rel="mw:ExtLink nofollow" href="https://search.worldcat.org/issn/0304-3975" id="mwArE">0304-3975</a>.</cite><span about="#mwt133" id="mwArI"></span></span></li>
+<li about="#cite_note-12" id="cite_note-12"><span id="mwArM"><a href="#cite_ref-12" rel="mw:referencedBy" id="mwArQ"><span id="mwArU">↑</span></a></span> <span id="mw-reference-text-cite_note-12"><cite id="CITEREFFischerKurpicz2017" about="#mwt136">Fischer, Johannes; Kurpicz, Florian (5 October 2017). "Dismantling DivSufSort". <i id="mwArc">Proceedings of the Prague Stringology Conference 2017</i>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwArg">arXiv</a>:<span id="mwArk"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/1710.01896" id="mwAro">1710.01896</a></span>.</cite><span about="#mwt136" id="mwArs"></span></span></li>
+<li about="#cite_note-13" id="cite_note-13"><span id="mwArw"><a href="#cite_ref-13" rel="mw:referencedBy" id="mwAr0"><span id="mwAr4">↑</span></a></span> <span id="mw-reference-text-cite_note-13"><cite about="#mwt139" id="mwAsA"><a rel="mw:ExtLink nofollow" href="https://encode.su/threads/3579-New-saca-and-bwt-library-(libsais)" id="mwAsE">"New saca and bwt library (libsais)"</a>. <i id="mwAsI">encode.su</i><span id="mwAsM">. Retrieved <span id="mwAsQ">2021-10-03</span></span>.</cite><span about="#mwt139" id="mwAsU"></span></span></li>
+<li about="#cite_note-14" id="cite_note-14"><span id="mwAsY"><a href="#cite_ref-14" rel="mw:referencedBy" id="mwAsc"><span id="mwAsg">↑</span></a></span> <span id="mw-reference-text-cite_note-14"><cite id="CITEREFGrebnov2021" about="#mwt142">Grebnov, Ilya (2021-09-22), <a rel="mw:ExtLink nofollow" href="https://github.com/IlyaGrebnov/libsais" id="mwAso"><i id="mwAss">libsais</i></a><span id="mwAsw">, retrieved <span id="mwAs0">2021-10-02</span></span></cite><span about="#mwt142" id="mwAs4"></span></span></li>
+<li about="#cite_note-FOOTNOTEShi1996-15" id="cite_note-FOOTNOTEShi1996-15"><span id="mwAs8"><a href="#cite_ref-FOOTNOTEShi1996_15-0" rel="mw:referencedBy" id="mwAtA"><span id="mwAtE">↑</span></a></span> <span id="mw-reference-text-cite_note-FOOTNOTEShi1996-15"><a rel="mw:WikiLink" href="#CITEREFShi1996" id="mwAtI">Shi 1996</a>.</span></li>
+</ol></div></div>
+</section><section id="mwAtM"><div><h2 id="References">References</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=13"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwAtQ"><li id="mwAtU"><cite id="CITEREFManberMyers1990" about="#mwt171"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Udi_Manber">Manber, Udi</a>; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gene_Myers">Myers, Gene</a> (1990). <a rel="mw:ExtLink nofollow" href="http://dl.acm.org/citation.cfm?id=320176.320218"><i>Suffix arrays: a new method for on-line string searches</i></a>. First Annual ACM-SIAM Symposium on Discrete Algorithms. pp.<span typeof="mw:Entity"> </span><span>319–</span>327.</cite><span about="#mwt171" id="mwAtc"></span></li>
+<li id="mwAtg"><cite id="CITEREFManberMyers1993" about="#mwt173"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Udi_Manber">Manber, Udi</a>; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gene_Myers">Myers, Gene</a> (1993). <a rel="mw:ExtLink nofollow" href="http://dl.acm.org/citation.cfm?id=320176.320218">"Suffix arrays: a new method for on-line string searches"</a>. <i>SIAM Journal on Computing</i>. <b>22</b> (5): <span>935–</span>948. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1137%2F0222058">10.1137/0222058</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)">S2CID</a><span typeof="mw:Entity"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:5074629">5074629</a>.</cite><span about="#mwt173" id="mwAto"></span></li>
+<li id="mwAts"><cite id="CITEREFLiLiHuo2016" about="#mwt175">Li, Zhize; Li, Jian; Huo, Hongwei (2016). <i>Optimal In-Place Suffix Sorting</i>. Proceedings of the 25th International Symposium on String Processing and Information Retrieval (SPIRE). Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity"> </span>11147. Springer. pp.<span typeof="mw:Entity"> </span><span>268–</span>284. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)">arXiv</a>:<span><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/1610.08305">1610.08305</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F978-3-030-00479-8_22">10.1007/978-3-030-00479-8_22</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-030-00478-1"><bdi>978-3-030-00478-1</bdi></a>.</cite><span about="#mwt175" id="mwAt0"></span></li>
+<li id="mwAt4"><cite id="CITEREFShi1996" about="#mwt177">Shi, Fei (1996). "Suffix arrays for multiple strings: A method for on-line multiple string searches". <i>Concurrency and Parallelism, Programming, Networking, and Security</i>. Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity"> </span>1179. Springer Berlin Heidelberg. pp.<span typeof="mw:Entity"> </span><span>11–</span>22. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2FBFb0027775">10.1007/BFb0027775</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-540-62031-0"><bdi>978-3-540-62031-0</bdi></a>.</cite><span about="#mwt177" id="mwAuA"></span></li>
+<li id="mwAuE"><cite id="CITEREFAbouelhodaKurtzOhlebusch2002" about="#mwt179">Abouelhoda, Mohamed Ibrahim; Kurtz, Stefan; Ohlebusch, Enno (2002). <i>The Enhanced Suffix Array and Its Applications to Genome Analysis</i>. Algorithms in Bioinformatics. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lecture_Notes_in_Computer_Science">Lecture Notes in Computer Science</a>. Vol.<span typeof="mw:Entity"> </span>2452. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F3-540-45784-4_35">10.1007/3-540-45784-4_35</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-540-44211-0"><bdi>978-3-540-44211-0</bdi></a>.</cite><span about="#mwt179" id="mwAuM"></span></li>
+<li id="mwAuQ"><cite id="CITEREFAbouelhodaKurtzOhlebusch2004" about="#mwt181">Abouelhoda, Mohamed Ibrahim; Kurtz, Stefan; Ohlebusch, Enno (March 2004). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2FS1570-8667%2803%2900065-0">"Replacing suffix trees with enhanced suffix arrays"</a>. <i>Journal of Discrete Algorithms</i>. <b>2</b> (1): <span>53–</span>86. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<span><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2FS1570-8667%2803%2900065-0">10.1016/S1570-8667(03)00065-0</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISSN_(identifier)">ISSN</a><span typeof="mw:Entity"> </span><a rel="mw:ExtLink nofollow" href="https://search.worldcat.org/issn/1570-8667">1570-8667</a>.</cite><span about="#mwt181" id="mwAuY"></span></li>
+<li id="mwAuc"><cite id="CITEREFGonnetBaeza-YatesSnider1992" about="#mwt183">Gonnet, G.H.; Baeza-Yates, R.A.; Snider, T. (1992). <a rel="mw:ExtLink nofollow" href="http://orion.lcg.ufrj.br/Dr.Dobbs/books/book5/chap05.htm">"New indices for text: PAT trees and PAT arrays"</a>. <i>Information Retrieval: Data Structures and Algorithms</i>.</cite><span about="#mwt183" id="mwAuk"></span></li>
+<li id="mwAuo">3.0.CO;2-O"},"pages":{"wt":"1149–1171"},"hdl":{"wt":"10338.dmlcz/135448"},"hdl-access":{"wt":"free"}},"i":0}}]}'/><cite id="CITEREFKurtz1999" about="#mwt185">Kurtz, S (1999). "Reducing the space requirement of suffix trees". <i>Software: Practice and Experience</i>. <b>29</b> (13): <span>1149–</span>1171. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1002%2F%28SICI%291097-024X%28199911%2929%3A13%3C1149%3A%3AAID-SPE274%3E3.0.CO%3B2-O">10.1002/(SICI)1097-024X(199911)29:13<span typeof="mw:Entity">&lt;</span>1149::AID-SPE274<span typeof="mw:Entity">></span>3.0.CO<span typeof="mw:Entity">;</span>2-O</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hdl_(identifier)">hdl</a>:<span><a rel="mw:ExtLink nofollow" href="https://hdl.handle.net/10338.dmlcz%2F135448">10338.dmlcz/135448</a></span>.</cite><span about="#mwt185" id="mwAuw"></span></li>
+<li id="mwAu0"><cite id="CITEREFPuglisiSmythTurpin2007" about="#mwt187">Puglisi, Simon J.; Smyth, W. F.; Turpin, Andrew H. (2007). <a rel="mw:ExtLink nofollow" href="http://researchrepository.murdoch.edu.au/id/eprint/27889/">"A taxonomy of suffix array construction algorithms"</a>. <i>ACM Computing Surveys</i>. <b>39</b> (2): 4. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145%2F1242471.1242472">10.1145/1242471.1242472</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)">S2CID</a><span typeof="mw:Entity"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:2653529">2653529</a>.</cite><span about="#mwt187" id="mwAu8"></span></li>
+<li id="mwAvA"><cite id="CITEREFNongZhangChan2009" about="#mwt189">Nong, Ge; Zhang, Sen; Chan, Wai Hong (2009). <i>Linear Suffix Array Construction by Almost Pure Induced-Sorting</i>. 2009 Data Compression Conference. p.<span typeof="mw:Entity"> </span>193. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109%2FDCC.2009.42">10.1109/DCC.2009.42</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-0-7695-3592-0"><bdi>978-0-7695-3592-0</bdi></a>.</cite><span about="#mwt189" id="mwAvI"></span></li>
+<li id="mwAvM"><cite id="CITEREFFischer2011" about="#mwt191">Fischer, Johannes (2011). <i>Inducing the LCP-Array</i>. Algorithms and Data Structures. Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity"> </span>6844. pp.<span typeof="mw:Entity"> </span><span>374–</span>385. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)">arXiv</a>:<span><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/1101.3448">1101.3448</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F978-3-642-22300-6_32">10.1007/978-3-642-22300-6_32</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-642-22299-3"><bdi>978-3-642-22299-3</bdi></a>.</cite><span about="#mwt191" id="mwAvU"></span></li>
+<li id="mwAvY"><cite id="CITEREFSalsonLecroqLéonardMouchard2010" about="#mwt193">Salson, M.; Lecroq, T.; Léonard, M.; Mouchard, L. (2010). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.jda.2009.02.007">"Dynamic extended suffix arrays"</a>. <i>Journal of Discrete Algorithms</i>. <b>8</b> (2): 241. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<span><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.jda.2009.02.007">10.1016/j.jda.2009.02.007</a></span>.</cite><span about="#mwt193" id="mwAvg"></span></li>
+<li id="mwAvk"><cite id="CITEREFBurkhardtKärkkäinen2003" about="#mwt195">Burkhardt, Stefan; Kärkkäinen, Juha (2003). <i>Fast Lightweight Suffix Array Construction and Checking</i>. Combinatorial Pattern Matching. Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity"> </span>2676. pp.<span typeof="mw:Entity"> </span><span>55–</span>69. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F3-540-44888-8_5">10.1007/3-540-44888-8_5</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-540-40311-1"><bdi>978-3-540-40311-1</bdi></a>.</cite><span about="#mwt195" id="mwAvs"></span></li>
+<li id="mwAvw"><cite id="CITEREFKarpMillerRosenberg1972" about="#mwt197">Karp, Richard M.; Miller, Raymond E.; Rosenberg, Arnold L. (1972). <i>Rapid identification of repeated patterns in strings, trees and arrays</i>. Proceedings of the fourth annual ACM symposium on Theory of computing - STOC '72. pp.<span typeof="mw:Entity"> </span><span>125–</span>136. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145%2F800152.804905">10.1145/800152.804905</a>.</cite><span about="#mwt197" id="mwAv4"></span></li>
+<li id="mwAv8"><cite id="CITEREFFarach1997" about="#mwt199">Farach, M. (1997). <i>Optimal suffix tree construction with large alphabets</i>. Proceedings 38th Annual Symposium on Foundations of Computer Science. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109%2FSFCS.1997.646102">10.1109/SFCS.1997.646102</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/0-8186-8197-7"><bdi>0-8186-8197-7</bdi></a>.</cite><span about="#mwt199" id="mwAwE"></span></li>
+<li id="mwAwI"><cite id="CITEREFIKärkkäinenKempa2014" about="#mwt201">I, Tomohiro; Kärkkäinen, Juha; Kempa, Dominik (2014). <i>Faster Sparse Suffix Sorting</i>. Leibniz International Proceedings in Informatics (LIPIcs). Vol.<span typeof="mw:Entity"> </span>25. Schloss Dagstuhl – Leibniz-Zentrum fuer Informatik. pp.<span typeof="mw:Entity"> </span><span>386–</span>396. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<span><a rel="mw:ExtLink nofollow" href="https://doi.org/10.4230%2FLIPIcs.STACS.2014.386">10.4230/LIPIcs.STACS.2014.386</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-939897-65-1"><bdi>978-3-939897-65-1</bdi></a>.</cite><span about="#mwt201" id="mwAwQ"></span></li>
+<li id="mwAwU"><cite id="CITEREFKärkkäinenSanders2003" about="#mwt203">Kärkkäinen, Juha; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Peter_Sanders_(computer_scientist)">Sanders, Peter</a> (2003). <i>Simple Linear Work Suffix Array Construction</i>. Automata, Languages and Programming. Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity"> </span>2719. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F3-540-45061-0_73">10.1007/3-540-45061-0_73</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)">ISBN</a><span typeof="mw:Entity"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-540-40493-4"><bdi>978-3-540-40493-4</bdi></a>.</cite><span about="#mwt203" id="mwAwc"></span></li>
+<li id="mwAwg"><cite id="CITEREFDementievKärkkäinenMehnertSanders2008" about="#mwt205">Dementiev, Roman; Kärkkäinen, Juha; Mehnert, Jens; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Peter_Sanders_(computer_scientist)">Sanders, Peter</a> (2008). <a rel="mw:ExtLink nofollow" href="https://publikationen.bibliothek.kit.edu/1000009446">"Better external memory suffix array construction"</a>. <i>Journal of Experimental Algorithmics</i>. <b>12</b>: <span>1–</span>24. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145%2F1227161.1402296">10.1145/1227161.1402296</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)">S2CID</a><span typeof="mw:Entity"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:12296500">12296500</a>.</cite><span about="#mwt205" id="mwAwo"></span></li>
+<li id="mwAws"><cite id="CITEREFKullaSanders2007" about="#mwt207">Kulla, Fabian; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Peter_Sanders_(computer_scientist)">Sanders, Peter</a> (2007). "Scalable parallel suffix array construction". <i>Parallel Computing</i>. <b>33</b> (9): <span>605–</span>612. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2Fj.parco.2007.06.004">10.1016/j.parco.2007.06.004</a>.</cite><span about="#mwt207" id="mwAw0"></span></li>
+<li id="mwAw4">Mohamed Ibrahim Abouelhoda, Stefan Kurtz, and Enno Ohlebusch. "Replacing suffix trees with enhanced suffix arrays." <i id="mwAw8">Journal of Discrete Algorithms</i>, 2(1):53–86, 2004.</li>
+<li id="mwAxA">Dong Kyue Kim, Jeong Eun Jeon, and Heejin Park. "An efficient index data structure with the capabilities of suffix trees and suffix arrays for alphabets of non-negligible size." <i id="mwAxE">String Processing and Information Retrieval Lecture Notes in Computer Science</i>, page138–149, 2004.</li></ul>
+</section><section id="mwAxI"><div><h2 id="External_links">External links</h2><span><span>[</span><a href="/w/index.php?title=Suffix_array&amp;action=edit&amp;section=14"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt209" typeof="mw:Transclusion" id="mwAxM" data-mw='{"parts":[{"template":{"target":{"wt":"Commons category","href":"./Template:Commons_category"},"params":{},"i":0}}]}'></span><div about="#mwt209" id="mwAxQ"><span></span>
+<div>
+<div><span typeof="mw:File"><a href="https://en.wikipedia.org/wiki/File:Commons-logo.svg"><img resource="https://en.wikipedia.org/wiki/File:Commons-logo.svg" src="//thumb.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/40px-Commons-logo.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" alt="Wikimedia Commons logo" height="40" width="30"/></a></span></div>
+<div>Wikimedia Commons has media related to <a rel="mw:WikiLink/Interwiki" href="https://commons.wikimedia.org/wiki/Category:Suffix%20array"><span>Suffix array</span></a>.</div></div>
+</div>
+<ul id="mwAxU"><li id="mwAxY"><a rel="mw:ExtLink nofollow" href="http://algs4.cs.princeton.edu/63suffix/SuffixArray.java.html" id="mwAxc">Suffix Array in Java</a></li>
+<li id="mwAxg"><a rel="mw:ExtLink nofollow" href="https://code.google.com/p/compression-code/downloads/list" id="mwAxk">Suffix sorting module for BWT in C code</a></li>
+<li id="mwAxo"><a rel="mw:ExtLink nofollow" href="http://www.codeodor.com/index.cfm/2007/12/24/The-Suffix-Array/1845" id="mwAxs">Suffix Array Implementation in Ruby</a></li>
+<li id="mwAxw"><a rel="mw:ExtLink nofollow" href="https://sary.sourceforge.net/index.html.en" id="mwAx0">Suffix array library and tools</a></li>
+<li id="mwAx4"><a rel="mw:ExtLink nofollow" href="http://pizzachili.dcc.uchile.cl/" id="mwAx8">Project containing various Suffix Array c/c++ Implementations with a unified interface</a></li>
+<li id="mwAyA"><a rel="mw:ExtLink nofollow" href="https://github.com/y-256/libdivsufsort" id="mwAyE">A fast, lightweight, and robust C API library to construct the suffix array</a></li>
+<li id="mwAyI"><a rel="mw:ExtLink nofollow" href="https://code.google.com/p/pysuffix/" id="mwAyM">Suffix Array implementation in Python</a></li>
+<li id="mwAyQ"><a rel="mw:ExtLink nofollow" href="http://www.geeksforgeeks.org/suffix-tree-application-4-build-linear-time-suffix-array/" id="mwAyU">Linear Time Suffix Array implementation in C using suffix tree</a></li></ul>
+<div about="#mwt213" typeof="mw:Transclusion" id="mwAyY" data-mw='{"parts":[{"template":{"target":{"wt":"Strings","href":"./Template:Strings"},"params":{},"i":0}}]}'><span></span></div><div role="navigation" about="#mwt213" id="mwAyc"><table><tbody><tr><th scope="col" colspan="2"><span></span><div><ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Strings"><abbr>v</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template_talk:Strings"><abbr>t</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:EditPage/Template:Strings"><abbr>e</abbr></a></li></ul></div><div id="Strings1741"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_(computer_science)">Strings</a></div></th></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_metric">String metric</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Approximate_string_matching">Approximate string matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bitap_algorithm">Bitap algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance">Damerau–Levenshtein distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Edit_distance">Edit distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gestalt_pattern_matching">Gestalt pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_distance">Hamming distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Jaro–Winkler_distance">Jaro–Winkler distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lee_distance">Lee distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_automaton">Levenshtein automaton</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm">Wagner–Fischer algorithm </a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String-searching_algorithm">String-searching algorithm</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Apostolico–Giancarlo_algorithm">Apostolico–Giancarlo algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Boyer–Moore_string-search_algorithm">Boyer–Moore string-search algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Boyer–Moore–Horspool_algorithm">Boyer–Moore–Horspool algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Knuth–Morris–Pratt_algorithm">Knuth–Morris–Pratt algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rabin–Karp_algorithm">Rabin–Karp algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Raita_algorithm">Raita algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Trigram_search">Trigram search</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Two-way_string-matching_algorithm">Two-way string-matching algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zhu–Takaoka_string_matching_algorithm">Zhu–Takaoka string matching algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row">Multiple string searching</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Aho–Corasick_algorithm">Aho–Corasick</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Commentz-Walter_algorithm">Commentz-Walter algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Regular_expression">Regular expression</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Comparison_of_regular-expression_engines">Comparison of regular-expression engines</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Regular_grammar">Regular grammar</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thompson's_construction">Thompson's construction</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment">Sequence alignment</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLAST_(biotechnology)">BLAST</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hirschberg's_algorithm">Hirschberg's algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm">Needleman–Wunsch algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smith–Waterman_algorithm">Smith–Waterman algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_structure">Data structure</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton">DAFSA</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Substring_index">Substring index</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_array">Suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_automaton">Suffix automaton</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree">Suffix tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_suffix_array">Compressed suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array">LCP array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FM-index">FM-index</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Generalized_suffix_tree">Generalized suffix tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rope_(data_structure)">Rope</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ternary_search_tree">Ternary search tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Trie">Trie</a></li></ul>
+</div></td></tr><tr><th scope="row">Other</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Parsing">Parsing</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pattern_matching">Pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_pattern_matching">Compressed pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_subsequence">Longest common subsequence</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_substring">Longest common substring</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequential_pattern_mining">Sequential pattern mining</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:String_sorting_algorithms">Sorting</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Semi-Thue_system">String rewriting systems</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_operations">String operations</a></li></ul>
+</div></td></tr></tbody></table></div>
+</section>
+</div><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1"></noscript>
+<div>Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Suffix_array&amp;oldid=1343994068">https://en.wikipedia.org/w/index.php?title=Suffix_array&amp;oldid=1343994068</a>"</div></div>
+					<div id="catlinks"><div id="mw-normal-catlinks"><a href="/wiki/Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Arrays">Arrays</a></li><li><a href="/wiki/Category:Substring_indices">Substring indices</a></li><li><a href="/wiki/Category:String_data_structures">String data structures</a></li><li><a href="/wiki/Category:Computer_science_suffixes">Computer science suffixes</a></li></ul></div><div id="mw-hidden-catlinks">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:All_articles_with_unsourced_statements">All articles with unsourced statements</a></li><li><a href="/wiki/Category:Articles_with_unsourced_statements_from_August_2020">Articles with unsourced statements from August 2020</a></li><li><a href="/wiki/Category:Commons_category_link_from_Wikidata">Commons category link from Wikidata</a></li><li><a href="/wiki/Category:Articles_with_example_Python_(programming_language)_code">Articles with example Python (programming language) code</a></li></ul></div></div>
+				</div>
+			</main>
+		</div>
+		<div>
+			<footer id="footer" >
+				<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 17 March 2026, at 17:12<span>&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+				<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=Suffix_array&amp;oldid=1343994068&amp;mobileaction=toggle_view_mobile">Mobile view</a></li>
+</ul>
+				<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/"><picture><source media="(min-width: 500px)" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><picture><source media="(min-width: 500px)" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25"></picture></a></li>
+</ul>
+			</footer>
+		</div>
+	</div>
+</div>
+<div>
+	<div id="vector-sticky-header">
+		<div>
+			<div>
+				<button tabindex="-1"><span></span>
+<span>Search</span>
+			</button>
+		</div>
+		<div role="search">
+			<div>
+				<div>
+					<form action="/w/index.php" id="vector-sticky-search-form">
+						<div  >
+							<div>
+								<input
+								 autocomplete="off"
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button>Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div>
+				<nav>
+					<div id="vector-sticky-header-toc"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button"    >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+						</label>
+						<div>
+						<div id="vector-sticky-header-toc-unpinned-container">
+						</div>
+						</div>
+					</div>
+			</nav>
+				<div ><span lang="en" dir="ltr"><span>Suffix array</span></span></div>
+			</div>
+		</div>
+		<div>
+			<div>
+				<a href="#" id="ca-talk-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-subject-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-history-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-watchstar-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-ve-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-viewsource-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+		</div>
+			<div>
+				<button id="p-lang-btn-sticky-header" tabindex="-1"><span></span>
+<span>13 languages</span>
+			</button>
+			<a href="#" id="ca-addsection-sticky-header" tabindex="-1"><span></span>
+<span>Add topic</span>
+			</a>
+		</div>
+			<div>
+				<div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="p-dock-bottom">
+	<ul>
+	</ul>
+</div>
+</body>
+</html>

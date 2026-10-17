@@ -245,6 +245,10 @@ def import_document(path):
             ) from exc
     elif fmt == 'odt':
         _import_odt(doc, raw, losses)
+    elif fmt == 'epub':
+        from .epub import import_epub
+
+        import_epub(doc, raw, losses)
     elif fmt == 'doc':
         doc, adapter_report = _import_doc(path)
         losses.extend(adapter_report['losses'])
@@ -784,6 +788,7 @@ def _import_docx(doc, raw, losses):
                     value = getattr(pf, prop)
                     if value is not None:
                         values[key] = value.pt
+                values.update(_docx_read_extras(pf, alignment=True))
             doc['styles'][style.style_id] = values
         except (ValueError, AttributeError):
             _loss(
@@ -799,8 +804,7 @@ def _import_docx(doc, raw, losses):
         for key in ('top', 'right', 'bottom', 'left'):
             if getattr(section, f'{key}_margin') is not None:
                 doc['layout']['margins'][key] = getattr(section, f'{key}_margin').pt
-        doc['layout']['header'] = '\n'.join(p.text for p in section.header.paragraphs)
-        doc['layout']['footer'] = '\n'.join(p.text for p in section.footer.paragraphs)
+        _docx_read_regions(doc, section)
         if len(word.sections) > 1:
             _loss(
                 losses,
@@ -856,6 +860,7 @@ def _import_docx(doc, raw, losses):
             value = getattr(paragraph.paragraph_format, prop)
             if value is not None:
                 block['attrs'][target] = value.pt
+        block['attrs'].update(_docx_read_extras(paragraph.paragraph_format))
         state = {'inserted': [], 'deleted': [], 'fields': [], 'stack': [], 'notes': [], 'authors': set()}
 
         def add_run(node, hyperlink, change):
@@ -1096,7 +1101,10 @@ def _import_docx(doc, raw, losses):
                 f'Unsupported Word body element {child.tag}; original remains attached.',
                 'body',
             )
+    imported_comments = {}
     for comment_id, comment in comments.items():
+        if comment.get('parent') in comments:
+            continue  # replies attach to their thread below
         anchor = anchors.get(comment_id)
         if anchor is None:
             if not doc['blocks']:
@@ -1118,19 +1126,44 @@ def _import_docx(doc, raw, losses):
                 'Comment range spans paragraphs; anchored to the end of its first paragraph.',
                 block['id'],
             )
-        doc['review']['comments'].append(
-            {
-                'id': _id('comment'),
-                'target': block['id'],
-                'start': start,
-                'end': end,
-                'text': comment['text'],
-                'author': comment['author'],
-                'status': 'open',
-                'revision': doc['revision'],
-                'source': 'docx',
-            }
-        )
+        record = {
+            'id': _id('comment'),
+            'target': block['id'],
+            'start': start,
+            'end': end,
+            'text': comment['text'],
+            'author': comment['author'],
+            'status': 'resolved' if comment.get('done') else 'open',
+            'revision': doc['revision'],
+            'source': 'docx',
+        }
+        if comment.get('date'):
+            record['date'] = comment['date']
+        imported_comments[comment_id] = record
+        doc['review']['comments'].append(record)
+    # Word threads replies through commentsExtended.xml (w15:paraIdParent); a reply to a reply joins the root.
+    for comment_id, comment in comments.items():
+        root_id, seen = comment.get('parent'), {comment_id}
+        while root_id in comments and comments[root_id].get('parent') in comments and root_id not in seen:
+            seen.add(root_id)
+            root_id = comments[root_id]['parent']
+        parent = imported_comments.get(root_id)
+        if parent is None:
+            continue
+        reply = {
+            'id': _id('comment'),
+            'parent_id': parent['id'],
+            'target': parent['target'],
+            'text': comment['text'],
+            'author': comment['author'],
+            'status': 'open',
+            'revision': doc['revision'],
+            'replies': [],
+            'source': 'docx',
+        }
+        if comment.get('date'):
+            reply['date'] = comment['date']
+        parent.setdefault('replies', []).append(reply)
 
 
 def _before_text(text, inserted, deleted):
@@ -1183,16 +1216,13 @@ def _docx_notes(archive, kind, w):
 def _docx_comments(archive, w):
     if 'word/comments.xml' not in archive.namelist():
         return {}
+    from .docx_review import comment_threads
+
     root = _parse_xml(archive.read('word/comments.xml'), 'word/comments.xml')
-    return {
-        item.get(w + 'id'): {
-            'author': item.get(w + 'author', ''),
-            'text': '\n'.join(
-                ''.join(t.text or '' for t in p.iter(w + 't')) for p in item.iter(w + 'p')
-            ).strip(),
-        }
-        for item in root.findall(w + 'comment')
-    }
+    extended = None
+    if 'word/commentsExtended.xml' in archive.namelist():
+        extended = _parse_xml(archive.read('word/commentsExtended.xml'), 'word/commentsExtended.xml')
+    return comment_threads(root, extended)
 
 
 def _import_odt(doc, raw, losses):
@@ -2246,12 +2276,156 @@ def _xml_safe(doc, losses):
     return cleaned
 
 
-def _export_docx(doc, path):
+_DOCX_ALIGN = ('left', 'center', 'right', 'justify')
+_DOCX_REGION_FIELDS = {'{page}': 'PAGE', '{pages}': 'NUMPAGES'}
+
+
+def _docx_paragraph_extras(paragraph_format, values):
+    """Line spacing (a multiple), page break before and style alignment, shared by styles and blocks."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+
+    spacing = values.get('line_spacing')
+    if type(spacing) in (int, float) and 0.5 <= spacing <= 5:
+        paragraph_format.line_spacing = float(spacing)
+    if values.get('page_break_before') is True:
+        paragraph_format.page_break_before = True
+    if values.get('alignment') in _DOCX_ALIGN:
+        paragraph_format.alignment = getattr(WD_ALIGN_PARAGRAPH, values['alignment'].upper())
+
+
+def _docx_read_extras(paragraph_format, alignment=False):
+    """Read back what ``_docx_paragraph_extras`` writes (direct formatting only)."""
+    values = {}
+    spacing = paragraph_format.line_spacing
+    # A multiple is a float; exact and at-least spacing are lengths (int subclasses).
+    if isinstance(spacing, float) and 0.5 <= spacing <= 5:
+        values['line_spacing'] = round(spacing, 4)
+    if paragraph_format.page_break_before:
+        values['page_break_before'] = True
+    if alignment:
+        try:
+            name = {0: 'left', 1: 'center', 2: 'right', 3: 'justify'}.get(paragraph_format.alignment)
+        except ValueError:
+            name = None
+        if name:
+            values['alignment'] = name
+    return values
+
+
+def _docx_region_paragraph(paragraph, text, align):
+    """Write header/footer text; ``{page}`` and ``{pages}`` become Word PAGE and NUMPAGES fields."""
+    from docx.enum.text import WD_ALIGN_PARAGRAPH
+    from docx.oxml import OxmlElement
+    from docx.oxml.ns import qn
+
+    paragraph.text = ''
+    for part in re.split(r'(\{page\}|\{pages\})', text):
+        if part in _DOCX_REGION_FIELDS:
+            field = OxmlElement('w:fldSimple')
+            field.set(qn('w:instr'), _DOCX_REGION_FIELDS[part])
+            run, value = OxmlElement('w:r'), OxmlElement('w:t')
+            value.text = '1'
+            run.append(value)
+            field.append(run)
+            paragraph._p.append(field)
+        elif part:
+            paragraph.add_run(part)
+    if align in _DOCX_ALIGN and align != 'left':
+        paragraph.alignment = getattr(WD_ALIGN_PARAGRAPH, align.upper())
+
+
+def _docx_write_regions(section, layout):
+    regions = {}
+    for region in ('header', 'footer'):
+        value = layout.get(region, '')
+        first = None
+        if isinstance(value, dict):
+            if isinstance(value.get('first'), str):
+                first = value['first']
+            value = value.get('text', '')
+        regions[region] = (str(value or ''), first)
+    # Word's distinct first page applies to both regions; a region without its own first-page
+    # variant repeats its usual text there.
+    distinct = any(first is not None for _text, first in regions.values())
+    for region, (text, first) in regions.items():
+        align = layout.get(region + '_align')
+        _docx_region_paragraph(getattr(section, region).paragraphs[0], text, align)
+        if distinct:
+            section.different_first_page_header_footer = True
+            first_text = text if first is None else first
+            _docx_region_paragraph(getattr(section, 'first_page_' + region).paragraphs[0], first_text, align)
+
+
+def _docx_region_text(paragraph):
+    """Header/footer text with PAGE and NUMPAGES fields read back as ``{page}`` and ``{pages}``."""
+    from docx.text.run import Run
+
+    w = '{http://schemas.openxmlformats.org/wordprocessingml/2006/main}'
+    tokens = {value: key for key, value in _DOCX_REGION_FIELDS.items()}
+    parts, field, seen = [], None, []  # field: [instruction, in_result]; seen keeps lxml proxies alive
+    for run in paragraph._p.iter(w + 'r'):
+        simple = next((a for a in run.iterancestors(w + 'fldSimple')), None)
+        if simple is not None:
+            token = tokens.get((simple.get(w + 'instr') or '').strip().split(' ')[0].upper())
+            if token:
+                if not any(simple is other for other in seen):
+                    seen.append(simple)
+                    parts.append(token)
+                continue
+        for item in run:
+            if item.tag == w + 'fldChar':
+                kind = item.get(w + 'fldCharType')
+                if kind == 'begin':
+                    field = ['', False]
+                elif kind == 'separate' and field is not None:
+                    field[1] = True
+                elif kind == 'end' and field is not None:
+                    token = tokens.get(field[0].strip().split(' ')[0].upper())
+                    if token:
+                        parts.append(token)
+                    field = None
+            elif item.tag == w + 'instrText' and field is not None:
+                field[0] += item.text or ''
+        if field is not None and (not field[1] or tokens.get(field[0].strip().split(' ')[0].upper())):
+            continue
+        parts.append(Run(run, paragraph).text)
+    return ''.join(parts)
+
+
+def _docx_read_regions(doc, section):
+    """Header/footer text, alignment and a distinct first-page variant from the first section."""
+    for region in ('header', 'footer'):
+        paragraphs = getattr(section, region).paragraphs
+        text = '\n'.join(_docx_region_text(p) for p in paragraphs)
+        alignment = next((p.alignment for p in paragraphs if p.alignment is not None), None)
+        name = {0: 'left', 1: 'center', 2: 'right', 3: 'justify'}.get(alignment)
+        if name and name != 'left':
+            doc['layout'][region + '_align'] = name
+        first = None
+        if section.different_first_page_header_footer:
+            first = '\n'.join(
+                _docx_region_text(p) for p in getattr(section, 'first_page_' + region).paragraphs
+            )
+        if first is not None and first != text:
+            doc['layout'][region] = {'first': first, 'text': text}
+        else:
+            doc['layout'][region] = text
+
+
+def _export_docx(doc, path, customize=None):
+    """Write ``doc`` as DOCX. ``customize(word, exported)`` may adjust the package before it is saved;
+    ``exported`` lists ``(block, element)`` for every written block in body order."""
     from docx import Document
     from docx.shared import Pt, RGBColor
 
     word = Document()
-    paragraphs = {}
+    paragraphs, exported, runs_by_block = {}, [], {}
+    comment_offsets = {}
+    for comment in doc.get('review', {}).get('comments', []):
+        if comment.get('status') != 'resolved' and isinstance(comment.get('start'), int):
+            comment_offsets.setdefault(comment.get('target'), set()).update(
+                (comment['start'], comment.get('end', comment['start']))
+            )
     from docx.enum.style import WD_STYLE_TYPE
 
     named = {}
@@ -2283,6 +2457,7 @@ def _export_docx(doc, path):
             ):
                 if key in values:
                     setattr(style.paragraph_format, target, Pt(values[key]))
+            _docx_paragraph_extras(style.paragraph_format, values)
     for name, values in doc.get('styles', {}).items():
         if values.get('based_on') in named:
             named[name].base_style = named[values['based_on']]
@@ -2292,11 +2467,7 @@ def _export_docx(doc, path):
     for key, value in layout.get('margins', {}).items():
         if key in ('top', 'right', 'bottom', 'left'):
             setattr(section, key + '_margin', Pt(value))
-    for region in ('header', 'footer'):
-        value = layout.get(region, '')
-        getattr(section, region).paragraphs[0].text = (
-            value if isinstance(value, str) else value.get('text', '')
-        )
+    _docx_write_regions(section, layout)
     word.core_properties.title = doc.get('metadata', {}).get('title', '')
     word.core_properties.author = doc.get('metadata', {}).get('author', '')
     for block in doc['blocks']:
@@ -2316,6 +2487,7 @@ def _export_docx(doc, path):
 
                 for row in table.rows[: int(attrs['header_rows'])]:
                     row._tr.get_or_add_trPr().append(OxmlElement('w:tblHeader'))
+            exported.append((block, table._tbl))
             continue
         if kind == 'image':
             asset = doc.get('assets', {}).get(attrs.get('asset'))
@@ -2323,9 +2495,10 @@ def _export_docx(doc, path):
                 word.add_picture(
                     io.BytesIO(base64.b64decode(asset['data'])), width=Pt(attrs.get('width', 288))
                 )
+                exported.append((block, word.element.body[-2]))  # the picture paragraph, before sectPr
             continue
         if kind in ('page_break', 'section_break'):
-            word.add_page_break()
+            exported.append((block, word.add_page_break()._p))
             continue
         paragraph = (
             word.add_heading(level=max(1, min(6, attrs.get('level', 1))))
@@ -2333,6 +2506,7 @@ def _export_docx(doc, path):
             else word.add_paragraph()
         )
         paragraphs[block['id']] = paragraph
+        exported.append((block, paragraph._p))
         if block.get('style') in named and (kind != 'heading' or block['style'] != 'body'):
             paragraph.style = named[block['style']]
         if attrs.get('list'):
@@ -2354,16 +2528,21 @@ def _export_docx(doc, path):
         ):
             if name in attrs:
                 setattr(paragraph.paragraph_format, prop, Pt(attrs[name]))
+        _docx_paragraph_extras(
+            paragraph.paragraph_format, {k: v for k, v in attrs.items() if k != 'alignment'}
+        )
         text, marks = block.get('text', ''), block.get('marks', [])
         boundaries = sorted(
             {
                 0,
                 len(text),
                 *[max(0, min(len(text), int(m.get(k, 0)))) for m in marks for k in ('start', 'end')],
+                *[max(0, min(len(text), offset)) for offset in comment_offsets.get(block['id'], ())],
             }
         )
         for start, end in itertools.pairwise(boundaries):
             run = paragraph.add_run(text[start:end])
+            runs_by_block.setdefault(block['id'], []).append((start, end, run))
             for mark in marks:
                 if mark.get('start', 0) <= start and mark.get('end', 0) >= end:
                     name, value = mark.get('type'), mark.get('value', True)
@@ -2415,14 +2594,11 @@ def _export_docx(doc, path):
         position = 1 if properties is not None else 0
         target._p.insert(position, start)
         target._p.insert(position + 1, end)
-    for comment in doc.get('review', {}).get('comments', []):
-        target = paragraphs.get(comment.get('target'))
-        if target is None or comment.get('status') == 'resolved':
-            continue
-        runs = target.runs or [target.add_run('')]
-        word.add_comment(
-            runs, text=str(comment.get('text', '')), author=str(comment.get('author', '') or 'ByAuthorX')
-        )
+    from .docx_review import export_comments
+
+    export_comments(word, paragraphs, runs_by_block, doc.get('review', {}).get('comments', []))
+    if customize is not None:
+        customize(word, exported)
     word.save(path)
 
 
@@ -2824,6 +3000,13 @@ def _rtf(doc):
 def _exchange_losses(doc, fmt, losses):
     if fmt == 'byax':
         return
+    from .codex import export_losses as codex_losses
+    from .project import export_losses
+
+    # Binder order survives as headings; item kinds, statuses and targets do not.
+    losses.extend(export_losses(doc, fmt))
+    # Codex entries stay in the master.
+    losses.extend(codex_losses(doc, fmt))
     for category in ('review', 'references', 'fields', 'layers'):
         value = doc.get(category)
         if category == 'review':
@@ -2838,7 +3021,7 @@ def _exchange_losses(doc, fmt, losses):
                 category,
             )
     if fmt != 'pdf':
-        if doc.get('styles') and fmt not in ('docx', 'odt', 'rtf'):
+        if doc.get('styles') and fmt not in ('docx', 'odt', 'rtf', 'epub'):
             _loss(
                 losses,
                 'named_styles',
@@ -2876,7 +3059,7 @@ def _exchange_losses(doc, fmt, losses):
         if (
             kind in ('footnote', 'toc', 'section_break')
             and fmt != 'pdf'
-            and not (kind == 'footnote' and fmt in ('odt', 'rtf') and attrs.get('reference'))
+            and not (kind == 'footnote' and fmt in ('odt', 'rtf', 'epub') and attrs.get('reference'))
         ):
             _loss(
                 losses,
@@ -2898,13 +3081,15 @@ def _exchange_losses(doc, fmt, losses):
                 _loss(
                     losses,
                     'table_subset',
-                    'Table text/grid exported; widths, spans, cell formatting and pagination policies may be lost.',
+                    'Table text, header rows and spans exported; widths, borders and pagination policies are not.'
+                    if fmt == 'epub'
+                    else 'Table text/grid exported; widths, spans, cell formatting and pagination policies may be lost.',
                     block['id'],
                 )
         mime = doc.get('assets', {}).get(attrs.get('asset'), {}).get('mime')
         if (
             kind == 'image'
-            and fmt not in ('pdf', 'docx', 'odt', 'html', 'htm')
+            and fmt not in ('pdf', 'docx', 'odt', 'html', 'htm', 'epub')
             and not (fmt == 'rtf' and mime in ('image/png', 'image/jpeg'))
         ):
             _loss(
@@ -2913,7 +3098,7 @@ def _exchange_losses(doc, fmt, losses):
                 'Embedded image bytes are not included; source/alternative text is retained where representable.',
                 block['id'],
             )
-        if attrs.get('list') and fmt not in ('pdf', 'md', 'markdown'):
+        if attrs.get('list') and fmt not in ('pdf', 'md', 'markdown', 'epub'):
             _loss(
                 losses,
                 'list_subset',
@@ -2924,11 +3109,11 @@ def _exchange_losses(doc, fmt, losses):
             _loss(
                 losses, 'heading_flattened', 'Heading text retained without heading semantics.', block['id']
             )
-        if attrs.get('alignment') and fmt not in ('pdf', 'docx', 'rtf'):
+        if attrs.get('alignment') and fmt not in ('pdf', 'docx', 'rtf', 'epub'):
             _loss(losses, 'paragraph_format', 'Paragraph alignment is not represented.', block['id'])
 
 
-EXPORT_FORMATS = ('byax', 'txt', 'md', 'markdown', 'html', 'htm', 'rtf', 'docx', 'odt', 'pdf')
+EXPORT_FORMATS = ('byax', 'txt', 'md', 'markdown', 'html', 'htm', 'rtf', 'docx', 'odt', 'pdf', 'epub')
 
 
 def publish_file(stage, destination, *, overwrite=True, owner=None):
@@ -3000,7 +3185,7 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
     if fmt != 'byax':
         from .citation_render import citation_view
 
-        candidate = citation_view(candidate, footnotes=fmt in ('pdf', 'odt', 'rtf'))
+        candidate = citation_view(candidate, footnotes=fmt in ('pdf', 'odt', 'rtf', 'epub'))
     if settings.get('layout'):
         candidate['layout'].update(settings['layout'])
     if settings.get('metadata') == 'omit' or settings.get('include_metadata') is False:
@@ -3048,6 +3233,12 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         )
     ]
     markdown_content = _markdown(candidate, losses, markdown) if markdown is not None else None
+    package = None
+    if fmt == 'epub':
+        from .epub import build_package
+
+        # Built (without I/O) before the preview return so the preview carries the EPUB-specific losses.
+        package = build_package(candidate, settings.get('epub'), losses)
     if preview:
         report = _report(fmt, losses)
         report.update(preview=True, review='required' if losses else 'not_required')
@@ -3101,6 +3292,11 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
             _export_docx(_xml_safe(candidate, losses), stage)
         elif fmt == 'odt':
             _export_odt(candidate, stage)
+        elif fmt == 'epub':
+            from .epub import check_written, write_package
+
+            write_package(package, stage)
+            check_written(stage)
         else:
             if fmt == 'txt':
                 content = _plain(candidate)
@@ -3136,6 +3332,9 @@ def export_document(doc, path, format=None, profile=None, *, owner=None, overwri
         report['font_dependencies'] = glyph_fallbacks(candidate)
     if markdown:
         report['markdown'] = markdown
+    if package is not None:
+        report['epub'] = package.info
+        report['structure_check'] = 'passed'
     if result:
         report.update(
             {

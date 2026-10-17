@@ -36,7 +36,7 @@ from PySide6.QtWidgets import (
 )
 from shiboken6 import isValid
 
-from . import engine, model
+from . import model
 from .gui_art import EmptyPanel, TaskLoop, themed_art
 from .gui_editor import ProofMark
 
@@ -50,13 +50,124 @@ def text_providers():
     from .providers import ProviderRegistry
 
     try:
-        return [config for config in ProviderRegistry().list() if config.get('kind') in TEXT_KINDS]
+        return [
+            config for config in ProviderRegistry().list_with_locality() if config.get('kind') in TEXT_KINDS
+        ]
     except Exception:
         return []
 
 
 def describe_edit(proposal):
     return f'“{proposal["expected_text"]}” → “{proposal["replacement"]}”  ({proposal.get("explanation", "")})'
+
+
+# Citation chips (context engine plan 6.2): one label and colour per grounding state.
+CHIP_STATES = {
+    'supported': ('', '#2f6f4f', 'Quote found in the cited passage'),
+    'partial': ('~', '#8a6d1f', 'Close to the cited passage, not exact'),
+    'unsupported': ('!', '#a33a2b', 'The quoted words are not in the cited passage'),
+    'not_checkable': ('', '#4a5a78', 'A paraphrase: the words were not checked for meaning'),
+    'unanchored': ('×', '#a33a2b', 'The cited text could not be found in the source'),
+    'unverified': ('?', '#a33a2b', 'This ID was not supplied with the request; the citation was removed'),
+}
+
+
+# Support underlines (context engine plan 9, stage 2): advisory and categorical, never a percentage.
+# The bracketed glyph after the claim and the hover text carry the meaning, so colour is never the only signal.
+SUPPORT = {
+    'supported': ('✓', '#2f6f4f'),
+    'partial': ('~', '#8a6d1f'),
+    'unsupported': ('!', '#a33a2b'),
+}
+SUPPORT_RANK = {'supported': 0, 'partial': 1, 'unsupported': 2}
+
+
+def support_meaning(result):
+    from .grounding_entailment import MEANINGS
+
+    return MEANINGS.get(result, '')
+
+
+def support_span(piece, result, index=None, text_colour='#000000'):
+    """An underlined claim (escaped HTML in ``piece``) with its category glyph after it."""
+    colour = SUPPORT[result][1]
+    meaning = html.escape(support_meaning(result), quote=True)
+    underline = f'text-decoration: underline; text-decoration-color:{colour};'
+    if index is None:
+        body = f'<span title="{meaning}" style="color:{text_colour}; {underline}">{piece}</span>'
+    else:
+        body = f'<a href="support:{index}" title="{meaning}" style="color:{text_colour}; {underline}">{piece}</a>'
+    return body
+
+
+def support_glyph(result):
+    glyph, colour = SUPPORT[result]
+    return f'<sup style="color:{colour}; font-weight:600;">[{glyph}]</sup>'
+
+
+def support_lines(records):
+    """Plain-text lines for a support check, one per checked claim (the accessible, copyable form)."""
+    from .grounding_entailment import MEANINGS
+
+    lines = []
+    for record in records:
+        check = next(
+            (
+                c
+                for c in reversed(record.get('checks') or [])
+                if c.get('stage') == 'entailment' and c.get('claims')
+            ),
+            None,
+        )
+        for item in (check or {}).get('claims', []):
+            lines.append(
+                f'{SUPPORT[item["result"]][0]} {MEANINGS[item["result"]].split(":", 1)[0]}: “{item["text"]}”'
+            )
+    return lines
+
+
+def chip_html(index, record):
+    """One chip: a numbered link (``cite:<index>``) whose colour and suffix give the state."""
+    suffix, colour, _ = CHIP_STATES.get(record.get('state'), CHIP_STATES['unverified'])
+    label = f'[{index + 1}{suffix}]'
+    return (
+        f'<a href="cite:{index}" style="color:{colour}; text-decoration:none; font-weight:600;">'
+        f'{html.escape(label)}</a>'
+    )
+
+
+def chip_tooltip(record, source_text=''):
+    """Hover card: source title, locator and state, then the chunk text with the cited span marked."""
+    from .gui_libraries import describe_locator
+
+    _, colour, meaning = CHIP_STATES.get(record.get('state'), CHIP_STATES['unverified'])
+    status = f'<span style="color:{colour}">{html.escape(meaning)}</span>'
+    if not record.get('valid_id', True):
+        cited = html.escape(str(record.get('citation_id')))
+        return f'<p><b>Unknown source</b><br>{status}</p><p>Cited ID: {cited}</p>'
+    title = html.escape(str(record.get('title') or record.get('citation_id') or 'Source'))
+    where = html.escape(describe_locator(record.get('locator')))
+    head = f'<p><b>{title}</b><br>{where}<br>{status}</p>'
+    text = source_text or record.get('quote') or ''
+    span = record.get('source_span') if source_text else None
+    if len(text) > 900:
+        # Long chunks are cropped around the cited span so the card stays readable.
+        low = max(0, (span[0] if span else 0) - 300)
+        high = min(len(text), max(low + 600, (span[1] if span else 0) + 300))
+        span = [span[0] - low, span[1] - low] if span else None
+        text = ('…' if low else '') + text[low:high] + ('…' if high < len(text) else '')
+        span = [span[0] + 1, span[1] + 1] if span and low else span
+    if span and 0 <= span[0] < span[1] <= len(text):
+        body = (
+            html.escape(text[: span[0]])
+            + '<span style="background-color:#ffe58a; color:#000;">'
+            + html.escape(text[span[0] : span[1]])
+            + '</span>'
+            + html.escape(text[span[1] :])
+        )
+    else:
+        body = html.escape(text)
+    return head + '<p>' + body.replace('\n', '<br>') + '</p>'
 
 
 class AIPanel(QWidget):
@@ -67,6 +178,14 @@ class AIPanel(QWidget):
         self.messages = []
         self._spelling_token = None
         self._pending = None
+        # Routing and the inspector (context engine 8.3, 8.4): items pinned or excluded by the author,
+        # one record per request for the conversation export, and the last assembled request.
+        self.pinned = {}
+        self.excluded = set()
+        self.turns = []
+        self._assembled = None
+        self._request = None
+        self._last_request = None
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         scroll = QScrollArea()
@@ -376,7 +495,10 @@ class AIPanel(QWidget):
         self.provider_box.blockSignals(True)
         self.provider_box.clear()
         for config in configs:
-            self.provider_box.addItem(f'{config["alias"]} · {config["model"]}', config['alias'])
+            label = f'{config["alias"]} · {config["model"]}'
+            if config.get('locality'):
+                label += ' · ' + config['locality'].capitalize()
+            self.provider_box.addItem(label, config['alias'])
         index = self.provider_box.findData(current)
         self.provider_box.setCurrentIndex(max(0, index))
         self.provider_box.blockSignals(False)
@@ -452,6 +574,13 @@ class AIPanel(QWidget):
         self.history.setAccessibleName(self.tr('Assistant conversation'))
         self.history.setOpenLinks(False)
         self.history.setMinimumHeight(180)
+        # Citation chips: hover shows the cited passage, click opens the source at its locator.
+        self.citations = []
+        self.supports = []
+        self.last_chip_tooltip = None
+        self._support_asked = False
+        self.history.highlighted.connect(self._chip_hovered)
+        self.history.anchorClicked.connect(self._chip_clicked)
         self.history_stack.addWidget(
             EmptyPanel(
                 self.tr('Ask about your writing'),
@@ -481,6 +610,55 @@ class AIPanel(QWidget):
             self.tr('Search attached libraries and choose passages before sending.')
         )
         cv.addWidget(self.use_libraries)
+        # Cascade stage 2: an on-device model reads each cited claim against its source. Off until the
+        # writer turns it on, and honest about a missing model instead of pretending.
+        self.support_check = QCheckBox(self.tr('Check claims against their sources'))
+        self.support_check.setAccessibleName(self.tr('Check claims against their sources'))
+        self.support_check.toggled.connect(self._support_toggled)
+        cv.addWidget(self.support_check)
+        self.refresh_support_check()
+        # Routing (context engine 8.3): the route is chosen per request and shown with its reason;
+        # the author can pick one instead, and decide what happens to local-only sources.
+        routing = QHBoxLayout()
+        self.route_box = QComboBox()
+        self.route_box.setAccessibleName(self.tr('Assistant route'))
+        self.route_box.setToolTip(
+            self.tr('Automatic picks what the assistant sees for each request; choose a route to override it')
+        )
+        self.route_box.addItem(self.tr('Route: automatic'), 'auto')
+        from .router import ROUTE_LABELS
+
+        for route, label in ROUTE_LABELS.items():
+            self.route_box.addItem(f'{route} · {self.tr(label)}', route)
+        routing.addWidget(self.route_box, 1)
+        self.privacy_box = QComboBox()
+        self.privacy_box.setAccessibleName(self.tr('Local-only sources'))
+        self.privacy_box.setToolTip(
+            self.tr('What happens to a local-only library when the chosen model is remote')
+        )
+        self.privacy_box.addItem(self.tr('Local-only sources: leave out'), 'exclude')
+        self.privacy_box.addItem(self.tr('Local-only sources: use a local model'), 'local')
+        saved_privacy = self.window.settings.value('ai/privacy', 'exclude', type=str)
+        self.privacy_box.setCurrentIndex(max(0, self.privacy_box.findData(saved_privacy)))
+        self.privacy_box.currentIndexChanged.connect(
+            lambda *_: self.window.settings.setValue('ai/privacy', self.privacy_box.currentData())
+        )
+        routing.addWidget(self.privacy_box, 1)
+        cv.addLayout(routing)
+        self.route_label = QLabel('')
+        self.route_label.setObjectName('emptyDescription')
+        self.route_label.setWordWrap(True)
+        self.route_label.setAccessibleName(self.tr('Route for the last request'))
+        cv.addWidget(self.route_label)
+        self.summaries_button = QPushButton(self.tr('Build chapter summaries…'))
+        self.summaries_button.setToolTip(
+            self.tr(
+                'Ask the selected provider to summarize each chapter, so whole-book questions work on '
+                'small models. Summaries stay in your cache and are never written into the document.'
+            )
+        )
+        self.summaries_button.clicked.connect(self.build_summaries)
+        cv.addWidget(self.summaries_button)
         self.send_button = QPushButton(self.tr('Send'))
         self.send_button.setProperty('primary', True)
         self.send_button.setShortcut('Ctrl+Return')
@@ -498,12 +676,40 @@ class AIPanel(QWidget):
             )
         )
         layout.addWidget(self.chat_stack, 1)
+        from .gui_context_inspector import ContextInspector
+
+        self.context_inspector = ContextInspector(self)
+        layout.addWidget(self.context_inspector)
         self._mode_changed()
         return box
 
     @property
     def mode(self):
         return 'work' if self.mode_buttons['work'].isChecked() else 'chat'
+
+    def refresh_support_check(self):
+        """Enable the support check only when the on-device model is installed; say why when it is not."""
+        from .grounding_entailment import availability
+
+        self.support_state = state = availability()
+        wanted = self.support_wanted = self.window.settings.value('ai/support_check', False, type=bool)
+        self.support_check.blockSignals(True)
+        self.support_check.setEnabled(state['available'])
+        self.support_check.setChecked(bool(wanted and state['available']))
+        self.support_check.blockSignals(False)
+        tip = (
+            self.tr(
+                'Underlines each claim that cites a source: supported, partly supported or not supported by '
+                'the cited text. Advisory. Runs on this computer; nothing is sent anywhere.'
+            )
+            if state['available']
+            else self.tr('Not available: {0}').format(state.get('reason', ''))
+        )
+        self.support_check.setToolTip(tip)
+        self.support_check.setAccessibleDescription(tip)
+
+    def _support_toggled(self, on):
+        self.window.settings.setValue('ai/support_check', bool(on))
 
     def _mode_changed(self, *_):
         self.window.settings.setValue('ai/mode', self.mode)
@@ -519,27 +725,387 @@ class AIPanel(QWidget):
         ready = bool(self.provider_box.currentData()) and self._pending is None
         self.send_button.setEnabled(ready and bool(self.input.toPlainText().strip()))
 
-    def _append(self, role, text):
+    def _append(self, role, text, records=None, texts=None):
+        if records:
+            escaped = self._with_chips(text, records, texts or {})
+        else:
+            escaped = html.escape(text).replace('\n', '<br>')
+        self._append_html(role, escaped)
+
+    def _append_html(self, role, body):
         colors = {'user': 'You', 'assistant': 'Assistant', 'note': 'Note'}
-        escaped = html.escape(text).replace('\n', '<br>')
-        self.history.append(f'<p><b>{colors[role]}:</b> {escaped}</p>')
+        self.history.append(f'<p><b>{colors[role]}:</b> {body}</p>')
         self.history_stack.setCurrentIndex(1)
 
-    def context(self, frozen):
-        selected = [(t, s, e) for t, s, e in self.window.editor.selection_targets() if s != e]
-        target = selected[0][0] if selected else None
-        context = engine.context(
-            frozen, target=target, limit=CONTEXT_LIMIT, profile=getattr(self.window, 'active_profile', None)
+    # Citation chips ------------------------------------------------------
+
+    def _append_grounded(self, reply, result, context):
+        """Show a reply with a chip per citation (native records, or ``[[cite:ID]]`` tokens)."""
+        from .grounding import ground_reply, source_texts
+
+        passages = context.get('library_passages') or []
+        references = context.get('references') or {}
+        grounded = result.get('grounding')
+        if not isinstance(grounded, dict) or not isinstance(grounded.get('records'), list):
+            grounded = ground_reply(reply, passages=passages, references=references)
+        texts = source_texts(passages, references)
+        text = grounded.get('text', reply)
+        if not grounded['records']:
+            self._append('assistant', text.strip() or reply)
+            if self._support_asked:
+                self._append(
+                    'note',
+                    self.tr(
+                        'Support check: this reply cites no sources, so there was nothing to check against.'
+                    ),
+                )
+            return
+        lead = len(text) - len(text.lstrip())
+        records = [dict(r, marker=max(0, int(r.get('marker') or 0) - lead)) for r in grounded['records']]
+        self._append('assistant', text.strip(), records=records, texts=texts)
+        self._support_notes(grounded, records)
+        invalid = grounded.get('invalid') or []
+        retry = result.get('citation_retry') or {}
+        if retry.get('attempted'):
+            self._append(
+                'note',
+                'The assistant cited sources that were not supplied, so it was asked once to correct the reply.',
+            )
+        if invalid:
+            self._append(
+                'note',
+                f'{len(invalid)} citation(s) named sources that were not supplied with the request. '
+                'They were removed and are marked unverified [?].',
+            )
+
+    def _support_notes(self, grounded, records):
+        """After a reply: what the support check did, in words (underlines alone are not enough)."""
+        support = grounded.get('entailment')
+        if support is None:
+            return
+        if not support.get('available', True):
+            self._append(
+                'note',
+                self.tr('Support check not run: {0}').format(support.get('reason', 'model not installed')),
+            )
+            return
+        lines = support_lines(records)
+        if lines:
+            heading = self.tr('Support check (advisory, checked on this computer):')
+            self._append('note', heading + '\n' + '\n'.join(lines[:12]))
+        else:
+            self._append('note', self.tr('Support check: no cited claim could be checked.'))
+
+    def _support_spans(self, text, records):
+        """Non-overlapping ``(start, end, result, index)`` underlines for the records' support checks."""
+        from .grounding_entailment import underlines
+
+        found = {}
+        for record in records:
+            for mark in underlines(record, text):
+                key = (mark['start'], mark['end'])
+                if key not in found or SUPPORT_RANK[mark['result']] > SUPPORT_RANK[found[key]]:
+                    found[key] = mark['result']
+        spans, last = [], 0
+        for (start, end), result in sorted(found.items()):
+            if start < last:
+                continue  # overlapping claim pieces: the earlier one wins
+            index = len(self.supports)
+            self.supports.append({'result': result, 'claim': text[start:end]})
+            spans.append((start, end, result, index))
+            last = end
+        return spans
+
+    def _with_chips(self, text, records, texts):
+        """Reply HTML with a chip at each record's marker and support underlines on checked claims."""
+        placed = sorted(
+            (min(max(0, int(r.get('marker') or 0)), len(text)), position, r)
+            for position, r in enumerate(records)
         )
-        context['scope'] = 'selection' if selected else 'document'
-        if selected:
-            context['selection'] = [
-                {'target': t, 'start': s, 'end': e, 'text': model.find_object(frozen, t).get('text', '')[s:e]}
-                for t, s, e in selected
-            ]
-        return context
+        spans = self._support_spans(text, records)
+        colour = self.history.palette().text().color().name()
+        cuts = sorted(
+            {0, len(text), *(m for m, _, _ in placed), *(s[0] for s in spans), *(s[1] for s in spans)}
+        )
+        chips = {}
+        for marker, _, record in placed:
+            chips.setdefault(marker, []).append(record)
+        out = []
+        for here, after in zip(cuts, [*cuts[1:], None], strict=True):
+            out.extend(support_glyph(result) for _, end, result, _ in spans if end == here)
+            for record in chips.get(here, []):
+                index = len(self.citations)
+                self.citations.append(
+                    {
+                        'record': record,
+                        'text': texts.get(record.get('chunk_id') or record.get('citation_id'), ''),
+                    }
+                )
+                out.append(chip_html(index, record))
+            if after is None:
+                break
+            piece = html.escape(text[here:after]).replace('\n', '<br>')
+            inside = next((s for s in spans if s[0] <= here and after <= s[1]), None)
+            out.append(support_span(piece, inside[2], inside[3], colour) if inside else piece)
+        return ''.join(out).strip()
+
+    def _chip_index(self, url):
+        value = url.toString() if hasattr(url, 'toString') else str(url)
+        if not value.startswith('cite:'):
+            return None
+        try:
+            index = int(value.split(':', 1)[1])
+        except ValueError:
+            return None
+        return index if 0 <= index < len(self.citations) else None
+
+    def chip_tooltip(self, index):
+        entry = self.citations[index]
+        return chip_tooltip(entry['record'], entry['text'])
+
+    def _support_index(self, url):
+        value = url.toString() if hasattr(url, 'toString') else str(url)
+        if not value.startswith('support:'):
+            return None
+        try:
+            index = int(value.split(':', 1)[1])
+        except ValueError:
+            return None
+        return index if 0 <= index < len(self.supports) else None
+
+    def support_tooltip(self, index):
+        entry = self.supports[index]
+        _, colour = SUPPORT[entry['result']]
+        model_name = getattr(self, 'support_state', {}).get('model', 'on-device model')
+        return (
+            f'<p><b style="color:{colour}">{html.escape(support_meaning(entry["result"]))}</b></p>'
+            f'<p>“{html.escape(entry["claim"])}”</p>'
+            f'<p><i>{html.escape(self.tr("Advisory: checked on this computer by {0}; not proof.").format(model_name))}</i></p>'
+        )
+
+    def _chip_hovered(self, url):
+        from PySide6.QtGui import QCursor
+        from PySide6.QtWidgets import QToolTip
+
+        support = self._support_index(url)
+        if support is not None:
+            self.last_support_tooltip = self.support_tooltip(support)
+            QToolTip.showText(QCursor.pos(), self.last_support_tooltip, self.history)
+            return
+        index = self._chip_index(url)
+        if index is None:
+            QToolTip.hideText()
+            return
+        self.last_chip_tooltip = self.chip_tooltip(index)
+        QToolTip.showText(QCursor.pos(), self.last_chip_tooltip, self.history)
+
+    def _chip_clicked(self, url):
+        index = self._chip_index(url)
+        if index is not None:
+            self.open_citation(index)
+
+    def open_citation(self, index):
+        """Open the cited source at its locator in the library reader (PDF page, block or offset)."""
+        from .gui_libraries import ExtractedTextDialog
+
+        record = self.citations[index]['record']
+        if not record.get('valid_id', True):
+            self.window.status_label.setText(self.tr('This citation names a source that was not supplied.'))
+            return None
+        if record.get('library_id') and record.get('document_id'):
+            from .grounding import locate_record
+            from .libraries import LibraryIndex
+
+            located = locate_record(record)
+            if located['status'] in ('available', 'reanchored'):
+                try:
+                    files = LibraryIndex(located['library']).status()['files']
+                except Exception:
+                    files = []
+                focus = {
+                    'document_id': located['document_id'],
+                    'chunk': located['chunk'],
+                    'span': located['span'],
+                    'title': record.get('title'),
+                }
+                dialog = ExtractedTextDialog(
+                    self.window,
+                    located['library'],
+                    files,
+                    focus=focus,
+                    on_insert=lambda: self.insert_citation(index),
+                )
+                if located['status'] == 'reanchored':
+                    dialog.summary.setText(
+                        self.tr('The source changed since this answer; the quotation was found again. ')
+                        + dialog.summary.text()
+                    )
+                self.last_citation_dialog = dialog
+                dialog.exec()
+                return dialog
+            self.window.status_label.setText(
+                self.tr('The cited source cannot be opened: ') + str(located.get('reason', located['status']))
+            )
+            return None
+        # A supplied reference (not a library chunk): show what the request carried.
+        box = QMessageBox(self.window)
+        box.setWindowTitle(self.tr('Cited source'))
+        box.setTextFormat(Qt.RichText)
+        box.setText(self.chip_tooltip(index))
+        insert = box.addButton(self.tr('Insert as citation'), QMessageBox.ActionRole)
+        box.addButton(QMessageBox.Close)
+        self.last_citation_dialog = box
+        box.exec()
+        if box.clickedButton() is insert:
+            self.insert_citation(index)
+        return box
+
+    def citation_operations(self, index, target, start, end):
+        """``add_reference`` (when needed) and ``cite`` operations for a chip, filled from its record."""
+        from .citations import source_from_hit
+        from .grounding import LOCATOR_KEYS
+        from .quote_match import infer_kind
+
+        entry = self.citations[index]
+        record = entry['record']
+        operations = []
+        if record.get('chunk_id') and record.get('library_id') and record.get('origin') != 'user':
+            source = source_from_hit(
+                {
+                    'library_id': record['library_id'],
+                    'document_id': record['document_id'],
+                    'content_hash': record.get('content_hash') or '',
+                    'title': record.get('title'),
+                    'path': record.get('path') or '',
+                    'chunk_id': record['chunk_id'],
+                    'text': entry['text'],
+                }
+            )
+            if source['id'] not in self.window.doc.get('references', {}):
+                operations.append({'type': 'add_reference', 'id': source['id'], 'values': source})
+            source_id = source['id']
+        else:
+            source_id = record.get('citation_id')
+        selected = model.find_object(self.window.doc, target).get('text', '')[start:end]
+        quoted = record.get('claimed_quote') and record.get('state') == 'supported'
+        kind = (
+            'quotation'
+            if quoted or infer_kind(selected, [entry['text']])['kind'] == 'quotation'
+            else 'paraphrase'
+        )
+        op = {
+            'type': 'cite',
+            'target': target,
+            'start': start,
+            'end': end,
+            'source': source_id,
+            'kind': kind,
+            'locator': {k: v for k, v in (record.get('locator') or {}).items() if k in LOCATOR_KEYS},
+        }
+        if record.get('quote'):
+            op['quote'] = record['quote']
+        span = record.get('source_span')
+        if span and record.get('quote'):
+            op['anchor'] = {
+                'quote': record['quote'],
+                'prefix': record.get('prefix', '')[-32:],
+                'suffix': record.get('suffix', '')[:32],
+                'position': {'start': span[0], 'end': span[1]},
+                'content_hash': record.get('content_hash') or '',
+                'state': 'anchored',
+            }
+        operations.append(op)
+        return operations
+
+    def insert_citation(self, index):
+        """ "Insert as citation": cite the editor selection with the chip's source, locator and quote."""
+        window = self.window
+        if not window.flush_edits():
+            return False
+        targets = [(t, s, e) for t, s, e in window.editor.selection_targets() if e > s]
+        if not targets:
+            window.status_label.setText(
+                self.tr('Select the text this source supports, then choose Insert as citation.')
+            )
+            return False
+        target, start, end = targets[0]
+        try:
+            operations = self.citation_operations(index, target, start, end)
+        except Exception as exc:
+            window.error(exc)
+            return False
+        if window.commit(operations):
+            window.status_label.setText(
+                self.tr('Citation inserted. Checks verify it like any other citation.')
+            )
+            return True
+        return False
+
+    def _selection_ranges(self, frozen):
+        return [
+            {'target': t, 'start': s, 'end': e, 'text': model.find_object(frozen, t).get('text', '')[s:e]}
+            for t, s, e in self.window.editor.selection_targets()
+            if s != e
+        ]
+
+    def route_override(self):
+        return self.route_box.currentData() or 'auto'
+
+    def privacy_mode(self):
+        return self.privacy_box.currentData() or 'exclude'
+
+    def assemble(self, frozen, prompt, config=None):
+        """Route the request and assemble its context (router + context_assembly); nothing is sent."""
+        from .context_assembly import assemble
+        from .series import with_series
+
+        window = self.window
+        selection = self._selection_ranges(frozen)
+        cursor = None
+        if not selection:
+            try:
+                cursor = window.editor.current_id()
+            except Exception:
+                cursor = None
+        local = [c for c in text_providers() if c.get('locality') == 'local']
+        return assemble(
+            with_series(frozen, getattr(window, 'path', None)),
+            prompt,
+            selection=selection,
+            cursor=str(cursor) if cursor else None,
+            document_path=getattr(window, 'path', None),
+            provider=config,
+            messages=self.messages,
+            mode=self.mode,
+            override=self.route_override(),
+            privacy=self.privacy_mode(),
+            local_providers=local,
+            use_libraries=self.use_libraries.isChecked(),
+            pinned=list(self.pinned.values()),
+            excluded=sorted(self.excluded),
+            profile=getattr(window, 'active_profile', None),
+        )
+
+    def context(self, frozen, prompt=None):
+        """The routed request context for ``prompt`` (redacted for codex entries hidden from AI).
+
+        Every assistant request goes through the router; the assembled request (route, items, dropped
+        items, research log) is kept for the "What the AI saw" panel.
+        """
+        prompt = prompt if prompt is not None else (self._request or '')
+        config = getattr(self, '_config', None)
+        self._assembled = self.assemble(frozen, prompt or '(no request yet)', config)
+        return self._assembled['context']
+
+    def _show_route(self, assembled):
+        route = assembled['route']
+        text = self.tr('Route {0} · {1}: {2}').format(
+            route['route'], self.tr(route['label']), route['reason']
+        )
+        self.route_label.setText(text)
 
     def send(self):
+        from .context_assembly import apply_passage_selection, inspector_payload
         from .gui_providers import authorize_payload
         from .providers import ProviderRegistry
 
@@ -556,30 +1122,49 @@ class AIPanel(QWidget):
         try:
             registry = ProviderRegistry()
             config = registry.get(alias)
+            self._config, self._request = config, prompt
             context = self.context(frozen)
-            library_authorized = False
-            if self.use_libraries.isChecked():
-                from .gui_retrieval import select_passages
-                from .retrieval import augment_context, retrieve_context
-
-                remote = registry.preview(alias, kind='chat')['remote']
-                retrieval = retrieve_context(
-                    frozen,
-                    prompt,
-                    remote=remote,
-                    profile=getattr(window, 'active_profile', None),
-                    target=context.get('target'),
+            assembled = self._assembled
+            # The privacy rule may switch a request with local-only sources to a local model.
+            if assembled.get('provider') and assembled['provider'] != alias:
+                self._append(
+                    'note',
+                    assembled['route']['privacy'].get('reason', 'Using a local model for this request.'),
                 )
+                alias = assembled['provider']
+                config = registry.get(alias)
+            self._show_route(assembled)
+            self.context_inspector.show_payload(inspector_payload(assembled, provider=config))
+            if assembled.get('abstain') is not None:
+                # R3 found nothing, even literally, and the document is too large to send whole: abstain.
+                from .retrieval import describe_absence
+
+                self.input.clear()
+                self._last_request = prompt
+                self._append('user', prompt)
+                self._append(
+                    'note',
+                    'Not found in your manuscript or attached libraries, so nothing was sent.\n'
+                    + describe_absence(assembled['abstain']),
+                )
+                self._record_turn(prompt, assembled, inspector_payload(assembled, provider=config))
+                self.route_box.setCurrentIndex(0)
+                return
+            library_authorized = False
+            retrieval = assembled.get('retrieval')
+            remote = registry.preview(alias, kind='chat')['remote']
+            if retrieval is not None:
+                from .gui_retrieval import select_passages
+
                 if retrieval['included']:
                     retrieval = select_passages(window, retrieval, alias, remote)
                     if retrieval is None:
                         return
                     library_authorized = True
-                context = augment_context(context, retrieval)
-                count = len(retrieval['included'])
-                self._append('note', f'Library retrieval: {count} selected passage(s).')
-                for omission in retrieval['omitted']:
-                    self._append('note', 'Library passage omitted: ' + omission['reason'])
+                    assembled = apply_passage_selection(assembled, retrieval)
+                    self._assembled = assembled
+                    context = assembled['context']
+                self._library_notes(retrieval)
             preview = registry.preview(
                 alias,
                 kind='chat',
@@ -598,7 +1183,17 @@ class AIPanel(QWidget):
             authorized = True
         self.input.clear()
         self.messages = messages
+        self._last_request = prompt
+        self.route_box.setCurrentIndex(0)
+        self.refresh_support_check()
+        use_support = self.support_check.isChecked()
+        self._support_asked = use_support
         self._append('user', prompt)
+        if self.support_wanted and not use_support:
+            # Turned on earlier, but the model is gone: say so rather than quietly skipping the check.
+            self._append(
+                'note', self.tr('Support check not run: {0}').format(self.support_state.get('reason', ''))
+            )
         token = object()
         self._pending = token
         self._sync_send()
@@ -614,6 +1209,7 @@ class AIPanel(QWidget):
                     context=context,
                     authorized=authorized,
                     **({'library_authorized': True} if library_authorized else {}),
+                    **({'entailment': True} if use_support else {}),
                 )
             except Exception as exc:
                 return {'error': str(exc)}
@@ -621,10 +1217,42 @@ class AIPanel(QWidget):
         window.background(
             self.tr('Asking {0}…').format(alias),
             work,
-            lambda result: self._answered(token, mode, frozen, result),
+            lambda result: self._answered(token, mode, frozen, result, context, assembled, config),
         )
 
-    def _answered(self, token, mode, frozen, result):
+    def _library_notes(self, retrieval):
+        count = len(retrieval['included'])
+        methods = ', '.join(
+            f'{lib["name"]}: {lib["method"]}'
+            + (f' ({lib["embedding_state"]})' if lib['embedding_state'] not in ('disabled', 'ready') else '')
+            for lib in retrieval.get('libraries', [])
+        )
+        self._append(
+            'note', f'Library retrieval: {count} selected passage(s)' + (f' · {methods}.' if methods else '.')
+        )
+        for library in retrieval.get('libraries', []):
+            if library.get('notice'):
+                self._append('note', f'{library["name"]}: {library["notice"]}')
+
+    def _record_turn(self, prompt, assembled, payload):
+        self.turns.append(
+            {
+                'request': prompt,
+                'route': {k: payload['route'][k] for k in ('route', 'name', 'label', 'reason', 'rule')},
+                'inspector': {
+                    'items': payload['items'],
+                    'dropped': payload['dropped'],
+                    'model': payload['model'],
+                    'cache': payload['cache'],
+                    'cost': payload['cost'],
+                },
+                'research_log': payload.get('research_log'),
+            }
+        )
+
+    def _answered(self, token, mode, frozen, result, context=None, assembled=None, config=None):
+        from .context_assembly import inspector_payload
+
         if token is not self._pending:
             return
         self._pending = None
@@ -637,7 +1265,19 @@ class AIPanel(QWidget):
             return
         reply = result.get('reply') or '(No reply text.)'
         self.messages.append({'role': 'assistant', 'content': reply})
-        self._append('assistant', reply)
+        self._append_grounded(reply, result, context or {})
+        if assembled is not None:
+            from .research_log import cite_from_grounding
+
+            if assembled.get('research_log') and isinstance(result.get('grounding'), dict):
+                assembled = dict(
+                    assembled,
+                    research_log=cite_from_grounding(assembled['research_log'], result['grounding']),
+                )
+            payload = inspector_payload(assembled, provider=config, result=result)
+            self.context_inspector.show_payload(payload)
+            self._record_turn(self._last_request, assembled, payload)
+        self.verify_absence(reply, frozen)
         if mode != 'work':
             # Chat mode never edits, whatever the model returned.
             return
@@ -646,12 +1286,185 @@ class AIPanel(QWidget):
                 self._append('note', result[key])
         proposals = result.get('proposals') or []
         if proposals:
-            self.offer_proposals(proposals, frozen)
+            self.offer_proposals(proposals, frozen, result.get('proposal_grounding'))
 
-    def offer_proposals(self, proposals, frozen):
+    # Inspector actions -------------------------------------------------------
+
+    def toggle_pin(self, identity):
+        """Pin an item of the last request so later requests always include it (or unpin it)."""
+        if identity in self.pinned:
+            del self.pinned[identity]
+            return False
+        item = next((i for i in (self._assembled or {}).get('items', []) if i['id'] == identity), None)
+        if item is None:
+            return False
+        self.pinned[identity] = copy.deepcopy(item)
+        self.excluded.discard(identity)
+        return True
+
+    def can_rerun(self):
+        return bool(self._last_request) and self._pending is None
+
+    def exclude_and_rerun(self, identity):
+        """One action: leave the item out and ask the last question again (its earlier answer is replaced)."""
+        if not self.can_rerun():
+            return False
+        self.excluded.add(identity)
+        self.pinned.pop(identity, None)
+        prompt = self._last_request
+        if len(self.messages) >= 2 and self.messages[-1]['role'] == 'assistant':
+            self.messages = self.messages[:-2]
+        self._append('note', f'Excluded {identity} and asked again.')
+        self.input.setPlainText(prompt)
+        self.send()
+        return True
+
+    def export_conversation(self, path=None):
+        """Save the conversation with each request's route, inspector summary and research log."""
+        from PySide6.QtWidgets import QFileDialog
+
+        from .research_log import export_conversation
+
+        if path is None:
+            path, _ = QFileDialog.getSaveFileName(
+                self.window,
+                self.tr('Export conversation'),
+                'conversation.md',
+                self.tr('Markdown (*.md);;JSON (*.json)'),
+            )
+        if not path:
+            return None
+        fmt = 'json' if str(path).lower().endswith('.json') else 'markdown'
+        try:
+            with open(path, 'w', encoding='utf-8') as handle:
+                handle.write(export_conversation(self.messages, self.turns, fmt))
+        except OSError as exc:
+            self.window.error(exc)
+            return None
+        self.window.status_label.setText(self.tr('Conversation exported.'))
+        return path
+
+    def build_summaries(self):
+        """Explicit action: summarize each chapter with the selected provider (consent as for chat)."""
+        from . import summaries
+        from .gui_providers import authorize_payload
+        from .providers import ProviderRegistry
+
+        alias = self.provider_box.currentData()
+        window = self.window
+        if not alias or not window.flush_edits():
+            return None
+        frozen = copy.deepcopy(window.doc)
+        try:
+            registry = ProviderRegistry()
+            config = registry.get(alias)
+            state = summaries.status(frozen)
+            todo = state['counts']['missing'] + state['counts']['stale']
+            preview = summaries.preview(frozen, alias, registry=registry)['preview']
+        except Exception as exc:
+            window.error(exc)
+            return None
+        box = QMessageBox(window)
+        box.setIcon(QMessageBox.Question)
+        box.setWindowTitle(self.tr('Build chapter summaries?'))
+        box.setText(
+            self.tr(
+                '{0} will summarize {1} of {2} chapter(s) ({3}). Summaries are kept in your cache, never '
+                'written into the document, and rebuilt only when you ask after a chapter changes.'
+            ).format(alias, todo, len(state['sections']), preview.get('locality_label', ''))
+        )
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        self.last_summary_dialog = box
+        if box.exec() != QMessageBox.Yes:
+            return None
+        authorized = False
+        if preview['remote'] and not config.allow_remote:
+            if not authorize_payload(window, 'Authorize chapter summaries (first request shown)', preview):
+                return None
+            authorized = True
+
+        def work():
+            try:
+                return summaries.build(frozen, alias, registry=registry, authorized=authorized)
+            except Exception as exc:
+                return {'error': str(exc)}
+
+        def done(report):
+            if not isValid(self):
+                return
+            self.last_summary_report = report
+            if 'error' in report:
+                self._append('note', 'Chapter summaries could not be built: ' + report['error'])
+                return
+            self._append(
+                'note',
+                f'Chapter summaries: {len(report["built"])} built, {len(report["reused"])} unchanged, '
+                f'{len(report["failed"])} failed; book summary {report["book"]}.',
+            )
+
+        window.background(self.tr('Building chapter summaries…'), work, done)
+        return True
+
+    def verify_absence(self, reply, frozen):
+        """Q14: before a "not in your sources" answer stands, search every eligible source literally."""
+        from .retrieval import absence_claim, describe_absence, verify_absence
+        from .search_query import key_terms
+
+        if not absence_claim(reply):
+            return
+        prompt = next((m['content'] for m in reversed(self.messages) if m['role'] == 'user'), '')
+        quoted = re.findall(r'["“]([^"”]{2,200})["”]', reply)
+        terms = list(dict.fromkeys([q.strip() for q in quoted] + key_terms(prompt)))[:8]
+        if not terms:
+            return
+        profile = getattr(self.window, 'active_profile', None)
+
+        def work():
+            return verify_absence(terms, manuscript=frozen, profile=profile)
+
+        def done(report):
+            if not isValid(self):
+                return
+            self.last_absence_report = report
+            if report['found']:
+                self._append(
+                    'note',
+                    'The reply says something is missing, but literal matches exist. Check these before '
+                    'relying on the answer:\n' + describe_absence(report),
+                )
+            else:
+                self._append('note', describe_absence(report))
+
+        self.window.background(self.tr('Checking sources for literal matches…'), work, done)
+
+    def _append_edits_with_support(self, proposals, grounding):
+        """The suggested edits with the support check on what each edit cites (underlines and a text summary)."""
+        rows, lines = [], []
+        for number, proposal in enumerate(proposals):
+            grounded = grounding[number] if number < len(grounding) else None
+            replacement = html.escape(proposal['replacement']).replace('\n', '<br>')
+            if grounded and grounded.get('records'):
+                records = [dict(r, marker=max(0, int(r.get('marker') or 0))) for r in grounded['records']]
+                replacement = self._with_chips(grounded['text'], records, {})
+                lines += [f'{number + 1}. {line}' for line in support_lines(records)]
+            explanation = html.escape(proposal.get('explanation', ''))
+            rows.append(
+                f'{number + 1}. “{html.escape(proposal["expected_text"])}” → “{replacement}”  ({explanation})'
+            )
+        self._append_html(
+            'note', f'{html.escape(self.tr("Suggested edits"))} ({len(proposals)}):<br>' + '<br>'.join(rows)
+        )
+        if lines:
+            heading = self.tr('Support check of what the edits cite (advisory, checked on this computer):')
+            self._append('note', heading + '\n' + '\n'.join(lines[:12]))
+
+    def offer_proposals(self, proposals, frozen, grounding=None):
         window = self.window
         listing = '\n'.join(describe_edit(proposal) for proposal in proposals)
-        self._append('note', f'Suggested edits ({len(proposals)}):\n{listing}')
+        if any(grounding or []):
+            self._append_edits_with_support(proposals, grounding)
+        else:
+            self._append('note', f'Suggested edits ({len(proposals)}):\n{listing}')
         window.flush_edits()
         if window.doc['revision'] != frozen['revision']:
             self._append(

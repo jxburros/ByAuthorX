@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T22:12:25.998848+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "python": "3.13.16",
+    "engine": "0.3.0",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "fixture": {
+    "name": "project_100k",
+    "semantic_sha256": "681c6616598b3eceac8aec7cd24a12ea9c99fa5a073e25034ba64bb01118fb9c",
+    "blocks": 518
+  },
+  "definitions": {
+    "compile_seconds": "Wall clock of one compile_document call, fixture construction excluded.",
+    "layout_signature": "layout.layout_signature of the resolved pages (spec 6.4): page sizes, folios and break decisions.",
+    "page_starts_sha256": "SHA-256 of the JSON list of the block that opens each page body (the page breaks).",
+    "output_sha256": "SHA-256 of the written file. PDF bytes embed a creation date and are not compared."
+  },
+  "runs": [
+    {
+      "preset": "novel",
+      "target": "pdf",
+      "compile_seconds": 14.051,
+      "compiled_sha256": "47f4c9186dc3a22570287d14855ecde6eac8c3bb0cd770423a1b87ca426f302e",
+      "compiled_blocks": 529,
+      "words": 103324,
+      "losses": 30,
+      "preflight": {
+        "total": 1,
+        "errors": 0,
+        "warnings": 0,
+        "advisory": 1
+      },
+      "page_count": 553,
+      "layout_signature": "a02300811f08af470e1b839f2cd3ca64137460e8762abd3397e59194c769d744",
+      "page_starts_sha256": "129e74b2d3dd5c5ae3202ff04e432b0e00d396bc19b0fb8490041d223092c0dd"
+    },
+    {
+      "preset": "novel",
+      "target": "pdf",
+      "compile_seconds": 13.624,
+      "compiled_sha256": "47f4c9186dc3a22570287d14855ecde6eac8c3bb0cd770423a1b87ca426f302e",
+      "compiled_blocks": 529,
+      "words": 103324,
+      "losses": 30,
+      "preflight": {
+        "total": 1,
+        "errors": 0,
+        "warnings": 0,
+        "advisory": 1
+      },
+      "page_count": 553,
+      "layout_signature": "a02300811f08af470e1b839f2cd3ca64137460e8762abd3397e59194c769d744",
+      "page_starts_sha256": "129e74b2d3dd5c5ae3202ff04e432b0e00d396bc19b0fb8490041d223092c0dd"
+    },
+    {
+      "preset": "novel",
+      "target": "epub",
+      "compile_seconds": 0.639,
+      "compiled_sha256": "10bb03da9eff7c8f9cc84812c6e4bfc1966e4623816f8e5f9e793b7057511e28",
+      "compiled_blocks": 489,
+      "words": 103324,
+      "losses": 1,
+      "preflight": {
+        "total": 1,
+        "errors": 0,
+        "warnings": 0,
+        "advisory": 1
+      },
+      "output_sha256": "1d6fa5ce856c8d4f6c798cc873e9a933342ef8bf5f588dc3a797db8694bd2e14"
+    },
+    {
+      "preset": "novel",
+      "target": "epub",
+      "compile_seconds": 0.677,
+      "compiled_sha256": "10bb03da9eff7c8f9cc84812c6e4bfc1966e4623816f8e5f9e793b7057511e28",
+      "compiled_blocks": 489,
+      "words": 103324,
+      "losses": 1,
+      "preflight": {
+        "total": 1,
+        "errors": 0,
+        "warnings": 0,
+        "advisory": 1
+      },
+      "output_sha256": "1d6fa5ce856c8d4f6c798cc873e9a933342ef8bf5f588dc3a797db8694bd2e14"
+    },
+    {
+      "preset": "manuscript",
+      "target": "docx",
+      "compile_seconds": 2.781,
+      "compiled_sha256": "183254ea0dbc5e1fea369d80b9511a535e12c11d0961dbdc6ff61540b174861d",
+      "compiled_blocks": 489,
+      "words": 103324,
+      "losses": 0,
+      "preflight": {
+        "total": 2,
+        "errors": 0,
+        "warnings": 0,
+        "advisory": 2
+      },
+      "output_sha256": "ca5b700bfd73165a3bd77f708d507e136521470cdaf51120096998c20658af92",
+      "roundtrip_differences": 0
+    }
+  ],
+  "reproducible": {
+    "pdf_layout_signature": true,
+    "pdf_page_breaks": true,
+    "epub_bytes": true
+  }
+}

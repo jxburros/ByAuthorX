@@ -1,0 +1,109 @@
+[
+ {
+  "key": "PDFA0001",
+  "version": 1202,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/PDFA0001",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "PDFA0001",
+   "version": 1202,
+   "itemType": "attachment",
+   "parentItem": "ABCD2345",
+   "title": "Full Text PDF",
+   "linkMode": "imported_url",
+   "contentType": "application/pdf",
+   "filename": "LeCun et al. - 2015 - Deep learning.pdf",
+   "tags": [],
+   "relations": {}
+  }
+ },
+ {
+  "key": "PDFA0002",
+  "version": 90,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/PDFA0002",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "PDFA0002",
+   "version": 90,
+   "itemType": "attachment",
+   "parentItem": "KUHN1962",
+   "title": "Kuhn.pdf",
+   "linkMode": "linked_file",
+   "contentType": "application/pdf",
+   "filename": "Kuhn.pdf",
+   "tags": [],
+   "relations": {}
+  }
+ },
+ {
+  "key": "PDFA0003",
+  "version": 91,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/PDFA0003",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "PDFA0003",
+   "version": 91,
+   "itemType": "attachment",
+   "parentItem": "NOTINLIB",
+   "title": "Other.pdf",
+   "linkMode": "linked_file",
+   "contentType": "application/pdf",
+   "tags": [],
+   "relations": {}
+  }
+ }
+]

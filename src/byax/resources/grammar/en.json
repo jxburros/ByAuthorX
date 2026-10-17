@@ -1,0 +1,1281 @@
+{
+ "language": "en",
+ "version": 1,
+ "note": "Data-driven grammar rules for the built-in tier. Precision first: each pattern is limited to contexts where the flagged form is wrong. Add a language by installing a pack with a grammar file in this format.",
+ "groups": {
+  "confusion": "Commonly confused words, flagged only in contexts where one reading is clearly wrong",
+  "agreement": "Simple subject-verb agreement patterns",
+  "verb_form": "Verb forms: participles after \"have\", \"I seen\", double negatives",
+  "pronoun_case": "Pronoun case after prepositions and in compound subjects",
+  "quantity": "Fewer/less, number/amount, many/much with clear countable or uncountable nouns",
+  "punctuation": "Comma splices, conjunctive adverbs and the pronoun \"I\"",
+  "idiom": "Misheard or misspelled fixed phrases",
+  "usage": "Run-together words and missing apostrophes"
+ },
+ "rules": [
+  {
+   "id": "modal_of",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:could|should|would|must|might)\\s+(of)\\b(?!\\s+course)",
+   "message": "After a modal verb use \"have\", not \"of\" (\"should have\").",
+   "title": "\"should of\" for \"should have\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "have"
+   ]
+  },
+  {
+   "id": "its_for_its_contraction",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(its)\\s+(?:a|an|the|not|been|going|getting|being|how|what|where|who|why|when|always|never|also|okay|ok|fine|about)\\b(?![-’'])",
+   "message": "\"its\" is the possessive; here \"it's\" (it is / it has) is meant.",
+   "title": "\"its\" for \"it's\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "it's"
+   ]
+  },
+  {
+   "id": "contraction_for_its",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(it['’]s)\\s+(?:own|owners?|tail|wings|paws|beak|roots|purpose|shape)\\b(?![-’'])",
+   "message": "\"it's\" means \"it is\"; the possessive is \"its\".",
+   "title": "\"it's\" for \"its\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "its"
+   ]
+  },
+  {
+   "id": "your_for_youre",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(your)\\s+(?:(?:a|an|the|not|too|so|always|never|really|gonna|going\\s+to|about\\s+to)\\b|welcome(?=\\s+to\\b|\\s*[.,!;?]|\\s*$))(?![-’'])",
+   "message": "\"your\" is the possessive; here \"you're\" (you are) is meant.",
+   "title": "\"your\" for \"you're\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "you're"
+   ]
+  },
+  {
+   "id": "youre_for_your",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(you['’]re)\\s+(?:own|name|eyes|hair|opinion|birthday|email\\s+address)\\b(?![-’'])",
+   "message": "\"you're\" means \"you are\"; the possessive is \"your\".",
+   "title": "\"you're\" for \"your\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "your"
+   ]
+  },
+  {
+   "id": "their_for_there",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(their)\\s+(?:is|are|was|were|isn['’]t|aren['’]t|wasn['’]t|weren['’]t|has\\s+been|have\\s+been)\\b",
+   "message": "\"their\" is the possessive; here \"there\" is meant.",
+   "title": "\"their\" for \"there\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "there"
+   ]
+  },
+  {
+   "id": "there_for_their",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(there)\\s+own\\b",
+   "message": "\"there\" is a place or a dummy subject; the possessive is \"their\".",
+   "title": "\"there\" for \"their\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "their"
+   ]
+  },
+  {
+   "id": "theyre_for_their",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(they['’]re)\\s+own\\b",
+   "message": "\"they're\" means \"they are\"; the possessive is \"their\".",
+   "title": "\"they're\" for \"their\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "their"
+   ]
+  },
+  {
+   "id": "then_for_than",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:more|less|better|worse|rather|greater|smaller|larger|bigger|taller|older|younger|faster|slower|other)\\s+(then)\\s+(?:me|you|him|her|us|them|a|an|the|my|your|his|our|their|ever|any|anyone|anything|that)\\b",
+   "message": "Comparisons use \"than\", not \"then\".",
+   "title": "\"then\" for \"than\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "than"
+   ]
+  },
+  {
+   "id": "than_for_then",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:and|but|so|until)\\s+(than)\\s+(?:I|he|she|they|we|you|the|it|there)\\b",
+   "message": "\"than\" compares; for sequence use \"then\".",
+   "title": "\"than\" for \"then\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "then"
+   ]
+  },
+  {
+   "id": "to_for_too_verb",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:want|wants|wanted|need|needs|needed|going|have|has|had|try|tried|trying|like|likes|liked|able|ready|how|time|chance|decided|hoping|hope|plan|planned|started|began|forgot|remember|supposed)\\s+(too)\\s+(?:be|have|do|go|make|get|see|take|come|use|find|help|run|give|tell|know|say|think|work|play|read|write|eat|stay|leave|start|stop|try|keep|let|look|feel|buy|bring|call|meet|show|ask|speak|talk|move|win|learn|understand|visit|sleep|wait)\\b",
+   "message": "Before a verb the infinitive marker is \"to\", not \"too\".",
+   "title": "\"too\" for \"to\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "to"
+   ]
+  },
+  {
+   "id": "too_for_to",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:is|was|are|were|am|way|far)\\s+(to)\\s+(?:much|late|early|soon|big|small|expensive|difficult|loud)\\b(?!-)",
+   "message": "Before an adjective or \"much\" meaning \"excessively\", use \"too\".",
+   "title": "\"to\" for \"too\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "too"
+   ]
+  },
+  {
+   "id": "loose_for_lose",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:to|will|would|might|may|could|can|don['’]t|didn['’]t|won['’]t|not|never|and|or|I|you|we|they|he|she)\\s+(loose)\\s+(?:my|your|his|her|our|their|weight|track|sight|control|hope|faith|interest|money|sleep|focus|touch|patience)\\b",
+   "message": "\"loose\" means not tight; the verb is \"lose\".",
+   "title": "\"loose\" for \"lose\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "lose"
+   ]
+  },
+  {
+   "id": "lose_for_loose",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:a|the|too|so|very)\\s+(lose)\\s+(?:fit|fitting|end|ends|tooth|screw|thread|cannon|clothing|clothes|change|connection|cable|wire|sleeve)\\b",
+   "message": "The adjective meaning \"not tight\" is \"loose\".",
+   "title": "\"lose\" for \"loose\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "loose"
+   ]
+  },
+  {
+   "id": "whos_for_whose",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(who['’]s)\\s+(?:own|name|car|book|idea|turn|fault)\\b(?!-)",
+   "message": "\"who's\" means \"who is\"; the possessive is \"whose\".",
+   "title": "\"who's\" for \"whose\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "whose"
+   ]
+  },
+  {
+   "id": "whose_for_whos",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(whose)\\s+(?:going|coming|been|a|an|not|ready|there|here|responsible|allowed|supposed)\\b",
+   "message": "\"whose\" is the possessive; here \"who's\" (who is / who has) is meant.",
+   "title": "\"whose\" for \"who's\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "who's"
+   ]
+  },
+  {
+   "id": "affect_for_effect",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:a|an|the|no|any|this|that|significant|big|negative|positive|major|profound|little|great|real|huge)\\s+(affect)\\s+(?:on|of|upon)\\b",
+   "message": "The noun is \"effect\"; \"affect\" is the verb.",
+   "title": "\"affect\" for \"effect\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "effect"
+   ]
+  },
+  {
+   "id": "effect_for_affect",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:will|would|could|can|may|might|not|didn['’]t|doesn['’]t|don['’]t|won['’]t|to)\\s+(effect)\\s+(?:my|your|his|her|our|their|us|me|you|them|how|whether)\\b",
+   "message": "To influence something is \"to affect\" it; \"effect\" as a verb means to bring about.",
+   "title": "\"effect\" for \"affect\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "affect"
+   ]
+  },
+  {
+   "id": "weather_for_whether",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(weather)\\s+or\\s+not\\b",
+   "message": "\"whether or not\": \"weather\" is the climate.",
+   "title": "\"weather\" for \"whether\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "whether"
+   ]
+  },
+  {
+   "id": "whether_for_weather",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bthe\\s+(whether)\\s+(?:was|is|has|outside|today|forecast|report|channel|conditions|turned)\\b",
+   "message": "\"whether\" introduces alternatives; the climate is \"the weather\".",
+   "title": "\"whether\" for \"weather\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "weather"
+   ]
+  },
+  {
+   "id": "lead_for_led",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:was|were|been|is|are|be|being)\\s+(?P<w>lead)\\s+by\\b|\\b(?:has|have|had)\\s+(?P<w>lead)\\s+(?:the|to|a|an|us|me|him|her|them)\\b",
+   "message": "The past tense and participle of \"lead\" is \"led\".",
+   "title": "\"lead\" for \"led\"",
+   "flags": "i",
+   "highlight": "w",
+   "replacements": [
+    "led"
+   ]
+  },
+  {
+   "id": "were_for_where",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?:^|[.!?][\\\"”']?\\s+)(were)\\s+(?:is|are|do|did|does|was|can|will|would|should|could)\\s+(?:the|you|I|he|she|they|we|it|my|your|his|her|our|their)\\b",
+   "message": "For a place, the word is \"where\".",
+   "title": "\"were\" for \"where\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "where"
+   ]
+  },
+  {
+   "id": "advice_for_advise",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:to|will|would|can|could|should|may)\\s+(advice)\\s+(?:you|him|her|them|us|me|against|on)\\b",
+   "message": "The verb is \"advise\"; \"advice\" is the noun.",
+   "title": "\"advice\" for \"advise\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "advise"
+   ]
+  },
+  {
+   "id": "advise_for_advice",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:some|my|your|his|her|good|bad|any)\\s+(advise)\\b(?!\\s+(?:you|him|her|them|us|me|that|against|on))",
+   "message": "The noun is \"advice\"; \"advise\" is the verb.",
+   "title": "\"advise\" for \"advice\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "advice"
+   ]
+  },
+  {
+   "id": "breath_for_breathe",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:to|can|could|couldn['’]t|can['’]t|must|please|just|cannot)\\s+(breath)\\b(?!\\s+(?:of|test|mint|taking|control|work|and))",
+   "message": "The verb is \"breathe\"; \"breath\" is the noun.",
+   "title": "\"breath\" for \"breathe\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "breathe"
+   ]
+  },
+  {
+   "id": "breathe_for_breath",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:a|the|my|your|his|her|deep|last|bad|fresh|short|long)\\s+(breathe)\\b(?!\\s+(?:in|out|deeply|slowly|easy|again|fresh))",
+   "message": "The noun is \"breath\"; \"breathe\" is the verb.",
+   "title": "\"breathe\" for \"breath\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "breath"
+   ]
+  },
+  {
+   "id": "bare_for_bear",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(bare)\\s+with\\s+me\\b",
+   "message": "\"Bear with me\": \"bare\" means uncovered.",
+   "title": "\"bare with me\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "bear"
+   ]
+  },
+  {
+   "id": "of_for_off",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:jump|jumped|fell|fall|climbed|hopped)\\s+(of)\\s+(?:the|my|your|his|her|their|our|it|me|him|them)\\b",
+   "message": "Movement away from something is \"off\", not \"of\".",
+   "title": "\"of\" for \"off\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "off"
+   ]
+  },
+  {
+   "id": "maybe_for_may_be",
+   "group": "confusion",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:it|that|this|he|she|they)\\s+(maybe)\\s+(?:a|an|the|true|false|possible|better|too|time)\\b",
+   "message": "As a verb phrase, \"may be\" is two words.",
+   "title": "\"maybe\" for \"may be\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "may be"
+   ]
+  },
+  {
+   "id": "third_person_dont",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:he|she|it)\\s+(don['’]t)\\b",
+   "message": "With \"he\", \"she\" or \"it\" the form is \"doesn't\".",
+   "title": "\"he don't\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "doesn't"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "third_person_have",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?:^|[.!?][\\\"”']?\\s+|\\b(?:and|but|then|because|when|while|so|as)\\s+)(?:he|she|it)\\s+(have)\\b",
+   "message": "With \"he\", \"she\" or \"it\" the form is \"has\".",
+   "title": "\"he have\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "has"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "plural_was",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:they|we|you)\\s+(was)\\b",
+   "message": "With \"they\", \"we\" and \"you\" the past form is \"were\".",
+   "title": "\"they was\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "were"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "plural_pronoun_has",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:they|we|you)\\s+(has)\\b",
+   "message": "With \"they\", \"we\" and \"you\" the form is \"have\".",
+   "title": "\"they has\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "have"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "plural_pronoun_is",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:they|we|you)\\s+(is)\\b",
+   "message": "With \"they\", \"we\" and \"you\" the form is \"are\".",
+   "title": "\"they is\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "are"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "first_person_is_are",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?<!\\b(?:letter|numeral|pronoun|word|vitamin|chapter|type|class|grade|part|stage|phase|volume|vol|act|scene|section|case|plan|option|item)\\s)\\b(I)\\s+(is|are)\\b",
+   "message": "With \"I\" the form is \"am\".",
+   "title": "\"I is\"",
+   "highlight": 2,
+   "replacements": [
+    "am"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "first_person_has",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?<!\\b(?:letter|numeral|pronoun|word|vitamin|chapter|type|class|grade|part|stage|phase|volume|vol|act|scene|section|case|plan|option|item)\\s)\\b(I)\\s+(has)\\b",
+   "message": "With \"I\" the form is \"have\".",
+   "title": "\"I has\"",
+   "highlight": 2,
+   "replacements": [
+    "have"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "third_person_are",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:he|she|it)\\s+(are)\\b",
+   "message": "With \"he\", \"she\" or \"it\" the form is \"is\".",
+   "title": "\"he are\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "is"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "everyone_are",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:everyone|everybody|someone|somebody|anyone|anybody|nobody|everything|nothing)\\s+(are)\\b",
+   "message": "This pronoun is singular; the verb is \"is\".",
+   "title": "\"everyone are\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "is"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "there_is_plural",
+   "group": "agreement",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bthere\\s+(is|was)\\s+(?:many|several|numerous|few|dozens|hundreds)\\b",
+   "message": "A plural subject follows; use \"are\" or \"were\".",
+   "title": "\"there is many\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "is": "are",
+    "was": "were"
+   }
+  },
+  {
+   "id": "participle_after_have",
+   "group": "verb_form",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:[Hh]ave|[Hh]as|[Hh]ad|[Hh]aving|'ve|’ve)\\s+(went|saw|ran|did|came|took|wrote|ate|began|knew|gave|drank|swam|sang|rode|spoke|broke|chose|forgot|stole|threw|flew|grew|drew|wore|tore|fell|hid|shook|woke|sank|rang|bit|drove)\\b",
+   "message": "After \"have\", \"has\" or \"had\" use the past participle, not the simple past.",
+   "title": "\"has went\"",
+   "highlight": 1,
+   "replacement_map": {
+    "went": "gone",
+    "saw": "seen",
+    "ran": "run",
+    "did": "done",
+    "came": "come",
+    "took": "taken",
+    "wrote": "written",
+    "ate": "eaten",
+    "began": "begun",
+    "knew": "known",
+    "gave": "given",
+    "drank": "drunk",
+    "swam": "swum",
+    "sang": "sung",
+    "rode": "ridden",
+    "spoke": "spoken",
+    "broke": "broken",
+    "chose": "chosen",
+    "forgot": "forgotten",
+    "stole": "stolen",
+    "threw": "thrown",
+    "flew": "flown",
+    "grew": "grown",
+    "drew": "drawn",
+    "wore": "worn",
+    "tore": "torn",
+    "fell": "fallen",
+    "hid": "hidden",
+    "shook": "shaken",
+    "woke": "woken",
+    "sank": "sunk",
+    "rang": "rung",
+    "bit": "bitten",
+    "drove": "driven"
+   }
+  },
+  {
+   "id": "simple_past_for_participle",
+   "group": "verb_form",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?<!\\b(?:\\w+n['’]t|have|has|had|did|do|does|will|would|could|should|can|may|might|must|shall|are|is|was|were|am|be|been|being|having|never|ever|just|already)\\s)\\b(?:I|he|she|we|they|you)\\s+(seen|done)\\b(?=\\s+(?:it|that|this|the|my|his|her|our|their|your|a|an|them|him|me|us|nothing|something)\\b)",
+   "message": "Use the simple past (\"saw\", \"did\") here, or add \"have\" before the participle.",
+   "title": "\"I seen\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "seen": "saw",
+    "done": "did"
+   },
+   "skip_dialogue": true
+  },
+  {
+   "id": "didnt_used_to",
+   "group": "verb_form",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:didn['’]t|did\\s+not)\\s+(used)\\s+to\\b",
+   "message": "After \"did not\" the form is \"use to\".",
+   "title": "\"didn't used to\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "use"
+   ]
+  },
+  {
+   "id": "suppose_to",
+   "group": "verb_form",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:is|are|was|were|am|be|been|being)\\s+(suppose)\\s+to\\b",
+   "message": "The participle is \"supposed\".",
+   "title": "\"suppose to\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "supposed"
+   ]
+  },
+  {
+   "id": "use_to_participle",
+   "group": "verb_form",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:was|were|am|are|is|get|got|getting|become|became)\\s+(use)\\s+to\\s+(?:the|a|an|my|your|his|her|our|their|being|having|doing|working|living)\\b",
+   "message": "The participle is \"used\" (\"used to the cold\").",
+   "title": "\"am use to\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "used"
+   ]
+  },
+  {
+   "id": "cant_hardly",
+   "group": "verb_form",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(can['’]t|couldn['’]t|cannot)\\s+hardly\\b",
+   "message": "\"Hardly\" is already negative; \"can hardly\" is the standard form.",
+   "title": "\"can't hardly\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "can't": "can",
+    "couldn't": "could",
+    "cannot": "can"
+   },
+   "skip_dialogue": true
+  },
+  {
+   "id": "double_negative_no",
+   "group": "verb_form",
+   "level": "broad",
+   "severity": "advisory",
+   "pattern": "\\b(?:don['’]t|doesn['’]t|didn['’]t|can['’]t|couldn['’]t|won['’]t|haven['’]t|hasn['’]t|hadn['’]t)\\s+(?:have|has|had|get|got|want|need|see|know|like|find|make|do)\\s+(no)\\b(?!\\s+(?:longer|more|one\\b|matter|doubt|sooner))",
+   "message": "A second negative follows the negated verb; \"any\" is the standard form.",
+   "title": "\"don't have no\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "any"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "between_you_and_i",
+   "group": "pronoun_case",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:between|beside|beyond|for|to|with|from|at|about|by|near)\\s+(?:you|him|her|them|us|me)\\s+and\\s+(I|he|she|they|we)\\b",
+   "message": "After a preposition use the object form (\"me\", \"him\", \"her\", \"them\", \"us\").",
+   "title": "\"between you and I\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "i": "me",
+    "he": "him",
+    "she": "her",
+    "they": "them",
+    "we": "us"
+   }
+  },
+  {
+   "id": "object_pronoun_subject",
+   "group": "pronoun_case",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?:^|[.!?][\\\"”']?\\s+)((?:me|him|her|them|us)\\s+and\\s+(?:me|him|her|them|I|he|she|they))\\s+(?:went|were|was|got|came|walked|ran|saw|did|had|are|have)\\b",
+   "message": "As a subject, use the subject form (\"he and I\", \"she and I\").",
+   "title": "\"Me and him went\"",
+   "flags": "i",
+   "highlight": 1
+  },
+  {
+   "id": "less_for_fewer",
+   "group": "quantity",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(less)\\s+(?:people|children|cars|books|words|items|students|errors|mistakes|problems|questions|ideas|options|choices|things|friends|chances|customers|employees|users|pages|steps|cases|points|votes|players|members|reasons|chapters|characters|sentences|paragraphs|emails|meetings|tasks|rules|calls|days|hours|minutes|weeks|years)\\b",
+   "message": "For things you can count, use \"fewer\".",
+   "title": "\"less people\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "fewer"
+   ]
+  },
+  {
+   "id": "fewer_for_less",
+   "group": "quantity",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(fewer)\\s+(?:water|money|time|information|furniture|traffic|rain|sugar|salt|work|stress|noise|space|pollution|equipment|luggage|homework|sand|oil|fat|food|evidence|advice|help|energy|power|light|sleep|trouble|damage|violence|crime)(?=\\s*(?:[.,;:!?]|$)|\\s+(?:than|and|or|but|in|on|for|to|at|of|is|are|was|were|will|would|can|could|by|with|from)\\b)",
+   "message": "For a quantity you cannot count, use \"less\".",
+   "title": "\"fewer water\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "less"
+   ]
+  },
+  {
+   "id": "amount_for_number",
+   "group": "quantity",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(amount)\\s+of\\s+(?:people|children|cars|books|words|items|students|errors|mistakes|problems|questions|ideas|options|choices|things|friends|customers|employees|users|pages|steps|cases|votes|players|members|chapters|characters|sentences|paragraphs|emails|meetings|tasks)\\b",
+   "message": "For things you can count, use \"number of\".",
+   "title": "\"amount of people\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "number"
+   ]
+  },
+  {
+   "id": "much_for_many",
+   "group": "quantity",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(much)\\s+(?:people|children|cars|books|friends|questions|ideas|things|students|problems|mistakes|errors|words|options|choices|chances|customers|employees|users|pages|steps|cases|players|members|reasons)\\b",
+   "message": "For things you can count, use \"many\".",
+   "title": "\"much people\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "many"
+   ]
+  },
+  {
+   "id": "many_for_much",
+   "group": "quantity",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(many)\\s+(?:information|furniture|advice|equipment|luggage|homework|money|water|traffic|research|knowledge|software|progress|news|evidence|feedback|garbage|stuff)(?=\\s*(?:[.,;:!?]|$)|\\s+(?:than|and|or|but|in|on|for|to|at|of|is|are|was|were|will|would|can|could|by|with|from)\\b)",
+   "message": "For a quantity you cannot count, use \"much\".",
+   "title": "\"many information\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "much"
+   ]
+  },
+  {
+   "id": "comma_splice_adverb",
+   "group": "punctuation",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "[A-Za-z0-9\"”’)](,)\\s+(?:however|therefore|moreover|furthermore|consequently|nevertheless|nonetheless|thus|otherwise|instead)\\s+(?:I|you|he|she|it|we|they|the|this|that|there|these|those|my|your|his|her|our|their)\\b",
+   "message": "A comma alone cannot join two sentences; use a semicolon or a full stop.",
+   "title": "comma splice with \"however\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    ";"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "comma_splice_clauses",
+   "group": "punctuation",
+   "level": "broad",
+   "severity": "advisory",
+   "pattern": "(?:^|[.!?][\\\"”']?\\s+)(?:I|He|She|It|We|They|You)\\s+(?:was|were|is|are|had|has|have|did|went|came|saw|said|took|made|got|felt|knew|thought|looked|walked|ran|smiled|nodded|laughed|turned|sat|stood)\\b[^.!?;:,\"“”()]{0,60}(,)\\s+(?:I|he|she|it|we|they|you)\\s+(?:was|were|is|are|had|has|have|did|went|came|saw|said|took|made|got|felt|knew|thought|looked|walked|ran|smiled|nodded|laughed|turned|sat|stood)\\b",
+   "message": "Two complete sentences are joined by a comma; consider a full stop, semicolon or conjunction.",
+   "title": "comma splice between clauses",
+   "highlight": 1,
+   "replacements": [
+    ";"
+   ],
+   "skip_dialogue": true
+  },
+  {
+   "id": "semicolon_adverb_comma",
+   "group": "punctuation",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": ";\\s+(however|moreover|furthermore|nevertheless|nonetheless|consequently)(?=\\s+(?:I|you|he|she|it|we|they|the|this|that|there|these|those|my|your|his|her|our|their)\\b)",
+   "message": "A conjunctive adverb after a semicolon is followed by a comma.",
+   "title": "\"; however we\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "\\1,"
+   ]
+  },
+  {
+   "id": "lowercase_i",
+   "group": "punctuation",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "(?<=[a-z,;:)]\\s+)(?<![\\w'’.\\-/(])(i)(?=\\s+(?:am|was|were|have|had|will|would|can|could|think|know|do|did|don['’]t|didn['’]t|can['’]t|won['’]t|want|need|see|feel|like|love|hope|guess|said|just|really|never|always|should|might|must|shall|believe|mean|wish|thought|knew)\\b|['’](?:m|ll|ve|d)\\b)",
+   "message": "The pronoun \"I\" is always capitalised.",
+   "title": "lowercase \"i\"",
+   "highlight": 1,
+   "replacements": [
+    "I"
+   ]
+  },
+  {
+   "id": "could_care_less",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bcould\\s+care\\s+less\\b",
+   "message": "The idiom is \"couldn't care less\".",
+   "title": "\"could care less\"",
+   "flags": "i",
+   "replacements": [
+    "couldn't care less"
+   ]
+  },
+  {
+   "id": "intensive_purposes",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bfor\\s+all\\s+intensive\\s+purposes\\b",
+   "message": "The idiom is \"for all intents and purposes\".",
+   "title": "\"intensive purposes\"",
+   "flags": "i",
+   "replacements": [
+    "for all intents and purposes"
+   ]
+  },
+  {
+   "id": "nip_in_the_butt",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bnip\\s+(?:it|this|that|them)\\s+in\\s+the\\s+(butt)\\b",
+   "message": "The idiom is \"nip it in the bud\".",
+   "title": "\"nip in the butt\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "bud"
+   ]
+  },
+  {
+   "id": "wreck_havoc",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(wreck|wrecks|wrecked|wrecking)\\s+havoc\\b",
+   "message": "The idiom is \"wreak havoc\".",
+   "title": "\"wreck havoc\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "wreck": "wreak",
+    "wrecks": "wreaks",
+    "wrecked": "wreaked",
+    "wrecking": "wreaking"
+   }
+  },
+  {
+   "id": "free_reign",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bfree\\s+(reign)\\b",
+   "message": "The idiom is \"free rein\" (a horse's reins).",
+   "title": "\"free reign\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "rein"
+   ]
+  },
+  {
+   "id": "peak_interest",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(peak|peaks|peaked|peaking)\\s+(?:my|your|his|her|our|their|the|its)\\s+interest\\b",
+   "message": "Interest is \"piqued\", not \"peaked\".",
+   "title": "\"peaked my interest\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "peak": "pique",
+    "peaks": "piques",
+    "peaked": "piqued",
+    "peaking": "piquing"
+   }
+  },
+  {
+   "id": "baited_breath",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(baited)\\s+breath\\b",
+   "message": "The idiom is \"bated breath\".",
+   "title": "\"baited breath\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "bated"
+   ]
+  },
+  {
+   "id": "per_say",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bper\\s+(say)\\b",
+   "message": "The Latin phrase is \"per se\".",
+   "title": "\"per say\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "se"
+   ]
+  },
+  {
+   "id": "escape_goat",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bescape\\s+goat\\b",
+   "message": "The word is \"scapegoat\".",
+   "title": "\"escape goat\"",
+   "flags": "i",
+   "replacements": [
+    "scapegoat"
+   ]
+  },
+  {
+   "id": "doggy_dog",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bdoggy\\s+dog\\s+world\\b",
+   "message": "The idiom is \"dog-eat-dog world\".",
+   "title": "\"doggy dog world\"",
+   "flags": "i",
+   "replacements": [
+    "dog-eat-dog world"
+   ]
+  },
+  {
+   "id": "tongue_and_cheek",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\btongue\\s+and\\s+cheek\\b",
+   "message": "The idiom is \"tongue in cheek\".",
+   "title": "\"tongue and cheek\"",
+   "flags": "i",
+   "replacements": [
+    "tongue in cheek"
+   ]
+  },
+  {
+   "id": "one_in_the_same",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bone\\s+in\\s+the\\s+same\\b",
+   "message": "The idiom is \"one and the same\".",
+   "title": "\"one in the same\"",
+   "flags": "i",
+   "replacements": [
+    "one and the same"
+   ]
+  },
+  {
+   "id": "mute_point",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bmute\\s+point\\b",
+   "message": "The idiom is \"moot point\".",
+   "title": "\"mute point\"",
+   "flags": "i",
+   "replacements": [
+    "moot point"
+   ]
+  },
+  {
+   "id": "sneak_peak",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bsneak\\s+(peak)\\b",
+   "message": "A quick look is a \"peek\".",
+   "title": "\"sneak peak\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "peek"
+   ]
+  },
+  {
+   "id": "for_granite",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:take|takes|took|taken|taking)\\s+(?:it\\s+|them\\s+|him\\s+|her\\s+|you\\s+|us\\s+|me\\s+)?for\\s+(granite)\\b",
+   "message": "The idiom is \"take for granted\".",
+   "title": "\"for granite\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "granted"
+   ]
+  },
+  {
+   "id": "wet_appetite",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(wet)\\s+(?:your|my|his|her|our|their|the)\\s+appetite\\b",
+   "message": "To stimulate an appetite is to \"whet\" it.",
+   "title": "\"wet your appetite\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "whet"
+   ]
+  },
+  {
+   "id": "make_due",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(?:make|makes|made|making)\\s+(due)\\s+with\\b",
+   "message": "The idiom is \"make do\".",
+   "title": "\"make due\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "do"
+   ]
+  },
+  {
+   "id": "by_in_large",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bby\\s+(in)\\s+large\\b",
+   "message": "The idiom is \"by and large\".",
+   "title": "\"by in large\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "and"
+   ]
+  },
+  {
+   "id": "all_of_the_sudden",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\ball\\s+of\\s+(the)\\s+sudden\\b",
+   "message": "The idiom is \"all of a sudden\".",
+   "title": "\"all of the sudden\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "a"
+   ]
+  },
+  {
+   "id": "irregardless",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\birregardless\\b",
+   "message": "Nonstandard; use \"regardless\".",
+   "title": "\"irregardless\"",
+   "flags": "i",
+   "replacements": [
+    "regardless"
+   ]
+  },
+  {
+   "id": "supposably",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bsupposably\\b",
+   "message": "The standard word is \"supposedly\".",
+   "title": "\"supposably\"",
+   "flags": "i",
+   "replacements": [
+    "supposedly"
+   ]
+  },
+  {
+   "id": "pacifically",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bpacifically\\b",
+   "message": "The word is \"specifically\".",
+   "title": "\"pacifically\"",
+   "flags": "i",
+   "replacements": [
+    "specifically"
+   ]
+  },
+  {
+   "id": "case_and_point",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\bcase\\s+(and)\\s+point\\b",
+   "message": "The idiom is \"case in point\".",
+   "title": "\"case and point\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "in"
+   ]
+  },
+  {
+   "id": "coarse_of_action",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(coarse)\\s+of\\s+(?:action|study|events)\\b",
+   "message": "The word is \"course\".",
+   "title": "\"coarse of action\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    "course"
+   ]
+  },
+  {
+   "id": "tow_the_line",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(tow|tows|towed|towing)\\s+the\\s+line\\b",
+   "message": "The idiom is \"toe the line\".",
+   "title": "\"tow the line\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "tow": "toe",
+    "tows": "toes",
+    "towed": "toed",
+    "towing": "toeing"
+   }
+  },
+  {
+   "id": "and_etc",
+   "group": "idiom",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(and\\s+)etc\\b",
+   "message": "\"Etc.\" already means \"and so on\".",
+   "title": "\"and etc.\"",
+   "flags": "i",
+   "highlight": 1,
+   "replacements": [
+    ""
+   ]
+  },
+  {
+   "id": "run_together_words",
+   "group": "usage",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(everytime|infact|atleast|aswell|eachother|alittle|noone|ofcourse|inorder|incase|alot|thankyou)\\b",
+   "message": "These are two words.",
+   "title": "run-together words (\"alot\")",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "everytime": "every time",
+    "infact": "in fact",
+    "atleast": "at least",
+    "aswell": "as well",
+    "eachother": "each other",
+    "alittle": "a little",
+    "noone": "no one",
+    "ofcourse": "of course",
+    "inorder": "in order",
+    "incase": "in case",
+    "alot": "a lot",
+    "thankyou": "thank you"
+   }
+  },
+  {
+   "id": "missing_apostrophe",
+   "group": "usage",
+   "level": "balanced",
+   "severity": "advisory",
+   "pattern": "\\b(dont|doesnt|didnt|cant|couldnt|wouldnt|shouldnt|isnt|arent|wasnt|werent|havent|hasnt|hadnt|youre|theyre|thats|whats)\\b",
+   "message": "This contraction needs an apostrophe.",
+   "title": "missing apostrophe (\"dont\")",
+   "flags": "i",
+   "highlight": 1,
+   "replacement_map": {
+    "dont": "don't",
+    "doesnt": "doesn't",
+    "didnt": "didn't",
+    "cant": "can't",
+    "couldnt": "couldn't",
+    "wouldnt": "wouldn't",
+    "shouldnt": "shouldn't",
+    "isnt": "isn't",
+    "arent": "aren't",
+    "wasnt": "wasn't",
+    "werent": "weren't",
+    "havent": "haven't",
+    "hasnt": "hasn't",
+    "hadnt": "hadn't",
+    "youre": "you're",
+    "theyre": "they're",
+    "thats": "that's",
+    "whats": "what's"
+   }
+  }
+ ]
+}

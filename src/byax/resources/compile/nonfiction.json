@@ -1,0 +1,71 @@
+{
+  "schema_version": 1,
+  "kind": "byax-settings-collection",
+  "collections": {
+    "compile": {
+      "nonfiction": {
+        "label": "Non-fiction",
+        "description": "6 x 9 in non-fiction: chapters open on a right-hand page with a numbered label and title, section headings kept, running heads (book title on the left, chapter title on the right), folios at the foot, footnotes and a contents page.",
+        "version": 1,
+        "target": "pdf",
+        "front_matter": [
+          {"kind": "half_title", "start": "odd"},
+          {"kind": "title_page", "start": "odd"},
+          {"kind": "copyright", "start": "next"},
+          {"kind": "dedication", "start": "odd"},
+          {"kind": "toc", "start": "odd"}
+        ],
+        "back_matter": [
+          {"kind": "acknowledgments", "start": "odd"},
+          {"kind": "about_author", "start": "odd"}
+        ],
+        "items": {
+          "part": {"start": "odd", "number_style": "roman", "label": "Part {number}", "title": "show", "sink": 144},
+          "chapter": {
+            "start": "odd",
+            "number_style": "arabic",
+            "label": "Chapter {number}",
+            "title": "auto",
+            "drop_cap": false,
+            "small_caps_words": 0,
+            "sink": 72,
+            "numbering": "continuous"
+          },
+          "scene": {"heading": "keep", "small_caps_words": 0},
+          "front": {"start": "odd", "heading": "keep"},
+          "back": {"start": "odd", "heading": "keep"}
+        },
+        "design": {
+          "trim": "6x9",
+          "margins": {"top": 63, "bottom": 63, "inside": 63, "outside": 54},
+          "gutter": 9,
+          "mirror": true,
+          "running_heads": {"verso": "{title}", "recto": "{chapter}", "small_caps": false, "font": "DejaVu Sans", "size": 7.5},
+          "folios": "bottom_outside",
+          "opener_folio": "bottom_center",
+          "widows": 2,
+          "orphans": 2,
+          "bleed": 0,
+          "crop_marks": false,
+          "image_dpi": 300,
+          "restart_numbering": true,
+          "docx": {"trim": "letter", "margins": 72}
+        },
+        "styles": {
+          "body": {"font_family": "DejaVu Serif", "font_size": 10.5, "line_spacing": 1.35, "alignment": "justify", "first_line_indent": 14, "space_after": 0, "space_before": 0},
+          "compile_chapter_title": {"font_family": "DejaVu Sans", "font_size": 18, "bold": true, "alignment": "left", "space_before": 4, "space_after": 24, "first_line_indent": 0},
+          "compile_part_title": {"font_family": "DejaVu Sans", "font_size": 22, "bold": true, "alignment": "center", "space_after": 12, "first_line_indent": 0},
+          "compile_subheading": {"font_family": "DejaVu Sans", "font_size": 11.5, "bold": true, "alignment": "left", "space_before": 14, "space_after": 6, "first_line_indent": 0},
+          "compile_chapter_label": {"font_family": "DejaVu Sans", "font_size": 10, "alignment": "left", "letter_spacing": 1, "space_after": 4},
+          "compile_part_label": {"font_family": "DejaVu Sans", "font_size": 12, "letter_spacing": 1.5},
+          "compile_scene_break": {"alignment": "center"}
+        },
+        "epub": {
+          "embed_fonts": false,
+          "css": "p { margin: 0; text-indent: 1.3em }\nh1, h2, h3, h4, h5, h6 { text-indent: 0; margin: 1.6em 0 0.8em }\np.s-compile-first, p.s-compile-chapter-label, p.s-compile-part-label, p.s-compile-title, p.s-compile-subtitle, p.s-compile-author, p.s-compile-publisher, p.s-compile-half-title, p.s-compile-copyright, p.s-compile-dedication, p.s-compile-matter-text { text-indent: 0 }\np.s-compile-chapter-label { margin-top: 2em; letter-spacing: 0.06em; text-transform: uppercase; font-size: 0.85em }\np.s-compile-title, p.s-compile-half-title { text-align: center; margin-top: 30% }\np.s-compile-copyright { font-size: 0.8em; margin-bottom: 0.4em }\np.s-compile-dedication { text-align: center; font-style: italic; margin-top: 30% }\naside.footnote { font-size: 0.85em }\n"
+        }
+      }
+    }
+  },
+  "requires": {"provider_aliases": [], "styles": [], "sources": []}
+}

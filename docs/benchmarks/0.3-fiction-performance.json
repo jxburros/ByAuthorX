@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T20:54:01.290481+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "python": "3.13.16"
+  },
+  "fixture": "tests/fixtures/fiction/seeded.md repeated 205 times",
+  "words": 101680,
+  "blocks": 5535,
+  "results": {
+    "fixture_profile_all_rules": {
+      "full_seconds": 4.03,
+      "one_paragraph_edit_incremental_seconds": 0.85,
+      "findings": 3485,
+      "units_rechecked_after_edit": 10,
+      "units_reused_after_edit": 11061
+    },
+    "default_settings": {
+      "full_seconds": 3.28,
+      "one_paragraph_edit_incremental_seconds": 0.6,
+      "findings": 1845,
+      "units_rechecked_after_edit": 6,
+      "units_reused_after_edit": 10245
+    },
+    "readability_report_seconds": 3.09
+  },
+  "qualification": "Single run on an unqualified execution host: an order of magnitude, not a target."
+}

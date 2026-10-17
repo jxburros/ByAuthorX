@@ -1,0 +1,338 @@
+# English grammar fixture for the built-in rules (competitiveness plan 6.1/6.5).
+#
+# One sentence per line. An error is written [[flagged text|rule_id]]: the flagged text is exactly the
+# range the rule should report. A line with no markers is a clean sentence: any finding on it is a
+# false positive. Lines that begin with # are comments. The labels follow the grammar, not the rules'
+# behaviour, so errors the rules cannot see are included and show up as missed (recall below 1.0).
+# Dialect and dialogue lines are marked "(dialogue)" in comments only; the rules decide for themselves.
+
+# --- confusion: modal of ----------------------------------------------------------------------
+I should [[of|modal_of]] told you about the meeting.
+She could [[of|modal_of]] gone to the party if she had wanted to.
+They would [[of|modal_of]] won the game with a better coach.
+We must [[of|modal_of]] left the keys in the car.
+He might [[of|modal_of]] forgotten the appointment entirely.
+It was a decision that would of course change everything.
+I could have been there earlier if the train had run on time.
+You should have called me before you left.
+
+# --- confusion: its / it's ---------------------------------------------------------------------
+[[Its|its_for_its_contraction]] a long way to the coast from here.
+I think [[its|its_for_its_contraction]] going to rain this afternoon.
+The dog wagged its tail and ran to the door.
+The company announced its plans for next year.
+[[Its|its_for_its_contraction]] been three years since we last spoke.
+I believe [[its|its_for_its_contraction]] the right choice for the team.
+The committee said its time had come to act.
+The tree lost its leaves in October.
+She noticed that [[it's|contraction_for_its]] own shadow had grown longer.
+It's a beautiful morning and the garden is quiet.
+It's been a long week, and I am ready to rest.
+Its meaning was clear to everyone in the room.
+The cat licked its paws and settled in the sun.
+
+# --- confusion: your / you're ------------------------------------------------------------------
+[[Your|your_for_youre]] welcome to stay as long as you like.
+I hope [[your|your_for_youre]] not angry with me about yesterday.
+Tell me when [[your|your_for_youre]] ready to leave.
+I think [[your|your_for_youre]] the best person for the job.
+Your welcome speech was warm and funny.
+Your brother called while you were out.
+You're welcome to stay as long as you like.
+I know you're tired, but we have to keep going.
+Please write [[you're|youre_for_your]] name at the top of the page.
+Is that [[you're|youre_for_your]] own handwriting on the note?
+Your own handwriting is better than mine.
+Your account has been updated and your password has changed.
+
+# --- confusion: there / their / they're --------------------------------------------------------
+[[Their|their_for_there]] is a problem with the printer on the second floor.
+I think [[their|their_for_there]] are three of us who can come.
+[[Their|their_for_there]] was nothing left to say after that.
+They forgot to bring [[there|there_for_their]] own lunch to the trip.
+The kids said [[they're|theyre_for_their]] own parents would drive them home.
+Their house sits at the end of the lane.
+There is a problem with the printer on the second floor.
+They finished their homework before dinner.
+There was nothing left to say after that.
+[[Their|?confusion]] going to be late for the train again.
+
+# --- confusion: then / than; to / too ------------------------------------------------------------
+She is taller [[then|then_for_than]] her brother by almost two inches.
+It was better [[then|then_for_than]] anything I had hoped for.
+It was bigger [[then|then_for_than]] the house we saw in May.
+We finished the soup and then we ordered dessert.
+It is more expensive than the one we saw yesterday.
+He opened the door, and then he stepped outside.
+She was older then, and wiser than she had ever been.
+We ate first and [[than|than_for_then]] we cleaned the kitchen.
+I want [[too|to_for_too_verb]] go home before it gets dark.
+They need [[too|to_for_too_verb]] be more careful with the budget.
+It is [[to|too_for_to]] much to ask of anyone at this hour.
+It was [[to|too_for_to]] late to call anyone by then.
+I have too many books and not enough shelves.
+She went to the market to buy bread.
+It is too late to start again today.
+He was going too fast on the wet road.
+
+# --- confusion: lose / loose; whose / who's ----------------------------------------------------------
+Don't [[loose|loose_for_lose]] your keys on the way home.
+I am afraid we will [[loose|loose_for_lose]] track of the time again.
+The screw came loose and rattled across the floor.
+She wore a loose shirt and old sandals.
+Make sure you do not lose your ticket.
+He bought a [[lose|lose_for_loose]] fitting jacket for the trip.
+[[Who's|whos_for_whose]] car is parked across my driveway?
+I wonder [[who's|whos_for_whose]] idea this was in the first place.
+Who's coming to dinner on Friday?
+Whose coat is this on the chair?
+I met a woman [[whose|whose_for_whos]] been to every continent.
+Do you know [[whose|whose_for_whos]] going to the airport tonight?
+I know a man whose daughter plays the cello.
+
+# --- confusion: affect / effect; weather / whether; led; advice; breath ----------------------------
+The new law will have a big [[affect|affect_for_effect]] on small farms.
+The noise had a negative [[affect|affect_for_effect]] on the neighbours.
+The storm may [[effect|effect_for_affect]] our travel plans on Monday.
+Rain can affect the way a surface wears over time.
+The effect of the medicine wore off after an hour.
+We have not decided [[weather|weather_for_whether]] or not to go.
+The [[whether|whether_for_weather]] was cold and wet all week.
+Whether or not we go depends on the weather.
+The captain was [[lead|lead_for_led]] by his scouts through the marsh.
+She had [[lead|lead_for_led]] the team for six years before she retired.
+The pipes were made of lead and had to be replaced.
+Her wise leadership has led the town through hard times.
+I would [[advice|advice_for_advise]] you to wait until morning.
+She gave me some good [[advise|advise_for_advice]] about the contract.
+He offered some advice and then he left.
+He tried to [[breath|breath_for_breathe]] slowly and calm his heart.
+She took a deep [[breathe|breathe_for_breath]] before opening the letter.
+He drew a deep breath and began to speak.
+Please bear with me while I find the file.
+Please [[bare|bare_for_bear]] with me while I find the file.
+He jumped [[of|of_for_off]] the wall and landed in the grass.
+It [[maybe|maybe_for_may_be]] true, but I have no proof of it.
+Maybe we should try the other road.
+
+# --- agreement ------------------------------------------------------------------------------------------
+He [[don't|third_person_dont]] like cold coffee in the morning.
+She [[don't|third_person_dont]] want to talk about it anymore.
+It [[don't|third_person_dont]] matter what they say.
+He doesn't like cold coffee in the morning.
+Why don't you come with us tomorrow?
+"I don't know," he said, "and he don't either."
+He said it was late, and he [[have|third_person_have]] no wish to stay.
+She [[have|third_person_have]] a gift for making people laugh.
+Does he have a spare key for the back door?
+Would she have said yes if you had asked her?
+They [[was|plural_was]] late for the meeting again.
+We [[was|plural_was]] tired after the long drive home.
+You [[was|plural_was]] right about the weather yesterday.
+They were late for the meeting again.
+We were tired after the long drive home.
+They [[has|plural_pronoun_has]] finished the whole report already.
+We [[has|plural_pronoun_has]] plenty of time before the train.
+They [[is|plural_pronoun_is]] still working on the engine.
+You [[is|plural_pronoun_is]] welcome to join us later.
+I [[is|first_person_is_are]] ready to begin the lesson now.
+I [[are|first_person_is_are]] not certain about the date.
+I [[has|first_person_has]] a question about the schedule.
+The letter I is the ninth in the alphabet.
+It [[are|third_person_are]] too heavy to carry upstairs alone.
+Everyone [[are|everyone_are]] welcome at the open house.
+Nobody [[are|everyone_are]] ready for the surprise yet.
+Everyone is welcome at the open house.
+There [[is|there_is_plural]] many reasons to visit in the spring.
+There [[was|there_is_plural]] several people waiting outside the gate.
+There are many reasons to visit in the spring.
+There is a reason for everything he does.
+There was a lot of noise from the street.
+
+# --- verb forms -----------------------------------------------------------------------------------------
+She should have [[went|participle_after_have]] to the doctor sooner.
+They would have [[ate|participle_after_have]] the whole cake if we had let them.
+He might have [[wrote|participle_after_have]] the letter before he left.
+I could have [[did|participle_after_have]] it myself in an hour.
+She should have gone to the doctor sooner.
+They would have eaten the whole cake if we had let them.
+I have [[went|participle_after_have]] to that shop many times.
+She has [[came|participle_after_have]] every day this week.
+They had [[took|participle_after_have]] the wrong road in the dark.
+We have [[saw|participle_after_have]] the film twice already.
+He had [[wore|participle_after_have]] the same coat for ten winters.
+I have seen the film twice already.
+He had worn the same coat for ten winters.
+I [[seen|simple_past_for_participle]] him leave the building around noon.
+We [[done|simple_past_for_participle]] the whole job before lunch.
+Have you seen the new gallery on Fifth Street?
+I have done everything you asked me to do.
+Did you see the rainbow after the storm?
+They didn't [[used|didnt_used_to]] to live this close to the sea.
+He didn't use to like olives.
+You are [[suppose|suppose_to]] to sign here and here.
+I was [[use|use_to_participle]] to the quiet of the village by then.
+She said he [[can't|cant_hardly]] hardly wait for the holiday.
+I don't have [[no|double_negative_no]] money for the bus today.
+She didn't have any money for the bus today.
+He can hardly wait for the holiday.
+
+# --- pronoun case -------------------------------------------------------------------------------------------
+This is just between you and [[I|between_you_and_i]], so please keep it quiet.
+They sent a gift to you and [[I|between_you_and_i]] after the wedding.
+[[Me and him|object_pronoun_subject]] went to the lake after school.
+[[Her and me|object_pronoun_subject]] were friends for years.
+This is just between you and me, so please keep it quiet.
+She and I went to the lake after school.
+He gave the keys to Maria and me before he left.
+You and I should talk about the plan.
+The teacher spoke with him and her about the project.
+
+# --- quantity -----------------------------------------------------------------------------------------------------------
+There were [[less|less_for_fewer]] people at the concert than last year.
+We have [[less|less_for_fewer]] books than guests for the dinner.
+She made [[less|less_for_fewer]] mistakes on the second test.
+There were fewer people at the concert than last year.
+We have less time than we thought we had.
+He drinks less coffee than he used to.
+There is [[fewer|fewer_for_less]] water in the lake than there was in May.
+We need [[fewer|fewer_for_less]] noise in the library, please.
+The recipe uses fewer eggs and less butter.
+The [[amount|amount_for_number]] of people in the room surprised everyone.
+A large [[amount|amount_for_number]] of students asked about the exam.
+A large amount of money was spent on the repairs.
+The number of people in the room surprised everyone.
+Too [[much|much_for_many]] people were talking at once to hear the speaker.
+He doesn't have [[much|much_for_many]] friends in the new town.
+She did not make many friends in the new town.
+There is too much noise in the street to sleep.
+Too [[many|many_for_much]] information was crammed onto the slide.
+She gave me [[many|many_for_much]] advice, and I ignored it.
+We have many options for the evening.
+Many software engineers work from home on Fridays.
+There were fewer water bottles on the shelf than yesterday.
+
+# --- punctuation ------------------------------------------------------------------------------------------------------------
+The roads were icy[[,|comma_splice_adverb]] however the buses ran on time all day.
+We ran out of paper[[,|comma_splice_adverb]] therefore we had to print the rest tomorrow.
+The roads were icy; however, the buses ran on time all day.
+The roads were icy, but the buses ran on time all day.
+It rained all day, however hard we hoped for sun.
+The report was late; [[however|semicolon_adverb_comma]] we still read it carefully.
+The plan is simple; moreover, it costs very little.
+He was tall[[,|comma_splice_clauses]] she was short, and nobody minded.
+She smiled[[,|comma_splice_clauses]] he nodded at her across the table.
+He came, he saw, he conquered.
+When she arrived, she took off her coat.
+She was tired, so she went to bed early.
+I know that [[i|lowercase_i]] was wrong about the date.
+We left early because [[i|lowercase_i]] had a headache.
+I think we can be there by nine, and I will bring the maps.
+The list has items i, ii and iii.
+
+# --- idioms and misused phrases --------------------------------------------------------------------------------------------
+I [[could care less|could_care_less]] about the ranking.
+I couldn't care less about the ranking.
+[[For all intensive purposes|intensive_purposes]], the project is finished.
+We need to nip it in the [[butt|nip_in_the_butt]] before the rumour spreads.
+The storm will [[wreck|wreck_havoc]] havoc on the coast tonight.
+The storm will wreak havoc on the coast tonight.
+The heir was given free [[reign|free_reign]] over the estate accounts.
+The story [[peaked|peak_interest]] my interest from the first page.
+The crowd waited with [[baited|baited_breath]] breath for the announcement.
+The plan is not, per [[say|per_say]], a bad one.
+They made him the [[escape goat|escape_goat]] for the failure.
+It's a [[doggy dog world|doggy_dog]] out there for a new writer.
+His remark was meant [[tongue and cheek|tongue_and_cheek]] and nobody took offence.
+She and her sister are [[one in the same|one_in_the_same]] when it comes to cooking.
+That is a [[mute point|mute_point]] now that the vote is over.
+Here is a sneak [[peak|sneak_peak]] of the new cover.
+Don't take it for [[granite|for_granite]] that the road is open.
+He [[wet|wet_appetite]] your appetite with a story about the harvest.
+We will have to make [[due|make_due]] with what we have.
+By [[in|by_in_large]] large, the readers liked the ending.
+All of [[the|all_of_the_sudden]] sudden, the lights went out.
+It was [[irregardless|irregardless]] of the cost.
+The tent was [[pacifically|pacifically]] designed for hikers.
+[[Were|were_for_where]] is the nearest station?
+[[Supposably|supposably]] the train leaves at six.
+It was a case [[and|case_and_point]] point of bad timing.
+We decided on a [[coarse|coarse_of_action]] of action by Friday.
+He refused to [[tow|tow_the_line]] the line.
+We bought pens, paper, [[and |and_etc]]etc.
+The sail had a coarse weave and a salt-stiff edge.
+In due course the letters were delivered.
+We waited with bated breath for the announcement.
+She toes the line when the manager is in the room.
+
+# --- usage ----------------------------------------------------------------------------------------------------------------------------
+I like it [[alot|run_together_words]] more than the old one.
+She waits for the bus [[everytime|run_together_words]] it rains.
+They went to the shop [[aswell|run_together_words]] to pick up the paper.
+[[Noone|run_together_words]] knew where the keys had gone.
+I [[dont|missing_apostrophe]] know where the station is.
+She [[cant|missing_apostrophe]] come to the meeting on Thursday.
+I think [[thats|missing_apostrophe]] the best idea so far.
+They [[werent|missing_apostrophe]] home when I called.
+We lost a lot of time on the road.
+Everyone went home early, and no one stayed to clean up.
+In case of rain, the picnic moves indoors.
+I don't know where the station is.
+
+# --- known gaps: real errors the rules do not catch (they count against recall) -----------------------
+She [[lays|?confusion]] down for a nap every afternoon.
+The puppy dragged [[it's|?confusion]] favourite toy across the floor.
+I think [[your|?confusion]] right about the date.
+[[There|?confusion]] best friend is waiting at the gate.
+She had [[swore|?verb_form]] never to return to the city.
+It was a secret between [[he|?pronoun_case]] and me.
+[[Him|?pronoun_case]] and the others left before the end.
+[[Less|?quantity]] cookies were left after the party.
+I wanted to go[[,|?punctuation]] I was too tired to move.
+He got away [[scotch free|?idiom]] after the trial.
+[[Ive|?usage]] been there twice this year.
+
+# --- clean prose: sentences that must produce no findings ---------------------------------------------------------------------------------
+The morning light fell across the kitchen table and warmed the cold tea.
+Marta folded the map and slipped it into the pocket of her coat.
+"Where are you going?" he asked, and she did not answer him.
+The village lay quiet under the snow, and no smoke rose from the chimneys.
+He had not slept well, and the long road ahead did nothing to help.
+If I were you, I would wait until the weather clears.
+It was the best of times, it was the worst of times.
+Neither of the sisters wanted to speak first.
+The committee has made its decision and will publish it on Monday.
+Whoever finds the key should return it to the front desk.
+They each have a copy of the report, so there is no need to share.
+The children were playing in the garden while their parents cooked.
+Between the two of us, we can finish the job by noon.
+She asked him to bring the files, but he forgot them at home.
+The results, which were published last week, surprised the researchers.
+After the storm passed, we walked down to the harbour to see the damage.
+He said that his name was Tom and that he had come from the north.
+Each of the players was given a medal at the end of the season.
+The old house on the hill has stood empty for more than a decade.
+We were hoping to arrive before dark, but the roads were closed.
+There was a time when the river ran clear all the way to the sea.
+The best part of the trip was the night we spent in the mountains.
+You are the only person who knows where the letters are hidden.
+I wish he were here to see how the garden has grown.
+She has been writing every morning since she moved to the coast.
+The team wants to know whether the budget will cover the extra week.
+What the critics missed was how quietly the film ended.
+He walked slowly, listening to the river, and thought about nothing at all.
+The train was late, so we missed the first act of the play.
+Only a few of the guests had read the book before the party.
+The weather turned cold, and we lit the stove for the first time that year.
+It is not clear who wrote the letter or why it was never sent.
+The two friends made a pact never to speak of that summer again.
+In the end, the answer was simpler than any of us had guessed.
+He read the note twice and then folded it into his pocket.
+They have lived there for years, yet they know almost nobody in town.
+Seven people applied for the job, and three of them were interviewed.
+The garden needs less water in winter than in summer.
+Fewer than half of the seats were taken when the curtain rose.
+The number of visitors has doubled since the new road opened.
+She took the longer route because it was safer than the cliff path.
+Do you know whose turn it is to wash the dishes?
+The price of bread went up, but nobody complained.

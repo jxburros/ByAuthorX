@@ -2,14 +2,48 @@
 
 from .errors import ByaxError
 from .model import object_hash
+from .quote_match import describe_differences, infer_kind, locate, quoted_passage
 
 
 def evidence_key(source_id, mark):
     return object_hash({'source': source_id, 'locator': mark.get('locator', {})})
 
 
-def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir=None):
-    """Read only attached, profile-authorized indexed evidence, without indexing or network."""
+def _claimed_quote(text, mark):
+    """The quotation a citation mark claims, or None for paraphrase."""
+    quoted = quoted_passage(text)
+    return quoted if quoted is not None else (text if mark.get('kind') == 'quotation' else None)
+
+
+def _elsewhere(doc, config, quote, *, registry, cache_dir):
+    """Verified absence (Q14): literal occurrences of a quote in any eligible attached library."""
+    from .retrieval import verify_absence
+
+    exclusive = config.get('source_authority') == 'exclusive'
+    eligible = [
+        a['library_id']
+        for a in doc.get('settings', {}).get('libraries', [])
+        if not (exclusive and a.get('role', 'supplementary') == 'open')
+    ]
+    if not eligible:
+        return []
+    try:
+        report = verify_absence([quote], eligible, registry=registry, cache_dir=cache_dir, limit=5)
+    except (ByaxError, OSError):
+        return []
+    return [
+        {k: m.get(k) for k in ('library_id', 'document_id', 'chunk_id', 'path', 'locator', 'excerpt')}
+        for m in report['matches']
+        if m.get('literal') and not m.get('stale')
+    ]
+
+
+def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir=None, text=None):
+    """Read only attached, profile-authorized indexed evidence, without indexing or network.
+
+    With the citing object's ``text``, a quotation that is not at the cited locator is
+    also looked up literally in every eligible attached library (``elsewhere``).
+    """
     from .libraries import LibraryIndex, LibraryRegistry
 
     source = doc.get('references', {}).get(source_id, {})
@@ -49,6 +83,7 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
         registry = registry or LibraryRegistry()
         library = registry.get(identity)
         index = LibraryIndex(library, cache_dir=cache_dir)
+        relocated = False
         try:
             result = index.read(pointer['document_id'], chunk_id=locator.get('chunk'))
         except ByaxError:
@@ -62,7 +97,13 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
             )
             if replaced:
                 return {**base, 'status': 'stale', 'reason': 'The indexed library file changed.'}
-            raise
+            if not locator.get('chunk'):
+                raise
+            # Same file, but a newer chunker numbered its chunks differently: the cited chunk identity is
+            # gone while the document is unchanged. Check the quote against the document's current
+            # chunks instead of failing the citation.
+            relocated = True
+            result = index.read(pointer['document_id'])
     except (ByaxError, OSError, KeyError) as exc:
         return {**base, 'status': 'unverifiable', 'reason': str(exc)}
     if result.get('stale') or result.get('content_hash') != pointer.get('content_hash'):
@@ -72,24 +113,81 @@ def read_citation(doc, source_id, mark, config=None, *, registry=None, cache_dir
             'reason': 'Library content changed; refresh and review the citation.',
         }
     passages = result.get('results', [])
-    coordinates = ('page', 'block', 'ordinal', 'heading', 'heading_path', 'start', 'end')
-    for key in coordinates:
+    coordinates = (
+        'page',
+        'block',
+        'ordinal',
+        'ordinal_end',
+        'heading',
+        'heading_path',
+        'start',
+        'end',
+        'parent',
+        'bbox',
+        'note',
+    )
+    for key in () if relocated else coordinates:
         if key in locator:
             passages = [p for p in passages if str(p.get('locator', {}).get(key)) == str(locator[key])]
     if any(key not in (*coordinates, 'chunk', 'label') for key in locator):
         return {**base, 'status': 'unverifiable', 'reason': 'This locator format needs manual verification.'}
     if not passages:
         return {**base, 'status': 'unverifiable', 'reason': 'The cited locator has no indexed passage.'}
-    return {**base, 'status': 'available', 'passages': passages, 'truncated': result.get('truncated', False)}
+    snapshot = {
+        **base,
+        **({'relocated': True} if relocated else {}),
+        'status': 'available',
+        'passages': passages,
+        'truncated': result.get('truncated', False),
+    }
+    quote = (
+        _claimed_quote(text[mark['start'] : mark['end']], mark)
+        if text is not None and 'start' in mark
+        else None
+    )
+    if quote and all(locate(quote, p['text'])['match'] == 'none' for p in passages):
+        snapshot['elsewhere'] = _elsewhere(doc, config, quote, registry=registry, cache_dir=cache_dir)
+    return snapshot
+
+
+def source_texts(source):
+    """Text a source carries inside the document: its excerpt, text, content and excerpt list."""
+    texts = [source[k] for k in ('text', 'excerpt', 'content') if isinstance(source.get(k), str)]
+    texts += [
+        e if isinstance(e, str) else e.get('text', '')
+        for e in source.get('excerpts', [])
+        if isinstance(e, (str, dict))
+    ]
+    return texts
+
+
+def infer_citation_kind(doc, op, *, registry=None, cache_dir=None):
+    """``{'kind', 'reason'}`` for a cite operation that names no kind.
+
+    ``quotation`` when the selected text is in quotation marks or is found in the cited source
+    (its stored excerpt, or the indexed passage the locator names); otherwise ``paraphrase``.
+    Reads only attached, authorized library passages, like the citation checks.
+    """
+    from .model import find_object
+
+    block = find_object(doc, op['target'])
+    selected = block.get('text', '')[op['start'] : op['end']]
+    source = doc.get('references', {}).get(op['source'], {})
+    texts = source_texts(source)
+    if source.get('library') and op.get('locator'):
+        snapshot = read_citation(
+            doc, op['source'], {'locator': op['locator']}, registry=registry, cache_dir=cache_dir
+        )
+        if snapshot and snapshot['status'] == 'available':
+            texts += [p['text'] for p in snapshot['passages']]
+    return infer_kind(selected, texts)
 
 
 def check_citation(sink, block, mark, source_id, snapshot):
     """Report located quotation outcomes. Stored excerpts never override live staleness."""
-    import re
-
     text = block.get('text', '')[mark['start'] : mark['end']]
-    quoted = re.fullmatch(r'\s*["“](.+?)["”]\s*', text, re.DOTALL)
-    passage = quoted.group(1) if quoted else (text if mark.get('kind') == 'quotation' else None)
+    quoted = quoted_passage(text)
+    passage = quoted if quoted is not None else (text if mark.get('kind') == 'quotation' else None)
     status = snapshot['status']
     if status != 'available':
         message = snapshot.get('reason', 'Library citation cannot be verified.')
@@ -116,7 +214,15 @@ def check_citation(sink, block, mark, source_id, snapshot):
             targets=[block['id']],
         )
         return
-    matches = [p for p in snapshot['passages'] if passage in p['text']]
+    # Exact and normalized matches (curly quotes, line-break hyphens, ligatures) verify the quotation.
+    # A near match is advisory only: it is shown with its differing characters, never confirmed.
+    located = [(p, locate(passage, p['text'])) for p in snapshot['passages']]
+    matches = [(p, found) for p, found in located if found['normalized_pass']]
+    near = max(
+        (item for item in located if item[1]['match'] == 'near'),
+        key=lambda item: item[1]['score'],
+        default=None,
+    )
     evidence = [
         {
             'source_id': source_id,
@@ -128,8 +234,14 @@ def check_citation(sink, block, mark, source_id, snapshot):
             'excerpt': passage,
             'relation': 'quotation',
             'source_version': {'content_hash': snapshot['content_hash']},
+            'quote_match': {
+                'match': found['match'],
+                'raw_pass': found['raw_pass'],
+                'normalized_pass': found['normalized_pass'],
+                'span': found['span'],
+            },
         }
-        for p in matches
+        for p, found in matches
     ]
     if matches:
         sink.coverage.append(
@@ -146,10 +258,46 @@ def check_citation(sink, block, mark, source_id, snapshot):
                 },
             }
         )
+    elif near is not None:
+        passage_near, found = near
+        sink.add(
+            'factual.library_citation',
+            'factual',
+            'advisory',
+            'Quoted passage nearly matches the cited library passage but is not identical ('
+            + describe_differences(found['differences'])
+            + '). It is not confirmed.',
+            block['id'],
+            mark['start'],
+            mark['end'],
+            text,
+            outcome='not_established',
+            measured={
+                'source_id': source_id,
+                'verification': 'quote_near_match',
+                'match': 'near',
+                'score': found['score'],
+                'span': found['span'],
+                'differences': found['differences'],
+                'chunk_id': passage_near['chunk_id'],
+                'library_id': snapshot['library_id'],
+                'document_id': snapshot['document_id'],
+                'content_hash': snapshot['content_hash'],
+                'locator': snapshot['locator'],
+            },
+            repair={
+                'kind': 'manual',
+                'guidance': 'Compare the quotation with the source and correct it, or cite it as a paraphrase.',
+            },
+        )
     else:
+        elsewhere = snapshot.get('elsewhere') or []
         message = (
             'The bounded library read is incomplete; quotation support is not established.'
             if snapshot.get('truncated')
+            else 'Quoted passage does not match the cited library locator, but the exact text occurs at '
+            'another indexed location; check the citation locator.'
+            if elsewhere
             else 'Quoted passage does not match the cited library locator.'
         )
         if snapshot.get('truncated'):
@@ -171,6 +319,7 @@ def check_citation(sink, block, mark, source_id, snapshot):
                 'document_id': snapshot['document_id'],
                 'content_hash': snapshot['content_hash'],
                 'locator': snapshot['locator'],
+                **({'literal_matches': elsewhere} if elsewhere else {}),
             },
             repair={
                 'kind': 'manual',

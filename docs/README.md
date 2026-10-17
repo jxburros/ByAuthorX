@@ -7,11 +7,14 @@
 | Attach research libraries and cite sources | [Library and citations guide](library-and-citations-guide.md) |
 | Configure AI review, chat and dictation | [Providers](providers.md) |
 | Understand how views, formats and losses work | [File views](file-views.md), [compatibility](compatibility.md) |
+| Understand grammar checking, its tiers and measured accuracy | [Grammar](grammar.md) |
+| Install dictionaries and grammar packs; see translation coverage | [Language packs and translations](translations.md) |
+| Add custom checks or export hooks; save command macros | [Extensions](extensions.md) |
 | Fix a problem | [Troubleshooting](troubleshooting.md) |
 | Understand the design | [Architecture](architecture.md), [implementation contract](implementation-contract.md) |
 | Work on the code | [Development guide](development.md), [CONTRIBUTING](../CONTRIBUTING.md) |
 | Build or release installers | [Packaging](packaging.md) |
-| Check what is verified | [Acceptance matrix](acceptance-matrix.md), [interface parity](interface-parity.md), [accessibility audit](accessibility-audit.md) |
+| Check what is verified | [Acceptance matrix](acceptance-matrix.md), [interface parity](interface-parity.md), [accessibility audit](accessibility-audit.md), [benchmarks and retrieval baseline](benchmarks/README.md), [published context engine benchmarks](benchmarks/context-engine.md) |
 | Work with the brand and assets | [Brand and motion](brand.md), [design sources](../design/brand/README.md), [brand fonts](../assets/brand-fonts/README.md), [creative library](../assets/creative-library/README.md), [logo companions](../assets/logo-companion-library/README.md), [logo UI library](../assets/logo-ui-library/README.md) |
 | Review licensing | [Third-party notices](third-party-notices.md), [citation style licenses](citation-licenses.md) |
 | Plan the context, retrieval and citation engine | [Context engine plan](context-engine-plan.md), [context engine research](research/context-engine/README.md) |

@@ -68,8 +68,8 @@ class ProviderDialog(QDialog):
         form.addRow(intro)
         self.saved = QComboBox()
         self.saved.addItem(self.tr('New provider…'), None)
-        for config in self.registry.list():
-            self.saved.addItem(config['alias'], config['alias'])
+        for config in self.registry.list_with_locality():
+            self.saved.addItem(f'{config["alias"]} · {config["locality"].capitalize()}', config['alias'])
         self.saved.currentIndexChanged.connect(lambda index: self.load_config(self.saved.itemData(index)))
         form.addRow(self.tr('Saved providers'), self.saved)
         self.alias, self.model, self.endpoint, self.credential = (
@@ -88,7 +88,24 @@ class ProviderDialog(QDialog):
         self.timeout = QSpinBox()
         self.timeout.setRange(1, 3600)
         self.timeout.setValue(60)
+        self.context_cap = QSpinBox()
+        self.context_cap.setRange(256, 4_000_000)
+        self.context_cap.setSingleStep(1024)
+        self.context_cap.setValue(8192)
+        self.context_cap.setToolTip(
+            self.tr('Ollama only: the largest context window requested (num_ctx). Larger uses more memory.')
+        )
+        self.locality = QLabel()
+        self.locality.setObjectName('providerLocality')
         self.policy = QCheckBox(self.tr('Allow remote calls without repeated authorization'))
+        self.citation_retry = QCheckBox(self.tr('Retry once when a remote model cites an unknown source'))
+        self.citation_retry.setObjectName('citationRetry')
+        self.citation_retry.setToolTip(
+            self.tr(
+                'Local models always get one corrective retry. For a remote model the retry is a second '
+                'request with the same content, so it is off unless you allow it.'
+            )
+        )
         for label, control in [
             (self.tr('Alias'), self.alias),
             (self.tr('Provider'), self.kind),
@@ -98,10 +115,16 @@ class ProviderDialog(QDialog):
             (self.tr('API key'), self.key),
             (self.tr('Local executable'), self.executable),
             (self.tr('Timeout (seconds)'), self.timeout),
+            (self.tr('Largest context window, tokens (Ollama)'), self.context_cap),
         ]:
             control.setAccessibleName(label)
             form.addRow(label, control)
+        form.addRow(self.tr('Where requests go'), self.locality)
+        for signal in (self.kind.currentTextChanged, self.endpoint.textChanged):
+            signal.connect(lambda *_: self.show_locality())
+        self.show_locality()
         form.addRow(self.policy)
+        form.addRow(self.citation_retry)
         self.data_policies = {}
         for category, label in (
             ('library_passages', 'Allow library passages for this provider'),
@@ -119,6 +142,15 @@ class ProviderDialog(QDialog):
         buttons.rejected.connect(self.reject)
         form.addRow(buttons)
 
+    def show_locality(self):
+        from .providers import provider_locality
+
+        self.locality.setText(
+            provider_locality(
+                {'kind': self.kind.currentText(), 'endpoint': self.endpoint.text().strip() or None}
+            )['label']
+        )
+
     def load_config(self, alias):
         if alias is None:
             return
@@ -133,7 +165,9 @@ class ProviderDialog(QDialog):
             control.setText(value or '')
         self.kind.setCurrentText(config.kind)
         self.timeout.setValue(config.timeout)
+        self.context_cap.setValue(config.max_context_tokens)
         self.policy.setChecked(config.allow_remote)
+        self.citation_retry.setChecked(config.citation_retry)
         from .retrieval import ConsentRegistry
 
         consent = ConsentRegistry(self.registry.config_dir)
@@ -142,8 +176,15 @@ class ProviderDialog(QDialog):
 
     def save_config(self):
         try:
+            alias = self.alias.text().strip()
+            known = next((c for c in self.registry.list() if c['alias'] == alias), {})
             self.registry.save(
                 ProviderConfig(
+                    # The model's real window is learned by an explicit connection test; keep it.
+                    context_tokens=known.get('context_tokens')
+                    if known.get('model') == self.model.text().strip()
+                    else None,
+                    max_context_tokens=self.context_cap.value(),
                     alias=self.alias.text().strip(),
                     kind=self.kind.currentText(),
                     model=self.model.text().strip(),
@@ -152,6 +193,7 @@ class ProviderDialog(QDialog):
                     executable=self.executable.text().strip() or None,
                     timeout=self.timeout.value(),
                     allow_remote=self.policy.isChecked(),
+                    citation_retry=self.citation_retry.isChecked(),
                 )
             )
             from .retrieval import ConsentRegistry
@@ -191,7 +233,12 @@ class ProviderDialog(QDialog):
 
 def select_provider(window, kinds, label):
     registry = ProviderRegistry()
-    aliases = [config['alias'] for config in registry.list() if config['kind'] in kinds]
+    labelled = {
+        f'{config["alias"]} · {config["locality"].capitalize()}': config['alias']
+        for config in registry.list_with_locality()
+        if config['kind'] in kinds
+    }
+    aliases = list(labelled)
     if not aliases:
         window.message(
             QCoreApplication.translate('Providers', 'Provider setup needed'),
@@ -203,7 +250,7 @@ def select_provider(window, kinds, label):
     alias, ok = QInputDialog.getItem(
         window, label, QCoreApplication.translate('Providers', 'Provider'), aliases, 0, False
     )
-    return (registry, alias) if ok else (None, None)
+    return (registry, labelled.get(alias, alias)) if ok else (None, None)
 
 
 def authorize_payload(window, title, preview):
@@ -218,6 +265,10 @@ def authorize_payload(window, title, preview):
     )
     label.setWordWrap(True)
     layout.addWidget(label)
+    if preview.get('locality_label'):
+        destination = QLabel(preview['locality_label'])
+        destination.setObjectName('payloadDestination')
+        layout.addWidget(destination)
     editor = QPlainTextEdit()
     editor.setReadOnly(True)
     editor.setPlainText(json.dumps(preview, ensure_ascii=False, indent=2))
@@ -304,17 +355,33 @@ def review_document(window, *, check=None, instructions=None):
     library_authorized = False
     try:
         if check in {'repository', 'factual'} and frozen.get('settings', {}).get('libraries'):
+            from .context_assembly import library_budget
             from .gui_retrieval import select_passages
             from .retrieval import augment_context, retrieve_context
 
             remote = registry.preview(alias, kind='chat')['remote']
-            retrieval = retrieve_context(frozen, text[:4096], profile=profile, remote=remote)
+            config = registry.get(alias)
+            from .series import with_series
+
+            retrieval = retrieve_context(
+                with_series(frozen, getattr(window, 'path', None)),
+                text[:4096],
+                profile=profile,
+                remote=remote,
+                max_tokens=library_budget(config).tokens,
+                provider=config,
+                method='auto',
+            )
             if retrieval['included']:
                 retrieval = select_passages(window, retrieval, alias, remote)
                 if retrieval is None:
                     return
                 library_authorized = True
             context = augment_context(context, retrieval)
+        from .codex import redact_for_ai
+
+        # Codex entries and traits hidden from AI never reach a model.
+        context = redact_for_ai(frozen, context)
         preview = registry.preview(alias, text=text, context=context)
     except Exception as exc:
         window.error(exc)

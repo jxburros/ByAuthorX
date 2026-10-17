@@ -1,0 +1,22 @@
+{
+  "id": "house-style-words",
+  "name": "House style: words to avoid",
+  "version": "1.0.0",
+  "api_version": 1,
+  "description": "A data-only check. Flags filler words and a few house-style preferences from a JSON word list. No code runs; the rules are evaluated by ByAuthorX itself.",
+  "author": "ByAuthorX project",
+  "licence": "MIT",
+  "kinds": ["check"],
+  "scopes": ["checks", "propose"],
+  "entry_points": {
+    "checks": [
+      {
+        "id": "banned-words",
+        "type": "data",
+        "path": "checks/banned-words.json",
+        "title": "Words to avoid",
+        "description": "Filler words, and preferred spellings offered as replacements."
+      }
+    ]
+  }
+}

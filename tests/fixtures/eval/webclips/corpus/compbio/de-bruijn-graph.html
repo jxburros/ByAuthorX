@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>De Bruijn graph - Wikipedia</title>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.24">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="noindex,nofollow,max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="De Bruijn graph - Wikipedia">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div id="mw-aria-live-region"></div><a href="#bodyContent">Jump to content</a>
+<div>
+	<header>
+		<div>
+			<nav>
+<div id="vector-main-menu-dropdown"  >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button"    >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox"  ><span></span>
+<span>Main menu</span>
+	</label>
+	<div>
+				<div id="vector-main-menu-unpinned-container">
+<div id="vector-main-menu">
+	<div
+>
+	<div>Main menu</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-navigation"  >
+	<div>
+		Navigation
+	</div>
+	<div>
+		<ul>
+			<li id="n-mainpage-description"><a href="/wiki/Main_Page" accesskey="z"><span>Main page</span></a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents"><span>Contents</span></a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events"><span>Current events</span></a></li><li id="n-randompage"><a href="/wiki/Special:Random" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About"><span>About Wikipedia</span></a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us"><span>Contact us</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-interaction"  >
+	<div>
+		Contribute
+	</div>
+	<div>
+		<ul>
+			<li id="n-help"><a href="/wiki/Help:Contents"><span>Help</span></a></li><li id="n-introduction"><a href="/wiki/Help:Introduction"><span>Learn to edit</span></a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal"><span>Community portal</span></a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_upload_wizard"><span>Upload file</span></a></li><li id="n-specialpages"><a href="/wiki/Special:SpecialPages" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+				</div>
+	</div>
+</div>
+		</nav>
+<a href="/wiki/Main_Page">
+	<img src="/static/images/icons/enwiki-25.svg" alt="" height="50" width="50">
+	<span>
+		<img alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg">
+		<img alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11">
+	</span>
+</a>
+		</div>
+		<div>
+<div id="p-search" role="search">
+	<a href="/wiki/Special:Search" accesskey="f"><span></span>
+<span>Search</span>
+	</a>
+	<div>
+		<div>
+			<form action="/w/index.php" id="searchform">
+				<div id="simpleSearch" >
+					<div>
+						<input
+						 autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" autocapitalize="none" spellcheck="false" accesskey="f" id="searchInput"
+							>
+						<span></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button>Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+			<nav>
+	<div>
+<div id="p-vector-user-menu-preferences"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-userpage"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	<nav>
+<div id="vector-appearance-dropdown"  >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button"    >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox"  ><span></span>
+<span>Appearance</span>
+	</label>
+	<div>
+			<div id="vector-appearance-unpinned-container">
+			</div>
+	</div>
+</div>
+	</nav>
+<div id="p-vector-user-menu-notifications"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-overflow"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport-2"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=De+Bruijn+graph&amp;returntoquery=oldid%3D1368876410"><span>Create account</span></a>
+</li>
+<li id="pt-login-2"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=De+Bruijn+graph&amp;returntoquery=oldid%3D1368876410" accesskey="o"><span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+<div id="vector-user-links-dropdown"  >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button"    >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox"  ><span></span>
+<span>Personal tools</span>
+	</label>
+	<div>
+<div id="p-personal"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span></span>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=De+Bruijn+graph&amp;returntoquery=oldid%3D1368876410"><span></span>
+<span>Create account</span></a>
+</li>
+<li id="pt-login"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=De+Bruijn+graph&amp;returntoquery=oldid%3D1368876410" accesskey="o"><span></span>
+<span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+</nav>
+		</div>
+	</header>
+</div>
+<div>
+	<div>
+		<div>
+			<div id="siteNotice"></div>
+		</div>
+		<div>
+			<div>
+		<div id="mw-navigation">
+			<nav id="mw-panel">
+				<div id="vector-main-menu-pinned-container">
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div>
+				<nav id="mw-panel-toc">
+					<div id="vector-toc-pinned-container">
+					<div id="vector-toc">
+	<div
+>
+	<h2>Contents</h2>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+		>
+			<a href="#">
+				<div>(Top)</div>
+			</a>
+		</li>
+		<li id="toc-Properties"
+	>
+		<a href="#Properties">
+			<div>
+				<span>1</span>
+				<span>Properties</span>
+			</div>
+		</a>
+		<ul id="toc-Properties-sublist">
+		</ul>
+	</li>
+	<li id="toc-Dynamical_systems"
+	>
+		<a href="#Dynamical_systems">
+			<div>
+				<span>2</span>
+				<span>Dynamical systems</span>
+			</div>
+		</a>
+		<ul id="toc-Dynamical_systems-sublist">
+		</ul>
+	</li>
+	<li id="toc-Uses"
+	>
+		<a href="#Uses">
+			<div>
+				<span>3</span>
+				<span>Uses</span>
+			</div>
+		</a>
+		<ul id="toc-Uses-sublist">
+		</ul>
+	</li>
+	<li id="toc-See_also"
+	>
+		<a href="#See_also">
+			<div>
+				<span>4</span>
+				<span>See also</span>
+			</div>
+		</a>
+		<ul id="toc-See_also-sublist">
+		</ul>
+	</li>
+	<li id="toc-References"
+	>
+		<a href="#References">
+			<div>
+				<span>5</span>
+				<span>References</span>
+			</div>
+		</a>
+		<ul id="toc-References-sublist">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+	>
+		<a href="#External_links">
+			<div>
+				<span>6</span>
+				<span>External links</span>
+			</div>
+		</a>
+		<ul id="toc-External_links-sublist">
+		</ul>
+	</li>
+</ul>
+</div>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div>
+			<main id="content">
+				<header>
+					<nav>
+<div id="vector-page-titlebar-toc"  >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button"    >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+	</label>
+	<div>
+							<div id="vector-page-titlebar-toc-unpinned-container">
+			</div>
+	</div>
+</div>
+					</nav>
+					<h1 id="firstHeading"><span lang="en" dir="ltr"><span>De Bruijn graph</span></span></h1>
+<div id="p-lang-btn"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button"   >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox"  ><span></span>
+<span>8 languages</span>
+	</label>
+	<div>
+		<div>
+			<ul>
+				<li><a href="https://eo.wikipedia.org/wiki/Orientita_grafeo_de_de_Bruijn" lang="eo" hreflang="eo"><span>Esperanto</span></a></li><li><a href="https://es.wikipedia.org/wiki/Grafo_de_De_Bruijn" lang="es" hreflang="es"><span>Español</span></a></li><li><a href="https://fa.wikipedia.org/wiki/%DA%AF%D8%B1%D8%A7%D9%81_%D8%AF%DB%8C_%D8%A8%D8%B1%D8%A7%DB%8C%D9%86" lang="fa" hreflang="fa"><span>فارسی</span></a></li><li><a href="https://fr.wikipedia.org/wiki/Graphe_de_de_Bruijn" lang="fr" hreflang="fr"><span>Français</span></a></li><li><a href="https://hu.wikipedia.org/wiki/De_Bruijn-gr%C3%A1f" lang="hu" hreflang="hu"><span>Magyar</span></a></li><li><a href="https://it.wikipedia.org/wiki/Grafo_di_de_Bruijn" lang="it" hreflang="it"><span>Italiano</span></a></li><li><a href="https://ja.wikipedia.org/wiki/%E3%83%89%E3%83%BB%E3%83%96%E3%83%A9%E3%82%A6%E3%83%B3%E3%83%BB%E3%82%B0%E3%83%A9%E3%83%95" lang="ja" hreflang="ja"><span>日本語</span></a></li><li><a href="https://sv.wikipedia.org/wiki/De_Bruijn-graf" lang="sv" hreflang="sv"><span>Svenska</span></a></li>
+			</ul>
+			<div><span><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q3066095#sitelinks-wikipedia">Edit links</a></span></div>
+		</div>
+	</div>
+</div>
+</header>
+				<div>
+					<div>
+						<div id="left-navigation">
+							<nav>
+<div id="p-associated-pages"  >
+	<div>
+		<ul>
+			<li id="ca-nstab-main"><a data-mw-interface  href="/wiki/De_Bruijn_graph" accesskey="c"><span>Article</span></a>
+</li>
+<li id="ca-talk"><a data-mw-interface  href="/wiki/Talk:De_Bruijn_graph" rel="discussion" accesskey="t"><span>Talk</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="vector-variants-dropdown"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox"  ><span>English</span>
+	</label>
+	<div>
+<div id="p-variants"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+							</nav>
+						</div>
+						<div id="right-navigation">
+							<nav>
+<div id="p-views"  >
+	<div>
+		<ul>
+			<li id="ca-view"><a data-mw-interface  href="/wiki/De_Bruijn_graph"><span>Read</span></a>
+</li>
+<li id="ca-edit"><a data-mw-interface  href="/w/index.php?title=De_Bruijn_graph&amp;action=edit" accesskey="e"><span>Edit</span></a>
+</li>
+<li id="ca-history"><a data-mw-interface  href="/w/index.php?title=De_Bruijn_graph&amp;action=history" accesskey="h"><span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+			</nav>
+							<nav>
+<div id="vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button"    >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox"  ><span></span>
+<span>Tools</span>
+	</label>
+	<div>
+									<div id="vector-page-tools-unpinned-container">
+<div id="vector-page-tools">
+	<div
+>
+	<div>Tools</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-cactions"  >
+	<div>
+		Actions
+	</div>
+	<div>
+		<ul>
+			<li id="ca-view-more"><a data-mw-interface  href="/wiki/De_Bruijn_graph"><span></span>
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more"><a data-mw-interface  href="/w/index.php?title=De_Bruijn_graph&amp;action=edit" accesskey="e"><span></span>
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more"><a data-mw-interface  href="/w/index.php?title=De_Bruijn_graph&amp;action=history" accesskey="h"><span></span>
+<span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="p-tb"  >
+	<div>
+		General
+	</div>
+	<div>
+		<ul>
+			<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/De_Bruijn_graph" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/De_Bruijn_graph" rel="nofollow" accesskey="k"><span>Related changes</span></a></li><li id="t-upload"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink"><a href="/w/index.php?title=De_Bruijn_graph&amp;oldid=1368876410"><span>Permanent link</span></a></li><li id="t-info"><a href="/w/index.php?title=De_Bruijn_graph&amp;action=info"><span>Page information</span></a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=De_Bruijn_graph&amp;id=1368876410&amp;wpFormIdentifier=titleform"><span>Cite this page</span></a></li><li id="t-urlshortener"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fw%2Findex.php%3Ftitle%3DDe_Bruijn_graph%26oldid%3D1368876410"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy"><a href="/w/index.php?title=De_Bruijn_graph&amp;oldid=1368876410&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-coll-print_export"  >
+	<div>
+		Print/export
+	</div>
+	<div>
+		<ul>
+			<li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=De_Bruijn_graph&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print"><a href="javascript:print();" rel="alternate" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-wikibase-otherprojects"  >
+	<div>
+		In other projects
+	</div>
+	<div>
+		<ul>
+			<li><a href="https://commons.wikimedia.org/wiki/Category:De_Bruijn_graphs" hreflang="en"><span>Wikimedia Commons</span></a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q3066095" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+									</div>
+	</div>
+</div>
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div>
+						<nav>
+							<div id="vector-page-tools-pinned-container">
+							</div>
+		</nav>
+						<nav>
+							<div id="vector-appearance-pinned-container">
+				<div id="vector-appearance">
+	<div
+>
+	<div>Appearance</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+</div>
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" data-mw-ve-target-container>
+					<div>
+							<div>
+		</div>
+						<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"><div><span></span><div><div id="mw-revision-info-current"><b>This is the <a href="/wiki/Help:Page_history">current revision</a> of this page, as edited by <span id="mw-revision-name"><a href="/wiki/User:JCW-CleanerBot"><bdi>JCW-CleanerBot</bdi></a> <span>(<a href="/wiki/User_talk:JCW-CleanerBot">talk</a> | <a href="/wiki/Special:Contributions/JCW-CleanerBot">contribs</a>)</span></span> at <span id="mw-revision-date">15:54, 11 August 2026</span><span id="mw-revision-summary"> <span>(<span><a href="#References">→<bdi dir="ltr">References</bdi></a>: </span> mark free doi)</span></span>. The present address (URL) is a <a href="/wiki/Help:Permanent_link">permanent link</a> to this version.</b><span id="revision-info-current-plain">Revision as of 15:54, 11 August 2026 by <a href="/wiki/User:JCW-CleanerBot"><bdi>JCW-CleanerBot</bdi></a> <span>(<a href="/wiki/User_talk:JCW-CleanerBot">talk</a> | <a href="/wiki/Special:Contributions/JCW-CleanerBot">contribs</a>)</span> <span>(<span><a href="#References">→<bdi dir="ltr">References</bdi></a>: </span> mark free doi)</span></span></div><div id="mw-revision-nav">(<a href="/w/index.php?title=De_Bruijn_graph&amp;diff=prev&amp;oldid=1368876410">diff</a>) <a href="/w/index.php?title=De_Bruijn_graph&amp;direction=prev&amp;oldid=1368876410">← Previous revision</a> | Latest revision (diff) | Newer revision → (diff)</div></div></div></div></div>
+					</div>
+					<div id="mw-content-text"><div lang="en" dir="ltr"><section id="mwAQ"><div about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"short description","href":"./Template:Short_description"},"params":{"1":{"wt":"Directed graph representing overlaps between sequences of symbols"}},"i":0}}]}'>Directed graph representing overlaps between sequences of symbols</div><span about="#mwt1"></span>
+<p id="mwAw">In <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Graph_theory" id="mwBA">graph theory</a>, an <span about="#mwt2" typeof="mw:Transclusion" id="mwBQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"n"}},"i":0}}]}'>n</span>-dimensional <b id="mwBg">De Bruijn graph</b> of <span about="#mwt3" typeof="mw:Transclusion" id="mwBw" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span> symbols is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Directed_graph" id="mwCA">directed graph</a> representing overlaps between sequences of symbols. It has <span about="#mwt4" typeof="mw:Transclusion" id="mwCQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m{{sup|n}}"}},"i":0}}]}'>m<sup>n</sup></span> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Vertex_(graph_theory)" id="mwCg">vertices</a>, consisting of all possible <span about="#mwt5" typeof="mw:Transclusion" id="mwCw" data-mw='{"parts":[{"template":{"target":{"wt":"nowrap","href":"./Template:Nowrap"},"params":{"1":{"wt":"length-{{mvar|n}}"}},"i":0}}]}'>length-<span>n</span></span> sequences of the given symbols; the same symbol may appear multiple times in a sequence. For a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Set_(mathematics)" id="mwDA">set</a> of <span about="#mwt6" typeof="mw:Transclusion" id="mwDQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span> symbols <span about="#mwt7" typeof="mw:Transclusion" id="mwDg" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;S&apos;&apos; = {&apos;&apos;s&apos;&apos;{{sub|1}}, …, &apos;&apos;s&apos;&apos;{{sub|&apos;&apos;m&apos;&apos;}}},"}},"i":0}}]}'><i>S</i> = {<i>s</i><sub>1</sub>, …, <i>s</i><sub><i>m</i></sub>},</span> the set of vertices is:</p>
+<dl id="mwDw"><dd id="mwEA"><span typeof="mw:Extension/math" about="#mwt8" id="mwEQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"V=S^n=\\{(s_1,\\dots,s_1,s_1),(s_1,\\dots,s_1,s_2),\\dots,(s_1,\\dots,s_1,s_m),(s_1,\\dots,s_2,s_1),\\dots,(s_m,\\dots,s_m,s_m)\\}."}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle V=S^{n}=\{(s_{1},\dots ,s_{1},s_{1}),(s_{1},\dots ,s_{1},s_{2}),\dots ,(s_{1},\dots ,s_{1},s_{m}),(s_{1},\dots ,s_{2},s_{1}),\dots ,(s_{m},\dots ,s_{m},s_{m})\}.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>V</mi>
+        <mo>=</mo>
+        <msup>
+          <mi>S</mi>
+          <mrow>
+            <mi>n</mi>
+          </mrow>
+        </msup>
+        <mo>=</mo>
+        <mo fence="false" stretchy="false">{</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mi>m</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mi>m</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mi>m</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mi>m</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo fence="false" stretchy="false">}</mo>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle V=S^{n}=\{(s_{1},\dots ,s_{1},s_{1}),(s_{1},\dots ,s_{1},s_{2}),\dots ,(s_{1},\dots ,s_{1},s_{m}),(s_{1},\dots ,s_{2},s_{1}),\dots ,(s_{m},\dots ,s_{m},s_{m})\}.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/cb36badf475c5a6fe726d4faf30d86af7307cb77" alt="{\displaystyle V=S^{n}=\{(s_{1},\dots ,s_{1},s_{1}),(s_{1},\dots ,s_{1},s_{2}),\dots ,(s_{1},\dots ,s_{1},s_{m}),(s_{1},\dots ,s_{2},s_{1}),\dots ,(s_{m},\dots ,s_{m},s_{m})\}.}"/></span></dd></dl>
+<p id="mwEg">If one of the vertices can be expressed as another vertex by shifting all its symbols by one place to the left and adding a new symbol at the end of this vertex, then the latter has a directed edge to the former vertex. Thus the set of arcs (that is, directed edges) is</p>
+<dl id="mwEw"><dd id="mwFA"><span typeof="mw:Extension/math" about="#mwt9" id="mwFQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"E=\\{((t_1,t_2,\\dots,t_n),(t_2,\\dots,t_n,s_j)) : t_i \\in S, 1\\le i\\le n, 1\\le j\\le m \\}."}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle E=\{((t_{1},t_{2},\dots ,t_{n}),(t_{2},\dots ,t_{n},s_{j})):t_{i}\in S,1\leq i\leq n,1\leq j\leq m\}.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>E</mi>
+        <mo>=</mo>
+        <mo fence="false" stretchy="false">{</mo>
+        <mo stretchy="false">(</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>t</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>t</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>t</mi>
+          <mrow>
+            <mi>n</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>,</mo>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>t</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <mo>…</mo>
+        <mo>,</mo>
+        <msub>
+          <mi>t</mi>
+          <mrow>
+            <mi>n</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>s</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo stretchy="false">)</mo>
+        <mo>:</mo>
+        <msub>
+          <mi>t</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>∈</mo>
+        <mi>S</mi>
+        <mo>,</mo>
+        <mn>1</mn>
+        <mo>≤</mo>
+        <mi>i</mi>
+        <mo>≤</mo>
+        <mi>n</mi>
+        <mo>,</mo>
+        <mn>1</mn>
+        <mo>≤</mo>
+        <mi>j</mi>
+        <mo>≤</mo>
+        <mi>m</mi>
+        <mo fence="false" stretchy="false">}</mo>
+        <mo>.</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle E=\{((t_{1},t_{2},\dots ,t_{n}),(t_{2},\dots ,t_{n},s_{j})):t_{i}\in S,1\leq i\leq n,1\leq j\leq m\}.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/14d739d84938ef57f36df65dc274593d6dd1b807" alt="{\displaystyle E=\{((t_{1},t_{2},\dots ,t_{n}),(t_{2},\dots ,t_{n},s_{j})):t_{i}\in S,1\leq i\leq n,1\leq j\leq m\}.}"/></span></dd></dl>
+<p id="mwFg">Although De Bruijn graphs are named after <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nicolaas_Govert_de_Bruijn" id="mwFw">Nicolaas Govert de Bruijn</a>, they were invented independently by both de Bruijn<sup about="#mwt10" id="cite_ref-Bruijn1946_1-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Bruijn1946"}}'><a href="#cite_note-Bruijn1946-1" id="mwGA"><span id="mwGQ"><span id="mwGg">[</span>1<span id="mwGw">]</span></span></a></sup> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/I._J._Good" id="mwHA">I. J. Good</a>.<sup about="#mwt11" id="cite_ref-Good1946_2-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Good1946"}}'><a href="#cite_note-Good1946-2" id="mwHQ"><span id="mwHg"><span id="mwHw">[</span>2<span id="mwIA">]</span></span></a></sup> Much earlier, Camille Flye Sainte-Marie<sup about="#mwt12" id="cite_ref-Flye1894_3-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Flye1894"}}'><a href="#cite_note-Flye1894-3" id="mwIQ"><span id="mwIg"><span id="mwIw">[</span>3<span id="mwJA">]</span></span></a></sup> implicitly used their properties.</p>
+<meta property="mw:PageProp/toc" id="mwJQ" data-mw='{"autoGenerated":true}'/></section><section id="mwJg"><div><h2 id="Properties">Properties</h2><span><span>[</span><a href="/w/index.php?title=De_Bruijn_graph&amp;action=edit&amp;section=1"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwJw"><li id="mwKA">If <span about="#mwt13" typeof="mw:Transclusion" id="mwKQ" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;n&apos;&apos; = 1"}},"i":0}}]}'><i>n</i> = 1</span>, then the condition for any two vertices forming an edge holds <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Vacuously" id="mwKg">vacuously</a>, and hence all the vertices are connected, forming a total of <span about="#mwt14" typeof="mw:Transclusion" id="mwKw" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;m&apos;&apos;{{sup|2}}"}},"i":0}}]}'><i>m</i><sup>2</sup></span> edges.</li>
+<li id="mwLA">Each vertex has exactly <span about="#mwt15" typeof="mw:Transclusion" id="mwLQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span> incoming and <span about="#mwt16" typeof="mw:Transclusion" id="mwLg" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span> outgoing edges.</li>
+<li id="mwLw">Each <span about="#mwt17" typeof="mw:Transclusion" id="mwMA" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"n"}},"i":0}}]}'>n</span>-dimensional De Bruijn graph is the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Line_graph" id="mwMQ">line digraph</a> of the <span about="#mwt18" typeof="mw:Transclusion" id="mwMg" data-mw='{"parts":[{"template":{"target":{"wt":"nowrap","href":"./Template:Nowrap"},"params":{"1":{"wt":"{{math|(&apos;&apos;n&apos;&apos; − 1)}}-dimensional"}},"i":0}}]}'><span>(<i>n</i> − 1)</span>-dimensional</span> De Bruijn graph with the same set of symbols.<sup about="#mwt19" id="cite_ref-Zhang1987_4-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Zhang1987"}}'><a href="#cite_note-Zhang1987-4" id="mwMw"><span id="mwNA"><span id="mwNQ">[</span>4<span id="mwNg">]</span></span></a></sup></li>
+<li id="mwNw">Each De Bruijn graph is <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Euler_cycle" id="mwOA">Eulerian</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamiltonian_graph" id="mwOQ">Hamiltonian</a>. The Euler cycles and Hamiltonian cycles of these graphs (equivalent to each other via the line graph construction) are <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/De_Bruijn_sequence" id="mwOg">De Bruijn sequences</a>.</li></ul>
+<p id="mwOw">The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Line_graph" id="mwPA">line graph</a> construction of the three smallest binary De Bruijn graphs is depicted below. As can be seen in the illustration, each vertex of the <span about="#mwt20" typeof="mw:Transclusion" id="mwPQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"n"}},"i":0}}]}'>n</span>-dimensional De Bruijn graph corresponds to an edge of the <span about="#mwt21" typeof="mw:Transclusion" id="mwPg" data-mw='{"parts":[{"template":{"target":{"wt":"nowrap","href":"./Template:Nowrap"},"params":{"1":{"wt":"{{math|(&apos;&apos;n&apos;&apos; − 1)}}-dimensional"}},"i":0}}]}'><span>(<i>n</i> − 1)</span>-dimensional</span> De Bruijn graph, and each edge in the <span about="#mwt22" typeof="mw:Transclusion" id="mwPw" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"n"}},"i":0}}]}'>n</span>-dimensional De Bruijn graph corresponds to a two-edge path in the <span about="#mwt23" typeof="mw:Transclusion" id="mwQA" data-mw='{"parts":[{"template":{"target":{"wt":"nowrap","href":"./Template:Nowrap"},"params":{"1":{"wt":"{{math|(&apos;&apos;n&apos;&apos; − 1)}}-dimensional"}},"i":0}}]}'><span>(<i>n</i> − 1)</span>-dimensional</span> De Bruijn graph.</p>
+<span about="#mwt24" typeof="mw:Transclusion" id="mwQQ" data-mw='{"parts":[{"template":{"target":{"wt":"Wide image","href":"./Template:Wide_image"},"params":{"1":{"wt":"DeBruijn-as-line-digraph.svg"},"2":{"wt":"600px"},"alt":{"wt":"Image showing multiple De Bruijn graphs, each the line graph of the previous one"},"align":{"wt":"center"},"border":{"wt":"no"}},"i":0}}]}'></span><div about="#mwt24" id="mwQg"><div><span typeof="mw:File" data-mw='{"caption":""}'><a href="https://en.wikipedia.org/wiki/File:DeBruijn-as-line-digraph.svg"><img resource="https://en.wikipedia.org/wiki/File:DeBruijn-as-line-digraph.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/9/9d/DeBruijn-as-line-digraph.svg/960px-DeBruijn-as-line-digraph.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" alt="Image showing multiple De Bruijn graphs, each the line graph of the previous one" height="408" width="600"/></a></span></div></div>
+</section><section id="mwQw"><div><h2 id="Dynamical_systems">Dynamical systems</h2><span><span>[</span><a href="/w/index.php?title=De_Bruijn_graph&amp;action=edit&amp;section=2"><span>edit</span></a><span>]</span></span></div>
+<p id="mwRA">Binary De Bruijn graphs can be drawn in such a way that they resemble objects from the theory of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamical_system" id="mwRQ">dynamical systems</a>, such as the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lorenz_attractor" id="mwRg">Lorenz attractor</a>:</p>
+<span about="#mwt26" typeof="mw:Transclusion" id="mwRw" data-mw='{"parts":[{"template":{"target":{"wt":"multiple image","href":"./Template:Multiple_image"},"params":{"total_width":{"wt":"600px"},"image1":{"wt":"DeBruijn-3-2.svg"},"caption1":{"wt":"Binary De Bruijn graph"},"image2":{"wt":"Lorenz attractor2.svg"},"caption2":{"wt":"Lorenz attractor"},"align":{"wt":"center"}},"i":0}}]}'></span><div about="#mwt26"><div><div><div><div><span typeof="mw:File"><a href="https://en.wikipedia.org/wiki/File:DeBruijn-3-2.svg"><img resource="https://en.wikipedia.org/wiki/File:DeBruijn-3-2.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/d/d0/DeBruijn-3-2.svg/330px-DeBruijn-3-2.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="155" width="297"/></a></span></div><div>Binary De Bruijn graph</div></div><div><div><span typeof="mw:File"><a href="https://en.wikipedia.org/wiki/File:Lorenz_attractor2.svg"><img resource="https://en.wikipedia.org/wiki/File:Lorenz_attractor2.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/f/fb/Lorenz_attractor2.svg/330px-Lorenz_attractor2.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="155" width="287"/></a></span></div><div>Lorenz attractor</div></div></div></div></div><span about="#mwt26"></span>
+<p id="mwSA">This analogy can be made rigorous: the <span about="#mwt28" typeof="mw:Transclusion" id="mwSQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"n"}},"i":0}}]}'>n</span>-dimensional <span about="#mwt29" typeof="mw:Transclusion" id="mwSg" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span>-symbol De Bruijn graph is a model of the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bernoulli_map" id="mwSw">Bernoulli map</a></p>
+<dl id="mwTA"><dd id="mwTQ"><span typeof="mw:Extension/math" about="#mwt30" id="mwTg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"x\\mapsto mx\\ \\bmod\\ 1."}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle x\mapsto mx\ {\bmod {\ }}1.}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>x</mi>
+        <mo stretchy="false">↦</mo>
+        <mi>m</mi>
+        <mi>x</mi>
+        <mtext> </mtext>
+        <mrow>
+          <mo lspace="thickmathspace" rspace="thickmathspace">mod</mo>
+          <mrow>
+            <mtext> </mtext>
+          </mrow>
+        </mrow>
+        <mn>1.</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle x\mapsto mx\ {\bmod {\ }}1.}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0fe5b6c724c3fcf2e0301267e6f7af99951ecd49" alt="{\displaystyle x\mapsto mx\ {\bmod {\ }}1.}"/></span></dd></dl>
+<p id="mwTw">The Bernoulli map (also called the <span about="#mwt31" typeof="mw:Transclusion" id="mwUA" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"[[2x mod 1 map|2&apos;&apos;x&apos;&apos; mod 1]]"}},"i":0}}]}'><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/2x_mod_1_map">2<i>x</i> mod 1</a></span> map for <span about="#mwt32" typeof="mw:Transclusion" id="mwUQ" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;m&apos;&apos; = 2"}},"i":0}}]}'><i>m</i> = 2</span>) is an <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ergodic" id="mwUg">ergodic</a> dynamical system, which can be understood to be a single <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Shift_operator" id="mwUw">shift</a> of a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/P-adic" id="mwVA"><span about="#mwt39" typeof="mw:Transclusion" id="mwVQ" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span>-adic number</a>.<sup about="#mwt38" id="cite_ref-Leroux2002_5-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Leroux2002"}}'><a href="#cite_note-Leroux2002-5" id="mwVg"><span id="mwVw"><span id="mwWA">[</span>5<span id="mwWQ">]</span></span></a></sup> The trajectories of this dynamical system correspond to walks in the De Bruijn graph, where the correspondence is given by mapping each real <span about="#mwt33" typeof="mw:Transclusion" id="mwWg" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"x"}},"i":0}}]}'>x</span> in the interval <span about="#mwt34" typeof="mw:Transclusion" id="mwWw" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"[0,1)"}},"i":0}}]}'>[0,1)</span> to the vertex corresponding to the first <span about="#mwt35" typeof="mw:Transclusion" id="mwXA" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"n"}},"i":0}}]}'>n</span> digits in the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Radix" id="mwXQ">base</a>-<span about="#mwt36" typeof="mw:Transclusion" id="mwXg" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"m"}},"i":0}}]}'>m</span> representation of <span about="#mwt37" typeof="mw:Transclusion" id="mwXw" data-mw='{"parts":[{"template":{"target":{"wt":"mvar","href":"./Template:Mvar"},"params":{"1":{"wt":"x"}},"i":0}}]}'>x</span>. Equivalently, walks in the De Bruijn graph correspond to trajectories in a one-sided <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Subshift_of_finite_type" id="mwYA">subshift of finite type</a>.</p>
+<figure typeof="mw:File/Thumb" id="mwYQ"><a href="https://en.wikipedia.org/wiki/File:De_Bruijn_binary_graph.svg" id="mwYg"><img resource="https://en.wikipedia.org/wiki/File:De_Bruijn_binary_graph.svg" src="//thumb.wikimedia.org/wikipedia/commons/thumb/b/b2/De_Bruijn_binary_graph.svg/500px-De_Bruijn_binary_graph.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="255" width="340" id="mwYw"/></a><figcaption id="mwZA">Directed graphs of two <span about="#mwt40" typeof="mw:Transclusion" id="mwZQ" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;B&apos;&apos;(2,3)"}},"i":0}}]}'><i>B</i>(2,3)</span> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/De_Bruijn_sequence" id="mwZg">de Bruijn sequences</a> and a <span about="#mwt41" typeof="mw:Transclusion" id="mwZw" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;B&apos;&apos;(2,4)"}},"i":0}}]}'><i>B</i>(2,4)</span> sequence. In <span about="#mwt42" typeof="mw:Transclusion" id="mwaA" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;B&apos;&apos;(2,3)"}},"i":0}}]}'><i>B</i>(2,3)</span>, each vertex is visited once, whereas in <span about="#mwt43" typeof="mw:Transclusion" id="mwaQ" data-mw='{"parts":[{"template":{"target":{"wt":"math","href":"./Template:Math"},"params":{"1":{"wt":"&apos;&apos;B&apos;&apos;(2,4)"}},"i":0}}]}'><i>B</i>(2,4)</span>, each edge is traversed once.</figcaption></figure>
+<p id="mwag">Embeddings resembling this one can be used to show that the binary De Bruijn graphs have <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Queue_number" id="mwaw">queue number</a> 2<sup about="#mwt44" id="cite_ref-HeathRosenberg_6-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"HeathRosenberg"}}'><a href="#cite_note-HeathRosenberg-6" id="mwbA"><span id="mwbQ"><span id="mwbg">[</span>6<span id="mwbw">]</span></span></a></sup> and that they have <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Book_thickness" id="mwcA">book thickness</a> at most 5.<sup about="#mwt45" id="cite_ref-Obrenic_7-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Obrenic"}}'><a href="#cite_note-Obrenic-7" id="mwcQ"><span id="mwcg"><span id="mwcw">[</span>7<span id="mwdA">]</span></span></a></sup></p>
+</section><section id="mwdQ"><div><h2 id="Uses">Uses</h2><span><span>[</span><a href="/w/index.php?title=De_Bruijn_graph&amp;action=edit&amp;section=3"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwdg"><li id="mwdw">Some <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Grid_network" id="mweA">grid network</a> topologies are De Bruijn graphs.</li>
+<li id="mweQ">The <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Distributed_hash_table" id="mweg">distributed hash table</a> protocol <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Koorde" id="mwew">Koorde</a> uses a De Bruijn graph.</li>
+<li id="mwfA">In <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics" id="mwfQ">bioinformatics</a>, De Bruijn graphs are used for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/De_novo_sequence_assemblers" id="mwfg"><i id="mwfw">de novo</i> assembly</a> of sequencing reads into a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Genome" id="mwgA">genome</a>.<sup about="#mwt46" id="cite_ref-Pevzner2001a_8-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Pevzner2001a"}}'><a href="#cite_note-Pevzner2001a-8" id="mwgQ"><span id="mwgg"><span id="mwgw">[</span>8<span id="mwhA">]</span></span></a></sup><sup about="#mwt47" id="cite_ref-Pevzner2001b_9-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Pevzner2001b"}}'><a href="#cite_note-Pevzner2001b-9" id="mwhQ"><span id="mwhg"><span id="mwhw">[</span>9<span id="mwiA">]</span></span></a></sup><sup about="#mwt48" id="cite_ref-zerbino2008_10-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"zerbino2008"}}'><a href="#cite_note-zerbino2008-10" id="mwiQ"><span id="mwig"><span id="mwiw">[</span>10<span id="mwjA">]</span></span></a></sup><sup about="#mwt49" id="cite_ref-chikhi2014representation_11-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"chikhi2014representation"}}'><a href="#cite_note-chikhi2014representation-11" id="mwjQ"><span id="mwjg"><span id="mwjw">[</span>11<span id="mwkA">]</span></span></a></sup><sup about="#mwt50" id="cite_ref-ukmss-37901_12-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"ukmss-37901"}}'><a href="#cite_note-ukmss-37901-12" id="mwkQ"><span id="mwkg"><span id="mwkw">[</span>12<span id="mwlA">]</span></span></a></sup> Instead of the complete De Bruijn graphs described above that contain all possible k-mers, de novo sequence assemblers make use of De Bruijn subgraphs that contain only the k-mers observed in a sequencing dataset.</li>
+<li id="mwlQ">In <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Time_series" id="mwlg">time series</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Forecasting" id="mwlw">forecasting</a>, De Bruijn graphs have been adapted to encode temporal patterns by mapping discrete subsequences (n-grams) of observations to graph nodes. This enables the modeling of sequential dependencies in symbolic or <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Discretized" id="mwmA">discretized</a> time series data.<sup about="#mwt51" id="cite_ref-cakiroglu2024_13-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"cakiroglu2024"}}'><a href="#cite_note-cakiroglu2024-13" id="mwmQ"><span id="mwmg"><span id="mwmw">[</span>13<span id="mwnA">]</span></span></a></sup><sup about="#mwt52" id="cite_ref-cakiroglu2024hypo_14-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"cakiroglu2024hypo"}}'><a href="#cite_note-cakiroglu2024hypo-14" id="mwnQ"><span id="mwng"><span id="mwnw">[</span>14<span id="mwoA">]</span></span></a></sup> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Multivariate_statistics" id="mwoQ">Multivariate</a> De Bruijn graphs extend this idea by jointly encoding patterns across multiple correlated variables, allowing for the representation of complex inter-variable temporal dynamics in multivariate time series.<sup about="#mwt53" id="cite_ref-cakiroglu2025_15-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"cakiroglu2025"}}'><a href="#cite_note-cakiroglu2025-15" id="mwog"><span id="mwow"><span id="mwpA">[</span>15<span id="mwpQ">]</span></span></a></sup></li></ul>
+</section><section id="mwpg"><div><h2 id="See_also">See also</h2><span><span>[</span><a href="/w/index.php?title=De_Bruijn_graph&amp;action=edit&amp;section=4"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwpw"><li id="mwqA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/De_Bruijn_torus" id="mwqQ">De Bruijn torus</a></li>
+<li id="mwqg"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_graph" id="mwqw">Hamming graph</a></li>
+<li id="mwrA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Kautz_graph" id="mwrQ">Kautz graph</a></li></ul>
+</section><section id="mwrg"><div><h2 id="References">References</h2><span><span>[</span><a href="/w/index.php?title=De_Bruijn_graph&amp;action=edit&amp;section=5"><span>edit</span></a><span>]</span></span></div>
+<div typeof="mw:Extension/references" about="#mwt101" id="mw-g" data-mw='{"name":"references","attrs":{},"body":{"html":"\n&lt;sup about=\"#mwt56\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwrw\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Bruijn1946\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Bruijn1946-1\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Bruijn1946-1\" id=\"mwsA\">&lt;span class=\"mw-reflink-text\" id=\"mwsQ\">&lt;span class=\"cite-bracket\" id=\"mwsg\">[&lt;/span>1&lt;span class=\"cite-bracket\" id=\"mwsw\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt59\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwtA\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Flye1894\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Flye1894-3\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Flye1894-3\" id=\"mwtQ\">&lt;span class=\"mw-reflink-text\" id=\"mwtg\">&lt;span class=\"cite-bracket\" id=\"mwtw\">[&lt;/span>3&lt;span class=\"cite-bracket\" id=\"mwuA\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt62\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwuQ\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Good1946\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Good1946-2\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Good1946-2\" id=\"mwug\">&lt;span class=\"mw-reflink-text\" id=\"mwuw\">&lt;span class=\"cite-bracket\" id=\"mwvA\">[&lt;/span>2&lt;span class=\"cite-bracket\" id=\"mwvQ\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt65\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwvg\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"HeathRosenberg\"},\"body\":{\"id\":\"mw-reference-text-cite_note-HeathRosenberg-6\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-HeathRosenberg-6\" id=\"mwvw\">&lt;span class=\"mw-reflink-text\" id=\"mwwA\">&lt;span class=\"cite-bracket\" id=\"mwwQ\">[&lt;/span>6&lt;span class=\"cite-bracket\" id=\"mwwg\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt69\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwww\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Leroux2002\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Leroux2002-5\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Leroux2002-5\" id=\"mwxA\">&lt;span class=\"mw-reflink-text\" id=\"mwxQ\">&lt;span class=\"cite-bracket\" id=\"mwxg\">[&lt;/span>5&lt;span class=\"cite-bracket\" id=\"mwxw\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt72\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwyA\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Zhang1987\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Zhang1987-4\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Zhang1987-4\" id=\"mwyQ\">&lt;span class=\"mw-reflink-text\" id=\"mwyg\">&lt;span class=\"cite-bracket\" id=\"mwyw\">[&lt;/span>4&lt;span class=\"cite-bracket\" id=\"mwzA\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt75\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mwzQ\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Pevzner2001a\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Pevzner2001a-8\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Pevzner2001a-8\" id=\"mwzg\">&lt;span class=\"mw-reflink-text\" id=\"mwzw\">&lt;span class=\"cite-bracket\" id=\"mw0A\">[&lt;/span>8&lt;span class=\"cite-bracket\" id=\"mw0Q\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt78\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw0g\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Pevzner2001b\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Pevzner2001b-9\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Pevzner2001b-9\" id=\"mw0w\">&lt;span class=\"mw-reflink-text\" id=\"mw1A\">&lt;span class=\"cite-bracket\" id=\"mw1Q\">[&lt;/span>9&lt;span class=\"cite-bracket\" id=\"mw1g\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt81\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw1w\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"zerbino2008\"},\"body\":{\"id\":\"mw-reference-text-cite_note-zerbino2008-10\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-zerbino2008-10\" id=\"mw2A\">&lt;span class=\"mw-reflink-text\" id=\"mw2Q\">&lt;span class=\"cite-bracket\" id=\"mw2g\">[&lt;/span>10&lt;span class=\"cite-bracket\" id=\"mw2w\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt84\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw3A\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"chikhi2014representation\"},\"body\":{\"id\":\"mw-reference-text-cite_note-chikhi2014representation-11\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-chikhi2014representation-11\" id=\"mw3Q\">&lt;span class=\"mw-reflink-text\" id=\"mw3g\">&lt;span class=\"cite-bracket\" id=\"mw3w\">[&lt;/span>11&lt;span class=\"cite-bracket\" id=\"mw4A\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt87\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw4Q\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"Obrenic\"},\"body\":{\"id\":\"mw-reference-text-cite_note-Obrenic-7\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-Obrenic-7\" id=\"mw4g\">&lt;span class=\"mw-reflink-text\" id=\"mw4w\">&lt;span class=\"cite-bracket\" id=\"mw5A\">[&lt;/span>7&lt;span class=\"cite-bracket\" id=\"mw5Q\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt90\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw5g\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"ukmss-37901\"},\"body\":{\"id\":\"mw-reference-text-cite_note-ukmss-37901-12\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-ukmss-37901-12\" id=\"mw5w\">&lt;span class=\"mw-reflink-text\" id=\"mw6A\">&lt;span class=\"cite-bracket\" id=\"mw6Q\">[&lt;/span>12&lt;span class=\"cite-bracket\" id=\"mw6g\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt94\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw6w\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"cakiroglu2025\"},\"body\":{\"id\":\"mw-reference-text-cite_note-cakiroglu2025-15\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-cakiroglu2025-15\" id=\"mw7A\">&lt;span class=\"mw-reflink-text\" id=\"mw7Q\">&lt;span class=\"cite-bracket\" id=\"mw7g\">[&lt;/span>15&lt;span class=\"cite-bracket\" id=\"mw7w\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt97\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw8A\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"cakiroglu2024\"},\"body\":{\"id\":\"mw-reference-text-cite_note-cakiroglu2024-13\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-cakiroglu2024-13\" id=\"mw8Q\">&lt;span class=\"mw-reflink-text\" id=\"mw8g\">&lt;span class=\"cite-bracket\" id=\"mw8w\">[&lt;/span>13&lt;span class=\"cite-bracket\" id=\"mw9A\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n&lt;sup about=\"#mwt100\" class=\"mw-ref reference\" rel=\"dc:references\" typeof=\"mw:Extension/ref\" id=\"mw9Q\" data-mw=&apos;{\"name\":\"ref\",\"attrs\":{\"name\":\"cakiroglu2024hypo\"},\"body\":{\"id\":\"mw-reference-text-cite_note-cakiroglu2024hypo-14\"}}&apos;>&lt;a href=\"./De_Bruijn_graph#cite_note-cakiroglu2024hypo-14\" id=\"mw9g\">&lt;span class=\"mw-reflink-text\" id=\"mw9w\">&lt;span class=\"cite-bracket\" id=\"mw-A\">[&lt;/span>14&lt;span class=\"cite-bracket\" id=\"mw-Q\">]&lt;/span>&lt;/span>&lt;/a>&lt;/sup>\n"}}'><ol id="mw-w"><li about="#cite_note-Bruijn1946-1" id="cite_note-Bruijn1946-1"><span id="mw_A"><a href="#cite_ref-Bruijn1946_1-0" rel="mw:referencedBy" id="mw_Q"><span id="mw_g">↑</span></a></span> <span id="mw-reference-text-cite_note-Bruijn1946-1"><cite id="CITEREFde_Bruijn1946" about="#mwt54"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nicolaas_Govert_de_Bruijn" id="mwAQA">de Bruijn, N. G.</a> (1946). "A combinatorial problem". <i id="mwAQE"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Indagationes_Mathematicae" id="mwAQI">Indagationes Mathematicae</a></i>. <b id="mwAQM">49</b>: <span id="mwAQQ">758–</span>764. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MR_(identifier)" id="mwAQU">MR</a><span typeof="mw:Entity" id="mwAQY"> </span><a rel="mw:ExtLink nofollow" href="https://mathscinet.ams.org/mathscinet-getitem?mr=0018142" id="mwAQc">0018142</a>.</cite><span about="#mwt54" id="mwAQg"></span></span></li>
+<li about="#cite_note-Good1946-2" id="cite_note-Good1946-2"><span id="mwAQk"><a href="#cite_ref-Good1946_2-0" rel="mw:referencedBy" id="mwAQo"><span id="mwAQs">↑</span></a></span> <span id="mw-reference-text-cite_note-Good1946-2">
+<cite id="CITEREFGood1946" about="#mwt60"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/I._J._Good" id="mwAQ0">Good, I. J.</a> (1946). "Normal recurring decimals". <i id="mwAQ4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_the_London_Mathematical_Society" id="mwAQ8">Journal of the London Mathematical Society</a></i>. <b id="mwARA">21</b> (3): <span id="mwARE">167–</span>169. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwARI">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1112%2Fjlms%2Fs1-21.3.167" id="mwARM">10.1112/jlms/s1-21.3.167</a>.</cite><span about="#mwt60" id="mwARQ"></span>
+</span></li>
+<li about="#cite_note-Flye1894-3" id="cite_note-Flye1894-3"><span id="mwARU"><a href="#cite_ref-Flye1894_3-0" rel="mw:referencedBy" id="mwARY"><span id="mwARc">↑</span></a></span> <span id="mw-reference-text-cite_note-Flye1894-3">
+<cite id="CITEREFFlye_Sainte-Marie1894" about="#mwt57">Flye Sainte-Marie, C. (1894). "Question 48". <i id="mwARk"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/L'Intermédiaire_des_Mathématiciens" id="mwARo">L'Intermédiaire des Mathématiciens</a></i>. <b id="mwARs">1</b>: <span id="mwARw">107–</span>110.</cite><span about="#mwt57" id="mwAR0"></span>
+</span></li>
+<li about="#cite_note-Zhang1987-4" id="cite_note-Zhang1987-4"><span id="mwAR4"><a href="#cite_ref-Zhang1987_4-0" rel="mw:referencedBy" id="mwAR8"><span id="mwASA">↑</span></a></span> <span id="mw-reference-text-cite_note-Zhang1987-4">
+<cite id="CITEREFZhangLin1987" about="#mwt70">Zhang, Fu Ji; Lin, Guo Ning (1987). "On the de Bruijn–Good graphs". <i id="mwASI"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Acta_Mathematica_Sinica" id="mwASM">Acta Mathematica Sinica</a></i>. <b id="mwASQ">30</b> (2): <span id="mwASU">195–</span>205.</cite><span about="#mwt70" id="mwASY"></span>
+</span></li>
+<li about="#cite_note-Leroux2002-5" id="cite_note-Leroux2002-5"><span id="mwASc"><a href="#cite_ref-Leroux2002_5-0" rel="mw:referencedBy" id="mwASg"><span id="mwASk">↑</span></a></span> <span id="mw-reference-text-cite_note-Leroux2002-5">\\Z&lt;/math>"},"year":{"wt":"2005"},"volume":{"wt":"2005"},"doi-access":{"wt":"free"}},"i":0}}]}'/><cite id="CITEREFLeroux2005" about="#mwt66">Leroux, Philippe (2005). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1155%2FIJMMS.2005.3979" id="mwASs">"Coassociative grammar, periodic orbits, and quantum random walk over <span typeof="mw:Extension/math" about="#mwt68" id="mwASw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\\Z"}}'><span id="mwAS0"><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle \mathbb {Z} }" id="mwAS4">
+  <semantics id="mwAS8">
+    <mrow id="mwATA">
+      <mstyle displaystyle="true" scriptlevel="0" id="mwATE">
+        <mrow id="mwATI">
+          <mi mathvariant="double-struck" id="mwATM">Z</mi>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex" id="mwATQ">{\displaystyle \mathbb {Z} }</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/449494a083e0a1fda2b61c62b2f09b6bee4633dc" alt="{\displaystyle \mathbb {Z} }" id="mwATU"/></span>"</a>. <i id="mwATY">International Journal of Mathematics and Mathematical Sciences</i>. <b id="mwATc">2005</b> (24): <span id="mwATg">3979–</span>3996. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwATk">arXiv</a>:<span id="mwATo"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/quant-ph/0209100" id="mwATs">quant-ph/0209100</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwATw">doi</a>:<span id="mwAT0"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1155%2FIJMMS.2005.3979" id="mwAT4">10.1155/IJMMS.2005.3979</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MR_(identifier)" id="mwAT8">MR</a><span typeof="mw:Entity" id="mwAUA"> </span><a rel="mw:ExtLink nofollow" href="https://mathscinet.ams.org/mathscinet-getitem?mr=2204471" id="mwAUE">2204471</a>.</cite><span about="#mwt66" id="mwAUI"></span></span></li>
+<li about="#cite_note-HeathRosenberg-6" id="cite_note-HeathRosenberg-6"><span id="mwAUM"><a href="#cite_ref-HeathRosenberg_6-0" rel="mw:referencedBy" id="mwAUQ"><span id="mwAUU">↑</span></a></span> <span id="mw-reference-text-cite_note-HeathRosenberg-6">
+<cite id="CITEREFHeathRosenberg1992" about="#mwt63">Heath, Lenwood S.; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Arnold_L._Rosenberg" id="mwAUc">Rosenberg, Arnold L.</a> (1992). "Laying out graphs using queues". <i id="mwAUg"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SIAM_Journal_on_Computing" id="mwAUk">SIAM Journal on Computing</a></i>. <b id="mwAUo">21</b> (5): <span id="mwAUs">927–</span>958. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAUw">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1137%2F0221055" id="mwAU0">10.1137/0221055</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MR_(identifier)" id="mwAU4">MR</a><span typeof="mw:Entity" id="mwAU8"> </span><a rel="mw:ExtLink nofollow" href="https://mathscinet.ams.org/mathscinet-getitem?mr=1181408" id="mwAVA">1181408</a>.</cite><span about="#mwt63" id="mwAVE"></span>
+</span></li>
+<li about="#cite_note-Obrenic-7" id="cite_note-Obrenic-7"><span id="mwAVI"><a href="#cite_ref-Obrenic_7-0" rel="mw:referencedBy" id="mwAVM"><span id="mwAVQ">↑</span></a></span> <span id="mw-reference-text-cite_note-Obrenic-7">
+<cite id="CITEREFObrenić1993" about="#mwt85">Obrenić, Bojana (1993). "Embedding de Bruijn and shuffle-exchange graphs in five pages". <i id="mwAVY"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SIAM_Journal_on_Discrete_Mathematics" id="mwAVc">SIAM Journal on Discrete Mathematics</a></i>. <b id="mwAVg">6</b> (4): <span id="mwAVk">642–</span>654. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAVo">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1137%2F0406049" id="mwAVs">10.1137/0406049</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MR_(identifier)" id="mwAVw">MR</a><span typeof="mw:Entity" id="mwAV0"> </span><a rel="mw:ExtLink nofollow" href="https://mathscinet.ams.org/mathscinet-getitem?mr=1241401" id="mwAV4">1241401</a>.</cite><span about="#mwt85" id="mwAV8"></span>
+</span></li>
+<li about="#cite_note-Pevzner2001a-8" id="cite_note-Pevzner2001a-8"><span id="mwAWA"><a href="#cite_ref-Pevzner2001a_8-0" rel="mw:referencedBy" id="mwAWE"><span id="mwAWI">↑</span></a></span> <span id="mw-reference-text-cite_note-Pevzner2001a-8">
+<cite id="CITEREFPevznerTangWaterman2001" about="#mwt73"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pavel_A._Pevzner" id="mwAWQ">Pevzner, Pavel A.</a>; Tang, Haixu; <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Michael_Waterman" id="mwAWU">Waterman, Michael S.</a> (2001). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC55524" id="mwAWY">"An Eulerian path approach to DNA fragment assembly"</a>. <i id="mwAWc"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Proceedings_of_the_National_Academy_of_Sciences_of_the_United_States_of_America" id="mwAWg">Proceedings of the National Academy of Sciences</a></i>. <b id="mwAWk">98</b> (17): <span id="mwAWo">9748–</span>9753. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwAWs">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/2001PNAS...98.9748P" id="mwAWw">2001PNAS...98.9748P</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAW0">doi</a>:<span id="mwAW4"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1073%2Fpnas.171285098" id="mwAW8">10.1073/pnas.171285098</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwAXA">PMC</a><span typeof="mw:Entity" id="mwAXE"> </span><span id="mwAXI"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC55524" id="mwAXM">55524</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAXQ">PMID</a><span typeof="mw:Entity" id="mwAXU"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/11504945" id="mwAXY">11504945</a>.</cite><span about="#mwt73" id="mwAXc"></span>
+</span></li>
+<li about="#cite_note-Pevzner2001b-9" id="cite_note-Pevzner2001b-9"><span id="mwAXg"><a href="#cite_ref-Pevzner2001b_9-0" rel="mw:referencedBy" id="mwAXk"><span id="mwAXo">↑</span></a></span> <span id="mw-reference-text-cite_note-Pevzner2001b-9">
+<cite id="CITEREFPevznerTang2001" about="#mwt76"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pavel_A._Pevzner" id="mwAXw">Pevzner, Pavel A.</a>; Tang, Haixu (2001). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F17.suppl_1.S225" id="mwAX0">"Fragment Assembly with Double-Barreled Data"</a>. <i id="mwAX4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics_(journal)" id="mwAX8">Bioinformatics</a></i>. <b id="mwAYA">17</b> (Suppl 1): <span id="mwAYE">S225–</span>S233. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAYI">doi</a>:<span id="mwAYM"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F17.suppl_1.S225" id="mwAYQ">10.1093/bioinformatics/17.suppl_1.S225</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAYU">PMID</a><span typeof="mw:Entity" id="mwAYY"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/11473013" id="mwAYc">11473013</a>.</cite><span about="#mwt76" id="mwAYg"></span></span></li>
+<li about="#cite_note-zerbino2008-10" id="cite_note-zerbino2008-10"><span id="mwAYk"><a href="#cite_ref-zerbino2008_10-0" rel="mw:referencedBy" id="mwAYo"><span id="mwAYs">↑</span></a></span> <span id="mw-reference-text-cite_note-zerbino2008-10">
+<cite id="CITEREFZerbinoBirney2008" about="#mwt79">Zerbino, Daniel R.; Birney, Ewan (2008). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2336801" id="mwAY0">"Velvet: algorithms for de novo short read assembly using de Bruijn graphs"</a>. <i id="mwAY4"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Genome_Research" id="mwAY8">Genome Research</a></i>. <b id="mwAZA">18</b> (5): <span id="mwAZE">821–</span>829. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAZI">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1101%2Fgr.074492.107" id="mwAZM">10.1101/gr.074492.107</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwAZQ">PMC</a><span typeof="mw:Entity" id="mwAZU"> </span><span id="mwAZY"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2336801" id="mwAZc">2336801</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAZg">PMID</a><span typeof="mw:Entity" id="mwAZk"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/18349386" id="mwAZo">18349386</a>.</cite><span about="#mwt79" id="mwAZs"></span>
+</span></li>
+<li about="#cite_note-chikhi2014representation-11" id="cite_note-chikhi2014representation-11"><span id="mwAZw"><a href="#cite_ref-chikhi2014representation_11-0" rel="mw:referencedBy" id="mwAZ0"><span id="mwAZ4">↑</span></a></span> <span id="mw-reference-text-cite_note-chikhi2014representation-11">
+<cite id="CITEREFChikhiLimassetJackmanSimpson2014" about="#mwt82">Chikhi, R.; Limasset, A.; Jackman, S.; Simpson, J.; Medvedev, P. (2014). "On the representation of de Bruijn graphs". <i id="mwAaA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_Computational_Biology" id="mwAaE">Journal of Computational Biology</a></i>. <b id="mwAaI">22</b> (5): <span id="mwAaM">336–</span>52. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwAaQ">arXiv</a>:<span id="mwAaU"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/1401.5383" id="mwAaY">1401.5383</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAac">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1089%2Fcmb.2014.0160" id="mwAag">10.1089/cmb.2014.0160</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAak">PMID</a><span typeof="mw:Entity" id="mwAao"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/25629448" id="mwAas">25629448</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwAaw">S2CID</a><span typeof="mw:Entity" id="mwAa0"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:9502231" id="mwAa4">9502231</a>.</cite><span about="#mwt82" id="mwAa8"></span>
+</span></li>
+<li about="#cite_note-ukmss-37901-12" id="cite_note-ukmss-37901-12"><span id="mwAbA"><a href="#cite_ref-ukmss-37901_12-0" rel="mw:referencedBy" id="mwAbE"><span id="mwAbI">↑</span></a></span> <span id="mw-reference-text-cite_note-ukmss-37901-12">
+<cite id="CITEREFIqbalCaccamoTurnerFlicek2012" about="#mwt88">Iqbal, Zamin; Caccamo, Mario; Turner, Isaac; Flicek, Paul; McVean, Gil (2012). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3272472" id="mwAbQ">"De novo assembly and genotyping of variants using colored de Bruijn graphs"</a>. <i id="mwAbU"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nature_Genetics" id="mwAbY">Nature Genetics</a></i>. <b id="mwAbc">44</b> (2): <span id="mwAbg">226–</span>32. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAbk">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1038%2Fng.1028" id="mwAbo">10.1038/ng.1028</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwAbs">PMC</a><span typeof="mw:Entity" id="mwAbw"> </span><span id="mwAb0"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3272472" id="mwAb4">3272472</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAb8">PMID</a><span typeof="mw:Entity" id="mwAcA"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/22231483" id="mwAcE">22231483</a>.</cite><span about="#mwt88" id="mwAcI"></span>
+</span></li>
+<li about="#cite_note-cakiroglu2024-13" id="cite_note-cakiroglu2024-13"><span id="mwAcM"><a href="#cite_ref-cakiroglu2024_13-0" rel="mw:referencedBy" id="mwAcQ"><span id="mwAcU">↑</span></a></span> <span id="mw-reference-text-cite_note-cakiroglu2024-13">
+<cite id="CITEREFCakirogluKurbanBuxtonDalkilic2024" about="#mwt95">Cakiroglu, Mert Onur; Kurban, Hasan; Buxton, Elham Khorasani; Dalkilic, Mehmet (2024). <i id="mwAcc">A Novel Discrete Time Series Representation with De Bruijn Graphs for Enhanced Forecasting Using TimesNet (Extended Abstract)</i>. Proceedings of the 2024 IEEE 11th International Conference on Data Science and Advanced Analytics (DSAA). pp.<span typeof="mw:Entity" id="mwAcg"> </span><span id="mwAck">1–</span>3. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAco">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109%2FDSAA61799.2024.10722826" id="mwAcs">10.1109/DSAA61799.2024.10722826</a>.</cite><span about="#mwt95" id="mwAcw"></span>
+</span></li>
+<li about="#cite_note-cakiroglu2024hypo-14" id="cite_note-cakiroglu2024hypo-14"><span id="mwAc0"><a href="#cite_ref-cakiroglu2024hypo_14-0" rel="mw:referencedBy" id="mwAc4"><span id="mwAc8">↑</span></a></span> <span id="mw-reference-text-cite_note-cakiroglu2024hypo-14">
+<cite id="CITEREFCakirogluKurbanAljihmaniQaraqe2024" about="#mwt98">Cakiroglu, Mert Onur; Kurban, Hasan; Aljihmani, Lilia; Qaraqe, Khalid; Petrovski, Goran; Dalkilic, Mehmet M. (2024). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1038/s41598-024-82649-4" id="mwAdE">"A reinforcement learning approach to effective forecasting of pediatric hypoglycemia in diabetes I patients using an extended de Bruijn graph"</a>. <i id="mwAdI">Scientific Reports</i>. <b id="mwAdM">14</b> (1): 31251. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwAdQ">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/2024NatSR..1431251C" id="mwAdU">2024NatSR..1431251C</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAdY">doi</a>:<span id="mwAdc"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1038%2Fs41598-024-82649-4" id="mwAdg">10.1038/s41598-024-82649-4</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwAdk">PMC</a><span typeof="mw:Entity" id="mwAdo"> </span><span id="mwAds"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC11682413" id="mwAdw">11682413</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAd0">PMID</a><span typeof="mw:Entity" id="mwAd4"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/39732907" id="mwAd8">39732907</a>.</cite><span about="#mwt98" id="mwAeA"></span>
+</span></li>
+<li about="#cite_note-cakiroglu2025-15" id="cite_note-cakiroglu2025-15"><span id="mwAeE"><a href="#cite_ref-cakiroglu2025_15-0" rel="mw:referencedBy" id="mwAeI"><span id="mwAeM">↑</span></a></span> <span id="mw-reference-text-cite_note-cakiroglu2025-15">
+<cite id="CITEREFMert_Onur_Cakiroglu,_Idil_Bilge_Altun,_Hasan_Kurban,_Elham_Buxton,_Mehmet_Dalkilic2025" about="#mwt91">Mert Onur Cakiroglu, Idil Bilge Altun, Hasan Kurban, Elham Buxton, Mehmet Dalkilic (2025). "Multivariate de Bruijn Graphs: A Symbolic Graph Framework for Time Series Forecasting". <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwAeU">arXiv</a>:<span id="mwAeY"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/2505.22768" id="mwAec">2505.22768</a></span> [<a rel="mw:ExtLink nofollow" href="https://arxiv.org/archive/cs.LG" id="mwAeg">cs.LG</a>].</cite><span about="#mwt91" id="mwAek"></span><span about="#mwt91" id="mwAeo"><code id="mwAes">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_arXiv" id="mwAew">cite arXiv</a>}}</code>:  CS1 maint: multiple names: authors list (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:CS1_maint:_multiple_names:_authors_list" id="mwAe0">link</a>)</span>
+</span></li>
+</ol></div>
+</section><section id="mwAe8"><div><h2 id="External_links">External links</h2><span><span>[</span><a href="/w/index.php?title=De_Bruijn_graph&amp;action=edit&amp;section=6"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwAfA"><li id="mwAfE"><a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20141030124239/http://www.homolog.us/Tutorials/index.php?p=2.1&amp;s=1" id="mwAfI">Tutorial on using De Bruijn Graphs in Bioinformatics</a> by Homolog.us</li>
+<li id="mwAfM"><a rel="mw:ExtLink nofollow" href="https://kurbanintelligencelab.com/2024/07/08/de-bruijn-graph/" id="mwAfQ">De Bruijn Graph algorithm tutorial</a> by Kurban Intelligence Lab</li></ul>
+</section>
+</div><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1"></noscript>
+<div>Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=De_Bruijn_graph&amp;oldid=1368876410">https://en.wikipedia.org/w/index.php?title=De_Bruijn_graph&amp;oldid=1368876410</a>"</div></div>
+					<div id="catlinks"><div id="mw-normal-catlinks"><a href="/wiki/Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Dynamical_systems">Dynamical systems</a></li><li><a href="/wiki/Category:Automata_(computation)">Automata (computation)</a></li><li><a href="/wiki/Category:Parametric_families_of_graphs">Parametric families of graphs</a></li><li><a href="/wiki/Category:Directed_graphs">Directed graphs</a></li></ul></div><div id="mw-hidden-catlinks">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:Pages_using_multiple_image_with_auto_scaled_images">Pages using multiple image with auto scaled images</a></li><li><a href="/wiki/Category:CS1_maint:_multiple_names:_authors_list">CS1 maint: multiple names: authors list</a></li></ul></div></div>
+				</div>
+			</main>
+		</div>
+		<div>
+			<footer id="footer" >
+				<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 11 August 2026, at 15:54<span>&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+				<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=De_Bruijn_graph&amp;oldid=1368876410&amp;mobileaction=toggle_view_mobile">Mobile view</a></li>
+</ul>
+				<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/"><picture><source media="(min-width: 500px)" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><picture><source media="(min-width: 500px)" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25"></picture></a></li>
+</ul>
+			</footer>
+		</div>
+	</div>
+</div>
+<div>
+	<div id="vector-sticky-header">
+		<div>
+			<div>
+				<button tabindex="-1"><span></span>
+<span>Search</span>
+			</button>
+		</div>
+		<div role="search">
+			<div>
+				<div>
+					<form action="/w/index.php" id="vector-sticky-search-form">
+						<div  >
+							<div>
+								<input
+								 autocomplete="off"
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button>Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div>
+				<nav>
+					<div id="vector-sticky-header-toc"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button"    >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+						</label>
+						<div>
+						<div id="vector-sticky-header-toc-unpinned-container">
+						</div>
+						</div>
+					</div>
+			</nav>
+				<div ><span lang="en" dir="ltr"><span>De Bruijn graph</span></span></div>
+			</div>
+		</div>
+		<div>
+			<div>
+				<a href="#" id="ca-talk-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-subject-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-history-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-watchstar-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-ve-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-viewsource-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+		</div>
+			<div>
+				<button id="p-lang-btn-sticky-header" tabindex="-1"><span></span>
+<span>8 languages</span>
+			</button>
+			<a href="#" id="ca-addsection-sticky-header" tabindex="-1"><span></span>
+<span>Add topic</span>
+			</a>
+		</div>
+			<div>
+				<div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="p-dock-bottom">
+	<ul>
+	</ul>
+</div>
+</body>
+</html>

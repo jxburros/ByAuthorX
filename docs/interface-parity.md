@@ -14,6 +14,9 @@ document drifts from it.
 | Family | Operation | CLI | MCP tool | REST | Library | GUI |
 | --- | --- | --- | --- | --- | --- | --- |
 | Discovery | version | `byax version` | `byax_version` | `POST /v1/execute` | `byax.__version__` | Help > About ByAuthorX |
+| Discovery | update check | `byax version --check-updates` | `byax_version` (refused) | `POST /v1/execute` (refused) | `byax.updates.check_for_updates` | Help > Check for updates… |
+| Discovery | sample project | `byax sample` | `byax_sample` | `POST /v1/execute` | `byax.samples.install_sample` | Help > Open sample project |
+| Discovery | first-run tour | — (desktop) | — | — | `byax.gui_onboarding.TOUR_STEPS` | Help > Take the tour… |
 | Discovery | capabilities | `byax capabilities` | `byax_capabilities` | `POST /v1/execute` | `byax.providers.list_capabilities` | — (headless) |
 | Discovery | command schema | `byax schema` | `byax_schema` | `POST /v1/execute` | `byax.cli.command_schema` | — (headless) |
 | Discovery | operation schema | `byax schema --topic operations` | `byax_schema` | `POST /v1/execute` | `byax.engine.operation_schema` | — (headless) |
@@ -27,6 +30,9 @@ document drifts from it.
 | Files | conversion preview | `byax convert --dry-run` | `byax_convert` | `POST /v1/execute` | `byax.exchange.conversion_preview` | — (headless) |
 | Files | pack | `byax pack` | `byax_pack` | `POST /v1/execute` | `byax.storage.pack` | — (headless) |
 | Files | unpack | `byax unpack` | `byax_unpack` | `POST /v1/execute` | `byax.storage.unpack` | — (headless) |
+| Files | synced-folder status | `byax sync --action status` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.sync_status` | Tools > Synced folder safety… |
+| Files | conflicted copies | `byax sync --action conflicts` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.find_conflicted_copies` | Tools > Review conflicted copies… |
+| Files | archive merged conflicted copy | `byax sync --action archive-conflict` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.archive_conflicted_copy` | Tools > Review conflicted copies… |
 | Inspection | outline | `byax inspect --outline` | `byax_inspect` | `POST /v1/execute` | `byax.engine.inspect` | View > Outline |
 | Inspection | selected content | `byax inspect --target` | `byax_inspect` | `POST /v1/execute` | `byax.engine.inspect` | View > Inspector |
 | Inspection | styles | `byax inspect --section styles` | `byax_inspect` | `POST /v1/execute` | `byax.engine.inspect` | Format > Define named style… |
@@ -50,9 +56,15 @@ document drifts from it.
 | Review | accept or reject | `byax review --action accept` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review panel |
 | Review | comments | `byax review --action comment` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review > Add comment… |
 | Review | tracked changes | `byax review --action accept-change` | `byax_review` | `POST /v1/execute` | `byax.engine.apply` | Review > Track changes |
+| Review | merge conflicted copy | `byax sync --action merge-conflict` | `byax_sync` | `POST /v1/execute` | `byax.sync_safety.propose_conflicted_copy_merge` | Tools > Review conflicted copies… |
+| Review | send for review (Word) | `byax review-package` | `byax_review_package` | `POST /v1/execute` | `byax.docx_review.create_review_package` | File > Send for review (Word)… |
+| Review | list review packages | `byax review-package --action list` | `byax_review_package` | `POST /v1/execute` | `byax.docx_review.review_packages` | — (headless) |
+| Review | merge reviewed Word copy | `byax merge-review` | `byax_merge_review` | `POST /v1/execute` | `byax.docx_review.merge_reviewed_copy` | File > Merge reviewed copy… |
+| Review | send to beta readers (HTML, PDF, Word) | `byax beta-copy` | `byax_beta_copy` | `POST /v1/execute` | `byax.beta_readers.create_beta_copy` | File > Send to beta readers… |
+| Review | merge reader comments | `byax merge-comments` | `byax_merge_comments` | `POST /v1/execute` | `byax.beta_readers.merge_comments` | File > Import reader comments… |
 | History | list | `byax history` | `byax_history` | `POST /v1/execute` | `byax.engine.inspect` | Review > Revision history… |
 | History | checkpoint | `byax history --action checkpoint` | `byax_history` | `POST /v1/execute` | `byax.engine.checkpoint` | Review > Checkpoint… |
-| History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Create branch… |
+| History | branch | `byax history --action branch` | `byax_history` | `POST /v1/execute` | `byax.engine.branch` | Review > Start alternate draft… |
 | History | restore | `byax history --action restore` | `byax_history` | `POST /v1/execute` | `byax.engine.restore` | Review > Revision history… |
 | History | diff and changes since revision | `byax diff` | `byax_diff` | `POST /v1/execute` | `byax.engine.diff` | Review > Revision history… |
 | Checks | run suites | `byax check` | `byax_check` | `POST /v1/execute` | `byax.checks.run_checks` | Review > Run document checks |
@@ -89,6 +101,10 @@ Known gaps (recorded rather than hidden):
   `review --action propose` / `apply` with explicit operations.
 - **Provider configuration** is refused over MCP and REST by design (`unsupported_feature`);
   configure aliases through the local CLI or desktop.
+- **Update checks** are refused over MCP and REST (`unsupported_feature`): the one network request a
+  version query can make happens only from the local CLI or desktop, on explicit request.
+  `sample` over MCP and REST requires `out` (a path inside the authorized roots).
+- **First-run tour** is desktop-only onboarding with no headless equivalent.
 
 ## One envelope everywhere
 
@@ -137,6 +153,11 @@ verification items.
 | Inspection | file view | `view --as FORMAT [--source]` | `byax_view` | `POST /v1/execute` | `byax.formats.project` | View > File view |
 
 | Inspection | document statistics | `statistics` | `byax_statistics` | execute | `byax.statistics.document_statistics` | Tools > Document statistics |
+| Inspection | readability report | `readability` | `byax_readability` | execute | `byax.readability.readability_report` | Tools > Readability report… |
+| Inspection | chapter pacing series | `readability` | `byax_readability` | execute | `byax.fiction_checks.pacing_series` | Tools > Readability report… |
+| Checks | fiction analysis families | `check --family fiction` | `byax_check` | execute | `byax.fiction_checks.RULES` | Inspector > Checks |
+| Checks | citation audit | `check --citations` | `byax_check` (`citations: true`) | execute | `byax.grounding.audit_citations` | Inspector > Checks (Citation audit) |
+| Editing | re-anchor citation | `apply` (`reanchor_citation`, proposed by the audit) | `byax_apply` | execute | `byax.engine.apply` | Inspector > Checks (Apply proposed anchor updates) |
 | Inspection | linked dependencies | `dependencies` | `byax_dependencies` | execute | `byax.engine.dependency_report` | Tools > Linked assets… |
 | Files | settings collections | `collection` | `byax_collection` | execute | `byax.profiles.export_settings` | Tools > Reusable settings… |
 
@@ -147,5 +168,278 @@ Linked asset retrieval requires explicit authorization in the local CLI or deskt
 | Inspection | attached libraries | `byax library` | `byax_library` | `POST /v1/execute` | `byax.cli_libraries.library_command` | Library / Cite |
 | Search and targeting | library search | `byax library-search` | `byax_library_search` | `POST /v1/execute` | `byax.cli_libraries.library_search` | Library / Cite |
 | Inspection | library passage | `byax library-read` | `byax_library_read` | `POST /v1/execute` | `byax.cli_libraries.library_read` | Library / Cite |
+| Search and targeting | verified absence | `byax library --action verify-absence` | `byax_library` | `POST /v1/execute` | `byax.retrieval.verify_absence` | AI tab (assistant replies) |
 | Review | citation sources | `byax source` | `byax_source` | `POST /v1/execute` | `byax.cli_libraries.source_command` | Library / Cite |
 | Editing | insert citation | `byax cite` | `byax_cite` | `POST /v1/execute` | `byax.cli_libraries.cite_command` | Library / Cite |
+
+## Manuscript projects (binder)
+
+Binder actions are one `project` command. Mutating actions build one canonical `project_*`
+operation and run it through `engine.apply`, so `--expect-revision`, `--request-id` and
+`--dry-run` behave as for `apply`. The Binder panel (outline and corkboard views) sends the same
+operations through the window's `commit`; reordering by drag has keyboard equivalents (Alt+Up/Down/Left/Right
+and the Binder menu), and `byax.project.plan_step`/`plan_drop` build the operation lists for both.
+`draft-synopsis` is an opt-in request to a provider you configured (`--alias`, with `--allow-remote` for a
+remote one; `--dry-run` shows the exact payload without sending it). Its result is a pending proposal.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | project binder | `byax project --action list` | `byax_project` | `POST /v1/execute` | `byax.project.items` | Binder panel (outline) |
+| Inspection | project tree | `byax project --action tree` | `byax_project` | `POST /v1/execute` | `byax.project.tree` | Binder panel (corkboard) |
+| Inspection | project consistency | `byax project --action reconcile` | `byax_project` | `POST /v1/execute` | `byax.project.reconcile` | — (headless) |
+| Inspection | project block map | `byax project --action blocks` | `byax_project` | `POST /v1/execute` | `byax.project.block_map` | — (headless) |
+| Output | project compile inclusion | `byax project --action compile` | `byax_project` | `POST /v1/execute` | `byax.project.compile_plan` | — (headless) |
+| Editing | create binder | `byax project --action init` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Create binder) |
+| Editing | add binder item | `byax project --action add` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Add after) |
+| Editing | remove binder item | `byax project --action remove` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Editing | move binder item | `byax project --action move` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (drag, Alt+Up/Down/Left/Right) |
+| Editing | split binder item | `byax project --action split` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Split at cursor) |
+| Editing | merge binder items | `byax project --action merge` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Merge with next) |
+| Editing | binder status | `byax project --action set-status` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (Status) |
+| Editing | binder word target | `byax project --action set-target` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Tools > Writing goals… |
+| Editing | binder metadata | `byax project --action set-meta` | `byax_project` | `POST /v1/execute` | `byax.engine.apply` | Binder panel (synopsis, kind) |
+| Editing | draft a synopsis (opt-in) | `byax project --action draft-synopsis` | `byax_project` | `POST /v1/execute` | `byax.project.draft_synopsis` | Binder panel (Draft a synopsis…) |
+
+## Writing goals and sessions
+
+`goals` reports progress against the document target and item targets (both stored in the binder and set
+with `project --action set-target`), the daily goal, the session goal and the streak. The daily and
+session goals and the session records are local preferences in the user config directory (keyed by the
+document identity), never part of the document or its history. Reading is available everywhere; setting a
+goal is refused over MCP and REST (`unsupported_feature`) because it writes the preferences of the person
+at this computer, like provider configuration.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | writing goals and progress | `byax goals --action status` | `byax_goals` | `POST /v1/execute` | `byax.goals.status` | Tools > Writing goals… |
+| Inspection | writing history and streaks | `byax goals --action history` | `byax_goals` | `POST /v1/execute` | `byax.goals.history` | Tools > Writing goals… |
+| Editing | daily goal | `byax goals --action set-daily` | `byax_goals` | `POST /v1/execute` | `byax.goals.GoalStore.set_goal` | Tools > Writing goals… |
+| Editing | session goal | `byax goals --action set-session` | `byax_goals` | `POST /v1/execute` | `byax.goals.GoalStore.set_goal` | Tools > Writing goals… |
+
+## Named drafts
+
+`drafts` is the writer-facing view of branches and delta history: save a draft with a note, switch,
+compare two drafts scene by scene, and bring changes from a draft as a reviewable proposal
+(`propose_merge`). The same operations are open to MCP and REST, because they change only the document.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| History | list drafts | `byax drafts --action list` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.list_drafts` | Review > Drafts… |
+| History | save draft | `byax drafts --action save` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.save_draft` | Review > Save draft as… |
+| History | switch draft | `byax drafts --action switch` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.switch_draft` | Review > Switch draft… |
+| History | compare drafts | `byax drafts --action compare` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.compare_drafts` | Review > Compare drafts… |
+| History | bring changes from draft | `byax drafts --action bring` | `byax_drafts` | `POST /v1/execute` | `byax.drafts.bring_operation` | Review > Bring changes from draft… |
+
+## Grammar tiers and language packs
+
+The `grammar` command reports and configures the two grammar tiers (the built-in rules and the optional, local LanguageTool server) and checks plain text; `languages` manages dictionary, grammar and interface-string packs. Over MCP and REST only the read-only actions are available (`grammar` status, rules and check; `languages` list, verify and coverage). Configuring, installing, starting or stopping LanguageTool and installing or removing a pack are refused with `unsupported_feature`; use the local CLI or desktop. See [grammar](grammar.md) and [translations](translations.md).
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Checks | grammar tiers status | `byax grammar --action status` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.languagetool_status` | Inspector > Checks |
+| Checks | grammar rule catalogue | `byax grammar --action rules` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.rule_set` | Inspector > Checks |
+| Checks | check text with the grammar tiers | `byax grammar --action check` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.check_text` | — (headless) |
+| Checks | configure the LanguageTool tier | `byax grammar --action configure` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.save_config` | Inspector > Checks |
+| Checks | start or stop the local LanguageTool server | `byax grammar --action start` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.start_languagetool` | Inspector > Checks |
+| Checks | install LanguageTool (explicit download) | `byax grammar --action install-languagetool` | `byax_grammar` | `POST /v1/execute` | `byax.grammar.install_languagetool` | Tools > Languages… |
+| Discovery | language packs | `byax languages --action list` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.list_packs` | Tools > Languages… |
+| Inspection | verify language packs | `byax languages --action verify` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.verify_packs` | Tools > Languages… |
+| Inspection | translation coverage | `byax languages --action coverage` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.coverage_report` | Tools > Languages… |
+| Files | install language pack | `byax languages --action install` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.install_pack` | Tools > Languages… |
+| Files | remove language pack | `byax languages --action remove` | `byax_languages` | `POST /v1/execute` | `byax.language_packs.remove_pack` | Tools > Languages… |
+
+## Compile pipeline
+
+`compile` turns a project into a print PDF, EPUB, Word or Markdown book (see the
+[user guide](user-guide.md#compiling-a-book)). It never changes the master; `--preset-file` is a
+path argument and is scoped like `--out` over REST. `save-preset` is a canonical `set_settings`
+operation, so `--expect-revision`, `--request-id` and `--dry-run` behave as for `apply`.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Output | compile a book | `byax compile PATH --preset NAME --target pdf --out FILE` | `byax_compile` | `POST /v1/execute` | `byax.compile.compile_document` | File > Compile… |
+| Checks | compile preflight | `byax compile PATH --preflight-only` | `byax_compile` | `POST /v1/execute` | `byax.compile.preflight` | File > Compile… |
+| Discovery | compile presets | `byax compile PATH --action presets` | `byax_compile` | `POST /v1/execute` | `byax.compile.list_presets` | File > Compile… |
+| Inspection | effective compile profile | `byax compile PATH --action show` | `byax_compile` | `POST /v1/execute` | `byax.compile.resolve_profile` | — (headless) |
+| Editing | save compile preset | `byax compile PATH --action save-preset --name NAME` | `byax_compile` | `POST /v1/execute` | `byax.compile.save_preset_operations` | File > Compile… |
+| Files | export compile preset | `byax compile PATH --action export-preset --out FILE.json` | `byax_compile` | `POST /v1/execute` | `byax.compile.preset_collection` | — (headless) |
+
+## Manuscript corpus and codex
+
+`project-search` searches the project folder (the open document, its sibling `.byax` packages and
+its series' member documents) through the shared block-level index in the user cache. Every call
+refreshes that index incrementally from local files before answering, so results are live; no
+call uses the network. `saved-add` and `saved-remove` are canonical `saved_search_*` operations.
+`codex` reads and edits codex entries (canonical `codex_*` operations, `propose-fact` records a
+review proposal instead). Its reads omit entries and traits hidden from AI unless the local CLI
+passes `--include-hidden`; MCP and REST refuse that flag, and refuse `series-attach` and
+`series-detach` (a series attaches libraries). `entity` (`byax_entity`) is the read-only,
+always AI-visible view for model clients. All lists are bounded with `offset` continuations.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Search and targeting | project find | `byax project-search --action find` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.ProjectIndex.search` | Edit > Find in project… |
+| Inspection | project index status | `byax project-search --action status` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.ProjectIndex.status` | — (headless) |
+| Search and targeting | project index refresh | `byax project-search --action refresh` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.ProjectIndex.refresh` | Edit > Find in project… |
+| Search and targeting | saved searches | `byax project-search --action saved-list` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.saved_searches` | Edit > Find in project… |
+| Search and targeting | run saved search | `byax project-search --action saved-run` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.run_saved` | Edit > Find in project… |
+| Editing | save search | `byax project-search --action saved-add` | `byax_project_search` | `POST /v1/execute` | `byax.engine.apply` | Edit > Find in project… |
+| Editing | remove saved search | `byax project-search --action saved-remove` | `byax_project_search` | `POST /v1/execute` | `byax.engine.apply` | Edit > Find in project… |
+| Search and targeting | backlinks | `byax project-search --action backlinks` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.links` | Edit > Find in project… |
+| Search and targeting | unlinked mentions | `byax project-search --action unlinked-mentions` | `byax_project_search` | `POST /v1/execute` | `byax.project_index.links` | Edit > Find in project… |
+| Inspection | codex entries | `byax codex --action list` | `byax_codex` | `POST /v1/execute` | `byax.codex.list_entries` | Tools > Codex… |
+| Inspection | codex lookup | `byax codex --action lookup` | `byax_codex` | `POST /v1/execute` | `byax.codex.lookup` | Tools > Codex… |
+| Inspection | codex mentions | `byax codex --action mentions` | `byax_codex` | `POST /v1/execute` | `byax.codex.mentions` | Tools > Codex… |
+| Inspection | codex mention heatmap | `byax codex --action heatmap` | `byax_codex` | `POST /v1/execute` | `byax.codex.heatmap` | Tools > Codex… |
+| Inspection | codex series | `byax codex --action series` | `byax_codex` | `POST /v1/execute` | `byax.series.resolve` | Tools > Codex… |
+| Editing | add codex entry | `byax codex --action add` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | edit codex entry | `byax codex --action update` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | remove codex entry | `byax codex --action remove` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | add codex trait | `byax codex --action add-trait` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | edit codex trait | `byax codex --action update-trait` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Editing | remove codex trait | `byax codex --action remove-trait` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | Tools > Codex… |
+| Review | propose codex fact | `byax codex --action propose-fact` | `byax_codex` | `POST /v1/execute` | `byax.codex.propose_fact` | — (headless) |
+| Files | attach series | `byax codex --action series-attach` | `byax_codex` | `POST /v1/execute` | `byax.series.reference_for` | — (headless) |
+| Files | detach series | `byax codex --action series-detach` | `byax_codex` | `POST /v1/execute` | `byax.engine.apply` | — (headless) |
+| Files | export series codex | `byax codex --action series-export` | `byax_codex` | `POST /v1/execute` | `byax.series.save` | — (headless) |
+| Inspection | entity lookup (read only) | `byax entity` | `byax_entity` | `POST /v1/execute` | `byax.cli_codex.entity_command` | — (headless) |
+
+## On-device search models (context engine Phase 3)
+
+`byax models` lists the pinned catalogue and reports each model's state; `--action download` shows the
+source, size and SHA-256 and downloads only with `--confirm`. MCP and REST may use `list`, `status` and
+`verify`; `download`, `remove` and `configure` are refused there (`transport_policy.check_provider_admin`),
+as are the library actions `semantic-enable`, `semantic-disable`, `embed`, `embedding-configure`,
+`chunking-configure`, `contextualize`, `contextualize-preview`, `contextualize-clear` and `pdf-engine`.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Discovery | on-device model catalogue | `byax models` | `byax_models` | `POST /v1/execute` | `byax.local_models.models_command` | Tools > On-device search… |
+| Providers | download or remove on-device models | `byax models --action download` | `byax_models` | `POST /v1/execute` | `byax.local_models.download_model` | Tools > On-device search… |
+| Search and targeting | enable on-device semantic search | `byax library --action semantic-enable` | `byax_library` | `POST /v1/execute` | `byax.cli_libraries.library_command` | Library panel (Enable on-device semantic search) |
+## Extensions and macros
+
+`extensions` lists, inspects, verifies and runs extension checks and export hooks; `macro` lists, saves,
+runs (or dry-runs) and removes saved command macros. See [extensions](extensions.md). Reading and
+running are open to MCP and REST. Installing, package inspection, enabling, disabling, removing and
+issuing a scoped REST token change what code may run on this computer, so they are refused over MCP
+and REST with `unsupported_feature` (use the local CLI or desktop), as are `macro --allow-admin` and
+saving or removing macros in the user config (macros stored in a document are an ordinary revision and
+are allowed). Every macro step is checked with `check_provider_admin`, and behind REST with the
+service's path policy after placeholder substitution. `export --hooks` runs enabled export hooks and
+reports them under `hooks`; `--hooks-dir` is a path argument scoped like `--out`. A scoped extension
+token (`bxe1.…`, from `extensions --action token`) can call only the read-only commands and
+`review --action propose` with text-edit operations (`403 forbidden` otherwise).
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Discovery | list extensions | `byax extensions --action list` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.summaries` | Tools > Extensions… |
+| Inspection | extension details | `byax extensions --action info` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.describe` | Tools > Extensions… |
+| Inspection | verify installed extensions | `byax extensions --action verify` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.verify` | Tools > Extensions… |
+| Checks | run extension checks | `byax extensions --action run-check` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.evaluate` | Tools > Extensions… |
+| Output | run an export hook | `byax extensions --action run-hook` | `byax_extensions` | `POST /v1/execute` | `byax.extensions.run_hook` | Tools > Extensions… |
+| Output | export with hooks | `byax export --hooks` | `byax_export` | `POST /v1/execute` | `byax.extensions.run_export_hooks` | Tools > Extensions… |
+| Files | install extension | `byax extensions --action install` | refused | refused | `byax.extensions.install` | Tools > Extensions… |
+| Files | enable or disable extension | `byax extensions --action enable` | refused | refused | `byax.extensions.set_enabled` | Tools > Extensions… |
+| Files | remove extension | `byax extensions --action remove` | refused | refused | `byax.extensions.remove` | Tools > Extensions… |
+| Files | scoped extension token | `byax extensions --action token` | refused | refused | `byax.service.issue_extension_token` | — (headless) |
+| Inspection | list macros | `byax macro --action list` | `byax_macro` | `POST /v1/execute` | `byax.macros.user_macros` | Tools > Macros… |
+| Editing | run or dry-run a macro | `byax macro --action run` | `byax_macro` | `POST /v1/execute` | `byax.macros.run_macro` | Tools > Macros… |
+| Files | save macro | `byax macro --action save` | document store only | document store only | `byax.macros.validate_macro` | Tools > Macros… |
+| Files | remove macro | `byax macro --action remove` | document store only | document store only | `byax.macros.find` | Tools > Macros… |
+
+## Provenance, disclosure, version pins and the temporal codex
+
+`provenance` reports the local provenance log (who or what wrote each span, per-section shares),
+writes APA, MLA and Chicago AI-use disclosures, records a disclosure as a review proposal, re-finds
+the sources of AI claims and exports an optional, unsigned C2PA sidecar manifest. It never uses the
+network. MCP and REST refuse `--action clear` and `--key-file` (signing reads a private key), and
+refuse edit envelopes that claim text was typed or pasted by a person (`provenance.origin` of
+`human` or `pasted`) or that rewrite the log (`clear_provenance`, `reanchor_claim`).
+`check --family continuity` runs the advisory continuity suite against the temporal codex;
+`codex --action facts-at` (and the read-only `entity --action facts-at`) lists the facts in force
+at a position. `check --citations` includes the version-pin check, and `source --action add-draft`
+cites another `.byax` draft pinned to its current version.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Inspection | provenance report | `byax provenance --action report` | `byax_provenance` | `POST /v1/execute` | `byax.provenance.report` | Tools > Provenance… |
+| Output | AI-use disclosure | `byax provenance --action disclose --style apa` | `byax_provenance` | `POST /v1/execute` | `byax.disclosure.disclose` | Tools > Provenance… |
+| Review | propose AI-use disclosure | `byax provenance --action propose-disclosure` | `byax_provenance` | `POST /v1/execute` | `byax.disclosure.disclosure_proposal` | Tools > Provenance… |
+| Output | C2PA sidecar manifest | `byax provenance --action export-c2pa --out FILE.c2pa.json` | `byax_provenance` | `POST /v1/execute` | `byax.disclosure.export_c2pa` | Tools > Provenance… |
+| Checks | AI claim source re-anchoring | `byax provenance --action reanchor` | `byax_provenance` | `POST /v1/execute` | `byax.provenance.reanchor_sources` | Tools > Provenance… |
+| Editing | clear provenance log | `byax provenance --action clear` | — (local only) | — (local only) | `byax.engine.apply` | Tools > Provenance… |
+| Checks | continuity checks | `byax check --family continuity` | `byax_check` | `POST /v1/execute` | `byax.continuity.analyze` | Inspector > Checks |
+| Inspection | codex facts at a position | `byax codex --action facts-at --target ID` | `byax_codex` | `POST /v1/execute` | `byax.codex.facts_at` | — (headless) |
+| Checks | version-pinned citations | `byax check --citations` | `byax_check` | `POST /v1/execute` | `byax.version_pins.check_pins` | Inspector > Checks |
+| Files | cite a .byax draft | `byax source --action add-draft --draft-path FILE.byax` | `byax_source` | `POST /v1/execute` | `byax.version_pins.source_from_draft` | — (headless) |
+
+## Bibliography health, exchange and excerpts
+
+`bibliography` and `excerpt` are two commands dispatched through `cli.execute`. Over MCP and REST the
+read-only parts work: the health report from the cache, RIS and BibTeX export, listing styles, the
+Retraction Watch index status, where-used and the excerpt check. Everything that would fetch from
+the network (online checks, style downloads), read the person's Zotero, change their configuration
+or installed styles, or send citations to a judge provider is refused there (`unsupported_feature`),
+including inside a `jobs` submission; the person at this computer runs it through the CLI or the
+desktop. All network lookups go through the `citation_lookup` permission.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Checks | bibliography health | `byax bibliography --action health` | `byax_bibliography` | `POST /v1/execute` | `byax.bibliography.health` | Tools > Bibliography health… |
+| Checks | online bibliography checks | `byax bibliography --action health --online` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.registry_record` | Tools > Bibliography health… |
+| Checks | dead links and archived copies | `byax bibliography --action health --online --archive` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.archived_copy` | Tools > Bibliography health… |
+| Checks | citation support check (cascade stage 2) | `byax check --citations --entailment` | `byax_check` (`citations: true`, `entailment: true`) | `POST /v1/execute` | `byax.grounding_entailment.audit_entailment` | Inspector > Checks |
+| Checks | citation judge (cascade stage 3) | `byax check --citations --judge` | `byax_check` (refused) | `POST /v1/execute` (refused) | `byax.grounding_judge.judge_audit` | — (headless) |
+| Checks | excerpt check | `byax excerpt --action check` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.check` | Tools > Where is this source used… |
+| Inspection | bibliography status | `byax bibliography --action status` | `byax_bibliography` | `POST /v1/execute` | `byax.citation_lookup.RetractionIndex.info` | Tools > Bibliography health… |
+| Inspection | retraction index | `byax bibliography --action retractions-status` | `byax_bibliography` | `POST /v1/execute` | `byax.citation_lookup.RetractionIndex.info` | Tools > Bibliography health… |
+| Inspection | citation styles | `byax bibliography --action styles-list` | `byax_bibliography` | `POST /v1/execute` | `byax.csl_styles.list_styles` | Tools > Citation styles… |
+| Inspection | where a source is used | `byax excerpt --action where-used` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.where_used` | Tools > Where is this source used… |
+| Inspection | list excerpts | `byax excerpt --action list` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.excerpt_marks` | Tools > Where is this source used… |
+| Files | RIS export | `byax bibliography --action ris-export` | `byax_bibliography` | `POST /v1/execute` | `byax.ris.dump` | Library / Cite |
+| Files | RIS import | `byax bibliography --action ris-import` | `byax_bibliography` | `POST /v1/execute` | `byax.ris.parse` | Library / Cite |
+| Files | BibTeX export with citation keys | `byax bibliography --action export-bib` | `byax_bibliography` | `POST /v1/execute` | `byax.zotero.export_bib` | Library / Cite |
+| Files | Zotero import | `byax bibliography --action zotero-import` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.zotero.import_from_zotero` | Tools > Import from Zotero… |
+| Files | Zotero collections | `byax bibliography --action zotero-collections` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.zotero.ZoteroClient.collections` | Tools > Import from Zotero… |
+| Files | Retraction Watch import | `byax bibliography --action retractions-import` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.import_retraction_watch` | Tools > Bibliography health… |
+| Files | preview citation style | `byax bibliography --action styles-preview` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.csl_styles.preview` | Tools > Citation styles… |
+| Files | add citation style | `byax bibliography --action styles-add` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.csl_styles.add_from_repository` | Tools > Citation styles… |
+| Files | remove citation style | `byax bibliography --action styles-remove` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.csl_styles.remove` | Tools > Citation styles… |
+| Files | clear lookup cache | `byax bibliography --action clear-cache` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.clear_cache` | Tools > Bibliography health… |
+| Providers | bibliography lookup permission | `byax bibliography --action consent` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.grant` | Tools > Bibliography health… |
+| Providers | bibliography contact address | `byax bibliography --action configure` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.save_settings` | Tools > Bibliography health… |
+| Editing | add excerpt | `byax excerpt --action add` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.add_operations` | — (headless) |
+| Review | refresh excerpts | `byax excerpt --action refresh` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.check` | Tools > Where is this source used… |
+
+## Assistant routing, inspector and grounding tools
+
+`route` (`byax_route`) explains the route the assistant would take for a request (R0–R4, the
+reason, every rule that ran, the privacy outcome and the context-size thresholds) without calling
+any model; `--inspect` also assembles the context locally and returns the "What the AI saw" payload
+(each item with tokens, score source, library, local or remote, and everything dropped by budget or
+policy). `outline` (`byax_outline`) exposes the outline parameters of `inspect` (`--depth`,
+`--counts`, `--binder`). `verify-citations` (`byax_verify_citations`) returns grounding records for
+a reply, checked against the text the attached library index or the open document holds (never text
+sent with the request), or, without `--reply`, the document's citation audit. These three are
+read-only. `summaries` builds chapter and book summaries only when asked, with the named provider and
+the usual remote authorization (`--allow-remote`); summaries stay in the user cache, and
+`propose-synopsis` records a pending proposal. None of these commands configures libraries,
+embeddings or providers. Every list is bounded with `offset` continuations.
+
+| Family | Operation | CLI | MCP tool | REST | Library | GUI |
+| --- | --- | --- | --- | --- | --- | --- |
+| Providers | assistant route | `byax route --request TEXT` | `byax_route` | `POST /v1/execute` | `byax.router.decide` | AI tab > What the AI saw |
+| Providers | LLM reranker for thematic searches | `byax route --request TEXT --inspect --llm-rerank ALIAS` | `byax_route` (refused) | `POST /v1/execute` (refused) | `byax.llm_rerank.LLMReranker` | — (headless) |
+| Providers | what the AI saw (inspector) | `byax route --request TEXT --inspect` | `byax_route` | `POST /v1/execute` | `byax.context_assembly.inspector_payload` | AI tab > What the AI saw |
+| Providers | routed context assembly | `byax route --request TEXT --inspect` | `byax_route` | `POST /v1/execute` | `byax.context_assembly.assemble` | AI tab > What the AI saw |
+| Providers | research log export | — (desktop) | — | — | `byax.research_log.export_conversation` | AI tab > Export conversation… |
+| Inspection | outline with counts and binder | `byax outline --counts --binder` | `byax_outline` | `POST /v1/execute` | `byax.outline.outline` | View > Outline |
+| Checks | verify reply citations | `byax verify-citations --reply TEXT` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding.ground_reply` | AI tab (citation chips) |
+| Checks | citation audit (read only) | `byax verify-citations` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding.audit_citations` | Inspector > Checks |
+| Checks | reply support check (cascade stage 2) | `byax verify-citations --reply TEXT --entailment` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding_entailment.entail_grounding` | AI tab (support underlines) |
+| Providers | chapter summaries status | `byax summaries --action status` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.status` | AI tab > Build chapter summaries… |
+| Providers | build chapter summaries | `byax summaries --action build --alias A` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.build` | AI tab > Build chapter summaries… |
+| Inspection | show chapter summaries | `byax summaries --action show` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.collected` | — (headless) |
+| Review | summary as synopsis proposal | `byax summaries --action propose-synopsis --target ITEM` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.synopsis_proposal` | AI tab > Build chapter summaries… |
+| Files | clear cached summaries | `byax summaries --action clear` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.SummaryCache.clear` | — (headless) |

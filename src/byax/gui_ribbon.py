@@ -24,7 +24,7 @@ from .brand import BrandGraphic
 from .formats import COMMAND_CAPABILITIES, FORMATS, RIBBONS, supports
 from .gui_icons import themed_icon
 
-EXPORT_FORMATS = ('pdf', 'docx', 'odt', 'md', 'html', 'rtf', 'txt')
+EXPORT_FORMATS = ('pdf', 'docx', 'odt', 'epub', 'md', 'html', 'rtf', 'txt')
 ALIGNMENTS = ('Align left', 'Align center', 'Align right', 'Justify')
 # Commands a dropdown offers, by English label. Capabilities default to COMMAND_CAPABILITIES; a command
 # with no entry there exists only in the full ByAuthorX view, and None means every view that shows the menu.
@@ -63,10 +63,12 @@ DROPDOWNS = {
     ),
     'versions': (
         'Checkpoint…',
-        'Create branch…',
+        'Save draft as…',
+        'Drafts…',
+        'Compare drafts…',
+        'Switch draft…',
+        'Bring changes from draft…',
         'Revision history…',
-        'Switch draft branch…',
-        'Compare and merge draft…',
     ),
 }
 CAPABILITY_OVERRIDES = {
