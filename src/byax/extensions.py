@@ -1511,7 +1511,8 @@ def run_hook(
         'message': '',
     }
     exported = Path(exported)
-    work = Path(tempfile.mkdtemp(prefix='byax-ext-hook-'))
+    # Resolved, so the paths handed to the hook match its working directory (macOS /var is /private/var).
+    work = Path(tempfile.mkdtemp(prefix='byax-ext-hook-')).resolve()
     try:
         if 'export-hook' not in record['granted_scopes']:
             raise ExtensionFailure('scope', 'The export-hook scope was not granted')
