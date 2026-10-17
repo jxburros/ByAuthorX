@@ -19,6 +19,7 @@
 | Review licensing | [Third-party notices](third-party-notices.md), [citation style licenses](citation-licenses.md) |
 | Plan the context, retrieval and citation engine | [Context engine plan](context-engine-plan.md), [context engine research](research/context-engine/README.md) |
 | Plan manuscript projects, publishing, interchange, grammar and reach | [Competitiveness plan](competitiveness-plan.md) |
+| Explore ideas that would make the `.byax` format distinct | [Distinctive format ideas](distinctive-format-ideas.md) |
 | Review decisions and audits | [Co-editing spike](coediting-spike.md), [0.2 issue audit](issue-audit-0.2.md), [14 Oct 2026 issue audit](issue-audit-2026-10-14.md), [spec for libraries and citations](library-and-citations-spec.md) |
 | Read the full requirements | [Product specification](../ByAuthorX-Product-Specification%20%281%29.md) |
 
