@@ -153,6 +153,12 @@ def tiny_embedder_catalogue(monkeypatch, tmp_path, *, installed):
     settings.mkdir(parents=True, exist_ok=True)
     (settings / 'local-models.json').write_text('{"embedder": "tiny", "reranker": "tiny"}')
     if installed:
+        # The flow under test only needs the runtime to be reported present (the embedding job itself is
+        # replaced). Without the local-models extra the real check would open the modal install dialog,
+        # whose exec() never returns in a test run.
+        monkeypatch.setattr(
+            local_models, 'runtime_status', lambda: {'installed': True, 'extra': 'byauthorx[local-models]'}
+        )
         target = tmp_path / 'models' / 'tiny'
         target.mkdir(parents=True)
         (target / 'model.onnx').write_bytes(body)

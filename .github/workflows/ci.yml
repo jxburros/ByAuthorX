@@ -43,7 +43,10 @@ jobs:
           PY
   quality:
     runs-on: ubuntu-24.04
-    timeout-minutes: 25
+    # The whole suite runs in ONE process: about 11 minutes with branch coverage on a 4-core machine, so
+    # this leaves room for a 2-core runner. A single hung test is cut after 300 s by pytest-timeout
+    # (pyproject.toml) and fails with a stack dump long before this limit.
+    timeout-minutes: 45
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
@@ -92,7 +95,9 @@ jobs:
           - os: macos-14
             python: '3.12'
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 20
+    # The subset below takes about a minute on Linux; Windows and macOS runners start slowly and run
+    # subprocess-heavy tests several times slower, so the limit is generous (per-test limit: 300 s).
+    timeout-minutes: 30
     env:
       QT_QPA_PLATFORM: offscreen
     steps:
@@ -113,6 +118,8 @@ jobs:
           tests/test_security_acceptance.py tests/test_release_metadata.py
           tests/test_gui_workspace.py tests/test_gui_review.py tests/test_formatting_dependencies.py
           tests/test_macos_support.py tests/test_updates.py tests/test_onboarding.py
+          tests/test_sync_safety.py tests/test_sync_partial.py tests/test_gui_sync.py
+          tests/test_extensions.py tests/test_extension_service.py tests/test_language_packs.py
   packages:
     needs: [plan, quality, compatibility]
     if: needs.plan.outputs.packages == 'true'

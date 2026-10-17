@@ -9,7 +9,7 @@ import pytest
 from PySide6.QtCore import QSettings, QUrl
 from PySide6.QtWidgets import QMessageBox
 
-from byax import engine, grounding, model
+from byax import engine, grounding, local_models, model
 from byax import grounding_entailment as ge
 from byax.citations import source_from_hit
 from byax.gui import MainWindow
@@ -49,6 +49,8 @@ def fake_stage():
 def no_models(tmp_path, monkeypatch):
     monkeypatch.setenv('BYAX_MODELS_DIR', str(tmp_path / 'models'))
     monkeypatch.delenv('BYAX_BUNDLED_MODELS', raising=False)
+    # The model is what is missing here; report the runtime present so the tests do not need the extra.
+    monkeypatch.setattr(local_models, 'runtime_status', lambda: {'installed': True, 'extra': 'local-models'})
     yield
     grounding.register_stage('entailment', None)
 

@@ -988,9 +988,13 @@ def test_script_check_findings_are_deterministic_across_runs(tmp_path):
     assert first == second and len(first) == 1
 
 
-def test_the_launcher_dispatch_flag_is_wired_for_frozen_builds(tmp_path):
-    from byax import extension_worker, library_parser
+def test_the_launcher_dispatch_flag_is_wired_for_frozen_builds(tmp_path, monkeypatch):
+    from byax import extension_worker, library_parser, platform_support
 
+    # The worker applies RLIMIT_CPU/AS/FSIZE to *its own process*. Run in-process here that would cap
+    # the whole test runner (a 10 s CPU limit kills or wedges every later test), so record the call.
+    limits = []
+    monkeypatch.setattr(platform_support, 'apply_parser_limits', lambda *args: limits.append(args) or {})
     folder = tmp_path / 'w'
     folder.mkdir()
     (folder / 's.py').write_text("print('frozen ok')\n", encoding='utf-8')
@@ -999,6 +1003,7 @@ def test_the_launcher_dispatch_flag_is_wired_for_frozen_builds(tmp_path):
             ['--byax-extension-worker', 'python', str(folder / 's.py'), str(1 << 30), '10', str(1 << 20)]
         )
     assert stop.value.code == 0
+    assert limits == [(1 << 30, 10, 1 << 20)]
     assert extension_worker.dispatch_worker(['--other']) is None
     cmd = extensions._worker_command('python', Path('s.py'), 5, 100)
     assert cmd[1:4] == ['-I', '-m', 'byax.extension_worker']
