@@ -513,7 +513,8 @@ def _stage_archive(source: Path, stage: Path) -> None:
                 wrapper = next(iter(tops)) + '/'
         seen = set()
         for info in infos:
-            if info.filename.startswith('/') or '\\' in info.filename:
+            # orig_filename: on Windows zipfile itself rewrites a backslash to '/', hiding it in filename.
+            if info.filename.startswith('/') or '\\' in info.orig_filename:
                 _invalid('The archive has an unsafe member name', path=info.filename)
             name = info.filename[len(wrapper) :] if wrapper else info.filename
             if not info.filename.startswith(wrapper) or not _safe_member(name) or name in seen:
