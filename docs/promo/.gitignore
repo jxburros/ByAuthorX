@@ -1,0 +1,4 @@
+.vixl-cache/
+.vixl-cache.usage.*
+.film-*/
+*-draft.mp4

@@ -1,0 +1,64 @@
+{
+  "output": "ByAuthorX-promo-draft.mp4",
+  "spec": {
+    "version": 1,
+    "width": 1920,
+    "height": 1080,
+    "fps": 24,
+    "quality": "draft",
+    "shots": [
+      {
+        "source": "scenes/01-title.vixl",
+        "duration": 5500
+      },
+      {
+        "source": "scenes/02-in-action.vixl",
+        "duration": 14500,
+        "transition": 450
+      },
+      {
+        "source": "scenes/03-proposals.vixl",
+        "duration": 8200,
+        "transition": 450
+      },
+      {
+        "source": "scenes/04-private.vixl",
+        "duration": 7200,
+        "transition": 450
+      },
+      {
+        "source": "scenes/05-books.vixl",
+        "duration": 8200,
+        "transition": 450
+      },
+      {
+        "source": "scenes/06-automation.vixl",
+        "duration": 9800,
+        "transition": 450
+      },
+      {
+        "source": "scenes/07-agents.vixl",
+        "duration": 9800,
+        "transition": 450
+      },
+      {
+        "source": "scenes/08-more.vixl",
+        "duration": 7800,
+        "transition": 450
+      },
+      {
+        "source": "scenes/09-close.vixl",
+        "duration": 6500,
+        "transition": 450
+      }
+    ],
+    "audio": [
+      {
+        "source": "score.wav",
+        "start": 0,
+        "trim": 0,
+        "volume": 0.9
+      }
+    ]
+  }
+}
