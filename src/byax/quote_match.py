@@ -13,10 +13,13 @@ import re
 import unicodedata
 from typing import NamedTuple
 
-# partial_ratio threshold (0-100) for a `near` match. A provisional value: the Phase 0 harness
-# (context engine plan, section 4) records the genuine-quote pass rate and the false-positive
-# rate for altered quotes, and this constant is tuned from those numbers, not by taste.
-NEAR_THRESHOLD = 90.0
+# partial_ratio threshold (0-100) for a `near` match, set from the Phase 1 harness
+# (`scripts/eval_quotes.py`, docs/benchmarks/context-0.4-quotes.json), precision first: a `near` verdict says
+# "this is the passage's own wording with a typing or OCR slip", so a wrong one is a misattribution.
+# Over 600 altered quotes against passage-sized sources, 90 accepted 36 of 120 quotes with two words reworded
+# (precision 0.75); 94 accepts 1 (precision 0.99) and still recovers 98% of the genuine-but-noisy quotes;
+# 96 starts losing genuine ones (recall 0.90).
+NEAR_THRESHOLD = 94.0
 # Quotes shorter than this (after normalization) are only ever matched exactly: one changed
 # character in a short quote is a different quote, not a near miss.
 MIN_NEAR_CHARS = 12
@@ -263,11 +266,15 @@ def _near(quote, source, threshold):
     ns, mapping = normalize(source)
     if len(nq) < MIN_NEAR_CHARS or not ns:
         return None
+    # Capitalisation alone does not make a different quotation: score on lower-cased text (same length).
+    lq, ls = (
+        (nq.lower(), ns.lower()) if len(nq.lower()) == len(nq) and len(ns.lower()) == len(ns) else (nq, ns)
+    )
     if len(nq) > len(ns):
-        score = fuzz.ratio(nq, ns)
+        score = fuzz.ratio(lq, ls)
         start, end = 0, len(ns)
     else:
-        alignment = fuzz.partial_ratio_alignment(nq, ns, score_cutoff=threshold)
+        alignment = fuzz.partial_ratio_alignment(lq, ls, score_cutoff=threshold)
         if alignment is None:
             return None
         score, start, end = alignment.score, alignment.dest_start, alignment.dest_end

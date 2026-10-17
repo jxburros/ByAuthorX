@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate original, deterministic acceptance documents; no downloaded assets.
+"""Generate original, deterministic acceptance documents; no downloaded assets (`--eval-scale N` writes a synthetic text corpus for the retrieval harness).
 
 Page-count workloads use explicit page breaks to stabilize workload size. They do
 not establish automatic pagination quality, which needs separate acceptance tests.
@@ -286,6 +286,105 @@ def make_fixture(name):
     return validate_document(doc)
 
 
+def make_eval_scale(out: Path, documents: int = 10_000, seed: int = 20261016, queries: int = 100) -> dict:
+    """Synthetic retrieval-scale corpus: `documents` short text files plus golden queries.
+
+    Output (never committed): `out/corpus/dNNN/doc_NNNNNN.txt` and `out/queries.jsonl`. Every document has
+    a title line and 2-4 paragraphs of Zipf-distributed pseudo-words, three topic words shared with about
+    1 in 200 other documents, and one unique "needle" word so queries have exactly one right answer.
+    Locators are character offsets, as in the fixture libraries.
+    """
+    import random
+
+    rng = random.Random(seed)
+    syllables = [
+        'ba',
+        'ke',
+        'li',
+        'mo',
+        'nu',
+        'sa',
+        'te',
+        'vo',
+        'ri',
+        'du',
+        'fa',
+        'gi',
+        'ho',
+        'ju',
+        'ze',
+        'pi',
+        'qua',
+        'xe',
+    ]
+    vocabulary = sorted(
+        {''.join(rng.choice(syllables) for _ in range(rng.randint(2, 4))) for _ in range(30_000)}
+    )[:12_000]
+    rng.shuffle(vocabulary)
+    weights = [1 / (rank + 1) for rank in range(len(vocabulary))]
+    topics = [
+        f'{rng.choice(syllables)}{rng.choice(syllables)}ology{i}' for i in range(max(1, documents // 200))
+    ]
+    corpus = out / 'corpus'
+    corpus.mkdir(parents=True, exist_ok=True)
+    needles, records = [], []
+    for number in range(documents):
+        needle = f'zq{number:06d}n'
+        doc_topics = [topics[(number * 7 + k * 31) % len(topics)] for k in range(3)]
+        paragraphs = []
+        for index in range(rng.randint(2, 4)):
+            words = rng.choices(vocabulary, weights, k=rng.randint(40, 90))
+            if index == 0:
+                for slot, planted in zip(
+                    rng.sample(range(len(words)), 3), (needle, doc_topics[0], doc_topics[1]), strict=True
+                ):
+                    words[slot] = planted
+            sentence_length, text = 12, []
+            for position in range(0, len(words), sentence_length):
+                chunk = words[position : position + sentence_length]
+                text.append(' '.join(chunk).capitalize() + '.')
+            paragraphs.append(' '.join(text))
+        title = f'Record {number:06d} on {doc_topics[0]}'
+        body = title + '\n\n' + '\n\n'.join(paragraphs) + '\n'
+        path = corpus / f'd{number // 100:03d}' / f'doc_{number:06d}.txt'
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(body, encoding='utf-8')
+        first = body.index(paragraphs[0])
+        records.append(
+            (
+                path.relative_to(corpus).as_posix(),
+                needle,
+                doc_topics,
+                first,
+                first + len(paragraphs[0]),
+                paragraphs[0],
+            )
+        )
+        needles.append(number)
+    chosen = rng.sample(range(documents), min(queries, documents))
+    lines = []
+    for position, number in enumerate(sorted(chosen)):
+        path, needle, doc_topics, start, end, paragraph = records[number]
+        if position % 2 == 0:
+            words = paragraph.rstrip('.').split()
+            at = max(0, [w.strip('.').lower() for w in words].index(needle) - 3)
+            query, kind = ' '.join(words[at : at + 8]).strip('.'), 'known_item_quote'
+        else:
+            query, kind = f'{needle} {doc_topics[0]}', 'factual_lookup'
+        lines.append(
+            json.dumps(
+                {
+                    'id': f'scale-{position + 1:03d}',
+                    'type': kind,
+                    'query': query,
+                    'relevant_chunk_locators': [{'path': path, 'start': start, 'end': end, 'quote': needle}],
+                }
+            )
+        )
+    (out / 'queries.jsonl').write_text('\n'.join(lines) + '\n', encoding='utf-8')
+    return {'documents': documents, 'queries': len(lines), 'corpus': str(corpus)}
+
+
 NAMES = (
     'letter',
     'resume',
@@ -305,7 +404,17 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--out', type=Path, default=Path('artifacts/fixtures'))
     parser.add_argument('--name', choices=NAMES, action='append')
+    parser.add_argument(
+        '--eval-scale',
+        type=int,
+        metavar='N',
+        help='instead of .byax documents, write an N-document synthetic text corpus + golden queries to '
+        '<out>/eval-scale for the retrieval harness (never committed)',
+    )
     args = parser.parse_args()
+    if args.eval_scale:
+        print(json.dumps(make_eval_scale(args.out / 'eval-scale', args.eval_scale), indent=2))
+        return
     from byax.storage import save_document
 
     args.out.mkdir(parents=True, exist_ok=True)

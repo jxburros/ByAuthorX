@@ -66,6 +66,56 @@ BYAX_LANGUAGETOOL_URL=http://127.0.0.1:8081 uv run python -m pytest -m languaget
 QT_QPA_PLATFORM=offscreen uv run python scripts/benchmark_compile.py --out artifacts/compile.json  # compile the 100k project
 ```
 
+## Retrieval evaluation harness
+
+Phase 0 of the [context engine plan](context-engine-plan.md): no retrieval change merges until the
+harness shows its effect. Results are recorded in [benchmarks](benchmarks/README.md).
+
+```
+tests/fixtures/eval/<library>/corpus/     committed text, HTML and PDF fixtures (novel, series, humanities, webclips, papers)
+tests/fixtures/eval/<library>/queries.jsonl   golden queries: {id, type, query, relevant_chunk_locators, expected_absent?}
+tests/fixtures/eval/MANIFEST.json         source URL, licence, attribution and SHA-256 of every fixture file
+tests/fixtures/eval/thresholds.json       CI floors and tolerances
+src/byax/evaluation.py                    metrics, corpus builder, retrieval configurations
+scripts/eval_retrieval.py                 writes docs/benchmarks/context-<version>-<config>.json
+scripts/eval_quotes.py                    quote verification rates and the near-match threshold sweep
+scripts/eval_chunk_sweep.py               chunk-size sweep; scripts/eval_fusion.py sweeps the fusion's keyword weight
+scripts/build_scale_index.py              builds and keeps the 10,000-document index; scripts/profile_search.py times and profiles it
+scripts/build_eval_corpus.py              rebuilds the committed corpora from Gutenberg and pinned Wikipedia revisions
+scripts/fetch_eval_fixtures.py            downloads and verifies the 30 PLOS papers (3 are committed); never runs in tests
+scripts/build_eval_queries.py             regenerates queries.jsonl (curated entries live in eval_queries_curated.py)
+scripts/generate_fixtures.py --eval-scale N   synthetic N-document corpus for latency and index size (never committed)
+```
+
+```bash
+QT_QPA_PLATFORM=offscreen uv run pytest tests/test_retrieval_eval.py tests/test_context_fidelity.py -q
+uv run python scripts/fetch_eval_fixtures.py                     # full papers set, cached outside the repo
+uv run python scripts/eval_retrieval.py --configs keyword hybrid-fake   # full fixtures, writes docs/benchmarks/
+uv run python scripts/eval_retrieval.py --sample --configs keyword hybrid-fake --update-thresholds
+uv run python scripts/eval_retrieval.py --sample --all-sample-queries --configs hybrid-qwen3 hybrid-qwen3-colbert --label qwen3  # needs the local models
+```
+
+`--label` names the output file and `--scale-work`/`--scale-queries` reuse a kept 10,000-document index
+instead of rebuilding it. `quote_match.NEAR_THRESHOLD` (94) comes from `scripts/eval_quotes.py`; the test
+`test_near_threshold_was_chosen_from_the_published_sweep` ties it to `context-0.4-quotes.json`. Published
+results and their limits: [Context engine benchmarks](benchmarks/context-engine.md).
+
+- **Labels are locators, not chunk IDs**: `{path, page}` for PDFs, `{path, start, end}` (characters of the
+  file's text) otherwise. `.html` files are not indexed by the library parser (`libraries.SUPPORTED`), so the harness
+  indexes the text that `evaluation.html_text` extracts and labels offsets in that text.
+- **Add a configuration** by subclassing `evaluation.RetrievalConfig` (`prepare` once per corpus, `search`
+  per query) and calling `evaluation.register_config('name', factory)`, or pass a callable
+  `(corpus, query, limit) -> hits` to `evaluate`. Hits are the dictionaries `LibraryIndex.search`
+  returns; they only need `document_id`, `chunk_id`, `locator`, `paths` and `text`.
+- **CI**: the keyword and fake-embedder configurations run in the normal suite on a deterministic subset
+  (`evaluation.SAMPLES`, 24 queries per library) against `thresholds.json`; a metric more than the
+  tolerance below its floor fails. Improvements never fail; raise a floor with `--update-thresholds` in the
+  same change that earns it. Model-backed runs use `pytest -m eval_models` (deselected by default; see
+  `tests/test_eval_models.py`) and the manual `eval` job in the CI workflow.
+- **Fidelity tests** (`tests/test_context_fidelity.py`): jump fidelity, scope leaks, false absence, stability
+  and concordance. A case the engine fails today is `xfail(strict=True)` and names the plan item that fixes
+  it; when that item lands the case flips to a failure and the marker must be removed.
+- Fixture data keeps its own licences ([third-party notices](third-party-notices.md)); it is not MIT.
 The grammar and language-pack tests never need Java or the network: they use a fake local server
 (`tests/fixtures/grammar/fake_languagetool.py`) and a local file server. `tests/conftest.py` points
 `BYAX_GRAMMAR_DIR` and `BYAX_LANGUAGES_DIR` at temporary folders for every test.

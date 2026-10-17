@@ -1,0 +1,2288 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<title>Smith–Waterman algorithm - Wikipedia</title>
+<meta name="ResourceLoaderDynamicStyles" content="">
+<meta name="generator" content="MediaWiki 1.47.0-wmf.24">
+<meta name="referrer" content="origin">
+<meta name="referrer" content="origin-when-cross-origin">
+<meta name="robots" content="noindex,nofollow,max-image-preview:standard">
+<meta name="format-detection" content="telephone=no">
+<meta property="og:image" content="https://upload.wikimedia.org/wikipedia/commons/9/92/Smith-Waterman-Algorithm-Example-En.gif?utm_source=en.wikipedia.org&amp;utm_campaign=index&amp;utm_content=thumbnail_unscaled">
+<meta property="og:image:width" content="750">
+<meta property="og:image:height" content="1200">
+<meta name="viewport" content="width=1120">
+<meta property="og:title" content="Smith–Waterman algorithm - Wikipedia">
+<meta property="og:type" content="website">
+</head>
+<body>
+<div id="mw-aria-live-region"></div><a href="#bodyContent">Jump to content</a>
+<div>
+	<header>
+		<div>
+			<nav>
+<div id="vector-main-menu-dropdown"  >
+	<input type="checkbox" id="vector-main-menu-dropdown-checkbox" role="button"    >
+	<label id="vector-main-menu-dropdown-label" for="vector-main-menu-dropdown-checkbox"  ><span></span>
+<span>Main menu</span>
+	</label>
+	<div>
+				<div id="vector-main-menu-unpinned-container">
+<div id="vector-main-menu">
+	<div
+>
+	<div>Main menu</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-navigation"  >
+	<div>
+		Navigation
+	</div>
+	<div>
+		<ul>
+			<li id="n-mainpage-description"><a href="/wiki/Main_Page" accesskey="z"><span>Main page</span></a></li><li id="n-contents"><a href="/wiki/Wikipedia:Contents"><span>Contents</span></a></li><li id="n-currentevents"><a href="/wiki/Portal:Current_events"><span>Current events</span></a></li><li id="n-randompage"><a href="/wiki/Special:Random" accesskey="x"><span>Random article</span></a></li><li id="n-aboutsite"><a href="/wiki/Wikipedia:About"><span>About Wikipedia</span></a></li><li id="n-contactpage"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us"><span>Contact us</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-interaction"  >
+	<div>
+		Contribute
+	</div>
+	<div>
+		<ul>
+			<li id="n-help"><a href="/wiki/Help:Contents"><span>Help</span></a></li><li id="n-introduction"><a href="/wiki/Help:Introduction"><span>Learn to edit</span></a></li><li id="n-portal"><a href="/wiki/Wikipedia:Community_portal"><span>Community portal</span></a></li><li id="n-recentchanges"><a href="/wiki/Special:RecentChanges" accesskey="r"><span>Recent changes</span></a></li><li id="n-upload"><a href="/wiki/Wikipedia:File_upload_wizard"><span>Upload file</span></a></li><li id="n-specialpages"><a href="/wiki/Special:SpecialPages" accesskey="q"><span>Special pages</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+				</div>
+	</div>
+</div>
+		</nav>
+<a href="/wiki/Main_Page">
+	<img src="/static/images/icons/enwiki-25.svg" alt="" height="50" width="50">
+	<span>
+		<img alt="Wikipedia" src="/static/images/mobile/copyright/wikipedia-wordmark-en-25.svg">
+		<img alt="The Free Encyclopedia" src="/static/images/mobile/copyright/wikipedia-tagline-en-25.svg" width="140" height="11">
+	</span>
+</a>
+		</div>
+		<div>
+<div id="p-search" role="search">
+	<a href="/wiki/Special:Search" accesskey="f"><span></span>
+<span>Search</span>
+	</a>
+	<div>
+		<div>
+			<form action="/w/index.php" id="searchform">
+				<div id="simpleSearch" >
+					<div>
+						<input
+						 autocomplete="off"
+							 type="search" name="search" placeholder="Search Wikipedia" autocapitalize="none" spellcheck="false" accesskey="f" id="searchInput"
+							>
+						<span></span>
+					</div>
+					<input type="hidden" name="title" value="Special:Search">
+				</div>
+				<button>Search</button>
+			</form>
+		</div>
+	</div>
+</div>
+			<nav>
+	<div>
+<div id="p-vector-user-menu-preferences"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-userpage"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	<nav>
+<div id="vector-appearance-dropdown"  >
+	<input type="checkbox" id="vector-appearance-dropdown-checkbox" role="button"    >
+	<label id="vector-appearance-dropdown-label" for="vector-appearance-dropdown-checkbox"  ><span></span>
+<span>Appearance</span>
+	</label>
+	<div>
+			<div id="vector-appearance-unpinned-container">
+			</div>
+	</div>
+</div>
+	</nav>
+<div id="p-vector-user-menu-notifications"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+<div id="p-vector-user-menu-overflow"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport-2"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span>Donate</span></a>
+</li>
+<li id="pt-createaccount-2"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Smith%E2%80%93Waterman+algorithm&amp;returntoquery=oldid%3D1376348078"><span>Create account</span></a>
+</li>
+<li id="pt-login-2"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Smith%E2%80%93Waterman+algorithm&amp;returntoquery=oldid%3D1376348078" accesskey="o"><span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+<div id="vector-user-links-dropdown"  >
+	<input type="checkbox" id="vector-user-links-dropdown-checkbox" role="button"    >
+	<label id="vector-user-links-dropdown-label" for="vector-user-links-dropdown-checkbox"  ><span></span>
+<span>Personal tools</span>
+	</label>
+	<div>
+<div id="p-personal"  >
+	<div>
+		<ul>
+			<li id="pt-sitesupport"><a data-mw-interface  href="https://donate.wikimedia.org/?wmf_source=donate&amp;wmf_medium=sidebar&amp;wmf_campaign=en.wikipedia.org&amp;uselang=en"><span></span>
+<span>Donate</span></a>
+</li>
+<li id="pt-createaccount"><a data-mw-interface  href="/w/index.php?title=Special:CreateAccount&amp;returnto=Smith%E2%80%93Waterman+algorithm&amp;returntoquery=oldid%3D1376348078"><span></span>
+<span>Create account</span></a>
+</li>
+<li id="pt-login"><a data-mw-interface  href="/w/index.php?title=Special:UserLogin&amp;returnto=Smith%E2%80%93Waterman+algorithm&amp;returntoquery=oldid%3D1376348078" accesskey="o"><span></span>
+<span>Log in</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+</nav>
+		</div>
+	</header>
+</div>
+<div>
+	<div>
+		<div>
+			<div id="siteNotice"></div>
+		</div>
+		<div>
+			<div>
+		<div id="mw-navigation">
+			<nav id="mw-panel">
+				<div id="vector-main-menu-pinned-container">
+				</div>
+		</nav>
+		</div>
+	</div>
+	<div>
+				<nav id="mw-panel-toc">
+					<div id="vector-toc-pinned-container">
+					<div id="vector-toc">
+	<div
+>
+	<h2>Contents</h2>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+	<ul id="mw-panel-toc-list">
+		<li id="toc-mw-content-text"
+		>
+			<a href="#">
+				<div>(Top)</div>
+			</a>
+		</li>
+		<li id="toc-History"
+	>
+		<a href="#History">
+			<div>
+				<span>1</span>
+				<span>History</span>
+			</div>
+		</a>
+		<ul id="toc-History-sublist">
+		</ul>
+	</li>
+	<li id="toc-Motivation"
+	>
+		<a href="#Motivation">
+			<div>
+				<span>2</span>
+				<span>Motivation</span>
+			</div>
+		</a>
+		<ul id="toc-Motivation-sublist">
+		</ul>
+	</li>
+	<li id="toc-Algorithm"
+	>
+		<a href="#Algorithm">
+			<div>
+				<span>3</span>
+				<span>Algorithm</span>
+			</div>
+		</a>
+		<ul id="toc-Algorithm-sublist">
+		</ul>
+	</li>
+	<li id="toc-Explanation"
+	>
+		<a href="#Explanation">
+			<div>
+				<span>4</span>
+				<span>Explanation</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Explanation subsection</span>
+			</button>
+		<ul id="toc-Explanation-sublist">
+			<li id="toc-Comparison_with_the_Needleman–Wunsch_algorithm"
+		>
+			<a href="#Comparison_with_the_Needleman–Wunsch_algorithm">
+				<div>
+					<span>4.1</span>
+					<span>Comparison with the Needleman–Wunsch algorithm</span>
+				</div>
+			</a>
+			<ul id="toc-Comparison_with_the_Needleman–Wunsch_algorithm-sublist">
+			</ul>
+		</li>
+		<li id="toc-Substitution_matrix"
+		>
+			<a href="#Substitution_matrix">
+				<div>
+					<span>4.2</span>
+					<span>Substitution matrix</span>
+				</div>
+			</a>
+			<ul id="toc-Substitution_matrix-sublist">
+			</ul>
+		</li>
+		<li id="toc-Gap_penalty"
+		>
+			<a href="#Gap_penalty">
+				<div>
+					<span>4.3</span>
+					<span>Gap penalty</span>
+				</div>
+			</a>
+			<ul id="toc-Gap_penalty-sublist">
+				<li id="toc-Linear"
+		>
+			<a href="#Linear">
+				<div>
+					<span>4.3.1</span>
+					<span>Linear</span>
+				</div>
+			</a>
+			<ul id="toc-Linear-sublist">
+			</ul>
+		</li>
+		<li id="toc-Affine"
+		>
+			<a href="#Affine">
+				<div>
+					<span>4.3.2</span>
+					<span>Affine</span>
+				</div>
+			</a>
+			<ul id="toc-Affine-sublist">
+			</ul>
+		</li>
+		<li id="toc-Gap_penalty_example"
+		>
+			<a href="#Gap_penalty_example">
+				<div>
+					<span>4.3.3</span>
+					<span>Gap penalty example</span>
+				</div>
+			</a>
+			<ul id="toc-Gap_penalty_example-sublist">
+			</ul>
+		</li>
+	</ul>
+		</li>
+		<li id="toc-Scoring_matrix"
+		>
+			<a href="#Scoring_matrix">
+				<div>
+					<span>4.4</span>
+					<span>Scoring matrix</span>
+				</div>
+			</a>
+			<ul id="toc-Scoring_matrix-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Example"
+	>
+		<a href="#Example">
+			<div>
+				<span>5</span>
+				<span>Example</span>
+			</div>
+		</a>
+		<ul id="toc-Example-sublist">
+		</ul>
+	</li>
+	<li id="toc-Implementation"
+	>
+		<a href="#Implementation">
+			<div>
+				<span>6</span>
+				<span>Implementation</span>
+			</div>
+		</a>
+		<ul id="toc-Implementation-sublist">
+		</ul>
+	</li>
+	<li id="toc-Accelerated_versions"
+	>
+		<a href="#Accelerated_versions">
+			<div>
+				<span>7</span>
+				<span>Accelerated versions</span>
+			</div>
+		</a>
+			<button>
+				<span></span>
+				<span>Toggle Accelerated versions subsection</span>
+			</button>
+		<ul id="toc-Accelerated_versions-sublist">
+			<li id="toc-FPGA"
+		>
+			<a href="#FPGA">
+				<div>
+					<span>7.1</span>
+					<span>FPGA</span>
+				</div>
+			</a>
+			<ul id="toc-FPGA-sublist">
+			</ul>
+		</li>
+		<li id="toc-GPU"
+		>
+			<a href="#GPU">
+				<div>
+					<span>7.2</span>
+					<span>GPU</span>
+				</div>
+			</a>
+			<ul id="toc-GPU-sublist">
+			</ul>
+		</li>
+		<li id="toc-SIMD"
+		>
+			<a href="#SIMD">
+				<div>
+					<span>7.3</span>
+					<span>SIMD</span>
+				</div>
+			</a>
+			<ul id="toc-SIMD-sublist">
+			</ul>
+		</li>
+		<li id="toc-Cell_Broadband_Engine"
+		>
+			<a href="#Cell_Broadband_Engine">
+				<div>
+					<span>7.4</span>
+					<span>Cell Broadband Engine</span>
+				</div>
+			</a>
+			<ul id="toc-Cell_Broadband_Engine-sublist">
+			</ul>
+		</li>
+	</ul>
+	</li>
+	<li id="toc-Limitations"
+	>
+		<a href="#Limitations">
+			<div>
+				<span>8</span>
+				<span>Limitations</span>
+			</div>
+		</a>
+		<ul id="toc-Limitations-sublist">
+		</ul>
+	</li>
+	<li id="toc-See_also"
+	>
+		<a href="#See_also">
+			<div>
+				<span>9</span>
+				<span>See also</span>
+			</div>
+		</a>
+		<ul id="toc-See_also-sublist">
+		</ul>
+	</li>
+	<li id="toc-References"
+	>
+		<a href="#References">
+			<div>
+				<span>10</span>
+				<span>References</span>
+			</div>
+		</a>
+		<ul id="toc-References-sublist">
+		</ul>
+	</li>
+	<li id="toc-External_links"
+	>
+		<a href="#External_links">
+			<div>
+				<span>11</span>
+				<span>External links</span>
+			</div>
+		</a>
+		<ul id="toc-External_links-sublist">
+		</ul>
+	</li>
+</ul>
+</div>
+					</div>
+		</nav>
+			</div>
+		</div>
+		<div>
+			<main id="content">
+				<header>
+					<nav>
+<div id="vector-page-titlebar-toc"  >
+	<input type="checkbox" id="vector-page-titlebar-toc-checkbox" role="button"    >
+	<label id="vector-page-titlebar-toc-label" for="vector-page-titlebar-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+	</label>
+	<div>
+							<div id="vector-page-titlebar-toc-unpinned-container">
+			</div>
+	</div>
+</div>
+					</nav>
+					<h1 id="firstHeading"><span lang="en" dir="ltr"><span>Smith–Waterman algorithm</span></span></h1>
+<div id="p-lang-btn"  >
+	<input type="checkbox" id="p-lang-btn-checkbox" role="button"   >
+	<label id="p-lang-btn-label" for="p-lang-btn-checkbox"  ><span></span>
+<span>16 languages</span>
+	</label>
+	<div>
+		<div>
+			<ul>
+				<li><a href="https://ar.wikipedia.org/wiki/%D8%AE%D9%88%D8%A7%D8%B1%D8%B2%D9%85%D9%8A%D8%A9_%D8%B3%D9%85%D9%8A%D8%AB-%D9%88%D8%A7%D8%AA%D8%B1%D9%85%D8%A7%D9%86" lang="ar" hreflang="ar"><span>العربية</span></a></li><li><a href="https://ca.wikipedia.org/wiki/Algorisme_de_Smith-Waterman" lang="ca" hreflang="ca"><span>Català</span></a></li><li><a href="https://cs.wikipedia.org/wiki/Smith%C5%AFv%E2%80%93Waterman%C5%AFv_algoritmus" lang="cs" hreflang="cs"><span>Čeština</span></a></li><li><a href="https://de.wikipedia.org/wiki/Smith-Waterman-Algorithmus" lang="de" hreflang="de"><span>Deutsch</span></a></li><li><a href="https://es.wikipedia.org/wiki/Algoritmo_Smith-Waterman" lang="es" hreflang="es"><span>Español</span></a></li><li><a href="https://fa.wikipedia.org/wiki/%D8%A7%D9%84%DA%AF%D9%88%D8%B1%DB%8C%D8%AA%D9%85_%D8%A7%D8%B3%D9%85%DB%8C%D8%AA_%D9%88%D8%A7%D8%AA%D8%B1%D9%85%D9%86" lang="fa" hreflang="fa"><span>فارسی</span></a></li><li><a href="https://fr.wikipedia.org/wiki/Algorithme_de_Smith-Waterman" lang="fr" hreflang="fr"><span>Français</span></a></li><li><a href="https://it.wikipedia.org/wiki/Algoritmo_di_Smith-Waterman" lang="it" hreflang="it"><span>Italiano</span></a></li><li><a href="https://mk.wikipedia.org/wiki/%D0%A1%D0%BC%D0%B8%D1%82%E2%80%93%D0%92%D0%BE%D1%82%D0%B5%D1%80%D0%BC%D0%B0%D0%BD%D0%BE%D0%B2_%D0%B0%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%B0%D0%BC" lang="mk" hreflang="mk"><span>Македонски</span></a></li><li><a href="https://nl.wikipedia.org/wiki/Smith-Waterman-algoritme" lang="nl" hreflang="nl"><span>Nederlands</span></a></li><li><a href="https://pl.wikipedia.org/wiki/Algorytm_Smitha-Watermana" lang="pl" hreflang="pl"><span>Polski</span></a></li><li><a href="https://pt.wikipedia.org/wiki/Algoritmo_de_Smith-Waterman" lang="pt" hreflang="pt"><span>Português</span></a></li><li><a href="https://ru.wikipedia.org/wiki/%D0%90%D0%BB%D0%B3%D0%BE%D1%80%D0%B8%D1%82%D0%BC_%D0%A1%D0%BC%D0%B8%D1%82%D0%B0_%E2%80%94_%D0%92%D0%B0%D1%82%D0%B5%D1%80%D0%BC%D0%B0%D0%BD%D0%B0" lang="ru" hreflang="ru"><span>Русский</span></a></li><li><a href="https://sr.wikipedia.org/wiki/Smit-Vatermanov_algoritam" lang="sr" hreflang="sr"><span>Српски / srpski</span></a></li><li><a href="https://th.wikipedia.org/wiki/%E0%B8%82%E0%B8%B1%E0%B9%89%E0%B8%99%E0%B8%95%E0%B8%AD%E0%B8%99%E0%B8%A7%E0%B8%B4%E0%B8%98%E0%B8%B5%E0%B8%AA%E0%B8%A1%E0%B8%B4%E0%B8%98-%E0%B8%A7%E0%B8%AD%E0%B9%80%E0%B8%95%E0%B8%AD%E0%B8%A3%E0%B9%8C%E0%B9%81%E0%B8%A1%E0%B8%99" lang="th" hreflang="th"><span>ไทย</span></a></li><li><a href="https://zh.wikipedia.org/wiki/%E5%8F%B2%E5%AF%86%E6%96%AF-%E6%B2%83%E7%89%B9%E6%9B%BC%E7%AE%97%E6%B3%95" lang="zh" hreflang="zh"><span>中文</span></a></li>
+			</ul>
+			<div><span><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q1683352#sitelinks-wikipedia">Edit links</a></span></div>
+		</div>
+	</div>
+</div>
+</header>
+				<div>
+					<div>
+						<div id="left-navigation">
+							<nav>
+<div id="p-associated-pages"  >
+	<div>
+		<ul>
+			<li id="ca-nstab-main"><a data-mw-interface  href="/wiki/Smith%E2%80%93Waterman_algorithm" accesskey="c"><span>Article</span></a>
+</li>
+<li id="ca-talk"><a data-mw-interface  href="/wiki/Talk:Smith%E2%80%93Waterman_algorithm" rel="discussion" accesskey="t"><span>Talk</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="vector-variants-dropdown"  >
+	<input type="checkbox" id="vector-variants-dropdown-checkbox" role="button"    >
+	<label id="vector-variants-dropdown-label" for="vector-variants-dropdown-checkbox"  ><span>English</span>
+	</label>
+	<div>
+<div id="p-variants"  >
+	<div>
+		<ul>
+		</ul>
+	</div>
+</div>
+	</div>
+</div>
+							</nav>
+						</div>
+						<div id="right-navigation">
+							<nav>
+<div id="p-views"  >
+	<div>
+		<ul>
+			<li id="ca-view"><a data-mw-interface  href="/wiki/Smith%E2%80%93Waterman_algorithm"><span>Read</span></a>
+</li>
+<li id="ca-edit"><a data-mw-interface  href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit" accesskey="e"><span>Edit</span></a>
+</li>
+<li id="ca-history"><a data-mw-interface  href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=history" accesskey="h"><span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+			</nav>
+							<nav>
+<div id="vector-page-tools-dropdown"  >
+	<input type="checkbox" id="vector-page-tools-dropdown-checkbox" role="button"    >
+	<label id="vector-page-tools-dropdown-label" for="vector-page-tools-dropdown-checkbox"  ><span></span>
+<span>Tools</span>
+	</label>
+	<div>
+									<div id="vector-page-tools-unpinned-container">
+<div id="vector-page-tools">
+	<div
+>
+	<div>Tools</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+<div id="p-cactions"  >
+	<div>
+		Actions
+	</div>
+	<div>
+		<ul>
+			<li id="ca-view-more"><a data-mw-interface  href="/wiki/Smith%E2%80%93Waterman_algorithm"><span></span>
+<span>Read</span></a>
+</li>
+<li id="ca-edit-more"><a data-mw-interface  href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit" accesskey="e"><span></span>
+<span>Edit</span></a>
+</li>
+<li id="ca-history-more"><a data-mw-interface  href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=history" accesskey="h"><span></span>
+<span>View history</span></a>
+</li>
+		</ul>
+	</div>
+</div>
+<div id="p-tb"  >
+	<div>
+		General
+	</div>
+	<div>
+		<ul>
+			<li id="t-whatlinkshere"><a href="/wiki/Special:WhatLinksHere/Smith%E2%80%93Waterman_algorithm" accesskey="j"><span>What links here</span></a></li><li id="t-recentchangeslinked"><a href="/wiki/Special:RecentChangesLinked/Smith%E2%80%93Waterman_algorithm" rel="nofollow" accesskey="k"><span>Related changes</span></a></li><li id="t-upload"><a href="//en.wikipedia.org/wiki/Wikipedia:File_Upload_Wizard" accesskey="u"><span>Upload file</span></a></li><li id="t-permalink"><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;oldid=1376348078"><span>Permanent link</span></a></li><li id="t-info"><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=info"><span>Page information</span></a></li><li id="t-cite"><a href="/w/index.php?title=Special:CiteThisPage&amp;page=Smith%E2%80%93Waterman_algorithm&amp;id=1376348078&amp;wpFormIdentifier=titleform"><span>Cite this page</span></a></li><li id="t-urlshortener"><a href="/w/index.php?title=Special:UrlShortener&amp;url=https%3A%2F%2Fen.wikipedia.org%2Fw%2Findex.php%3Ftitle%3DSmith%25E2%2580%2593Waterman_algorithm%26oldid%3D1376348078"><span>Get shortened URL</span></a></li><li id="parsermigration-switch-to-legacy"><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;oldid=1376348078&amp;useparsoid=0"><span>Switch to legacy parser</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-coll-print_export"  >
+	<div>
+		Print/export
+	</div>
+	<div>
+		<ul>
+			<li id="coll-download-as-rl"><a href="/w/index.php?title=Special:DownloadAsPdf&amp;page=Smith%E2%80%93Waterman_algorithm&amp;action=show-download-screen"><span>Download as PDF</span></a></li><li id="t-print"><a href="javascript:print();" rel="alternate" accesskey="p"><span>Printable version</span></a></li>
+		</ul>
+	</div>
+</div>
+<div id="p-wikibase-otherprojects"  >
+	<div>
+		In other projects
+	</div>
+	<div>
+		<ul>
+			<li><a href="https://commons.wikimedia.org/wiki/Category:Smith%E2%80%93Waterman_algorithm" hreflang="en"><span>Wikimedia Commons</span></a></li><li id="t-wikibase"><a href="https://www.wikidata.org/wiki/Special:EntityPage/Q1683352" accesskey="g"><span>Wikidata item</span></a></li>
+		</ul>
+	</div>
+</div>
+</div>
+									</div>
+	</div>
+</div>
+							</nav>
+						</div>
+					</div>
+				</div>
+				<div>
+					<div>
+						<nav>
+							<div id="vector-page-tools-pinned-container">
+							</div>
+		</nav>
+						<nav>
+							<div id="vector-appearance-pinned-container">
+				<div id="vector-appearance">
+	<div
+>
+	<div>Appearance</div>
+	<button>move to sidebar</button>
+	<button>hide</button>
+</div>
+</div>
+							</div>
+		</nav>
+					</div>
+				</div>
+				<div id="bodyContent" data-mw-ve-target-container>
+					<div>
+							<div>
+		</div>
+						<div id="siteSub">From Wikipedia, the free encyclopedia</div>
+						<div id="contentSub"><div id="mw-content-subtitle"><div><span></span><div><div id="mw-revision-info-current"><b>This is the <a href="/wiki/Help:Page_history">current revision</a> of this page, as edited by <span id="mw-revision-name"><a href="/w/index.php?title=User:Sparklemash&amp;action=edit&amp;redlink=1"><bdi>Sparklemash</bdi></a> <span>(<a href="/wiki/User_talk:Sparklemash">talk</a> | <a href="/wiki/Special:Contributions/Sparklemash">contribs</a>)</span></span> at <span id="mw-revision-date">16:22, 23 September 2026</span><span id="mw-revision-summary"></span>. The present address (URL) is a <a href="/wiki/Help:Permanent_link">permanent link</a> to this version.</b><span id="revision-info-current-plain">Revision as of 16:22, 23 September 2026 by <a href="/w/index.php?title=User:Sparklemash&amp;action=edit&amp;redlink=1"><bdi>Sparklemash</bdi></a> <span>(<a href="/wiki/User_talk:Sparklemash">talk</a> | <a href="/wiki/Special:Contributions/Sparklemash">contribs</a>)</span></span></div><div id="mw-revision-nav">(<a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;diff=prev&amp;oldid=1376348078">diff</a>) <a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;direction=prev&amp;oldid=1376348078">← Previous revision</a> | Latest revision (diff) | Newer revision → (diff)</div></div></div></div></div>
+					</div>
+					<div id="mw-content-text"><div lang="en" dir="ltr"><section id="mwAQ"><div about="#mwt1" typeof="mw:Transclusion" id="mwAg" data-mw='{"parts":[{"template":{"target":{"wt":"short description","href":"./Template:Short_description"},"params":{"1":{"wt":"Algorithm for determining similar regions between two molecular sequences"}},"i":0}}]}'>Algorithm for determining similar regions between two molecular sequences</div><span about="#mwt1"></span>
+<span about="#mwt2" typeof="mw:Transclusion" id="mwAw" data-mw='{"parts":[{"template":{"target":{"wt":"Infobox algorithm\n","href":"./Template:Infobox_algorithm"},"params":{"name":{"wt":"&lt;!-- Defaults to article name -->"},"class":{"wt":"[[Sequence alignment]]"},"image":{"wt":"Smith-Waterman-Algorithm-Example-En.gif"},"caption":{"wt":"An animated example to show the steps progressively. See [[#Example|here]] for detailed steps."},"data":{"wt":""},"time":{"wt":"&lt;math>O(mn)&lt;/math>"},"best-time":{"wt":""},"average-time":{"wt":""},"space":{"wt":"&lt;math>O(mn)&lt;/math>"}},"i":0}}]}'></span><table about="#mwt2" id="mwBA"><tbody><tr><td colspan="2"><span typeof="mw:File/Frameless"><a href="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-En.gif"><img resource="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-En.gif" src="//thumb.wikimedia.org/wikipedia/commons/thumb/9/92/Smith-Waterman-Algorithm-Example-En.gif/250px-Smith-Waterman-Algorithm-Example-En.gif?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="400" width="250"/></a></span><div>An animated example to show the steps progressively. See <a rel="mw:WikiLink" href="#Example">here</a> for detailed steps.</div></td></tr><tr><th scope="row">Class</th><td><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment">Sequence alignment</a></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Best,_worst_and_average_case">Worst-case</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Time_complexity">performance</a></th><td><span typeof="mw:Extension/math" about="#mwt4" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Best,_worst_and_average_case">Worst-case</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Space_complexity">space complexity</a></th><td><span typeof="mw:Extension/math" about="#mwt5" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span></td></tr></tbody></table>
+<p id="mwBQ">The <b id="mwBg">Smith–Waterman algorithm</b> performs local <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment" id="mwBw">sequence alignment</a>; that is, for determining similar regions between two strings of <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nucleic_acid_sequence" id="mwCA">nucleic acid sequences</a> or <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Protein_sequence" id="mwCQ">protein sequences</a>. Instead of looking at the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm" id="mwCg">entire</a> sequence, the Smith–Waterman algorithm compares segments of all possible lengths and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Mathematical_optimization" id="mwCw">optimizes</a> the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Similarity_measure" id="mwDA">similarity measure</a>.</p>
+<p id="mwDQ">The algorithm was first proposed by <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Temple_F._Smith" id="mwDg">Temple F. Smith</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Michael_S._Waterman" id="mwDw">Michael S. Waterman</a> in 1981.<sup about="#mwt8" id="cite_ref-Smith1981_1-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Smith1981"},"body":{"id":"mw-reference-text-cite_note-Smith1981-1"}}'><a href="#cite_note-Smith1981-1" id="mwEA"><span id="mwEQ"><span id="mwEg">[</span>1<span id="mwEw">]</span></span></a></sup> Like the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm" id="mwFA">Needleman–Wunsch algorithm</a>, of which it is a variation, Smith–Waterman is a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Dynamic_programming" id="mwFQ">dynamic programming</a> algorithm. As such, it has the desirable property that it is guaranteed to find the optimal local alignment with respect to the scoring system being used (which includes the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Substitution_matrix" id="mwFg">substitution matrix</a> and the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gap_penalty" id="mwFw">gap-scoring</a> scheme). The main difference to the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm" id="mwGA">Needleman–Wunsch algorithm</a> is that negative scoring matrix cells are set to zero. Traceback procedure starts at the highest scoring matrix cell and proceeds until a cell with score zero is encountered, yielding the highest scoring local alignment. Because of its quadratic time complexity, it often cannot be practically applied to large-scale problems and is replaced in favor of computationally more efficient alternatives such as (Gotoh, 1982),<sup about="#mwt11" id="cite_ref-Gotoh1982_2-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Gotoh1982"},"body":{"id":"mw-reference-text-cite_note-Gotoh1982-2"}}'><a href="#cite_note-Gotoh1982-2" id="mwGQ"><span id="mwGg"><span id="mwGw">[</span>2<span id="mwHA">]</span></span></a></sup> (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Stephen_Altschul" id="mwHQ">Altschul</a> and Erickson, 1986),<sup about="#mwt14" id="cite_ref-Altschul1986_3-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Altschul1986"},"body":{"id":"mw-reference-text-cite_note-Altschul1986-3"}}'><a href="#cite_note-Altschul1986-3" id="mwHg"><span id="mwHw"><span id="mwIA">[</span>3<span id="mwIQ">]</span></span></a></sup> and (Myers and Miller, 1988).<sup about="#mwt17" id="cite_ref-Myers1988_4-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Myers1988"},"body":{"id":"mw-reference-text-cite_note-Myers1988-4"}}'><a href="#cite_note-Myers1988-4" id="mwIg"><span id="mwIw"><span id="mwJA">[</span>4<span id="mwJQ">]</span></span></a></sup></p>
+<meta property="mw:PageProp/toc" id="mwJg" data-mw='{"autoGenerated":true}'/></section><section id="mwJw"><div><h2 id="History">History</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=1"><span>edit</span></a><span>]</span></span></div>
+<p id="mwKA">In 1970, Saul B. Needleman and Christian D. Wunsch proposed a heuristic homology algorithm for sequence alignment, also referred to as the Needleman–Wunsch algorithm.<sup about="#mwt20" id="cite_ref-Needleman1970_5-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Needleman1970"},"body":{"id":"mw-reference-text-cite_note-Needleman1970-5"}}'><a href="#cite_note-Needleman1970-5" id="mwKQ"><span id="mwKg"><span id="mwKw">[</span>5<span id="mwLA">]</span></span></a></sup> It is a global alignment algorithm that requires <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Big_O_notation" id="mwLQ"><span typeof="mw:Extension/math" about="#mwt39" id="mwLg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span></a> calculation steps (<span typeof="mw:Extension/math" about="#mwt21" id="mwLw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> and <span typeof="mw:Extension/math" about="#mwt22" id="mwMA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> are the lengths of the two sequences being aligned). It uses the iterative calculation of a matrix for the purpose of showing global alignment. In the following decade, Sankoff,<sup about="#mwt25" id="cite_ref-Sankoff1972_6-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Sankoff1972"},"body":{"id":"mw-reference-text-cite_note-Sankoff1972-6"}}'><a href="#cite_note-Sankoff1972-6" id="mwMQ"><span id="mwMg"><span id="mwMw">[</span>6<span id="mwNA">]</span></span></a></sup> Reichert,<sup about="#mwt28" id="cite_ref-Reichert1973_7-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Reichert1973"},"body":{"id":"mw-reference-text-cite_note-Reichert1973-7"}}'><a href="#cite_note-Reichert1973-7" id="mwNQ"><span id="mwNg"><span id="mwNw">[</span>7<span id="mwOA">]</span></span></a></sup> Beyer<sup about="#mwt32" id="cite_ref-Beyer1974_8-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Beyer1974"},"body":{"id":"mw-reference-text-cite_note-Beyer1974-8"}}'><a href="#cite_note-Beyer1974-8" id="mwOQ"><span id="mwOg"><span id="mwOw">[</span>8<span id="mwPA">]</span></span></a></sup> and others formulated alternative heuristic algorithms for analyzing gene sequences. Sellers introduced a system for measuring sequence distances.<sup about="#mwt35" id="cite_ref-Sellers1974_9-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Sellers1974"},"body":{"id":"mw-reference-text-cite_note-Sellers1974-9"}}'><a href="#cite_note-Sellers1974-9" id="mwPQ"><span id="mwPg"><span id="mwPw">[</span>9<span id="mwQA">]</span></span></a></sup> In 1976, Waterman et al. added the concept of gaps into the original measurement system.<sup about="#mwt38" id="cite_ref-Waterman1976_10-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Waterman1976"},"body":{"id":"mw-reference-text-cite_note-Waterman1976-10"}}'><a href="#cite_note-Waterman1976-10" id="mwQQ"><span id="mwQg"><span id="mwQw">[</span>10<span id="mwRA">]</span></span></a></sup> In 1981, Smith and Waterman published their Smith–Waterman algorithm for calculating local alignment.</p>
+<p id="mwRQ">The Smith–Waterman algorithm is fairly demanding of time: To align two sequences of lengths <span typeof="mw:Extension/math" about="#mwt40" id="mwRg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> and <span typeof="mw:Extension/math" about="#mwt41" id="mwRw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span>, <span typeof="mw:Extension/math" about="#mwt42" id="mwSA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(m^2n+n^2m)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(m^{2}n+n^{2}m)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <msup>
+          <mi>m</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msup>
+        <mi>n</mi>
+        <mo>+</mo>
+        <msup>
+          <mi>n</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msup>
+        <mi>m</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(m^{2}n+n^{2}m)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/373ede0cd9cf2264330946870715a4664c1ede30" alt="{\displaystyle O(m^{2}n+n^{2}m)}"/></span> time is required. Gotoh<sup about="#mwt43" id="cite_ref-Gotoh1982_2-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Gotoh1982"}}'><a href="#cite_note-Gotoh1982-2" id="mwSQ"><span id="mwSg"><span id="mwSw">[</span>2<span id="mwTA">]</span></span></a></sup> and Altschul<sup about="#mwt44" id="cite_ref-Altschul1986_3-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Altschul1986"}}'><a href="#cite_note-Altschul1986-3" id="mwTQ"><span id="mwTg"><span id="mwTw">[</span>3<span id="mwUA">]</span></span></a></sup> optimized the algorithm to <span typeof="mw:Extension/math" about="#mwt45" id="mwUQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span> steps. The space complexity was optimized by Myers and Miller<sup about="#mwt46" id="cite_ref-Myers1988_4-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Myers1988"}}'><a href="#cite_note-Myers1988-4" id="mwUg"><span id="mwUw"><span id="mwVA">[</span>4<span id="mwVQ">]</span></span></a></sup> from <span typeof="mw:Extension/math" about="#mwt47" id="mwVg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span> to <span typeof="mw:Extension/math" about="#mwt48" id="mwVw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/34109fe397fdcff370079185bfdb65826cb5565a" alt="{\displaystyle O(n)}"/></span> (linear), where <span typeof="mw:Extension/math" about="#mwt49" id="mwWA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> is the length of the shorter sequence, for the case where only one of the many possible optimal alignments is desired. Chowdhury, Le, and Ramachandran<sup about="#mwt50" id="cite_ref-CLR-08_11-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"CLR-08"}}'><a href="#cite_note-CLR-08-11" id="mwWQ"><span id="mwWg"><span id="mwWw">[</span>11<span id="mwXA">]</span></span></a></sup> later optimized the cache performance of the algorithm while keeping the space usage linear in the total length of the input sequences.</p>
+</section><section id="mwXQ"><div><h2 id="Motivation">Motivation</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=2"><span>edit</span></a><span>]</span></span></div>
+<p id="mwXg">In recent years, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Genome_project" id="mwXw">genome projects</a> conducted on a variety of organisms generated massive amounts of sequence data for genes and proteins, which requires computational analysis. Sequence alignment shows the relations between genes or between proteins, leading to a better understanding of their homology and functionality. Sequence alignment can also reveal <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Conserved_sequence" id="mwYA">conserved domains</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_motif" id="mwYQ">motifs</a>.</p>
+<p id="mwYg">One motivation for local alignment is the difficulty of obtaining correct alignments in regions of low similarity between distantly related biological sequences, because mutations have added too much 'noise' over evolutionary time to allow for a meaningful comparison of those regions. Local alignment avoids such regions altogether and focuses on those with a positive score, i.e. those with an evolutionarily conserved signal of similarity. A prerequisite for local alignment is a negative expectation score. The expectation score is defined as the average score that the scoring system (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Substitution_matrix" id="mwYw">substitution matrix</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gap_penalty" id="mwZA">gap penalties</a>) would yield for a random sequence.</p>
+<p id="mwZQ">Another motivation for using local alignments is that there is a reliable statistical model (developed by Karlin and Altschul) for optimal local alignments. The alignment of unrelated sequences tends to produce optimal local alignment scores which follow an extreme value distribution. This property allows programs to produce an <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Expectation_value" id="mwZg">expectation value</a> for the optimal local alignment of two sequences, which is a measure of how often two unrelated sequences would produce an optimal local alignment whose score is greater than or equal to the observed score. Very low expectation values indicate that the two sequences in question might be <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Homology_(biology)" id="mwZw">homologous</a>, meaning they might share a common ancestor.</p>
+</section><section id="mwaA"><div><h2 id="Algorithm">Algorithm</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=3"><span>edit</span></a><span>]</span></span></div>
+<figure typeof="mw:File/Frame" id="mwaQ"><a href="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Scoring-1.png" id="mwag"><img resource="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Scoring-1.png" src="//upload.wikimedia.org/wikipedia/commons/a/ad/Smith-Waterman-Algorithm-Scoring-1.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail_unscaled" height="240" width="301" id="mwaw"/></a><figcaption id="mwbA">Scoring method of the Smith–Waterman algorithm</figcaption></figure>
+<p id="mwbQ">Let <span typeof="mw:Extension/math" about="#mwt51" id="mwbg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A=a_1a_2...a_n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A=a_{1}a_{2}...a_{n}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+        <mo>=</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>.</mo>
+        <mo>.</mo>
+        <mo>.</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>n</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A=a_{1}a_{2}...a_{n}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/342e8f1f711da408174a056a2a728a601bdbbf3f" alt="{\displaystyle A=a_{1}a_{2}...a_{n}}"/></span> and <span typeof="mw:Extension/math" about="#mwt52" id="mwbw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"B=b_1b_2...b_m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle B=b_{1}b_{2}...b_{m}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>B</mi>
+        <mo>=</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msub>
+        <mo>.</mo>
+        <mo>.</mo>
+        <mo>.</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>m</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle B=b_{1}b_{2}...b_{m}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/721a3d1c8e55d5d5c6c3fb9d026f1531a145499a" alt="{\displaystyle B=b_{1}b_{2}...b_{m}}"/></span> be the sequences to be aligned, where <span typeof="mw:Extension/math" about="#mwt53" id="mwcA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> and <span typeof="mw:Extension/math" about="#mwt54" id="mwcQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0a07d98bb302f3856cbabc47b2b9016692e3f7bc" alt="{\displaystyle m}"/></span> are the lengths of <span typeof="mw:Extension/math" about="#mwt55" id="mwcg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"A"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle A}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>A</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle A}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/7daff47fa58cdfd29dc333def748ff5fa4c923e3" alt="{\displaystyle A}"/></span> and <span typeof="mw:Extension/math" about="#mwt56" id="mwcw" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"B"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle B}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>B</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle B}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/47136aad860d145f75f3eed3022df827cee94d7a" alt="{\displaystyle B}"/></span> respectively.</p>
+<ol id="mwdA"><li id="mwdQ">Determine the substitution matrix and the gap penalty scheme.
+<ul id="mwdg"><li id="mwdw"><span typeof="mw:Extension/math" about="#mwt57" id="mweA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"s(a,b)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle s(a,b)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>s</mi>
+        <mo stretchy="false">(</mo>
+        <mi>a</mi>
+        <mo>,</mo>
+        <mi>b</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle s(a,b)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/00476e94902b54f63c9732f534cc859ae09976c4" alt="{\displaystyle s(a,b)}"/></span> - Similarity score of the elements that constituted the two sequences</li>
+<li id="mweQ"><span typeof="mw:Extension/math" about="#mwt58" id="mweg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{k}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{k}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/aea7ab451421a62d7de329faed9aa86419bebeab" alt="{\displaystyle W_{k}}"/></span> - The penalty of a gap that has length <span typeof="mw:Extension/math" about="#mwt59" id="mwew" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle k}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>k</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle k}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c3c9a2c7b599b37105512c5d570edc034056dd40" alt="{\displaystyle k}"/></span></li></ul></li>
+<li id="mwfA">Construct a scoring matrix <span typeof="mw:Extension/math" about="#mwt60" id="mwfQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"H"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>H</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/75a9edddcca2f782014371f75dca39d7e13a9c1b" alt="{\displaystyle H}"/></span> and initialize its first row and first column. The size of the scoring matrix is <span typeof="mw:Extension/math" about="#mwt61" id="mwfg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"(n+1) * (m+1)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle (n+1)*(m+1)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo>+</mo>
+        <mn>1</mn>
+        <mo stretchy="false">)</mo>
+        <mo>∗</mo>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mo>+</mo>
+        <mn>1</mn>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle (n+1)*(m+1)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/ccfa6da8a92510ae77a12a5c487c6cb035f56f8c" alt="{\displaystyle (n+1)*(m+1)}"/></span>. The matrix uses 0-based indexing.
+<dl id="mwfw"><dd id="mwgA"><span typeof="mw:Extension/math" about="#mwt62" id="mwgQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"H_{k0}=H_{0l}=0 \\quad for \\quad 0\\le k\\le n \\quad and \\quad 0\\le l\\le m"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H_{k0}=H_{0l}=0\quad for\quad 0\leq k\leq n\quad and\quad 0\leq l\leq m}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mi>k</mi>
+            <mn>0</mn>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mn>0</mn>
+            <mi>l</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mn>0</mn>
+        <mspace width="1em"></mspace>
+        <mi>f</mi>
+        <mi>o</mi>
+        <mi>r</mi>
+        <mspace width="1em"></mspace>
+        <mn>0</mn>
+        <mo>≤</mo>
+        <mi>k</mi>
+        <mo>≤</mo>
+        <mi>n</mi>
+        <mspace width="1em"></mspace>
+        <mi>a</mi>
+        <mi>n</mi>
+        <mi>d</mi>
+        <mspace width="1em"></mspace>
+        <mn>0</mn>
+        <mo>≤</mo>
+        <mi>l</mi>
+        <mo>≤</mo>
+        <mi>m</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H_{k0}=H_{0l}=0\quad for\quad 0\leq k\leq n\quad and\quad 0\leq l\leq m}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/dec59d5d0b3576e65db07a0b56811f009f97fa29" alt="{\displaystyle H_{k0}=H_{0l}=0\quad for\quad 0\leq k\leq n\quad and\quad 0\leq l\leq m}"/></span></dd></dl></li>
+<li id="mwgg">Fill the scoring matrix using the equation below.
+<dl id="mwgw"><dd id="mwhA"><span typeof="mw:Extension/math" about="#mwt63" id="mwhQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\nH_{ij} = \\max\\begin{cases} \nH_{i-1,j-1} + s(a_i,b_j), \\\\\n\\max_{k \\ge 1} \\{ H_{i-k,j} - W_k \\}, \\\\\n\\max_{l \\ge 1} \\{ H_{i,j-l} - W_l \\}, \\\\\n0\n\\end{cases} \\qquad (1\\le i\\le n, 1\\le j\\le m)\n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H_{ij}=\max {\begin{cases}H_{i-1,j-1}+s(a_{i},b_{j}),\\\max _{k\geq 1}\{H_{i-k,j}-W_{k}\},\\\max _{l\geq 1}\{H_{i,j-l}-W_{l}\},\\0\end{cases}}\qquad (1\leq i\leq n,1\leq j\leq m)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mo movablelimits="true" form="prefix">max</mo>
+        <mrow>
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <msub>
+                    <mi>H</mi>
+                    <mrow>
+                      <mi>i</mi>
+                      <mo>−</mo>
+                      <mn>1</mn>
+                      <mo>,</mo>
+                      <mi>j</mi>
+                      <mo>−</mo>
+                      <mn>1</mn>
+                    </mrow>
+                  </msub>
+                  <mo>+</mo>
+                  <mi>s</mi>
+                  <mo stretchy="false">(</mo>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow>
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>,</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo stretchy="false">)</mo>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <munder>
+                    <mo movablelimits="true" form="prefix">max</mo>
+                    <mrow>
+                      <mi>k</mi>
+                      <mo>≥</mo>
+                      <mn>1</mn>
+                    </mrow>
+                  </munder>
+                  <mo fence="false" stretchy="false">{</mo>
+                  <msub>
+                    <mi>H</mi>
+                    <mrow>
+                      <mi>i</mi>
+                      <mo>−</mo>
+                      <mi>k</mi>
+                      <mo>,</mo>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo>−</mo>
+                  <msub>
+                    <mi>W</mi>
+                    <mrow>
+                      <mi>k</mi>
+                    </mrow>
+                  </msub>
+                  <mo fence="false" stretchy="false">}</mo>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <munder>
+                    <mo movablelimits="true" form="prefix">max</mo>
+                    <mrow>
+                      <mi>l</mi>
+                      <mo>≥</mo>
+                      <mn>1</mn>
+                    </mrow>
+                  </munder>
+                  <mo fence="false" stretchy="false">{</mo>
+                  <msub>
+                    <mi>H</mi>
+                    <mrow>
+                      <mi>i</mi>
+                      <mo>,</mo>
+                      <mi>j</mi>
+                      <mo>−</mo>
+                      <mi>l</mi>
+                    </mrow>
+                  </msub>
+                  <mo>−</mo>
+                  <msub>
+                    <mi>W</mi>
+                    <mrow>
+                      <mi>l</mi>
+                    </mrow>
+                  </msub>
+                  <mo fence="false" stretchy="false">}</mo>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+        <mspace width="2em"></mspace>
+        <mo stretchy="false">(</mo>
+        <mn>1</mn>
+        <mo>≤</mo>
+        <mi>i</mi>
+        <mo>≤</mo>
+        <mi>n</mi>
+        <mo>,</mo>
+        <mn>1</mn>
+        <mo>≤</mo>
+        <mi>j</mi>
+        <mo>≤</mo>
+        <mi>m</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H_{ij}=\max {\begin{cases}H_{i-1,j-1}+s(a_{i},b_{j}),\\\max _{k\geq 1}\{H_{i-k,j}-W_{k}\},\\\max _{l\geq 1}\{H_{i,j-l}-W_{l}\},\\0\end{cases}}\qquad (1\leq i\leq n,1\leq j\leq m)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/851b7c01d9730c7f3a78d5d2b9cc10937a1928df" alt="{\displaystyle H_{ij}=\max {\begin{cases}H_{i-1,j-1}+s(a_{i},b_{j}),\\\max _{k\geq 1}\{H_{i-k,j}-W_{k}\},\\\max _{l\geq 1}\{H_{i,j-l}-W_{l}\},\\0\end{cases}}\qquad (1\leq i\leq n,1\leq j\leq m)}"/></span></dd>
+<dd id="mwhg">where</dd>
+<dd id="mwhw"><span typeof="mw:Extension/math" about="#mwt64" id="mwiA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"H_{i-1,j-1} + s(a_i,b_j)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H_{i-1,j-1}+s(a_{i},b_{j})}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+            <mo>,</mo>
+            <mi>j</mi>
+            <mo>−</mo>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>+</mo>
+        <mi>s</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H_{i-1,j-1}+s(a_{i},b_{j})}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/6d113a9eed12980c9f680119381c78eed3e4757d" alt="{\displaystyle H_{i-1,j-1}+s(a_{i},b_{j})}"/></span> is the score of aligning <span typeof="mw:Extension/math" about="#mwt65" id="mwiQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"a_i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle a_{i}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle a_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0bc77764b2e74e64a63341054fa90f3e07db275f" alt="{\displaystyle a_{i}}"/></span> and <span typeof="mw:Extension/math" about="#mwt66" id="mwig" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b_j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle b_{j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fa56eff4488494085785b7b0d6e2069bd45a3ce5" alt="{\displaystyle b_{j}}"/></span>,</dd>
+<dd id="mwiw"><span typeof="mw:Extension/math" about="#mwt67" id="mwjA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"H_{i-k,j} - W_k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H_{i-k,j}-W_{k}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>−</mo>
+            <mi>k</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>−</mo>
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H_{i-k,j}-W_{k}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/eb85012344aa6ddc1d1f21a0bd3e9cf3542e2d67" alt="{\displaystyle H_{i-k,j}-W_{k}}"/></span> is the score if <span typeof="mw:Extension/math" about="#mwt68" id="mwjQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"a_i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle a_{i}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle a_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0bc77764b2e74e64a63341054fa90f3e07db275f" alt="{\displaystyle a_{i}}"/></span> is at the end of a gap of length <span typeof="mw:Extension/math" about="#mwt69" id="mwjg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle k}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>k</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle k}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c3c9a2c7b599b37105512c5d570edc034056dd40" alt="{\displaystyle k}"/></span>,</dd>
+<dd id="mwjw"><span typeof="mw:Extension/math" about="#mwt70" id="mwkA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"H_{i,j-l} - W_l"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H_{i,j-l}-W_{l}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mi>i</mi>
+            <mo>,</mo>
+            <mi>j</mi>
+            <mo>−</mo>
+            <mi>l</mi>
+          </mrow>
+        </msub>
+        <mo>−</mo>
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>l</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H_{i,j-l}-W_{l}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/4a2cb2487ac46fdc614ae9782808b9d78cf1fd2f" alt="{\displaystyle H_{i,j-l}-W_{l}}"/></span> is the score if <span typeof="mw:Extension/math" about="#mwt71" id="mwkQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b_j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle b_{j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fa56eff4488494085785b7b0d6e2069bd45a3ce5" alt="{\displaystyle b_{j}}"/></span> is at the end of a gap of length <span typeof="mw:Extension/math" about="#mwt72" id="mwkg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"l"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle l}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>l</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle l}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/829091f745070b9eb97a80244129025440a1cfac" alt="{\displaystyle l}"/></span>,</dd>
+<dd id="mwkw"><span typeof="mw:Extension/math" about="#mwt73" id="mwlA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"0"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle 0}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mn>0</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle 0}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/2aae8864a3c1fec9585261791a809ddec1489950" alt="{\displaystyle 0}"/></span> means there is no similarity up to <span typeof="mw:Extension/math" about="#mwt74" id="mwlQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"a_i"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle a_{i}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle a_{i}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/0bc77764b2e74e64a63341054fa90f3e07db275f" alt="{\displaystyle a_{i}}"/></span> and <span typeof="mw:Extension/math" about="#mwt75" id="mwlg" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"b_j"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle b_{j}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle b_{j}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/fa56eff4488494085785b7b0d6e2069bd45a3ce5" alt="{\displaystyle b_{j}}"/></span>.</dd></dl></li>
+<li id="mwlw">Traceback. Starting at the highest score in the scoring matrix <span typeof="mw:Extension/math" about="#mwt76" id="mwmA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"H"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>H</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/75a9edddcca2f782014371f75dca39d7e13a9c1b" alt="{\displaystyle H}"/></span> and ending at a matrix cell that has a score of 0, traceback based on the source of each score recursively to generate the best local alignment.</li></ol>
+</section><section id="mwmQ"><div><h2 id="Explanation">Explanation</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=4"><span>edit</span></a><span>]</span></span></div>
+<p id="mwmg">Smith–Waterman algorithm aligns two sequences by matches/mismatches (also known as substitutions), insertions, and deletions. Both insertions and deletions are the operations that introduce gaps, which are represented by dashes. The Smith–Waterman algorithm has several steps:</p>
+<ol id="mwmw"><li id="mwnA"><b id="mwnQ">Determine the substitution matrix and the gap penalty scheme</b>. A substitution matrix assigns each pair of bases or amino acids a score for match or mismatch. Usually matches get positive scores, whereas mismatches get relatively lower scores. A gap penalty function determines the score cost for opening or extending gaps. It is suggested that users choose the appropriate scoring system based on the goals. In addition, it is also a good practice to try different combinations of substitution matrices and gap penalties.</li>
+<li id="mwng"><b id="mwnw">Initialize the scoring matrix</b>. The dimensions of the scoring matrix are 1+length of each sequence respectively. All the elements of the first row and the first column are set to 0. The extra first row and first column make it possible to align one sequence to another at any position, and setting them to 0 makes the terminal gap free from penalty.</li>
+<li id="mwoA"><b id="mwoQ">Scoring</b>. Score each element from left to right, top to bottom in the matrix, considering the outcomes of substitutions (diagonal scores) or adding gaps (horizontal and vertical scores). If none of the scores are positive, this element gets a 0. Otherwise the highest score is used and the source of that score is recorded.</li>
+<li id="mwog"><b id="mwow">Traceback</b>. Starting at the element with the highest score, traceback based on the source of each score recursively, until 0 is encountered. The segments that have the highest similarity score based on the given scoring system is generated in this process. To obtain the second best local alignment, apply the traceback process starting at the second highest score outside the trace of the best alignment.</li></ol>
+<section id="mwpA"><div><h3 id="Comparison_with_the_Needleman–Wunsch_algorithm"><span id="Comparison_with_the_Needleman.E2.80.93Wunsch_algorithm" typeof="mw:FallbackId"></span>Comparison with the Needleman–Wunsch algorithm</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=5"><span>edit</span></a><span>]</span></span></div>
+<figure typeof="mw:File/Thumb" id="mwpQ"><a href="https://en.wikipedia.org/wiki/File:Alignment-Comparison-En.png" id="mwpg"><img resource="https://en.wikipedia.org/wiki/File:Alignment-Comparison-En.png" src="//thumb.wikimedia.org/wikipedia/commons/thumb/0/03/Alignment-Comparison-En.png/330px-Alignment-Comparison-En.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" height="188" width="300" id="mwpw"/></a><figcaption id="mwqA">Global and local sequence alignment</figcaption></figure>
+<p id="mwqQ">The Smith–Waterman algorithm finds the segments in two sequences that have similarities while the Needleman–Wunsch algorithm aligns two complete sequences. Therefore, they serve different purposes. Both algorithms use the concepts of a substitution matrix, a gap penalty function, a scoring matrix, and a traceback process. Three main differences are:</p>
+<table id="mwqg">
+<tbody id="mwqw"><tr id="mwrA">
+<th id="mwrQ"></th><th id="mwrg">Smith–Waterman algorithm</th><th id="mwrw">Needleman–Wunsch algorithm</th></tr>
+<tr id="mwsA">
+<td id="mwsQ">Initialization</td><td id="mwsg">First row and first column are set to 0</td><td id="mwsw">First row and first column are subject to gap penalty</td></tr>
+<tr id="mwtA">
+<td id="mwtQ">Scoring</td><td id="mwtg">Negative score is set to 0</td><td id="mwtw">Score can be negative</td></tr>
+<tr id="mwuA">
+<td id="mwuQ">Traceback</td><td id="mwug">Begin with the highest score, end when 0 is encountered</td><td id="mwuw">Begin with the cell at the lower right of the matrix, end at top left cell</td></tr>
+</tbody></table>
+<p id="mwvA">One of the most important distinctions is that no negative score is assigned in the scoring system of the Smith–Waterman algorithm, which enables local alignment. When any element has a score lower than zero, it means that the sequences up to this position have no similarities; this element will then be set to zero to eliminate influence from previous alignment. In this way, calculation can continue to find alignment in any position afterwards.</p>
+<p id="mwvQ">The initial scoring matrix of Smith–Waterman algorithm enables the alignment of any segment of one sequence to an arbitrary position in the other sequence. In Needleman–Wunsch algorithm, however, end gap penalty also needs to be considered in order to align the full sequences.</p>
+</section><section id="mwvg"><div><h3 id="Substitution_matrix">Substitution matrix</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=6"><span>edit</span></a><span>]</span></span></div>
+<p id="mwvw">Each base substitution or amino acid substitution is assigned a score. In general, matches are assigned positive scores, and mismatches are assigned relatively lower scores. Take DNA sequence as an example. If matches get +1, mismatches get -1, then the substitution matrix is:</p>
+<table id="mwwA">
+<tbody id="mwwQ"><tr id="mwwg"><th id="mwww"></th><th id="mwxA">A</th><th id="mwxQ">G</th><th id="mwxg">C</th><th id="mwxw">T</th></tr>
+<tr id="mwyA">
+<th scope="row" id="mwyQ">A</th>
+<td id="mwyg">1</td><td id="mwyw">-1</td><td id="mwzA">-1</td><td id="mwzQ">-1</td></tr>
+<tr id="mwzg">
+<th scope="row" id="mwzw">G</th>
+<td id="mw0A">-1</td><td id="mw0Q">1</td><td id="mw0g">-1</td><td id="mw0w">-1</td></tr>
+<tr id="mw1A">
+<th scope="row" id="mw1Q">C</th>
+<td id="mw1g">-1</td><td id="mw1w">-1</td><td id="mw2A">1</td><td id="mw2Q">-1</td></tr>
+<tr id="mw2g">
+<th scope="row" id="mw2w">T</th>
+<td id="mw3A">-1</td><td id="mw3Q">-1</td><td id="mw3g">-1</td><td id="mw3w">1</td></tr>
+</tbody></table>
+<p id="mw4A">This substitution matrix can be described as:
+<span typeof="mw:Extension/math" about="#mwt77" id="mw4Q" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"s(a_i,b_j) = \\begin{cases}+1, \\quad a_i=b_j \\\\ -1, \\quad a_i\\ne b_j\\end{cases}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle s(a_{i},b_{j})={\begin{cases}+1,\quad a_{i}=b_{j}\\-1,\quad a_{i}\neq b_{j}\end{cases}}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>s</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mrow>
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <mo>+</mo>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                  <mspace width="1em"></mspace>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow>
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>=</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>1</mn>
+                  <mo>,</mo>
+                  <mspace width="1em"></mspace>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow>
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>≠</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle s(a_{i},b_{j})={\begin{cases}+1,\quad a_{i}=b_{j}\\-1,\quad a_{i}\neq b_{j}\end{cases}}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/3fcb6d296a12ba910cd8c8a0c9d59a2427f60c62" alt="{\displaystyle s(a_{i},b_{j})={\begin{cases}+1,\quad a_{i}=b_{j}\\-1,\quad a_{i}\neq b_{j}\end{cases}}}"/></span></p>
+<p id="mw4g">Different base substitutions or amino acid substitutions can have different scores. The substitution matrix of amino acids is usually more complicated than that of the bases. See <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Point_accepted_mutation" id="mw4w">PAM</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLOSUM" id="mw5A">BLOSUM</a>.</p>
+</section><section id="mw5Q"><div><h3 id="Gap_penalty">Gap penalty</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=7"><span>edit</span></a><span>]</span></span></div>
+<p id="mw5g">Gap penalty designates scores for insertion or deletion. A simple gap penalty strategy is to use fixed score for each gap. In biology, however, the score needs to be counted differently for practical reasons. On one hand, partial similarity between two sequences is a common phenomenon; on the other hand, a single gene mutation event can result in insertion of a single long gap. Therefore, connected gaps forming a long gap usually is more favored than multiple scattered, short gaps. In order to take this difference into consideration, the concepts of gap opening and gap extension have been added to the scoring system. The gap opening score is usually higher than the gap extension score. For instance, the default parameters in <a rel="mw:ExtLink nofollow" href="https://www.ebi.ac.uk/jdispatcher/psa/emboss_water" id="mw5w">EMBOSS Water</a> are: gap opening = 10, gap extension = 0.5.</p>
+<p id="mw6A">Here we discuss two common strategies for gap penalty. See <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gap_penalty" id="mw6Q">Gap penalty</a> for more strategies.
+Let <span typeof="mw:Extension/math" about="#mwt78" id="mw6g" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{k}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{k}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/aea7ab451421a62d7de329faed9aa86419bebeab" alt="{\displaystyle W_{k}}"/></span> be the gap penalty function for a gap of length <span typeof="mw:Extension/math" about="#mwt79" id="mw6w" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle k}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>k</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle k}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c3c9a2c7b599b37105512c5d570edc034056dd40" alt="{\displaystyle k}"/></span>:</p>
+<section id="mw7A"><div><h4 id="Linear">Linear</h4><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=8"><span>edit</span></a><span>]</span></span></div>
+<figure typeof="mw:File/Frame" id="mw7Q"><a href="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Scoring-2.png" id="mw7g"><img resource="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Scoring-2.png" src="//upload.wikimedia.org/wikipedia/commons/9/90/Smith-Waterman-Algorithm-Scoring-2.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail_unscaled" height="220" width="220" id="mw7w"/></a><figcaption id="mw8A">Simplified Smith–Waterman algorithm when linear gap penalty function is used</figcaption></figure>
+<p id="mw8Q">A linear gap penalty has the same scores for opening and extending a gap:</p>
+<p id="mw8g"><span typeof="mw:Extension/math" about="#mwt80" id="mw8w" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_k=kW_1"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{k}=kW_{1}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mi>k</mi>
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{k}=kW_{1}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/d0e7ea3ecb675056da5a51ac4be55071be34ec68" alt="{\displaystyle W_{k}=kW_{1}}"/></span>,</p>
+<p id="mw9A">where <span typeof="mw:Extension/math" about="#mwt81" id="mw9Q" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_1"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{1}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{1}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/74ab879909bd9762251f679bbb2fa738100baa45" alt="{\displaystyle W_{1}}"/></span> is the cost of a single gap.</p>
+<p id="mw9g">The gap penalty is directly proportional to the gap length. When linear gap penalty is used, the Smith–Waterman algorithm can be simplified to:</p>
+<p id="mw9w"><span typeof="mw:Extension/math" about="#mwt82" id="mw-A" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"\nH_{ij}=\\max\\begin{cases}\nH_{i-1,j-1}+s(a_i,b_j),\\\\\nH_{i-1,j}-W_1,\\\\\nH_{i,j-1}-W_1,\\\\\n0\n\\end{cases}\n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle H_{ij}=\max {\begin{cases}H_{i-1,j-1}+s(a_{i},b_{j}),\\H_{i-1,j}-W_{1},\\H_{i,j-1}-W_{1},\\0\end{cases}}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>H</mi>
+          <mrow>
+            <mi>i</mi>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mo movablelimits="true" form="prefix">max</mo>
+        <mrow>
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <msub>
+                    <mi>H</mi>
+                    <mrow>
+                      <mi>i</mi>
+                      <mo>−</mo>
+                      <mn>1</mn>
+                      <mo>,</mo>
+                      <mi>j</mi>
+                      <mo>−</mo>
+                      <mn>1</mn>
+                    </mrow>
+                  </msub>
+                  <mo>+</mo>
+                  <mi>s</mi>
+                  <mo stretchy="false">(</mo>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow>
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>,</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo stretchy="false">)</mo>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <msub>
+                    <mi>H</mi>
+                    <mrow>
+                      <mi>i</mi>
+                      <mo>−</mo>
+                      <mn>1</mn>
+                      <mo>,</mo>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                  <mo>−</mo>
+                  <msub>
+                    <mi>W</mi>
+                    <mrow>
+                      <mn>1</mn>
+                    </mrow>
+                  </msub>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <msub>
+                    <mi>H</mi>
+                    <mrow>
+                      <mi>i</mi>
+                      <mo>,</mo>
+                      <mi>j</mi>
+                      <mo>−</mo>
+                      <mn>1</mn>
+                    </mrow>
+                  </msub>
+                  <mo>−</mo>
+                  <msub>
+                    <mi>W</mi>
+                    <mrow>
+                      <mn>1</mn>
+                    </mrow>
+                  </msub>
+                  <mo>,</mo>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mn>0</mn>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle H_{ij}=\max {\begin{cases}H_{i-1,j-1}+s(a_{i},b_{j}),\\H_{i-1,j}-W_{1},\\H_{i,j-1}-W_{1},\\0\end{cases}}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/5a3d20efd95929ba04537b17e69449c3f5734b1d" alt="{\displaystyle H_{ij}=\max {\begin{cases}H_{i-1,j-1}+s(a_{i},b_{j}),\\H_{i-1,j}-W_{1},\\H_{i,j-1}-W_{1},\\0\end{cases}}}"/></span></p>
+<p id="mw-Q">The simplified algorithm uses <span typeof="mw:Extension/math" about="#mwt83" id="mw-g" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span> steps. When an element is being scored, only the gap penalties from the elements that are directly adjacent to this element need to be considered.</p>
+</section><section id="mw-w"><div><h4 id="Affine">Affine</h4><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=9"><span>edit</span></a><span>]</span></span></div>
+<p id="mw_A">An affine gap penalty considers gap opening and extension separately:</p>
+<p id="mw_Q"><span typeof="mw:Extension/math" about="#mwt84" id="mw_g" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_k=uk+v \\quad (u>0, v>0)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{k}=uk+v\quad (u>0,v>0)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mi>u</mi>
+        <mi>k</mi>
+        <mo>+</mo>
+        <mi>v</mi>
+        <mspace width="1em"></mspace>
+        <mo stretchy="false">(</mo>
+        <mi>u</mi>
+        <mo>></mo>
+        <mn>0</mn>
+        <mo>,</mo>
+        <mi>v</mi>
+        <mo>></mo>
+        <mn>0</mn>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{k}=uk+v\quad (u>0,v>0)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/f241c1ed6acf91d8e53301807bbac6b234147eee" alt="{\displaystyle W_{k}=uk+v\quad (u>0,v>0)}"/></span>,</p>
+<p id="mw_w">where <span typeof="mw:Extension/math" about="#mwt85" id="mwAQA" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"v"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle v}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>v</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle v}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/e07b00e7fc0847fbd16391c778d65bc25c452597" alt="{\displaystyle v}"/></span> is the gap opening penalty, and <span typeof="mw:Extension/math" about="#mwt86" id="mwAQE" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"u"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle u}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>u</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle u}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/c3e6bb763d22c20916ed4f0bb6bd49d7470cffd8" alt="{\displaystyle u}"/></span> is the gap extension penalty. For example, the penalty for a gap of length 2 is <span typeof="mw:Extension/math" about="#mwt87" id="mwAQI" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"2u+v"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle 2u+v}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mn>2</mn>
+        <mi>u</mi>
+        <mo>+</mo>
+        <mi>v</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle 2u+v}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/9002f7777b31dba86b4376578a694f7e2c979623" alt="{\displaystyle 2u+v}"/></span>.</p>
+<p id="mwAQM">An arbitrary gap penalty was used in the original Smith–Waterman algorithm paper. It uses <span typeof="mw:Extension/math" about="#mwt88" id="mwAQQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(m^2n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(m^{2}n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <msup>
+          <mi>m</mi>
+          <mrow>
+            <mn>2</mn>
+          </mrow>
+        </msup>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(m^{2}n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/61b2564ca472ee3dd23f8a7c0a6883c45a08f943" alt="{\displaystyle O(m^{2}n)}"/></span> steps, therefore is quite demanding of time. Gotoh optimized the steps for an affine gap penalty to <span typeof="mw:Extension/math" about="#mwt89" id="mwAQU" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(mn)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(mn)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>m</mi>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(mn)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/89ea09572a098b4762141a22c43a7ba1c20051cf" alt="{\displaystyle O(mn)}"/></span>,<sup about="#mwt90" id="cite_ref-Gotoh1982_2-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Gotoh1982"}}'><a href="#cite_note-Gotoh1982-2" id="mwAQY"><span id="mwAQc"><span id="mwAQg">[</span>2<span id="mwAQk">]</span></span></a></sup> but the optimized algorithm only attempts to find one optimal alignment, and the optimal alignment is not guaranteed to be found.<sup about="#mwt91" id="cite_ref-Altschul1986_3-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Altschul1986"}}'><a href="#cite_note-Altschul1986-3" id="mwAQo"><span id="mwAQs"><span id="mwAQw">[</span>3<span id="mwAQ0">]</span></span></a></sup> Altschul modified Gotoh's algorithm to find all optimal alignments while maintaining the computational complexity.<sup about="#mwt92" id="cite_ref-Altschul1986_3-3" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Altschul1986"}}'><a href="#cite_note-Altschul1986-3" id="mwAQ4"><span id="mwAQ8"><span id="mwARA">[</span>3<span id="mwARE">]</span></span></a></sup> Later, Myers and Miller pointed out that Gotoh and Altschul's algorithm can be further modified based on the method that was published by Hirschberg in 1975,<sup about="#mwt95" id="cite_ref-Hirschberg1975_12-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Hirschberg1975"},"body":{"id":"mw-reference-text-cite_note-Hirschberg1975-12"}}'><a href="#cite_note-Hirschberg1975-12" id="mwARI"><span id="mwARM"><span id="mwARQ">[</span>12<span id="mwARU">]</span></span></a></sup> and applied this method.<sup about="#mwt96" id="cite_ref-Myers1988_4-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Myers1988"}}'><a href="#cite_note-Myers1988-4" id="mwARY"><span id="mwARc"><span id="mwARg">[</span>4<span id="mwARk">]</span></span></a></sup> Myers and Miller's algorithm can align two sequences using <span typeof="mw:Extension/math" about="#mwt97" id="mwARo" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"O(n)"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle O(n)}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>O</mi>
+        <mo stretchy="false">(</mo>
+        <mi>n</mi>
+        <mo stretchy="false">)</mo>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle O(n)}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/34109fe397fdcff370079185bfdb65826cb5565a" alt="{\displaystyle O(n)}"/></span> space, with <span typeof="mw:Extension/math" about="#mwt98" id="mwARs" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"n"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle n}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>n</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle n}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a601995d55609f2d9f5e233e36fbe9ea26011b3b" alt="{\displaystyle n}"/></span> being the length of the shorter sequence. Chowdhury, Le, and Ramachandran<sup about="#mwt101" id="cite_ref-CLR-08_11-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"CLR-08"},"body":{"id":"mw-reference-text-cite_note-CLR-08-11"}}'><a href="#cite_note-CLR-08-11" id="mwARw"><span id="mwAR0"><span id="mwAR4">[</span>11<span id="mwAR8">]</span></span></a></sup> later showed how to run Gotoh's algorithm cache-efficiently in linear space using a different recursive divide-and-conquer strategy than the one used by Hirschberg. The resulting algorithm runs faster than Myers and Miller's algorithm in practice due to its superior cache performance.<sup about="#mwt102" id="cite_ref-CLR-08_11-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"CLR-08"}}'><a href="#cite_note-CLR-08-11" id="mwASA"><span id="mwASE"><span id="mwASI">[</span>11<span id="mwASM">]</span></span></a></sup></p>
+</section><section id="mwASQ"><div><h4 id="Gap_penalty_example">Gap penalty example</h4><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=10"><span>edit</span></a><span>]</span></span></div>
+<p id="mwASU">Take the alignment of sequences <span about="#mwt103" id="mwASc">TACGGGCCCGCTAC</span> and <span about="#mwt105" id="mwASk">TAGCCCTATCGGTCA</span> as an example.
+When linear gap penalty function is used, the result is (Alignments performed by EMBOSS Water. Substitution matrix is DNAfull (similarity score: +5 for matching characters otherwise -4). Gap opening and extension are 0.0 and 1.0 respectively):</p>
+<pre id="mwASo"><span about="#mwt107" id="mwASw">TACGGGCCCGCTA-C</span>
+<span about="#mwt109" id="mwAS4"></span>
+<span about="#mwt111" id="mwATA">TA---G-CC-CTATC</span></pre>
+<p id="mwATE">When affine gap penalty is used, the result is (Gap opening and extension are 5.0 and 1.0 respectively):</p>
+<pre id="mwATI"><span about="#mwt113" id="mwATQ">TACGGGCCCGCTA</span>
+<span about="#mwt115" id="mwATY"></span>
+<span about="#mwt117" id="mwATg">TA---GCC--CTA</span></pre>
+<p id="mwATk">This example shows that an affine gap penalty can help avoid scattered small gaps.</p>
+</section></section><section id="mwATo"><div><h3 id="Scoring_matrix">Scoring matrix</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=11"><span>edit</span></a><span>]</span></span></div>
+<p id="mwATs">The function of the scoring matrix is to conduct one-to-one comparisons between all components in two sequences and record the optimal alignment results. The scoring process reflects the concept of dynamic programming. The final optimal alignment is found by iteratively expanding the growing optimal alignment. In other words, the current optimal alignment is generated by deciding which path (match/mismatch or inserting gap) gives the highest score from the previous optimal alignment. The size of the matrix is the length of one sequence plus 1 by the length of the other sequence plus 1. The additional first row and first column serve the purpose of aligning one sequence to any positions in the other sequence. Both the first line and the first column are set to 0 so that end gap is not penalized. The initial scoring matrix is:</p>
+<table id="mwATw">
+<tbody id="mwAT0"><tr id="mwAT4"><th scope="col" id="mwAT8"></th>
+<th scope="col" id="mwAUA"></th>
+<th scope="col" id="mwAUE">b<sub id="mwAUI">1</sub></th>
+<th scope="col" id="mwAUM">...</th>
+<th scope="col" id="mwAUQ">b<sub id="mwAUU">j</sub></th>
+<th scope="col" id="mwAUY">...</th>
+<th scope="col" id="mwAUc">b<sub id="mwAUg">m</sub></th></tr>
+<tr id="mwAUk">
+<th scope="row" id="mwAUo"></th>
+<td id="mwAUs">0</td><td id="mwAUw">0</td><td id="mwAU0">...</td><td id="mwAU4">0</td><td id="mwAU8">...</td><td id="mwAVA">0</td></tr>
+<tr id="mwAVE">
+<th scope="row" id="mwAVI">a<sub id="mwAVM">1</sub></th>
+<td id="mwAVQ">0</td><td id="mwAVU"></td><td id="mwAVY"></td><td id="mwAVc"></td><td id="mwAVg"></td><td id="mwAVk"></td></tr>
+<tr id="mwAVo">
+<th scope="row" id="mwAVs">...</th>
+<td id="mwAVw">...</td><td id="mwAV0"></td><td id="mwAV4"></td><td id="mwAV8"></td><td id="mwAWA"></td><td id="mwAWE"></td></tr>
+<tr id="mwAWI">
+<th scope="row" id="mwAWM">a<sub id="mwAWQ">i</sub></th>
+<td id="mwAWU">0</td><td id="mwAWY"></td><td id="mwAWc"></td><td id="mwAWg"></td><td id="mwAWk"></td><td id="mwAWo"></td></tr>
+<tr id="mwAWs">
+<th scope="row" id="mwAWw">...</th>
+<td id="mwAW0">...</td><td id="mwAW4"></td><td id="mwAW8"></td><td id="mwAXA"></td><td id="mwAXE"></td><td id="mwAXI"></td></tr>
+<tr id="mwAXM">
+<th scope="row" id="mwAXQ">a<sub id="mwAXU">n</sub></th>
+<td id="mwAXY">0</td><td id="mwAXc"></td><td id="mwAXg"></td><td id="mwAXk"></td><td id="mwAXo"></td><td id="mwAXs"></td></tr>
+</tbody></table>
+</section></section><section id="mwAXw"><div><h2 id="Example">Example</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=12"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAX0">Take the alignment of DNA sequences <span about="#mwt119" id="mwAX8">TGTTACGG</span> and <span about="#mwt121" id="mwAYE">GGTTGACTA</span> as an example. Use the following scheme:</p>
+<ul id="mwAYI"><li id="mwAYM">Substitution matrix: <span typeof="mw:Extension/math" about="#mwt123" id="mwAYQ" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"s(a_i,b_j) = \\begin{cases}+3, \\quad a_i=b_j \\\\ -3, \\quad a_i\\ne b_j\\end{cases}"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle s(a_{i},b_{j})={\begin{cases}+3,\quad a_{i}=b_{j}\\-3,\quad a_{i}\neq b_{j}\end{cases}}}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <mi>s</mi>
+        <mo stretchy="false">(</mo>
+        <msub>
+          <mi>a</mi>
+          <mrow>
+            <mi>i</mi>
+          </mrow>
+        </msub>
+        <mo>,</mo>
+        <msub>
+          <mi>b</mi>
+          <mrow>
+            <mi>j</mi>
+          </mrow>
+        </msub>
+        <mo stretchy="false">)</mo>
+        <mo>=</mo>
+        <mrow>
+          <mrow>
+            <mo>{</mo>
+            <mtable columnalign="left left" rowspacing=".2em" columnspacing="1em" displaystyle="false">
+              <mtr>
+                <mtd>
+                  <mo>+</mo>
+                  <mn>3</mn>
+                  <mo>,</mo>
+                  <mspace width="1em"></mspace>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow>
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>=</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                </mtd>
+              </mtr>
+              <mtr>
+                <mtd>
+                  <mo>−</mo>
+                  <mn>3</mn>
+                  <mo>,</mo>
+                  <mspace width="1em"></mspace>
+                  <msub>
+                    <mi>a</mi>
+                    <mrow>
+                      <mi>i</mi>
+                    </mrow>
+                  </msub>
+                  <mo>≠</mo>
+                  <msub>
+                    <mi>b</mi>
+                    <mrow>
+                      <mi>j</mi>
+                    </mrow>
+                  </msub>
+                </mtd>
+              </mtr>
+            </mtable>
+            <mo fence="true" stretchy="true" symmetric="true"></mo>
+          </mrow>
+        </mrow>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle s(a_{i},b_{j})={\begin{cases}+3,\quad a_{i}=b_{j}\\-3,\quad a_{i}\neq b_{j}\end{cases}}}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/5094faacba7d7724f770dad3dd748350996e3e2a" alt="{\displaystyle s(a_{i},b_{j})={\begin{cases}+3,\quad a_{i}=b_{j}\\-3,\quad a_{i}\neq b_{j}\end{cases}}}"/></span></li>
+<li id="mwAYU">Gap penalty: <span typeof="mw:Extension/math" about="#mwt124" id="mwAYY" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_k=2k"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{k}=2k}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mi>k</mi>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mn>2</mn>
+        <mi>k</mi>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{k}=2k}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/b2f87fcdf98724e37e263fd3ce99c932fce89e06" alt="{\displaystyle W_{k}=2k}"/></span> (a linear gap penalty of <span typeof="mw:Extension/math" about="#mwt125" id="mwAYc" data-mw='{"name":"math","attrs":{},"body":{"extsrc":"W_1 = 2"}}'><span><math xmlns="http://www.w3.org/1998/Math/MathML" alttext="{\displaystyle W_{1}=2}">
+  <semantics>
+    <mrow>
+      <mstyle displaystyle="true" scriptlevel="0">
+        <msub>
+          <mi>W</mi>
+          <mrow>
+            <mn>1</mn>
+          </mrow>
+        </msub>
+        <mo>=</mo>
+        <mn>2</mn>
+      </mstyle>
+    </mrow>
+    <annotation encoding="application/x-tex">{\displaystyle W_{1}=2}</annotation>
+  </semantics>
+</math></span><img src="https://wikimedia.org/api/rest_v1/media/math/render/svg/a052e3972090eadda24897e76499e6a0ff328d5a" alt="{\displaystyle W_{1}=2}"/></span>)</li></ul>
+<p id="mwAYg">Initialize and fill the scoring matrix, shown as below. This figure shows the scoring process of the first three elements. The yellow color indicates the bases that are being considered. The red color indicates the highest possible score for the cell being scored.</p>
+<figure typeof="mw:File/Frame" id="mwAYk"><a href="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-Step1.png" id="mwAYo"><img resource="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-Step1.png" src="//upload.wikimedia.org/wikipedia/commons/2/2c/Smith-Waterman-Algorithm-Example-Step1.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail_unscaled" height="190" width="950" id="mwAYs"/></a><figcaption id="mwAYw">Initialization of the scoring matrix (left 1) and the scoring process of the first three elements (left 2–4)</figcaption></figure>
+<p id="mwAY0">The finished scoring matrix is shown below on the left. The blue color shows the highest score. An element can receive score from more than one element, each will form a different path if this element is traced back. In case of multiple highest scores, traceback should be done starting with each highest score. The traceback process is shown below on the right. The best local alignment is generated in the reverse direction.</p>
+<table id="mwAY4">
+<tbody id="mwAY8"><tr id="mwAZA">
+<td id="mwAZE"><figure typeof="mw:File" id="mwAZI"><a href="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-Step2.png" id="mwAZM"><img resource="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-Step2.png" src="//upload.wikimedia.org/wikipedia/commons/2/28/Smith-Waterman-Algorithm-Example-Step2.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail_unscaled" height="330" width="300" id="mwAZQ"/></a><figcaption id="mwAZU"></figcaption></figure></td>
+<td id="mwAZY"><figure typeof="mw:File" id="mwAZc"><a href="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-Step3.png" id="mwAZg"><img resource="https://en.wikipedia.org/wiki/File:Smith-Waterman-Algorithm-Example-Step3.png" src="//upload.wikimedia.org/wikipedia/commons/e/e6/Smith-Waterman-Algorithm-Example-Step3.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail_unscaled" height="420" width="300" id="mwAZk"/></a><figcaption id="mwAZo"></figcaption></figure></td></tr>
+<tr id="mwAZs">
+<td id="mwAZw">Finished scoring matrix (the highest score is in blue)</td>
+<td id="mwAZ0">Traceback process and alignment result</td></tr>
+</tbody></table>
+<p id="mwAZ4">The alignment result is:</p>
+<pre id="mwAZ8"><span about="#mwt126" id="mwAaE">G T T - A C</span>
+<span about="#mwt128" id="mwAaM"> </span>
+<span about="#mwt130" id="mwAaU">G T T G A C</span></pre>
+</section><section id="mwAaY"><div><h2 id="Implementation">Implementation</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=13"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAac">An implementation of the Smith–Waterman Algorithm, SSEARCH, is available in the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FASTA" id="mwAag">FASTA</a> sequence analysis package from <a rel="mw:ExtLink nofollow" href="http://fasta.bioch.virginia.edu/fasta_www2/fasta_down.shtml" id="mwAak">UVA FASTA Downloads</a>. This implementation includes <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Altivec" id="mwAao">Altivec</a> accelerated code for <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PowerPC" id="mwAas">PowerPC</a> G4 and G5 processors that speeds up comparisons 10–20-fold, using a modification of the Wozniak, 1997 approach,<sup about="#mwt134" id="cite_ref-Wozniak1997_13-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Wozniak1997"},"body":{"id":"mw-reference-text-cite_note-Wozniak1997-13"}}'><a href="#cite_note-Wozniak1997-13" id="mwAaw"><span id="mwAa0"><span id="mwAa4">[</span>13<span id="mwAa8">]</span></span></a></sup> and an SSE2 vectorization developed by Farrar<sup about="#mwt137" id="cite_ref-Farrar2007_14-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Farrar2007"},"body":{"id":"mw-reference-text-cite_note-Farrar2007-14"}}'><a href="#cite_note-Farrar2007-14" id="mwAbA"><span id="mwAbE"><span id="mwAbI">[</span>14<span id="mwAbM">]</span></span></a></sup> making optimal protein <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_database" id="mwAbQ">sequence database</a> searches quite practical. A library, SSW, extends Farrar's implementation to return alignment information in addition to the optimal Smith–Waterman score.<sup about="#mwt140" id="cite_ref-15" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-15"}}'><a href="#cite_note-15" id="mwAbU"><span id="mwAbY"><span id="mwAbc">[</span>15<span id="mwAbg">]</span></span></a></sup></p>
+</section><section id="mwAbk"><div><h2 id="Accelerated_versions">Accelerated versions</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=14"><span>edit</span></a><span>]</span></span></div>
+<section id="mwAbo"><div><h3 id="FPGA">FPGA</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=15"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAbs"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Cray" id="mwAbw">Cray</a> demonstrated acceleration of the Smith–Waterman algorithm using a <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Reconfigurable_computing" id="mwAb0">reconfigurable computing</a> platform based on <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Field-programmable_gate_array" id="mwAb4">FPGA</a> chips, with results showing up to 28x speed-up over standard microprocessor-based solutions. Another FPGA-based version of the Smith–Waterman algorithm shows FPGA (Virtex-4) speedups up to 100x<sup about="#mwt150" id="cite_ref-:0_16-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":":0"},"body":{"id":"mw-reference-text-cite_note-:0-16"}}'><a href="#cite_note-:0-16" id="mwAb8"><span id="mwAcA"><span id="mwAcE">[</span>16<span id="mwAcI">]</span></span></a></sup> over a 2.2<span typeof="mw:Entity" id="mwAcM"> </span>GHz Opteron processor.<sup about="#mwt151" id="cite_ref-Progeniq_17-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Progeniq"},"body":{"id":"mw-reference-text-cite_note-Progeniq-17"}}'><a href="#cite_note-Progeniq-17" id="mwAcQ"><span id="mwAcU"><span id="mwAcY">[</span>17<span id="mwAcc">]</span></span></a></sup>  The <a rel="mw:ExtLink nofollow" href="http://www.timelogic.com" id="mwAcg">TimeLogic</a> DeCypher and CodeQuest systems also accelerate Smith–Waterman and Framesearch using PCIe FPGA cards.</p>
+<p id="mwAck">A 2011 Master's thesis <sup about="#mwt154" id="cite_ref-Vermij2011_18-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Vermij2011"},"body":{"id":"mw-reference-text-cite_note-Vermij2011-18"}}'><a href="#cite_note-Vermij2011-18" id="mwAco"><span id="mwAcs"><span id="mwAcw">[</span>18<span id="mwAc0">]</span></span></a></sup> includes an analysis of FPGA-based Smith–Waterman acceleration.</p>
+<p id="mwAc4">In a 2016 publication <a rel="mw:ExtLink nofollow" href="https://forums.xilinx.com/t5/Xcell-Daily-Blog/OpenCL-code-compiled-with-Xilinx-SDAccel-accelerates-genome/ba-p/680764" id="mwAc8">OpenCL code compiled with Xilinx SDAccel accelerates genome sequencing, beats CPU/GPU performance/W by 12-21x</a>, a very efficient implementation was presented. Using one PCIe FPGA card equipped with a Xilinx Virtex-7 2000T FPGA, the performance per Watt level was better than CPU/GPU by 12-21x.</p>
+</section><section id="mwAdA"><div><h3 id="GPU">GPU</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=16"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAdE"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lawrence_Livermore_National_Laboratory" id="mwAdI">Lawrence Livermore National Laboratory</a> and the United States (US) Department of Energy's <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Joint_Genome_Institute" id="mwAdM">Joint Genome Institute</a> implemented an accelerated version of Smith–Waterman local sequence alignment searches using <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Graphics_processing_units" id="mwAdQ">graphics processing units</a> (GPUs) with preliminary results showing a 2x speed-up over software implementations.<sup about="#mwt157" id="cite_ref-19" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-19"}}'><a href="#cite_note-19" id="mwAdU"><span id="mwAdY"><span id="mwAdc">[</span>19<span id="mwAdg">]</span></span></a></sup> A similar method has already been implemented in the Biofacet software since 1997, with the same speed-up factor.<sup about="#mwt160" id="cite_ref-20" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-20"}}'><a href="#cite_note-20" id="mwAdk"><span id="mwAdo"><span id="mwAds">[</span>20<span id="mwAdw">]</span></span></a></sup></p>
+<p id="mwAd0">Several <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GPU" id="mwAd4">GPU</a> implementations of the algorithm in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/NVIDIA" id="mwAd8">NVIDIA</a>'s <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/CUDA" id="mwAeA">CUDA</a> C platform are also available.<sup about="#mwt163" id="cite_ref-Manavski2008_21-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Manavski2008"},"body":{"id":"mw-reference-text-cite_note-Manavski2008-21"}}'><a href="#cite_note-Manavski2008-21" id="mwAeE"><span id="mwAeI"><span id="mwAeM">[</span>21<span id="mwAeQ">]</span></span></a></sup> When compared to the best known CPU implementation (using SIMD instructions on the x86 architecture), by Farrar, the performance tests of this solution using a single <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GeForce_8_series" id="mwAeU">NVidia GeForce 8800 GTX</a> card show a slight increase in performance for smaller sequences, but a slight decrease in performance for larger ones. However, the same tests running on dual <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GeForce_8_series" id="mwAeY">NVidia GeForce 8800 GTX</a> cards are almost twice as fast as the Farrar implementation for all sequence sizes tested. </p>
+<p id="mwAec">A newer GPU CUDA implementation of SW is now available that is faster than previous versions and also removes limitations on query lengths.  See <a rel="mw:ExtLink nofollow" href="https://cudasw.sourceforge.net/homepage.htm" id="mwAeg">CUDASW++</a>.</p>
+<p id="mwAek">Eleven different SW implementations on CUDA have been reported, three of which report speedups of 30X.<sup about="#mwt166" id="cite_ref-22" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-22"}}'><a href="#cite_note-22" id="mwAeo"><span id="mwAes"><span id="mwAew">[</span>22<span id="mwAe0">]</span></span></a></sup></p>
+<p id="mwAe4">Finally, other GPU-accelerated implementations of the Smith-Waterman can be found in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/NVIDIA_Parabricks" id="mwAe8">NVIDIA Parabricks</a>, NVIDIA's software suite for genome analysis.<sup about="#mwt169" id="cite_ref-23" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{},"body":{"id":"mw-reference-text-cite_note-23"}}'><a href="#cite_note-23" id="mwAfA"><span id="mwAfE"><span id="mwAfI">[</span>23<span id="mwAfM">]</span></span></a></sup></p>
+</section><section id="mwAfQ"><div><h3 id="SIMD">SIMD</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=17"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAfU">In 2000, a fast implementation of the Smith–Waterman algorithm using the <i id="mwAfY">single instruction, multiple data</i> (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SIMD" id="mwAfc">SIMD</a>) technology available in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Intel" id="mwAfg">Intel</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pentium" id="mwAfk">Pentium</a> <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MMX_(instruction_set)" id="mwAfo">MMX</a> processors and similar technology was described in a publication by Rognes and Seeberg.<sup about="#mwt173" id="cite_ref-RognesSeeberg2000_24-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"RognesSeeberg2000"},"body":{"id":"mw-reference-text-cite_note-RognesSeeberg2000-24"}}'><a href="#cite_note-RognesSeeberg2000-24" id="mwAfs"><span id="mwAfw"><span id="mwAf0">[</span>24<span id="mwAf4">]</span></span></a></sup> In contrast to the Wozniak (1997) approach, the new implementation was based on vectors parallel with the query sequence, not diagonal vectors. The company <a rel="mw:ExtLink nofollow" href="http://www.sencel.com/" id="mwAf8">Sencel Bioinformatics</a> has applied for a patent covering this approach. Sencel is developing the software further and provides executables for academic use free of charge.</p>
+<p id="mwAgA">A <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SSE2" id="mwAgE">SSE2</a> vectorization of the algorithm (Farrar, 2007) is now available providing an 8-16-fold speedup on Intel/AMD processors with SSE2 extensions.<sup about="#mwt174" id="cite_ref-Farrar2007_14-1" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Farrar2007"}}'><a href="#cite_note-Farrar2007-14" id="mwAgI"><span id="mwAgM"><span id="mwAgQ">[</span>14<span id="mwAgU">]</span></span></a></sup> When running on Intel processor using the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Intel_Core_(microarchitecture)" id="mwAgY">Core microarchitecture</a> the SSE2 implementation achieves a 20-fold increase. Farrar's SSE2 implementation is available as the SSEARCH program in the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FASTA" id="mwAgc">FASTA</a> sequence comparison package. The SSEARCH is included in the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/European_Bioinformatics_Institute" id="mwAgg">European Bioinformatics Institute</a>'s suite of <a rel="mw:ExtLink nofollow" href="http://www.ebi.ac.uk/Tools/SSS/" id="mwAgk">similarity searching programs</a>.</p>
+<p id="mwAgo">Danish bioinformatics company <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/CLC_bio" id="mwAgs">CLC bio</a> has achieved speed-ups of close to 200 over standard software implementations with SSE2 on an Intel 2.17<span typeof="mw:Entity" id="mwAgw"> </span>GHz Core 2 Duo CPU, according to a <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20070811101052/http://www.clccell.com/download.html" id="mwAg0">publicly available white paper</a>.</p>
+<p id="mwAg4">Accelerated version of the Smith–Waterman algorithm, on <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Intel" id="mwAg8">Intel</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Advanced_Micro_Devices" id="mwAhA">Advanced Micro Devices</a> (AMD) based <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Linux" id="mwAhE">Linux</a> servers, is supported by the <a rel="mw:ExtLink nofollow" href="http://www.biocceleration.com/GenCore6-General.html" id="mwAhI">GenCore 6</a> package, offered by <a rel="mw:ExtLink nofollow" href="http://www.biocceleration.com/" id="mwAhM">Biocceleration</a>. Performance benchmarks of this software package show up to 10 fold speed acceleration relative to standard software implementation on the same processor.</p>
+<p id="mwAhQ">Currently the only company in bioinformatics to offer both SSE and FPGA solutions accelerating Smith–Waterman, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/CLC_bio" id="mwAhU">CLC bio</a> has achieved speed-ups of more than 110 over standard software implementations with <a rel="mw:ExtLink nofollow" href="http://www.clccube.com" id="mwAhY">CLC Bioinformatics Cube</a>.<sup about="#mwt175" id="mwAhg"><span typeof="mw:Entity">[</span><i><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wikipedia:Citation_needed"><span>citation needed</span></a></i><span typeof="mw:Entity">]</span></sup></p>
+<p id="mwAhk">The fastest implementation of the algorithm on CPUs with <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SSSE3" id="mwAho">SSSE3</a> can be found the SWIPE software (Rognes, 2011),<sup about="#mwt178" id="cite_ref-Rognes2011_25-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Rognes2011"},"body":{"id":"mw-reference-text-cite_note-Rognes2011-25"}}'><a href="#cite_note-Rognes2011-25" id="mwAhs"><span id="mwAhw"><span id="mwAh0">[</span>25<span id="mwAh4">]</span></span></a></sup> which is available under the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GNU_Affero_General_Public_License" id="mwAh8">GNU Affero General Public License</a>. In parallel, this software compares residues from sixteen different database sequences to one query residue. Using a 375 residue query sequence a speed of 106 billion cell updates per second (GCUPS) was achieved on a dual Intel <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Xeon" id="mwAiA">Xeon</a> X5650 six-core processor system, which is over six times more rapid than software based on Farrar's 'striped' approach. It is faster than <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLAST_(biotechnology)" id="mwAiE">BLAST</a> when using the BLOSUM50 matrix.</p>
+<p id="mwAiI">An implementation of Smith–Waterman named <i id="mwAiM">diagonalsw</i>, in <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/C_(programming_language)" id="mwAiQ">C</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/C++" id="mwAiU">C++</a>, uses SIMD instruction sets (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SSE4.1" id="mwAiY">SSE4.1</a> for the x86 platform and AltiVec for the PowerPC platform). It is released under an open-source <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MIT_License" id="mwAic">MIT License</a>.</p>
+</section><section id="mwAig"><div><h3 id="Cell_Broadband_Engine">Cell Broadband Engine</h3><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=18"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAik">In 2008, Farrar<sup about="#mwt182" id="cite_ref-Farrar2008_26-0" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Farrar2008"},"body":{"id":"mw-reference-text-cite_note-Farrar2008-26"}}'><a href="#cite_note-Farrar2008-26" id="mwAio"><span id="mwAis"><span id="mwAiw">[</span>26<span id="mwAi0">]</span></span></a></sup> described a port of the Striped Smith–Waterman<sup about="#mwt183" id="cite_ref-Farrar2007_14-2" rel="dc:references" typeof="mw:Extension/ref" data-mw='{"name":"ref","attrs":{"name":"Farrar2007"}}'><a href="#cite_note-Farrar2007-14" id="mwAi4"><span id="mwAi8"><span id="mwAjA">[</span>14<span id="mwAjE">]</span></span></a></sup> to the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Cell_Broadband_Engine" id="mwAjI">Cell Broadband Engine</a> and reported speeds of 32 and 12 GCUPS on an <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/IBM_BladeCenter#QS20" id="mwAjM">IBM QS20 blade</a> and a Sony <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PlayStation_3" id="mwAjQ">PlayStation 3</a>, respectively.</p>
+</section></section><section id="mwAjU"><div><h2 id="Limitations">Limitations</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=19"><span>edit</span></a><span>]</span></span></div>
+<p id="mwAjY">Fast expansion of genetic data challenges the speed of current DNA sequence alignment algorithms. Essential needs for an efficient and accurate method for DNA variant discovery demand innovative approaches for parallel processing in real time.</p>
+</section><section id="mwAjc"><div><h2 id="See_also">See also</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=20"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwAjg"><li id="mwAjk"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics" id="mwAjo">Bioinformatics</a></li>
+<li id="mwAjs"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment" id="mwAjw">Sequence alignment</a></li>
+<li id="mwAj0"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_mining" id="mwAj4">Sequence mining</a></li>
+<li id="mwAj8"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm" id="mwAkA">Needleman–Wunsch algorithm</a></li>
+<li id="mwAkE"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance" id="mwAkI">Levenshtein distance</a></li>
+<li id="mwAkM"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLAST_(biotechnology)" id="mwAkQ">BLAST</a></li>
+<li id="mwAkU"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FASTA" id="mwAkY">FASTA</a></li></ul>
+</section><section id="mwAkc"><div><h2 id="References">References</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=21"><span>edit</span></a><span>]</span></span></div>
+<span about="#mwt184" typeof="mw:Transclusion" id="mwAkg" data-mw='{"parts":[{"template":{"target":{"wt":"reflist","href":"./Template:Reflist"},"params":{"1":{"wt":"2"}},"i":0}}]}'></span><div about="#mwt184" id="mwAkk"><ol typeof="mw:Extension/references" about="#mwt186" id="mwAko" data-mw='{"name":"references","attrs":{"group":"","responsive":"0"},"body":{"extsrc":""}}'><li about="#cite_note-Smith1981-1" id="cite_note-Smith1981-1"><span id="mwAks"><a href="#cite_ref-Smith1981_1-0" rel="mw:referencedBy" id="mwAkw"><span id="mwAk0">↑</span></a></span> <span id="mw-reference-text-cite_note-Smith1981-1"><cite id="CITEREFSmith,_Temple_F.Waterman,_Michael_S.1981" about="#mwt6">Smith, Temple F. &amp; Waterman, Michael S. (1981). <a rel="mw:ExtLink nofollow" href="https://dornsife.usc.edu/msw/wp-content/uploads/sites/236/2023/09/msw-042.pdf" id="mwAk8">"Identification of Common Molecular Subsequences"</a> <span id="mwAlA">(PDF)</span>. <i id="mwAlE"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_Molecular_Biology" id="mwAlI">Journal of Molecular Biology</a></i>. <b id="mwAlM">147</b> (1): <span id="mwAlQ">195–</span>197. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAlU">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-2836%2881%2990087-5" id="mwAlY">10.1016/0022-2836(81)90087-5</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAlc">PMID</a><span typeof="mw:Entity" id="mwAlg"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/7265238" id="mwAlk">7265238</a>.</cite><span about="#mwt6" id="mwAlo"></span></span></li>
+<li about="#cite_note-Gotoh1982-2" id="cite_note-Gotoh1982-2"><span rel="mw:referencedBy" id="mwAls"><a href="#cite_ref-Gotoh1982_2-0" id="mwAlw"><span id="mwAl0">1</span></a> <a href="#cite_ref-Gotoh1982_2-1" id="mwAl4"><span id="mwAl8">2</span></a> <a href="#cite_ref-Gotoh1982_2-2" id="mwAmA"><span id="mwAmE">3</span></a></span> <span id="mw-reference-text-cite_note-Gotoh1982-2"><cite id="CITEREFOsamu_Gotoh1982" about="#mwt9">Osamu Gotoh (1982). "An improved algorithm for matching biological sequences". <i id="mwAmM"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_Molecular_Biology" id="mwAmQ">Journal of Molecular Biology</a></i>. <b id="mwAmU">162</b> (3): <span id="mwAmY">705–</span>708. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAmc">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-2836%2882%2990398-9" id="mwAmg">10.1016/0022-2836(82)90398-9</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAmk">PMID</a><span typeof="mw:Entity" id="mwAmo"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/7166760" id="mwAms">7166760</a>.</cite><span about="#mwt9" id="mwAmw"></span></span></li>
+<li about="#cite_note-Altschul1986-3" id="cite_note-Altschul1986-3"><span rel="mw:referencedBy" id="mwAm0"><a href="#cite_ref-Altschul1986_3-0" id="mwAm4"><span id="mwAm8">1</span></a> <a href="#cite_ref-Altschul1986_3-1" id="mwAnA"><span id="mwAnE">2</span></a> <a href="#cite_ref-Altschul1986_3-2" id="mwAnI"><span id="mwAnM">3</span></a> <a href="#cite_ref-Altschul1986_3-3" id="mwAnQ"><span id="mwAnU">4</span></a></span> <span id="mw-reference-text-cite_note-Altschul1986-3"><cite id="CITEREFStephen_F._AltschulBruce_W._Erickson1986" about="#mwt12">Stephen F. Altschul &amp; Bruce W. Erickson (1986). "Optimal sequence alignment using affine gap costs". <i id="mwAnc"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bulletin_of_Mathematical_Biology" id="mwAng">Bulletin of Mathematical Biology</a></i>. <b id="mwAnk">48</b> (<span id="mwAno">5–</span>6): <span id="mwAns">603–</span>616. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAnw">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2FBF02462326" id="mwAn0">10.1007/BF02462326</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAn4">PMID</a><span typeof="mw:Entity" id="mwAn8"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/3580642" id="mwAoA">3580642</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwAoE">S2CID</a><span typeof="mw:Entity" id="mwAoI"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:189889143" id="mwAoM">189889143</a>.</cite><span about="#mwt12" id="mwAoQ"></span></span></li>
+<li about="#cite_note-Myers1988-4" id="cite_note-Myers1988-4"><span rel="mw:referencedBy" id="mwAoU"><a href="#cite_ref-Myers1988_4-0" id="mwAoY"><span id="mwAoc">1</span></a> <a href="#cite_ref-Myers1988_4-1" id="mwAog"><span id="mwAok">2</span></a> <a href="#cite_ref-Myers1988_4-2" id="mwAoo"><span id="mwAos">3</span></a></span> <span id="mw-reference-text-cite_note-Myers1988-4"><cite id="CITEREFMiller,_WebbMyers,_Eugene1988" about="#mwt15">Miller, Webb; Myers, Eugene (1988). "Optimal alignments in linear space". <i id="mwAo0"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics_(journal)" id="mwAo4">Bioinformatics</a></i>. <b id="mwAo8">4</b> (1): <span id="mwApA">11–</span>17. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwApE">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F4.1.11" id="mwApI">10.1093/bioinformatics/4.1.11</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwApM">PMID</a><span typeof="mw:Entity" id="mwApQ"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/3382986" id="mwApU">3382986</a>.</cite><span about="#mwt15" id="mwApY"></span></span></li>
+<li about="#cite_note-Needleman1970-5" id="cite_note-Needleman1970-5"><span id="mwApc"><a href="#cite_ref-Needleman1970_5-0" rel="mw:referencedBy" id="mwApg"><span id="mwApk">↑</span></a></span> <span id="mw-reference-text-cite_note-Needleman1970-5"><cite id="CITEREFSaul_B._NeedlemanChristian_D._Wunsch1970" about="#mwt18">Saul B. Needleman; Christian D. Wunsch (1970). "A general method applicable to the search for similarities in the amino acid sequence of two proteins". <i id="mwAps"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_Molecular_Biology" id="mwApw">Journal of Molecular Biology</a></i>. <b id="mwAp0">48</b> (3): <span id="mwAp4">443–</span>453. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAp8">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-2836%2870%2990057-4" id="mwAqA">10.1016/0022-2836(70)90057-4</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAqE">PMID</a><span typeof="mw:Entity" id="mwAqI"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/5420325" id="mwAqM">5420325</a>.</cite><span about="#mwt18" id="mwAqQ"></span></span></li>
+<li about="#cite_note-Sankoff1972-6" id="cite_note-Sankoff1972-6"><span id="mwAqU"><a href="#cite_ref-Sankoff1972_6-0" rel="mw:referencedBy" id="mwAqY"><span id="mwAqc">↑</span></a></span> <span id="mw-reference-text-cite_note-Sankoff1972-6"><cite id="CITEREFSankoff_D.1972" about="#mwt23">Sankoff D. (1972). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC427531" id="mwAqk">"Matching Sequences under Deletion/Insertion Constraints"</a>. <i id="mwAqo"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Proceedings_of_the_National_Academy_of_Sciences_of_the_United_States_of_America" id="mwAqs">Proceedings of the National Academy of Sciences of the United States of America</a></i>. <b id="mwAqw">69</b> (1): <span id="mwAq0">4–</span>6. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwAq4">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/1972PNAS...69....4S" id="mwAq8">1972PNAS...69....4S</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwArA">doi</a>:<span id="mwArE"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1073%2Fpnas.69.1.4" id="mwArI">10.1073/pnas.69.1.4</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwArM">PMC</a><span typeof="mw:Entity" id="mwArQ"> </span><span id="mwArU"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC427531" id="mwArY">427531</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwArc">PMID</a><span typeof="mw:Entity" id="mwArg"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/4500555" id="mwArk">4500555</a>.</cite><span about="#mwt23" id="mwAro"></span></span></li>
+<li about="#cite_note-Reichert1973-7" id="cite_note-Reichert1973-7"><span id="mwArs"><a href="#cite_ref-Reichert1973_7-0" rel="mw:referencedBy" id="mwArw"><span id="mwAr0">↑</span></a></span> <span id="mw-reference-text-cite_note-Reichert1973-7"><cite id="CITEREFThomas_A._ReichertDonald_N._CohenAndrew_K.C._Wong1973" about="#mwt26">Thomas A. Reichert; Donald N. Cohen; Andrew K.C. Wong (1973). "An application of information theory to genetic mutations and the matching of polypeptide sequences". <i id="mwAr8"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Journal_of_Theoretical_Biology" id="mwAsA">Journal of Theoretical Biology</a></i>. <b id="mwAsE">42</b> (2): <span id="mwAsI">245–</span>261. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwAsM">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/1973JThBi..42..245R" id="mwAsQ">1973JThBi..42..245R</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAsU">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0022-5193%2873%2990088-X" id="mwAsY">10.1016/0022-5193(73)90088-X</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAsc">PMID</a><span typeof="mw:Entity" id="mwAsg"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/4762954" id="mwAsk">4762954</a>.</cite><span about="#mwt26" id="mwAso"></span></span></li>
+<li about="#cite_note-Beyer1974-8" id="cite_note-Beyer1974-8"><span id="mwAss"><a href="#cite_ref-Beyer1974_8-0" rel="mw:referencedBy" id="mwAsw"><span id="mwAs0">↑</span></a></span> <span id="mw-reference-text-cite_note-Beyer1974-8"><cite id="CITEREFWilliam_A._Beyer,_Myron_L._Stein,_Temple_F._Smith,_and_Stanislaw_M._Ulam1974" about="#mwt29">William A. Beyer, Myron L. Stein, Temple F. Smith, and Stanislaw M. Ulam (1974). "A molecular sequence metric and evolutionary trees". <i id="mwAs8"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Mathematical_Biosciences" id="mwAtA">Mathematical Biosciences</a></i>. <b id="mwAtE">19</b> (<span id="mwAtI">1–</span>2): <span id="mwAtM">9–</span>25. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAtQ">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0025-5564%2874%2990028-5" id="mwAtU">10.1016/0025-5564(74)90028-5</a>.</cite><span about="#mwt29" id="mwAtY"></span><span about="#mwt29" id="mwAtc"><code id="mwAtg">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_journal" id="mwAtk">cite journal</a>}}</code>:  CS1 maint: multiple names: authors list (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:CS1_maint:_multiple_names:_authors_list" id="mwAto">link</a>)</span></span></li>
+<li about="#cite_note-Sellers1974-9" id="cite_note-Sellers1974-9"><span id="mwAtw"><a href="#cite_ref-Sellers1974_9-0" rel="mw:referencedBy" id="mwAt0"><span id="mwAt4">↑</span></a></span> <span id="mw-reference-text-cite_note-Sellers1974-9"><cite id="CITEREFPeter_H._Sellers1974" about="#mwt33">Peter H. Sellers (1974). "On the Theory and Computation of Evolutionary Distances". <i id="mwAuA"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SIAM_Journal_on_Applied_Mathematics" id="mwAuE">SIAM Journal on Applied Mathematics</a></i>. <b id="mwAuI">26</b> (4): <span id="mwAuM">787–</span>793. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAuQ">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1137%2F0126070" id="mwAuU">10.1137/0126070</a>.</cite><span about="#mwt33" id="mwAuY"></span></span></li>
+<li about="#cite_note-Waterman1976-10" id="cite_note-Waterman1976-10"><span id="mwAuc"><a href="#cite_ref-Waterman1976_10-0" rel="mw:referencedBy" id="mwAug"><span id="mwAuk">↑</span></a></span> <span id="mw-reference-text-cite_note-Waterman1976-10"><cite id="CITEREFM.S_WatermanT.F_SmithW.A_Beyer1976" about="#mwt36">M.S Waterman; T.F Smith; W.A Beyer (1976). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0001-8708%2876%2990202-4" id="mwAus">"Some biological sequence metrics"</a>. <i id="mwAuw"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Advances_in_Mathematics" id="mwAu0">Advances in Mathematics</a></i>. <b id="mwAu4">20</b> (3): <span id="mwAu8">367–</span>387. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAvA">doi</a>:<span id="mwAvE"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1016%2F0001-8708%2876%2990202-4" id="mwAvI">10.1016/0001-8708(76)90202-4</a></span>.</cite><span about="#mwt36" id="mwAvM"></span></span></li>
+<li about="#cite_note-CLR-08-11" id="cite_note-CLR-08-11"><span rel="mw:referencedBy" id="mwAvQ"><a href="#cite_ref-CLR-08_11-0" id="mwAvU"><span id="mwAvY">1</span></a> <a href="#cite_ref-CLR-08_11-1" id="mwAvc"><span id="mwAvg">2</span></a> <a href="#cite_ref-CLR-08_11-2" id="mwAvk"><span id="mwAvo">3</span></a></span> <span id="mw-reference-text-cite_note-CLR-08-11"><cite id="CITEREFChowdhuryLeRamachandran2010" about="#mwt99">Chowdhury, Rezaul; Le, Hai-Son; Ramachandran, Vijaya (July 2010). "Cache-oblivious dynamic programming for bioinformatics". <i id="mwAvw">IEEE/ACM Transactions on Computational Biology and Bioinformatics</i>. <b id="mwAv0">7</b> (3): <span id="mwAv4">495–</span>510. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAv8">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1109%2FTCBB.2008.94" id="mwAwA">10.1109/TCBB.2008.94</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAwE">PMID</a><span typeof="mw:Entity" id="mwAwI"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/20671320" id="mwAwM">20671320</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwAwQ">S2CID</a><span typeof="mw:Entity" id="mwAwU"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:2532039" id="mwAwY">2532039</a>.</cite><span about="#mwt99" id="mwAwc"></span></span></li>
+<li about="#cite_note-Hirschberg1975-12" id="cite_note-Hirschberg1975-12"><span id="mwAwg"><a href="#cite_ref-Hirschberg1975_12-0" rel="mw:referencedBy" id="mwAwk"><span id="mwAwo">↑</span></a></span> <span id="mw-reference-text-cite_note-Hirschberg1975-12"><cite id="CITEREFD._S._Hirschberg1975" about="#mwt93">D. S. Hirschberg (1975). "A linear space algorithm for computing maximal common subsequences". <i id="mwAww"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Communications_of_the_ACM" id="mwAw0">Communications of the ACM</a></i>. <b id="mwAw4">18</b> (6): <span id="mwAw8">341–</span>343. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAxA">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1145%2F360825.360861" id="mwAxE">10.1145/360825.360861</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/S2CID_(identifier)" id="mwAxI">S2CID</a><span typeof="mw:Entity" id="mwAxM"> </span><a rel="mw:ExtLink nofollow" href="https://api.semanticscholar.org/CorpusID:207694727" id="mwAxQ">207694727</a>.</cite><span about="#mwt93" id="mwAxU"></span></span></li>
+<li about="#cite_note-Wozniak1997-13" id="cite_note-Wozniak1997-13"><span id="mwAxY"><a href="#cite_ref-Wozniak1997_13-0" rel="mw:referencedBy" id="mwAxc"><span id="mwAxg">↑</span></a></span> <span id="mw-reference-text-cite_note-Wozniak1997-13"><cite id="CITEREFWozniak,_Andrzej1997" about="#mwt132">Wozniak, Andrzej (1997). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F13.2.145" id="mwAxo">"Using video-oriented instructions to speed up sequence comparison"</a>. <i id="mwAxs">Computer Applications in the Biosciences</i>. <b id="mwAxw">13</b> (2): <span id="mwAx0">145–</span>50. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAx4">doi</a>:<span id="mwAx8"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F13.2.145" id="mwAyA">10.1093/bioinformatics/13.2.145</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAyE">PMID</a><span typeof="mw:Entity" id="mwAyI"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/9146961" id="mwAyM">9146961</a>.</cite><span about="#mwt132" id="mwAyQ"></span></span></li>
+<li about="#cite_note-Farrar2007-14" id="cite_note-Farrar2007-14"><span rel="mw:referencedBy" id="mwAyU"><a href="#cite_ref-Farrar2007_14-0" id="mwAyY"><span id="mwAyc">1</span></a> <a href="#cite_ref-Farrar2007_14-1" id="mwAyg"><span id="mwAyk">2</span></a> <a href="#cite_ref-Farrar2007_14-2" id="mwAyo"><span id="mwAys">3</span></a></span> <span id="mw-reference-text-cite_note-Farrar2007-14"><cite id="CITEREFFarrar,_Michael_S.2007" about="#mwt135">Farrar, Michael S. (2007). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtl582" id="mwAy0">"Striped Smith–Waterman speeds database searches six times over other SIMD implementations"</a>. <i id="mwAy4">Bioinformatics</i>. <b id="mwAy8">23</b> (2): <span id="mwAzA">156–</span>161. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwAzE">doi</a>:<span id="mwAzI"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2Fbtl582" id="mwAzM">10.1093/bioinformatics/btl582</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwAzQ">PMID</a><span typeof="mw:Entity" id="mwAzU"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/17110365" id="mwAzY">17110365</a>.</cite><span about="#mwt135" id="mwAzc"></span></span></li>
+<li about="#cite_note-15" id="cite_note-15"><span id="mwAzg"><a href="#cite_ref-15" rel="mw:referencedBy" id="mwAzk"><span id="mwAzo">↑</span></a></span> <span id="mw-reference-text-cite_note-15"><cite id="CITEREFZhaoLeeGarrisonMarth2013" about="#mwt138">Zhao, Mengyao; Lee, Wan-Ping; Garrison, Erik P; Marth, Gabor T (4 December 2013). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3852983" id="mwAzw">"SSW Library: An SIMD Smith-Waterman C/C++ Library for Use in Genomic Applications"</a>. <i id="mwAz0">PLOS ONE</i>. <b id="mwAz4">8</b> (12) e82138. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ArXiv_(identifier)" id="mwAz8">arXiv</a>:<span id="mwA0A"><a rel="mw:ExtLink nofollow" href="https://arxiv.org/abs/1208.6350" id="mwA0E">1208.6350</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bibcode_(identifier)" id="mwA0I">Bibcode</a>:<a rel="mw:ExtLink nofollow" href="https://ui.adsabs.harvard.edu/abs/2013PLoSO...882138Z" id="mwA0M">2013PLoSO...882138Z</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA0Q">doi</a>:<span id="mwA0U"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1371%2Fjournal.pone.0082138" id="mwA0Y">10.1371/journal.pone.0082138</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwA0c">PMC</a><span typeof="mw:Entity" id="mwA0g"> </span><span id="mwA0k"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3852983" id="mwA0o">3852983</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwA0s">PMID</a><span typeof="mw:Entity" id="mwA0w"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/24324759" id="mwA00">24324759</a>.</cite><span about="#mwt138" id="mwA04"></span></span></li>
+<li about="#cite_note-:0-16" id="cite_note-:0-16"><span id="mwA08"><a href="#cite_ref-:0_16-0" rel="mw:referencedBy" id="mwA1A"><span id="mwA1E">↑</span></a></span> <span id="mw-reference-text-cite_note-:0-16">FPGA 100x Papers: <cite about="#mwt141" id="mwA1M"><a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20080705191338/http://ft.ornl.gov/~olaf/pubs/OlafRSSI2July07.pdf" id="mwA1Q">"Archived copy"</a> <span id="mwA1U">(PDF)</span>. Archived from <a rel="mw:ExtLink nofollow" href="http://ft.ornl.gov/~olaf/pubs/OlafRSSI2July07.pdf" id="mwA1Y">the original</a> <span id="mwA1c">(PDF)</span> on 2008-07-05<span id="mwA1g">. Retrieved <span id="mwA1k">2007-10-17</span></span>.</cite><span about="#mwt141" id="mwA1o"></span><span about="#mwt141" id="mwA1s"><code id="mwA1w">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_web" id="mwA10">cite web</a>}}</code>:  CS1 maint: archived copy as title (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:CS1_maint:_archived_copy_as_title" id="mwA14">link</a>)</span>, <cite about="#mwt144" id="mwA2E"><a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20080705191314/http://ft.ornl.gov/~olaf/pubs/CUG07Olaf17M07.pdf" id="mwA2I">"Archived copy"</a> <span id="mwA2M">(PDF)</span>. Archived from <a rel="mw:ExtLink nofollow" href="http://ft.ornl.gov/~olaf/pubs/CUG07Olaf17M07.pdf" id="mwA2Q">the original</a> <span id="mwA2U">(PDF)</span> on 2008-07-05<span id="mwA2Y">. Retrieved <span id="mwA2c">2007-10-17</span></span>.</cite><span about="#mwt144" id="mwA2g"></span><span about="#mwt144" id="mwA2k"><code id="mwA2o">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_web" id="mwA2s">cite web</a>}}</code>:  CS1 maint: archived copy as title (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:CS1_maint:_archived_copy_as_title" id="mwA2w">link</a>)</span>, and <cite about="#mwt147" id="mwA28"><a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20110720080855/http://ft.ornl.gov/~olaf/pubs/RSSIOlafDave.pdf" id="mwA3A">"Archived copy"</a> <span id="mwA3E">(PDF)</span>. Archived from <a rel="mw:ExtLink nofollow" href="http://ft.ornl.gov/~olaf/pubs/RSSIOlafDave.pdf" id="mwA3I">the original</a> <span id="mwA3M">(PDF)</span> on 2011-07-20<span id="mwA3Q">. Retrieved <span id="mwA3U">2007-10-17</span></span>.</cite><span about="#mwt147" id="mwA3Y"></span><span about="#mwt147" id="mwA3c"><code id="mwA3g">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_web" id="mwA3k">cite web</a>}}</code>:  CS1 maint: archived copy as title (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:CS1_maint:_archived_copy_as_title" id="mwA3o">link</a>)</span></span></li>
+<li about="#cite_note-Progeniq-17" id="cite_note-Progeniq-17"><span id="mwA3w"><a href="#cite_ref-Progeniq_17-0" rel="mw:referencedBy" id="mwA30"><span id="mwA34">↑</span></a></span> <span id="mw-reference-text-cite_note-Progeniq-17">Progeniq Pte. Ltd., "<a rel="mw:ExtLink nofollow" href="http://www.progeniq.com/news/BioBoost%20White%20Paper.pdf" id="mwA38">White Paper - Accelerating Intensive Applications at 10<span typeof="mw:Entity" id="mwA4A">×</span>–50<span typeof="mw:Entity" id="mwA4E">×</span> Speedup to Remove Bottlenecks in Computational Workflows</a>".</span></li>
+<li about="#cite_note-Vermij2011-18" id="cite_note-Vermij2011-18"><span id="mwA4I"><a href="#cite_ref-Vermij2011_18-0" rel="mw:referencedBy" id="mwA4M"><span id="mwA4Q">↑</span></a></span> <span id="mw-reference-text-cite_note-Vermij2011-18"><cite id="CITEREFVermij2011" about="#mwt152">Vermij, Erik (2011). <a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20110930092444/http://repository.tudelft.nl/assets/uuid:bbbbd3c8-7b27-4a1b-bfd6-67695eec7449/thesis.pdf" id="mwA4Y"><i id="mwA4c">Genetic sequence alignment on a supercomputing platform</i></a> <span id="mwA4g">(PDF)</span> (M.Sc. thesis). Delft University of Technology. Archived from <a rel="mw:ExtLink nofollow" href="http://repository.tudelft.nl/assets/uuid:bbbbd3c8-7b27-4a1b-bfd6-67695eec7449/thesis.pdf" id="mwA4k">the original</a> <span id="mwA4o">(PDF)</span> on 2011-09-30<span id="mwA4s">. Retrieved <span id="mwA4w">2011-08-17</span></span>.</cite><span about="#mwt152" id="mwA40"></span></span></li>
+<li about="#cite_note-19" id="cite_note-19"><span id="mwA44"><a href="#cite_ref-19" rel="mw:referencedBy" id="mwA48"><span id="mwA5A">↑</span></a></span> <span id="mw-reference-text-cite_note-19"><cite id="CITEREFLiuHuangJohnsonVaidya2006" about="#mwt155">Liu, Yang; Huang, Wayne; Johnson, John; Vaidya, Sheila (2006). <a rel="mw:ExtLink nofollow" href="https://archive.org/details/computationalsci0000iccs_y9o8/page/188" id="mwA5I">"GPU Accelerated Smith-Waterman"</a>. <i id="mwA5M">Computational Science – ICCS 2006</i>. Lecture Notes in Computer Science. Vol.<span typeof="mw:Entity" id="mwA5Q"> </span>3994. Springer. pp.<span typeof="mw:Entity" id="mwA5U"> </span><a rel="mw:ExtLink nofollow" href="https://archive.org/details/computationalsci0000iccs_y9o8/page/188" id="mwA5Y">188–195</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA5c">doi</a>:<a rel="mw:ExtLink nofollow" href="https://doi.org/10.1007%2F11758549_29" id="mwA5g">10.1007/11758549_29</a>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISBN_(identifier)" id="mwA5k">ISBN</a><span typeof="mw:Entity" id="mwA5o"> </span><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:BookSources/978-3-540-34385-1" id="mwA5s"><bdi id="mwA5w">978-3-540-34385-1</bdi></a>.</cite><span about="#mwt155" id="mwA50"></span></span></li>
+<li about="#cite_note-20" id="cite_note-20"><span id="mwA54"><a href="#cite_ref-20" rel="mw:referencedBy" id="mwA58"><span id="mwA6A">↑</span></a></span> <span id="mw-reference-text-cite_note-20"><cite about="#mwt158" id="mwA6I"><a rel="mw:ExtLink nofollow" href="https://web.archive.org/web/20080513152726/http://www.genomequest.com/contact-bioinformatics-ht.html" id="mwA6M">"Bioinformatics High Throughput Sequence Search and Analysis (white paper)"</a>. GenomeQuest. Archived from <a rel="mw:ExtLink nofollow" href="http://www.genomequest.com/contact-bioinformatics-ht.html" id="mwA6Q">the original</a> on May 13, 2008<span id="mwA6U">. Retrieved <span id="mwA6Y">2008-05-09</span></span>.</cite><span about="#mwt158" id="mwA6c"></span></span></li>
+<li about="#cite_note-Manavski2008-21" id="cite_note-Manavski2008-21"><span id="mwA6g"><a href="#cite_ref-Manavski2008_21-0" rel="mw:referencedBy" id="mwA6k"><span id="mwA6o">↑</span></a></span> <span id="mw-reference-text-cite_note-Manavski2008-21"><cite id="CITEREFManavski,_Svetlin_A.Valle,_Giorgio2008" about="#mwt161">Manavski, Svetlin A. &amp; Valle, Giorgio (2008). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2323659" id="mwA6w">"CUDA compatible GPU cards as efficient hardware accelerators for Smith–Waterman sequence alignment"</a>. <i id="mwA60">BMC Bioinformatics</i>. <b id="mwA64">9</b> (Suppl 2:S10): S10. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA68">doi</a>:<span id="mwA7A"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1186%2F1471-2105-9-S2-S10" id="mwA7E">10.1186/1471-2105-9-S2-S10</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwA7I">PMC</a><span typeof="mw:Entity" id="mwA7M"> </span><span id="mwA7Q"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC2323659" id="mwA7U">2323659</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwA7Y">PMID</a><span typeof="mw:Entity" id="mwA7c"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/18387198" id="mwA7g">18387198</a>.</cite><span about="#mwt161" id="mwA7k"></span></span></li>
+<li about="#cite_note-22" id="cite_note-22"><span id="mwA7o"><a href="#cite_ref-22" rel="mw:referencedBy" id="mwA7s"><span id="mwA7w">↑</span></a></span> <span id="mw-reference-text-cite_note-22"><cite about="#mwt164" id="mwA74"><a rel="mw:ExtLink nofollow" href="http://www.nvidia.com/object/cuda_showcase_html.html" id="mwA78">"CUDA Zone"</a>. Nvidia<span id="mwA8A">. Retrieved <span id="mwA8E">2010-02-25</span></span>.</cite><span about="#mwt164" id="mwA8I"></span></span></li>
+<li about="#cite_note-23" id="cite_note-23"><span id="mwA8M"><a href="#cite_ref-23" rel="mw:referencedBy" id="mwA8Q"><span id="mwA8U">↑</span></a></span> <span id="mw-reference-text-cite_note-23"><cite about="#mwt167" id="mwA8c"><a rel="mw:ExtLink nofollow" href="https://www.nvidia.com/en-us/clara/parabricks/" id="mwA8g">"NVIDIA Parabricks"</a>. <i id="mwA8k">NVIDIA</i><span id="mwA8o">. Retrieved <span id="mwA8s">2024-07-11</span></span>.</cite><span about="#mwt167" id="mwA8w"></span></span></li>
+<li about="#cite_note-RognesSeeberg2000-24" id="cite_note-RognesSeeberg2000-24"><span id="mwA80"><a href="#cite_ref-RognesSeeberg2000_24-0" rel="mw:referencedBy" id="mwA84"><span id="mwA88">↑</span></a></span> <span id="mw-reference-text-cite_note-RognesSeeberg2000-24"><cite id="CITEREFRognesSeeberg2000" about="#mwt170">Rognes, Torbjørn; Seeberg, Erling (2000). <a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F16.8.699" id="mwA9E">"Six-fold speed-up of Smith–Waterman sequence database searches using parallel processing on common microprocessors"</a>. <i id="mwA9I"><a rel="mw:ExtLink nofollow" href="http://bioinformaticsARRAYxfordjournalsARRAYrg/" id="mwA9M">Bioinformatics</a></i>. <b id="mwA9Q">16</b> (8): <span id="mwA9U">699–</span>706. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA9Y">doi</a>:<span id="mwA9c"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1093%2Fbioinformatics%2F16.8.699" id="mwA9g">10.1093/bioinformatics/16.8.699</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwA9k">PMID</a><span typeof="mw:Entity" id="mwA9o"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/11099256" id="mwA9s">11099256</a>.</cite><span about="#mwt170" id="mwA9w"></span><span about="#mwt170" id="mwA90"> </span><span about="#mwt170" id="mwA94"><code id="mwA98">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_journal" id="mwA-A">cite journal</a>}}</code>: </span><span about="#mwt170" id="mwA-E">External link in <code id="mwA-I"><code id="mwA-M"><span typeof="mw:Entity" id="mwA-Q">|</span>journal=</code></code> (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Help:CS1_errors#param_has_ext_link" id="mwA-U">help</a>)</span></span></li>
+<li about="#cite_note-Rognes2011-25" id="cite_note-Rognes2011-25"><span id="mwA-c"><a href="#cite_ref-Rognes2011_25-0" rel="mw:referencedBy" id="mwA-g"><span id="mwA-k">↑</span></a></span> <span id="mw-reference-text-cite_note-Rognes2011-25"><cite id="CITEREFRognes,_Torbjørn2011" about="#mwt176">Rognes, Torbjørn (2011). <a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3120707" id="mwA-s">"Faster Smith–Waterman database searches with inter-sequence SIMD parallelisation"</a>. <i id="mwA-w"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BMC_Bioinformatics" id="mwA-0">BMC Bioinformatics</a></i>. <b id="mwA-4">12</b> 221. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Doi_(identifier)" id="mwA-8">doi</a>:<span id="mwA_A"><a rel="mw:ExtLink nofollow" href="https://doi.org/10.1186%2F1471-2105-12-221" id="mwA_E">10.1186/1471-2105-12-221</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMC_(identifier)" id="mwA_I">PMC</a><span typeof="mw:Entity" id="mwA_M"> </span><span id="mwA_Q"><a rel="mw:ExtLink nofollow" href="https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3120707" id="mwA_U">3120707</a></span>. <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PMID_(identifier)" id="mwA_Y">PMID</a><span typeof="mw:Entity" id="mwA_c"> </span><a rel="mw:ExtLink nofollow" href="https://pubmed.ncbi.nlm.nih.gov/21631914" id="mwA_g">21631914</a>.</cite><span about="#mwt176" id="mwA_k"></span></span></li>
+<li about="#cite_note-Farrar2008-26" id="cite_note-Farrar2008-26"><span id="mwA_o"><a href="#cite_ref-Farrar2008_26-0" rel="mw:referencedBy" id="mwA_s"><span id="mwA_w">↑</span></a></span> <span id="mw-reference-text-cite_note-Farrar2008-26"><cite id="CITEREFFarrar,_Michael_S.2008" about="#mwt179">Farrar, Michael S. (2008). <a rel="mw:ExtLink nofollow" href="http://farrar.michael.googlepages.com/smith-watermanfortheibmcellbe" id="mwA_4">"Optimizing Smith–Waterman for the Cell Broadband Engine"</a>.</cite><span about="#mwt179" id="mwA_8"></span><span about="#mwt179" id="mwBAA"> </span><span about="#mwt179" id="mwBAE"><code id="mwBAI">{{<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Cite_journal" id="mwBAM">cite journal</a>}}</code>: </span><span about="#mwt179" id="mwBAQ">Cite journal requires <code id="mwBAU"><span typeof="mw:Entity" id="mwBAY">|</span>journal=</code> (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Help:CS1_errors#missing_periodical" id="mwBAc">help</a>)</span><span about="#mwt179" id="mwBAg">CS1 maint: deprecated archival service (<a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:CS1_maint:_deprecated_archival_service" id="mwBAk">link</a>)</span></span></li>
+</ol></div>
+</section><section id="mwBAw"><div><h2 id="External_links">External links</h2><span><span>[</span><a href="/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;action=edit&amp;section=22"><span>edit</span></a><span>]</span></span></div>
+<ul id="mwBA0"><li id="mwBA4"><a rel="mw:ExtLink nofollow" href="https://jaligner.sourceforge.net/" id="mwBA8">JAligner</a> <span typeof="mw:Entity" id="mwBBA">—</span> an open source Java implementation of the Smith–Waterman algorithm</li>
+<li id="mwBBE"><a rel="mw:ExtLink nofollow" href="https://baba.sourceforge.net/" id="mwBBI">B.A.B.A.</a> <span typeof="mw:Entity" id="mwBBM">—</span> an applet (with source) which visually explains the algorithm</li>
+<li id="mwBBQ"><a rel="mw:ExtLink nofollow" href="http://www.ebi.ac.uk/Tools/fasta" id="mwBBU">FASTA/SSEARCH</a> <span typeof="mw:Entity" id="mwBBY">—</span> services page at the <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/European_Bioinformatics_Institute" id="mwBBc">EBI</a></li>
+<li id="mwBBg"><a rel="mw:ExtLink nofollow" href="https://ugene.net/wiki/display/UUOUM15/Smith-Waterman+Search" id="mwBBk">UGENE Smith–Waterman plugin</a> <span typeof="mw:Entity" id="mwBBo">—</span> an open source SSEARCH compatible implementation of the algorithm with graphical interface written in C++</li>
+<li id="mwBBs"><a rel="mw:ExtLink nofollow" href="https://github.com/Martinsos/opal" id="mwBBw">OPAL</a> <span typeof="mw:Entity" id="mwBB0">—</span> an SIMD C/C++ library for massive optimal sequence alignment</li>
+<li id="mwBB4"><a rel="mw:ExtLink nofollow" href="https://diagonalsw.sourceforge.net/" id="mwBB8">diagonalsw</a> <span typeof="mw:Entity" id="mwBCA">—</span> an open-source C/C++ implementation with SIMD instruction sets (notably SSE4.1) under the MIT license</li>
+<li id="mwBCE"><a rel="mw:ExtLink nofollow" href="https://github.com/mengyao/Complete-Striped-Smith-Waterman-Library" id="mwBCI">SSW</a> <span typeof="mw:Entity" id="mwBCM">—</span> an open-source C++ library providing an API to an SIMD implementation of the Smith–Waterman algorithm under the MIT license</li>
+<li id="mwBCQ"><a rel="mw:ExtLink nofollow" href="https://melodic-sequence-alignment.firebaseapp.com/#/" id="mwBCU">melodic sequence alignment</a> <span typeof="mw:Entity" id="mwBCY">—</span> a javascript implementation for melodic sequence alignment</li>
+<li id="mwBCc"><a rel="mw:ExtLink nofollow" href="https://github.com/Illumina/DRAGMAP" id="mwBCg">DRAGMAP</a> A C++ port of the Illumina DRAGEN FPGA implementation</li></ul>
+<div about="#mwt187" typeof="mw:Transclusion" id="mwBCk" data-mw='{"parts":[{"template":{"target":{"wt":"Bioinformatics","href":"./Template:Bioinformatics"},"params":{},"i":0}}]}'><span></span></div><div role="navigation" about="#mwt187" id="mwBCo"><table><tbody><tr><th scope="col" colspan="2"><span></span><div><ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Bioinformatics"><abbr>v</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template_talk:Bioinformatics"><abbr>t</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:EditPage/Template:Bioinformatics"><abbr>e</abbr></a></li></ul></div><div id="Bioinformatics4320"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bioinformatics">Bioinformatics</a></div></th></tr><tr><th scope="row">Databases</th><td><div>
+<ul><li>Sequence databases: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GenBank">GenBank</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/European_Nucleotide_Archive">European Nucleotide Archive</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DNA_Data_Bank_of_Japan">DNA Data Bank of Japan</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/China_National_GeneBank">China National GeneBank</a></li>
+<li>Secondary databases: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/UniProt">UniProt</a>, database of protein sequences grouping together <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/UniProt#UniProtKB.2FSwiss-Prot">Swiss-Prot</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/UniProt#UniProtKB.2FTrEMBL">TrEMBL</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Protein_Information_Resource">Protein Information Resource</a></li>
+<li>Other databases: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BioNumbers">BioNumbers</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Protein_Data_Bank">Protein Data Bank</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ensembl_genome_database_project">Ensembl</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/InterPro">InterPro</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/KEGG">KEGG</a>, and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gene_ontology">Gene Ontology</a></li>
+<li>Specialised genomic databases: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Barcode_of_Life_Data_System">BOLD</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Saccharomyces_Genome_Database">Saccharomyces Genome Database</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FlyBase">FlyBase</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/VectorBase">VectorBase</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/WormBase">WormBase</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rat_Genome_Database">Rat Genome Database</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/PHI-base">PHI-base</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/The_Arabidopsis_Information_Resource">Arabidopsis Information Resource</a>, <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/GISAID">GISAID</a> and <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zebrafish_Information_Network">Zebrafish Information Network</a></li></ul>
+</div></td></tr><tr><th scope="row">Software</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLAST_(biotechnology)">BLAST</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bowtie_(sequence_analysis)">Bowtie</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Clustal">Clustal</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DIAMOND_(biotechnology)">DIAMOND</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/EMBOSS">EMBOSS</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/HMMER">HMMER</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/MUSCLE_(alignment_software)">MUSCLE</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Phylogenetic_Assignment_of_Named_Global_Outbreak_Lineages">PANGOLIN</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SAMtools">SAMtools</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Short_Oligonucleotide_Analysis_Package">SOAP suite</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/TopHat_(bioinformatics)">TopHat</a></li></ul>
+</div></td></tr><tr><th scope="row">Other</th><td><div>
+<ul><li>Server: <a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ExPASy">ExPASy</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rosalind_(education_platform)">Rosalind (education platform)</a></li></ul>
+</div></td></tr><tr><th scope="row">Institutions</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Broad_Institute">Broad Institute</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ray_and_Stephanie_Lane_Computational_Biology_Department">Computational Biology Department</a> (CBD)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/COSBI">Microsoft Research - University of Trento Centre for Computational and Systems Biology</a> (COSBI)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Database_Center_for_Life_Science">Database Center for Life Science</a> (DBCLS)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/DNA_Data_Bank_of_Japan">DNA Data Bank of Japan</a> (DDBJ)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/European_Bioinformatics_Institute">European Bioinformatics Institute</a> (EMBL-EBI)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/European_Molecular_Biology_Laboratory">European Molecular Biology Laboratory</a> (EMBL)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Flatiron_Institute">Flatiron Institute</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/J._Craig_Venter_Institute">J. Craig Venter Institute</a> (JCVI)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Joint_Genome_Institute">Joint Genome Institute</a> (JGI)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Max_Planck_Institute_for_Molecular_Genetics">Max Planck Institute for Molecular Genetics</a> (MPIMG)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Max_Planck_Institute_of_Molecular_Cell_Biology_and_Genetics">Max Planck Institute of Molecular Cell Biology and Genetics</a> (MPI-CBG)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/National_Center_for_Biotechnology_Information">US National Center for Biotechnology Information</a> (NCBI)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/National_Institute_of_Genetics">Japanese Institute of Genetics</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Netherlands_Bioinformatics_Centre">Netherlands Bioinformatics Centre</a> (NBIC)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Philippine_Genome_Center">Philippine Genome Center</a> (PGC)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Scripps_Research">Scripps Research</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Swiss_Institute_of_Bioinformatics">Swiss Institute of Bioinformatics</a> (SIB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wellcome_Sanger_Institute">Wellcome Sanger Institute</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Whitehead_Institute">Whitehead Institute</a></li></ul>
+</div></td></tr><tr><th scope="row">Organizations</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/African_Society_for_Bioinformatics_and_Computational_Biology">African Society for Bioinformatics and Computational Biology</a> (ASBCB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Australia_Bioinformatics_Resource">Australia Bioinformatics Resource</a> (EMBL-AR)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/EMBnet">European Molecular Biology network</a> (EMBnet)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/International_Nucleotide_Sequence_Database_Collaboration">International Nucleotide Sequence Database Collaboration</a> (INSDC)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/International_Society_for_Biocuration">International Society for Biocuration</a> (ISB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/International_Society_for_Computational_Biology">International Society for Computational Biology</a> (ISCB)
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/International_Society_for_Computational_Biology_Student_Council">Student Council</a> (ISCB-SC)</li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Institute_of_Genomics_and_Integrative_Biology">Institute of Genomics and Integrative Biology</a> (CSIR-IGIB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Japanese_Society_for_Bioinformatics">Japanese Society for Bioinformatics</a> (JSBi)</li></ul>
+</div></td></tr><tr><th scope="row">Meetings</th><td><div>
+<ul><li>Basel Computational Biology Conference‎ ([BC<sup>2</sup>])</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/European_Conference_on_Computational_Biology">European Conference on Computational Biology</a> (ECCB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Intelligent_Systems_for_Molecular_Biology">Intelligent Systems for Molecular Biology</a> (ISMB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/International_Conference_on_Bioinformatics">International Conference on Bioinformatics</a> (InCoB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/International_Conference_on_Computational_Intelligence_Methods_for_Bioinformatics_and_Biostatistics">International Conference on Computational Intelligence Methods for Bioinformatics and Biostatistics</a> (CIBB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/ISCB_Africa_ASBCB_Conference_on_Bioinformatics">ISCB Africa ASBCB Conference on Bioinformatics</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pacific_Symposium_on_Biocomputing">Pacific Symposium on Biocomputing</a> (PSB)</li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Research_in_Computational_Molecular_Biology">Research in Computational Molecular Biology</a> (RECOMB)</li></ul>
+</div></td></tr><tr><th scope="row">File formats</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/CRAM_(file_format)">CRAM format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BAM_(file_format)">BAM format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FASTA_format">FASTA format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FASTQ_format">FASTQ format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/NeXML_format">NeXML format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nexus_file">Nexus format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pileup_format">Pileup format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/SAM_(file_format)">SAM format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Stockholm_format">Stockholm format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Variant_Call_Format">VCF format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/General_feature_format">GFF format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gene_transfer_format">GTF format</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BED_(file_format)">BED format</a></li></ul>
+</div></td></tr><tr><th scope="row">Related topics</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Computational_biology">Computational biology</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/List_of_biobanks">List of biobanks</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/List_of_biological_databases">List of biological databases</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Molecular_phylogenetics">Molecular phylogenetics</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequencing">Sequencing</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_database">Sequence database</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment">Sequence alignment</a></li></ul>
+</div></td></tr><tr><td colspan="2"><div>
+<ul><li><span typeof="mw:File" data-mw='{"caption":"Category"}'><span><img resource="https://en.wikipedia.org/wiki/File:Symbol_category_class.svg" src="//thumb.wikimedia.org/wikipedia/en/thumb/9/96/Symbol_category_class.svg/20px-Symbol_category_class.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" alt="" height="16" width="16"/></span></span> <b><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:Bioinformatics">Category</a></b></li>
+<li><span typeof="mw:File" data-mw='{"caption":"Commons page"}'><a href="https://en.wikipedia.org/wiki/File:Commons-logo.svg"><img resource="https://en.wikipedia.org/wiki/File:Commons-logo.svg" src="//thumb.wikimedia.org/wikipedia/en/thumb/4/4a/Commons-logo.svg/20px-Commons-logo.svg.png?utm_source=en.wikipedia.org&amp;utm_campaign=parser&amp;utm_content=thumbnail" alt="" height="16" width="12"/></a></span> <b><a rel="mw:WikiLink/Interwiki" href="https://commons.wikimedia.org/wiki/Category:Bioinformatics">Commons</a></b></li></ul>
+</div></td></tr></tbody></table></div>
+<div about="#mwt192" typeof="mw:Transclusion" id="mwBCs" data-mw='{"parts":[{"template":{"target":{"wt":"Strings","href":"./Template:Strings"},"params":{},"i":0}}]}'><span></span></div><div role="navigation" about="#mwt192" id="mwBCw"><table><tbody><tr><th scope="col" colspan="2"><span></span><div><ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template:Strings"><abbr>v</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Template_talk:Strings"><abbr>t</abbr></a></li><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Special:EditPage/Template:Strings"><abbr>e</abbr></a></li></ul></div><div id="Strings1741"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_(computer_science)">Strings</a></div></th></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_metric">String metric</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Approximate_string_matching">Approximate string matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Bitap_algorithm">Bitap algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Damerau–Levenshtein_distance">Damerau–Levenshtein distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Edit_distance">Edit distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Gestalt_pattern_matching">Gestalt pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hamming_distance">Hamming distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Jaro–Winkler_distance">Jaro–Winkler distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Lee_distance">Lee distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_automaton">Levenshtein automaton</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Levenshtein_distance">Levenshtein distance</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Wagner–Fischer_algorithm">Wagner–Fischer algorithm </a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String-searching_algorithm">String-searching algorithm</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Apostolico–Giancarlo_algorithm">Apostolico–Giancarlo algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Boyer–Moore_string-search_algorithm">Boyer–Moore string-search algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Boyer–Moore–Horspool_algorithm">Boyer–Moore–Horspool algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Knuth–Morris–Pratt_algorithm">Knuth–Morris–Pratt algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rabin–Karp_algorithm">Rabin–Karp algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Raita_algorithm">Raita algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Trigram_search">Trigram search</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Two-way_string-matching_algorithm">Two-way string-matching algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Zhu–Takaoka_string_matching_algorithm">Zhu–Takaoka string matching algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row">Multiple string searching</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Aho–Corasick_algorithm">Aho–Corasick</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Commentz-Walter_algorithm">Commentz-Walter algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Regular_expression">Regular expression</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Comparison_of_regular-expression_engines">Comparison of regular-expression engines</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Regular_grammar">Regular grammar</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Thompson's_construction">Thompson's construction</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Nondeterministic_finite_automaton">Nondeterministic finite automaton</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequence_alignment">Sequence alignment</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/BLAST_(biotechnology)">BLAST</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Hirschberg's_algorithm">Hirschberg's algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Needleman–Wunsch_algorithm">Needleman–Wunsch algorithm</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Smith–Waterman_algorithm">Smith–Waterman algorithm</a></li></ul>
+</div></td></tr><tr><th scope="row"><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Data_structure">Data structure</a></th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Deterministic_acyclic_finite_state_automaton">DAFSA</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Substring_index">Substring index</a>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_array">Suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_automaton">Suffix automaton</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Suffix_tree">Suffix tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_suffix_array">Compressed suffix array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/LCP_array">LCP array</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/FM-index">FM-index</a></li></ul></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Generalized_suffix_tree">Generalized suffix tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Rope_(data_structure)">Rope</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Ternary_search_tree">Ternary search tree</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Trie">Trie</a></li></ul>
+</div></td></tr><tr><th scope="row">Other</th><td><div>
+<ul><li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Parsing">Parsing</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Pattern_matching">Pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Compressed_pattern_matching">Compressed pattern matching</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_subsequence">Longest common subsequence</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Longest_common_substring">Longest common substring</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Sequential_pattern_mining">Sequential pattern mining</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Category:String_sorting_algorithms">Sorting</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/Semi-Thue_system">String rewriting systems</a></li>
+<li><a rel="mw:WikiLink" href="https://en.wikipedia.org/wiki/String_operations">String operations</a></li></ul>
+</div></td></tr></tbody></table></div>
+<span about="#mwt197" typeof="mw:Transclusion" id="mwBC0" data-mw='{"parts":[{"template":{"target":{"wt":"DEFAULTSORT:Smith-Waterman algorithm","function":"defaultsort"},"params":{},"i":0}}]}'></span>
+</section>
+</div><noscript><img src="https://en.wikipedia.org/wiki/Special:CentralAutoLogin/start?useformat=desktop&amp;type=1x1&amp;usesul3=1" alt="" width="1" height="1"></noscript>
+<div>Retrieved from "<a dir="ltr" href="https://en.wikipedia.org/w/index.php?title=Smith–Waterman_algorithm&amp;oldid=1376348078">https://en.wikipedia.org/w/index.php?title=Smith–Waterman_algorithm&amp;oldid=1376348078</a>"</div></div>
+					<div id="catlinks"><div id="mw-normal-catlinks"><a href="/wiki/Help:Category">Categories</a>: <ul><li><a href="/wiki/Category:Bioinformatics_algorithms">Bioinformatics algorithms</a></li><li><a href="/wiki/Category:Computational_phylogenetics">Computational phylogenetics</a></li><li><a href="/wiki/Category:Sequence_alignment_algorithms">Sequence alignment algorithms</a></li><li><a href="/wiki/Category:Dynamic_programming">Dynamic programming</a></li></ul></div><div id="mw-hidden-catlinks">Hidden categories: <ul><li><a href="/wiki/Category:Articles_with_short_description">Articles with short description</a></li><li><a href="/wiki/Category:Short_description_is_different_from_Wikidata">Short description is different from Wikidata</a></li><li><a href="/wiki/Category:CS1_maint:_multiple_names:_authors_list">CS1 maint: multiple names: authors list</a></li><li><a href="/wiki/Category:CS1_maint:_archived_copy_as_title">CS1 maint: archived copy as title</a></li><li><a href="/wiki/Category:CS1_errors:_external_links">CS1 errors: external links</a></li><li><a href="/wiki/Category:All_articles_with_unsourced_statements">All articles with unsourced statements</a></li><li><a href="/wiki/Category:Articles_with_unsourced_statements_from_November_2011">Articles with unsourced statements from November 2011</a></li><li><a href="/wiki/Category:CS1_errors:_missing_periodical">CS1 errors: missing periodical</a></li><li><a href="/wiki/Category:CS1_maint:_deprecated_archival_service">CS1 maint: deprecated archival service</a></li></ul></div></div>
+				</div>
+			</main>
+		</div>
+		<div>
+			<footer id="footer" >
+				<ul id="footer-info">
+	<li id="footer-info-lastmod"> This page was last edited on 23 September 2026, at 16:22<span>&#160;(UTC)</span>.</li>
+	<li id="footer-info-renderedwith">Page was rendered with <a href="https://www.mediawiki.org/wiki/Special:MyLanguage/Parsoid">Parsoid</a>.</li>
+	<li id="footer-info-copyright">Text is available under the <a href="/wiki/Wikipedia:Text_of_the_Creative_Commons_Attribution-ShareAlike_4.0_International_License">Creative Commons Attribution-ShareAlike 4.0 License</a>;
+additional terms may apply. By using this site, you agree to the <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Terms_of_Use">Terms of Use</a> and <a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy Policy</a>. Wikipedia® is a registered trademark of the <a rel="nofollow" href="https://wikimediafoundation.org/">Wikimedia Foundation, Inc.</a>, a non-profit organization.</li>
+</ul>
+				<ul id="footer-places">
+	<li id="footer-places-privacy"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Privacy_policy">Privacy policy</a></li>
+	<li id="footer-places-about"><a href="/wiki/Wikipedia:About">About Wikipedia</a></li>
+	<li id="footer-places-disclaimers"><a href="/wiki/Wikipedia:General_disclaimer">Disclaimers</a></li>
+	<li id="footer-places-contact"><a href="//en.wikipedia.org/wiki/Wikipedia:Contact_us">Contact Wikipedia</a></li>
+	<li id="footer-places-legal-safety-contacts"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Legal:Wikimedia_Foundation_Legal_and_Safety_Contact_Information">Legal &amp; safety contacts</a></li>
+	<li id="footer-places-wm-codeofconduct"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Universal_Code_of_Conduct">Code of Conduct</a></li>
+	<li id="footer-places-developers"><a href="https://developer.wikimedia.org">Developers</a></li>
+	<li id="footer-places-statslink"><a href="https://stats.wikimedia.org/#/en.wikipedia.org">Statistics</a></li>
+	<li id="footer-places-cookiestatement"><a href="https://foundation.wikimedia.org/wiki/Special:MyLanguage/Policy:Cookie_statement">Cookie statement</a></li>
+	<li id="footer-places-mobileview"><a href="//en.wikipedia.org/w/index.php?title=Smith%E2%80%93Waterman_algorithm&amp;oldid=1376348078&amp;mobileaction=toggle_view_mobile">Mobile view</a></li>
+</ul>
+				<ul id="footer-icons">
+	<li id="footer-copyrightico"><a href="https://www.wikimedia.org/"><picture><source media="(min-width: 500px)" width="84" height="29"><img src="/static/images/footer/wikimedia.svg" width="25" height="25" alt="Wikimedia Foundation" lang="en"></picture></a></li>
+	<li id="footer-poweredbyico"><a href="https://www.mediawiki.org/"><picture><source media="(min-width: 500px)" width="88" height="31"><img src="/w/resources/assets/mediawiki_compact.svg" alt="Powered by MediaWiki" lang="en" width="25" height="25"></picture></a></li>
+</ul>
+			</footer>
+		</div>
+	</div>
+</div>
+<div>
+	<div id="vector-sticky-header">
+		<div>
+			<div>
+				<button tabindex="-1"><span></span>
+<span>Search</span>
+			</button>
+		</div>
+		<div role="search">
+			<div>
+				<div>
+					<form action="/w/index.php" id="vector-sticky-search-form">
+						<div  >
+							<div>
+								<input
+								 autocomplete="off"
+									type="search" name="search" placeholder="Search Wikipedia">
+								<span></span>
+							</div>
+							<input type="hidden" name="title" value="Special:Search">
+						</div>
+						<button>Search</button>
+					</form>
+				</div>
+			</div>
+		</div>
+		<div>
+				<nav>
+					<div id="vector-sticky-header-toc"  >
+						<input type="checkbox" id="vector-sticky-header-toc-checkbox" role="button"    >
+						<label id="vector-sticky-header-toc-label" for="vector-sticky-header-toc-checkbox"  ><span></span>
+<span>Toggle the table of contents</span>
+						</label>
+						<div>
+						<div id="vector-sticky-header-toc-unpinned-container">
+						</div>
+						</div>
+					</div>
+			</nav>
+				<div ><span lang="en" dir="ltr"><span>Smith–Waterman algorithm</span></span></div>
+			</div>
+		</div>
+		<div>
+			<div>
+				<a href="#" id="ca-talk-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-subject-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-history-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-watchstar-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-ve-edit-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+			<a href="#" id="ca-viewsource-sticky-header" tabindex="-1"><span></span>
+<span></span>
+			</a>
+		</div>
+			<div>
+				<button id="p-lang-btn-sticky-header" tabindex="-1"><span></span>
+<span>16 languages</span>
+			</button>
+			<a href="#" id="ca-addsection-sticky-header" tabindex="-1"><span></span>
+<span>Add topic</span>
+			</a>
+		</div>
+			<div>
+				<div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+<div id="p-dock-bottom">
+	<ul>
+	</ul>
+</div>
+</body>
+</html>

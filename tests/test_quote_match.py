@@ -129,7 +129,7 @@ def test_locate_threshold_is_adjustable_and_none_below_it():
     assert locate(heavy, PDF)['match'] == 'none'
     assert locate(heavy, PDF, threshold=70)['match'] == 'near'
     assert locate('an entirely unrelated sentence about sailing boats', PDF)['match'] == 'none'
-    assert quote_match.NEAR_THRESHOLD == 90.0
+    assert quote_match.NEAR_THRESHOLD == 94.0
 
 
 def test_short_quotes_are_never_matched_fuzzily():

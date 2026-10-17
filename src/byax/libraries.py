@@ -19,6 +19,7 @@ import time
 import uuid
 from contextlib import contextmanager
 from pathlib import Path
+from stat import S_ISREG
 
 from .context_assembly import estimate_tokens, tokens_to_chars
 from .errors import ByaxError
@@ -59,6 +60,9 @@ _SCHEMA_TABLES = (
         (chunk_id TEXT PRIMARY KEY, document_id TEXT, ordinal INTEGER, locator TEXT,
          heading TEXT, text TEXT, fingerprint TEXT)""",
     'CREATE INDEX IF NOT EXISTS chunk_document ON chunks(document_id)',
+    # Search resolves every matching chunk's document to its files: without this index each lookup scans
+    # the whole files table (10,000 documents: 0.8 ms each, 16 s of a 40 s profile).
+    'CREATE INDEX IF NOT EXISTS file_document ON files(document_id)',
     """CREATE TABLE IF NOT EXISTS contexts
         (chunk_id TEXT PRIMARY KEY, text_fingerprint TEXT NOT NULL, note TEXT NOT NULL, generator TEXT)""",
     'CREATE INDEX IF NOT EXISTS contexts_fingerprint ON contexts(text_fingerprint)',
@@ -67,6 +71,9 @@ _SCHEMA_TABLES = (
     "CREATE VIRTUAL TABLE IF NOT EXISTS vocab USING fts5vocab(search, 'row')",
 )
 MAX_SUGGESTED_TERMS = 8
+# Rows past the requested page that search still checks against the files, so ``total`` is exact
+# for result sets up to ``offset + limit + TOTAL_LOOKAHEAD`` chunks and counted from the index beyond.
+TOTAL_LOOKAHEAD = 200
 _TRIGRAM_TABLE = (
     "CREATE VIRTUAL TABLE IF NOT EXISTS search_tri USING fts5(chunk_id UNINDEXED, text, tokenize='trigram')"
 )
@@ -380,6 +387,7 @@ class LibraryIndex:
                 raise ByaxError('invalid_input', 'Index cache must be outside library folders')
         self.directory.mkdir(parents=True, exist_ok=True)
         self.path = self.directory / (library_id + '.sqlite3')
+        self._bases = {}
         self.limits = {**DEFAULT_LIMITS, **(limits or {})}
         if any(not isinstance(v, (int, float)) or v <= 0 for v in self.limits.values()):
             raise ByaxError('invalid_input', 'Library limits must be positive')
@@ -735,12 +743,31 @@ class LibraryIndex:
                 (status, error, key, owner),
             )
 
+    def _live_stat(self, root, relative):
+        """``os.stat_result`` of a library file confined to its root, else None.
+
+        Same decision as ``_confined(...).stat()`` (the root must still be a registered root, the resolved
+        path must stay inside it and be a regular file) in one resolve and one stat instead of several.
+        """
+        base = self._bases.get(root)
+        if base is None:
+            base = self._bases[root] = str(Path(root).resolve())
+        if base not in self.library['roots']:
+            return None
+        resolved = os.path.realpath(os.path.join(base, relative))
+        if not resolved.startswith(base + os.sep):
+            return None
+        try:
+            stat = os.stat(resolved)
+        except OSError:
+            return None
+        return stat if S_ISREG(stat.st_mode) else None
+
     def _paths(self, db, document_id):
         paths = []
         for row in db.execute('SELECT * FROM files WHERE document_id=?', (document_id,)):
-            try:
-                stat = self._confined(row['root'], row['relative_path']).stat()
-            except (OSError, ByaxError):
+            stat = self._live_stat(row['root'], row['relative_path'])
+            if stat is None:
                 continue
             paths.append(
                 {
@@ -943,6 +970,54 @@ class LibraryIndex:
             # Expressions are built from quoted word tokens only; report rather than leak SQL.
             raise ByaxError('invalid_input', 'Search query cannot be evaluated', reason=str(exc)) from exc
 
+    def _ranked(self, db, table, expression, limit=None):
+        """Matching chunks in rank order straight from the FTS table: id, rowid and score only.
+
+        No join: the document and content hash of a row are looked up (``_documents``) only for the rows
+        a search actually examines, which is a small part of a result set that matches most of a library.
+        """
+        weights = (
+            ','.join(str(w) for w in (*COLUMN_WEIGHTS, CONTEXT_WEIGHT)) if table == 'search' else '0.0,1.0'
+        )
+        try:
+            return db.execute(
+                f"""SELECT chunk_id,rowid,bm25({table},{weights}) AS score FROM {table}
+                    WHERE {table} MATCH ? ORDER BY score,chunk_id{' LIMIT ' + str(int(limit)) if limit else ''}""",
+                (expression,),
+            ).fetchall()
+        except sqlite3.OperationalError as exc:
+            raise ByaxError('invalid_input', 'Search query cannot be evaluated', reason=str(exc)) from exc
+
+    @staticmethod
+    def _count(db, table, expression):
+        return db.execute(f'SELECT count(*) FROM {table} WHERE {table} MATCH ?', (expression,)).fetchone()[0]
+
+    @staticmethod
+    def _documents(db, rowids):
+        """``{rowid: (document_id, content_hash)}`` for chunks that still have a document."""
+        found = {}
+        for start in range(0, len(rowids), 400):
+            batch = rowids[start : start + 400]
+            marks = ','.join('?' * len(batch))
+            for row in db.execute(
+                f"""SELECT c.rowid AS rid,c.document_id,d.content_hash FROM chunks c
+                    JOIN documents d ON d.document_id=c.document_id WHERE c.rowid IN ({marks})""",
+                batch,
+            ):
+                found[row['rid']] = (row['document_id'], row['content_hash'])
+        return found
+
+    @staticmethod
+    def _chunks(db, chunk_ids):
+        """Full chunk rows by id (the page of results is the only part of a search that needs text)."""
+        rows = {}
+        for start in range(0, len(chunk_ids), 400):
+            batch = chunk_ids[start : start + 400]
+            marks = ','.join('?' * len(batch))
+            for row in db.execute(f'SELECT * FROM chunks WHERE chunk_id IN ({marks})', batch):
+                rows[row['chunk_id']] = row
+        return rows
+
     def suggestions(self, query, *, db=None, limit=3):
         """'Did you mean' spellings for query terms that match nothing, from the index vocabulary."""
         parsed = query if isinstance(query, Query) else parse_query(query)
@@ -1012,51 +1087,97 @@ class LibraryIndex:
                     'truncated': False,
                     'continuation': None,
                 }
-            located, seen, paths_cache = [], set(), {}
+            # Rank first, check files and read text only where needed. Rows are examined in rank order until
+            # the requested page plus ``TOTAL_LOOKAHEAD`` more are confirmed against the files; matches
+            # beyond that are only counted (``total_estimated``), so a query that matches most of a
+            # 10,000-document library costs the page, not the library.
+            located, seen, paths_cache, unchecked = [], set(), {}, 0
+            needed = offset + limit + TOTAL_LOOKAHEAD
+            filtered = bool(parsed.filters)
 
             def collect(rows, label):
-                for row in rows:
+                nonlocal unchecked
+                documents = {}
+                for position, row in enumerate(rows):
                     if row['chunk_id'] in seen:
                         continue
-                    if row['document_id'] not in paths_cache:
-                        paths_cache[row['document_id']] = self._paths(db, row['document_id'])
-                    paths = paths_cache[row['document_id']]
+                    if len(located) >= needed and not filtered:
+                        unchecked += 1
+                        continue
+                    if row['rowid'] not in documents:
+                        ahead = [
+                            r['rowid'] for r in rows[position : position + 64] if r['rowid'] not in documents
+                        ]
+                        documents.update(self._documents(db, ahead))
+                        documents.update((r, None) for r in ahead if r not in documents)
+                    if documents[row['rowid']] is None:
+                        continue
+                    document_id, content_hash = documents[row['rowid']]
+                    if document_id not in paths_cache:
+                        paths_cache[document_id] = self._paths(db, document_id)
+                    paths = paths_cache[document_id]
                     if not paths:
                         continue
-                    item = dict(row)
-                    item['locator'] = json.loads(item['locator'])
-                    item.update(
-                        library_id=self.library['library_id'],
-                        paths=[p['path'] for p in paths],
-                        path=paths[0]['path'],
-                        stale=all(p['stale'] for p in paths),
-                        match=label,
-                    )
-                    if parsed.accepts(item):
-                        seen.add(row['chunk_id'])
-                        located.append(item)
+                    if filtered:
+                        probe = {'paths': [p['path'] for p in paths], 'path': paths[0]['path']}
+                        probe['locator'] = json.loads(
+                            self._chunks(db, [row['chunk_id']])[row['chunk_id']]['locator']
+                        )
+                        if not parsed.accepts(probe):
+                            continue
+                    seen.add(row['chunk_id'])
+                    located.append((row, paths, label, content_hash))
 
-            collect(self._rows(db, 'search', expression), 'porter')
+            # Only the head of a large ranking is needed: take twice the rows the page examines, count the
+            # rest, and fall back to the full ranking if too many of the head turn out to be unusable.
+            cap = max(2 * needed, 400)
+            head = self._ranked(db, 'search', expression, limit=None if filtered else cap + 1)
+            if len(head) > cap:
+                matches, head = self._count(db, 'search', expression), head[:cap]
+                collect(head, 'porter')
+                if len(located) < needed:
+                    located.clear()
+                    seen.clear()
+                    unchecked = 0
+                    collect(self._ranked(db, 'search', expression), 'porter')
+                else:
+                    unchecked += matches - len(head)
+            else:
+                collect(head, 'porter')
             report['passes'].append('porter')
             # Substring and mid-word matches only when the stemmed pass is short of k hits.
             trigram = parsed.trigram() if self.trigram else None
             if trigram and len(located) < limit:
-                collect(self._rows(db, 'search_tri', trigram), 'trigram')
+                collect(self._ranked(db, 'search_tri', trigram), 'trigram')
                 report['passes'].append('trigram')
+            page = located[offset : offset + limit]
+            full = self._chunks(db, [row['chunk_id'] for row, _, _, _ in page])
         results, chars = [], 0
-        for item in located[offset : offset + limit]:
+        for row, paths, label, content_hash in page:
             remaining = int(self.limits['context_chars']) - chars
             if remaining <= 0:
                 break
+            item = dict(full[row['chunk_id']])
+            item.update(content_hash=content_hash, score=row['score'])
+            item['locator'] = json.loads(item['locator'])
+            item.update(
+                library_id=self.library['library_id'],
+                paths=[p['path'] for p in paths],
+                path=paths[0]['path'],
+                stale=all(p['stale'] for p in paths),
+                match=label,
+            )
             item['truncated'] = len(item['text']) > remaining
             item['text'] = item['text'][:remaining]
             chars += len(item['text'])
             results.append(item)
-        more = offset + len(results) < len(located)
+        total = len(located) + unchecked
+        more = offset + len(results) < total
         return {
             **report,
             'results': results,
-            'total': len(located),
+            'total': total,
+            **({'total_estimated': True} if unchecked else {}),
             'offset': offset,
             'truncated': more,
             'continuation': offset + len(results) if more else None,

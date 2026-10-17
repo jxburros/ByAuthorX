@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE article
+  PUBLIC "-//NLM//DTD Journal Publishing DTD v3.0 20080202//EN" "http://dtd.nlm.nih.gov/publishing/3.0/journalpublishing3.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" article-type="editorial" dtd-version="3.0" xml:lang="en">
+<front>
+<journal-meta>
+<journal-id journal-id-type="nlm-ta">PLoS Comput Biol</journal-id>
+<journal-id journal-id-type="publisher-id">plos</journal-id>
+<journal-id journal-id-type="pmc">ploscomp</journal-id>
+<journal-title-group>
+<journal-title>PLOS Computational Biology</journal-title>
+</journal-title-group>
+<issn pub-type="ppub">1553-734X</issn>
+<issn pub-type="epub">1553-7358</issn>
+<publisher>
+<publisher-name>Public Library of Science</publisher-name>
+<publisher-loc>San Francisco, CA USA</publisher-loc>
+</publisher>
+</journal-meta>
+<article-meta>
+<article-id pub-id-type="doi">10.1371/journal.pcbi.1004150</article-id>
+<article-id pub-id-type="publisher-id">PCOMPBIOL-D-14-01642</article-id>
+<article-categories>
+<subj-group subj-group-type="heading">
+<subject>Editorial</subject>
+</subj-group>
+</article-categories>
+<title-group>
+<article-title>Ten Simple Rules for a Community Computational Challenge</article-title>
+</title-group>
+<contrib-group>
+<contrib contrib-type="author" corresp="yes" xlink:type="simple">
+<name name-style="western">
+<surname>Friedberg</surname>
+<given-names>Iddo</given-names>
+</name>
+<xref rid="aff001" ref-type="aff"><sup>1</sup></xref>
+<xref rid="aff002" ref-type="aff"><sup>2</sup></xref>
+<xref rid="cor001" ref-type="corresp">*</xref>
+</contrib>
+<contrib contrib-type="author" xlink:type="simple">
+<name name-style="western">
+<surname>Wass</surname>
+<given-names>Mark N.</given-names>
+</name>
+<xref rid="aff003" ref-type="aff"><sup>3</sup></xref>
+</contrib>
+<contrib contrib-type="author" xlink:type="simple">
+<name name-style="western">
+<surname>Mooney</surname>
+<given-names>Sean D.</given-names>
+</name>
+<xref rid="aff004" ref-type="aff"><sup>4</sup></xref>
+</contrib>
+<contrib contrib-type="author" xlink:type="simple">
+<name name-style="western">
+<surname>Radivojac</surname>
+<given-names>Predrag</given-names>
+</name>
+<xref rid="aff005" ref-type="aff"><sup>5</sup></xref>
+</contrib>
+</contrib-group>
+<aff id="aff001"><label>1</label> <addr-line>Department of Microbiology, Miami University, Oxford, Ohio, United States of America</addr-line></aff>
+<aff id="aff002"><label>2</label> <addr-line>Department of Computer Science and Software Engineering, Miami University, Oxford, Ohio, United States of America</addr-line></aff>
+<aff id="aff003"><label>3</label> <addr-line>Centre for Molecular Processing, School of Biosciences, University of Kent, Canterbury, Kent, United Kingdom</addr-line></aff>
+<aff id="aff004"><label>4</label> <addr-line>The Buck Institute for Research on Aging, Novato, California, United States of America</addr-line></aff>
+<aff id="aff005"><label>5</label> <addr-line>Department of Computer Science and Informatics, Indiana University, Bloomington, Indiana, United States of America</addr-line></aff>
+<author-notes>
+<fn fn-type="conflict" id="coi001">
+<p>The authors have declared that no competing interests exist.</p>
+</fn>
+<corresp id="cor001">* E-mail: <email xlink:type="simple">i.friedberg@miamioh.edu</email></corresp>
+</author-notes>
+<pub-date pub-type="epub">
+<day>23</day>
+<month>4</month>
+<year>2015</year>
+</pub-date>
+<pub-date pub-type="collection">
+<month>4</month>
+<year>2015</year>
+</pub-date>
+<volume>11</volume>
+<issue>4</issue>
+<elocation-id>e1004150</elocation-id>
+<permissions>
+<copyright-year>2015</copyright-year>
+<copyright-holder>Friedberg et al</copyright-holder>
+<license xlink:href="http://creativecommons.org/licenses/by/4.0/" xlink:type="simple">
+<license-p>This is an open access article distributed under the terms of the <ext-link ext-link-type="uri" xlink:href="http://creativecommons.org/licenses/by/4.0/" xlink:type="simple">Creative Commons Attribution License</ext-link>, which permits unrestricted use, distribution, and reproduction in any medium, provided the original author and source are credited</license-p>
+</license>
+</permissions>
+<self-uri content-type="pdf" xlink:href="info:doi/10.1371/journal.pcbi.1004150" xlink:type="simple"/>
+<funding-group>
+<funding-statement>The CAFA meetings at ISMB 2011 and 2013 conferences were supported, in part, by the US National Institutes of Health (NIH) grants R13 HG006079-01A1 and R13 HG007807 01 awarded to PR; and Office of Science (Biological and Environmental Research), US Department of Energy (DOE BER), grant DE-SC0006807TDD awarded to IF. Individual projects were supported, in part, by NIH R01LM009722 (SDM) and NSF ABI Innovation grant 1146960 (IF). The funders had no role in study design, data collection and analysis, decision to publish, or preparation of the manuscript.</funding-statement>
+</funding-group>
+<counts>
+<fig-count count="0"/>
+<table-count count="0"/>
+<page-count count="5"/>
+</counts>
+</article-meta>
+</front>
+<body>
+<p>In science, the relationship between methods and discovery is symbiotic. As we discover more, we are able to construct more precise and sensitive tools and methods that enable further discovery. With better lens crafting came microscopes, and with them the discovery of living cells. In the last 40 years, advances in molecular biology, statistics, and computer science have ushered in the field of bioinformatics and the genomic era.</p>
+<p>Computational scientists enjoy developing new methods, and the community encourages them to do so. Indeed, the editorial guidelines for <italic>PLOS Computational Biology</italic> require manuscripts to apply novel methods. However, it is often confusing to know which method to choose: which method is best? And, in this context, what does “best” mean?</p>
+<p>To help choose an appropriate method for a particular task, scientists often form community-based challenges for the unbiased evaluation of methods in a given field. These challenges help evaluate existing and novel methods, while helping to coalesce a community and leading to new ideas and collaborations.</p>
+<p>In computational biology, the first of these challenges was arguably the Critical Assessment of protein Structure Prediction, or CASP [<xref rid="pcbi.1004150.ref001" ref-type="bibr">1</xref>], whose goal is to evaluate methods for predicting three-dimensional protein structure from amino acid sequence. The first CASP meeting was held in December of 1994, following a “prediction period” where members of the community were presented with protein amino acid sequences and asked to predict their three dimensional structures. The sequences that were chosen had recently been solved by X-ray crystallography but had not been not published or released until after the predictions from the community were made. Since the first CASP, we have seen many successful challenges, including Critical Assessment of Function Annotation (CAFA) for protein function prediction [<xref rid="pcbi.1004150.ref002" ref-type="bibr">2</xref>], Critical Assessment of Genome Interpretation (CAGI) (for genome interpretation) [<xref rid="pcbi.1004150.ref003" ref-type="bibr">3</xref>], Critical Assessment of Massive (originally “Microarray”) Data Analysis (CAMDA) (for large-scale biological data) [<xref rid="pcbi.1004150.ref004" ref-type="bibr">4</xref>], BioCreative (for biomedical text mining) [<xref rid="pcbi.1004150.ref005" ref-type="bibr">5</xref>], the Assemblathon (for sequence assembly), and the NCI-DREAM Challenges (for various biomedical challenges), amongst others [<xref rid="pcbi.1004150.ref006" ref-type="bibr">6</xref>].</p>
+<p>Computational challenges also help solve new problems. While the original CASP experiment was developed to evaluate existing methods applied to current problems, other communities often look at other areas for which there are no existing tools. These challenges have spread successfully to industry, and companies such as Innocentive [<xref rid="pcbi.1004150.ref007" ref-type="bibr">7</xref>] and X-Prize [<xref rid="pcbi.1004150.ref008" ref-type="bibr">8</xref>] offer large prizes for solving novel questions.</p>
+<p>Because these challenges are, on one hand, an exercise in community collaboration, and on the other, a competition, organizing a challenge is littered with difficulties and pitfalls. Having served as organizers, predictors, and assessors within several existing communities, we present ten rules we believe should be observed when organizing a computational methods challenge:</p>
+<sec id="sec001">
+<title>Rule 1: Start with an Interesting Problem and a Motivated Community</title>
+<p>Organizers of community challenges should start with an active community studying an important, non-trivial problem, and a good number of published tools that solve this or a similar problem using different approaches. Ideally, the challenge should be based on real data and the problem itself should be compelling. It is best to organize the community challenge around a meeting, whether adding the challenge on to an already scheduled event, or establishing a meeting especially for the challenge. Advertising a challenge without having the people to build on may doom your effort before it starts. Ensure you have a critical mass of predictors who are interested before you decide to move forward.</p>
+</sec>
+<sec id="sec002">
+<title>Rule 2: Make Sure You Have Organizers, Data Providers, and Assessors Available before You Begin</title>
+<p>The logistics of a challenge should be handled by separate entities, ideally comprising different people, to minimize potential conflicts of interest. These entities are the <italic>data providers</italic>, who give the testing data on which the methods are to be tested; the <italic>assessors</italic>, who assess the performance of the methods; the <italic>organizers</italic>, who provide the logistic infrastructure for the challenge, and the <italic>predictors</italic> are those who perform the predictions and whose predictions are assessed. Finally, there is a <italic>steering committee</italic>, composed of members who are knowledgeable in the field, but have no stake in the challenge. The members of the steering committee should offer different perspectives to the organizers on everything from rules to logistics, and thus help to better guide the challenge. The organizers should hold regular meetings with the steering committee, report progress, and identify possible faults along the way, and the roles should be sufficiently separated to ensure integrity. Everyone involved should be aware that there is a lot of work to be done over an extended period of time, and that during “crunch periods” such as challenge assessments, the work can take 100% of the time of several people over a few weeks. Even during calmer times, prepare for an extra workload that includes advertising, organizing, writing rules, developing metrics, and developing supporting software and web sites.</p>
+</sec>
+<sec id="sec003">
+<title>Rule 3: Develop Reasonable Rules, but Be Flexible in Their Application, Especially the First Time</title>
+<p>Work with your community and steering committee to come up with reasonable rules for the challenge, but understand that to recognize scientific impact, unforeseen changes will be required, particularly during the first iteration. These rules should be jointly developed by the organizers and the assessors and should be shared with the community for feedback. Learn from the first challenge, and change as necessary in future iterations to adopt rules that fit the questions at hand and the community's ability to address those questions.</p>
+</sec>
+<sec id="sec004">
+<title>Rule 4: Carefully Consider Your Assessment Metrics</title>
+<p>Good, unbiased assessment of the methods is critical to ensuring a successful challenge. Assessors should develop and publish their metrics early, and community input should be collected and used to refine them. The software that the assessors will use to evaluate predictions should be freely available. If possible, recruit assessors who are known and respected by your community. For some challenges, assessment is obvious, and only a single metric is needed. For others, the assessment methods can be more subjective and therefore contentious. If appropriate to your challenge, develop several complementary assessment methods. Take care to keep your assessment metrics easily interpretable. Metrics that are too complex and hard to explain can defeat the purpose of a community challenge.</p>
+</sec>
+<sec id="sec005">
+<title>Rule 5: Have a Publication Plan</title>
+<p>Try to have a publication plan prior to the challenge. Having the backing of a journal willing to publish papers from your challenge may help draw more people to the challenge. Of course, you should ensure that any manuscript is properly peer-reviewed. In CAFA, we availed ourselves of the special supplement mechanism provided by some journals [<xref rid="pcbi.1004150.ref009" ref-type="bibr">9</xref>]. Typically the papers are a publication of some of the participating methods, and those are authored by the method developers. A <italic>flagship paper</italic>, which provides a broader view of the challenge and participating methods, and authored by all participants, should also be included. You may use several publishers and different journals.</p>
+</sec>
+<sec id="sec006">
+<title>Rule 6: Encourage Novelty and Risk-Taking</title>
+<p>When creating a challenge, and especially with an ongoing challenge, predictors may gravitate toward marginally improving upon what worked in the past, rather than taking risky innovations. It is up to the organizers to encourage risk-taking, as that is where innovations usually originate. The challenges should have some novel edge to them to encourage the concurrent development of significantly novel methods. Also, the time given between challenges should be long enough to allow for the development of new methods, as well as substantial improvements to existing methods. (Typically 2–3 years between major challenge events). Finally, avoid “penalizing” methods that are not as competitive. This can be done by allowing authors to withdraw from the challenge or opt not to have their results published, thus allowing them to improve their methods and avoid a penalty from having a poor score publicly associated with their method.</p>
+</sec>
+<sec id="sec007">
+<title>Rule 7: Build, Maintain, and Expand Your Community</title>
+<p>Holding regular meetings based on your challenge builds community, encourages collaborations, and generally helps your effort become sustainable. Note that organizing meetings can seriously impact your time. Therefore, make sure that you and your collaborators are up for the effort. For more information, see <italic>Ten Simple Rules for Organizing a Scientific Meeting</italic> [<xref rid="pcbi.1004150.ref010" ref-type="bibr">10</xref>]. Have a meaningful and well-maintained website as a go-to resource for members of your community. Advertise your effort by presenting it at conferences, and over social media. Finally, seek feedback from your community after each event. Seeking feedback will help you understand what you are doing well, and what you may be able to improve. To facilitate a large number of honest responses an anonymous survey is the best way to gain feedback: use tools such as SurveyMonkey or SurveyGizmo. Also, do not allow your challenge to become stale. It may be exciting to gradually but constantly innovate by digging deeper and addressing more challenging aspects of your core problem.</p>
+</sec>
+<sec id="sec008">
+<title>Rule 8: Seek Funding</title>
+<p>Conferences and the challenge effort itself will need funding to sustain growth and existence. You should treat the challenge just like any other research project and seek sustainable funding for it. Work to convince funding agencies and commercial supporters that your challenge is timely and important and could make tangible contributions. Letters of support from challenge participants are crucial here. If possible, you should turn your results into new science where you and your community will test new emergent hypotheses. To make the challenge more transparent and help in the scientific research related to your challenge, you should provide assessment and other relevant software the community can use. Also, urge your participants to release their software to the public. Having tangible, useful products resulting from your challenge will serve the community, as well as help attract funding.</p>
+</sec>
+<sec id="sec009">
+<title>Rule 9: Give Scientific Credit to the Predictors</title>
+<p>One temptation of organizers of conferences, community challenges, or community challenge manuscripts is to somehow give the organizers scientific credit for the work of the data providers and predictors. Predictors and data providers should be celebrated as authors on manuscripts, speakers, and future organizers. Creating an environment where organizers (and not participants) are celebrated will only result in less impactful results, lower participation, and the overall quality of the ongoing challenge may be weakened. At the same time it is important to avoid ranking labs; instead, rank approaches: in the end, it is the competitive drive that motivates many of the predictors in these experiments. While this is well understood by both the community and organizers, calling the challenge and/or treating it like a personal competition will have the likely outcome of stifling risk.</p>
+</sec>
+<sec id="sec010">
+<title>Rule 10: Prepare for an Incredible Ride, and Have Fun</title>
+<p>If your effort is successful, you will be looked to by a community made up of dozens of groups, each group seeking to establish that their method is successful in the challenge. Naturally, in such a competitive environment, tensions and disagreements will arise—over the rules, the metrics, the challenge data, and anything that can be changed. Be patient and understanding, and most importantly, be attentive to criticisms and to the possibility of change. At the same time, after establishing rules, data, and assessment metrics, stick to your guns for the duration of the challenge round, unless you discover a major mistake that could render the challenge meaningless or grossly unfair. You can always fix lesser problems in the next round. You cannot, and therefore should not, aim to please everybody. Be patient and remember that the predictors are working hard and have a lot at stake, which may frustrate them when the assessment is not all they expected. Always remember that the challenge you are organizing is intended to improve methods through a friendly competition, and that you are involved in a community that, when all is said and done, should be a collegial one. Remember to have fun!</p>
+</sec>
+<sec id="sec011" sec-type="conclusions">
+<title>Conclusions</title>
+<p>Overall, we believe that if you follow these guidelines, you will be well on your way to helping improve tools and methods through community driven challenges. Make the scientific goals of the challenge abundantly clear and do not try to game the system to profit from the challenge itself. It is hard work, and may initially be unrewarding. The end result, however, can be as rewarding as any in science.</p>
+</sec>
+</body>
+<back>
+<ack>
+<p>The authors would like to acknowledge all CAFA participants. We are especially grateful to Patricia C. Babbitt, Steven E. Brenner, Michal Linial, Christine Orengo, and Burkhard Rost for their service on the CAFA steering committee.</p>
+</ack>
+<ref-list>
+<title>References</title>
+<ref id="pcbi.1004150.ref001"><label>1</label><mixed-citation publication-type="journal" xlink:type="simple"><name name-style="western"><surname>Moult</surname> <given-names>J</given-names></name>, <name name-style="western"><surname>Pedersen</surname> <given-names>JT</given-names></name>, <name name-style="western"><surname>Judson</surname> <given-names>R</given-names></name>, <name name-style="western"><surname>Fidelis</surname> <given-names>K</given-names></name>. <article-title>A large-scale experiment to assess protein structure prediction methods</article-title>. <source>Proteins</source> <year>1995</year>;<volume>23</volume>(<issue>3</issue>): <fpage>ii</fpage>–<lpage>iv</lpage>. <object-id pub-id-type="pmid">8710822</object-id></mixed-citation></ref>
+<ref id="pcbi.1004150.ref002"><label>2</label><mixed-citation publication-type="journal" xlink:type="simple"><name name-style="western"><surname>Radivojac</surname> <given-names>P</given-names></name>, <name name-style="western"><surname>Clark</surname> <given-names>WT</given-names></name>, <name name-style="western"><surname>Oron</surname> <given-names>TR</given-names></name>, <name name-style="western"><surname>Schnoes</surname> <given-names>AM</given-names></name>, <name name-style="western"><surname>Wittkop</surname> <given-names>T</given-names></name>. <etal>et al</etal>. <article-title>A large-scale evaluation of computational protein function prediction</article-title>. <source>Nat Methods</source> <year>2013</year>;<volume>10</volume>: <fpage>221</fpage>–<lpage>227</lpage>. <comment>doi: <ext-link ext-link-type="uri" xlink:href="http://dx.doi.org/10.1038/nmeth.2340" xlink:type="simple">10.1038/nmeth.2340</ext-link></comment> <object-id pub-id-type="pmid">23353650</object-id></mixed-citation></ref>
+<ref id="pcbi.1004150.ref003"><label>3</label><mixed-citation publication-type="other" xlink:type="simple">CAGI. <ext-link ext-link-type="uri" xlink:href="http://genomeinterpretation.org" xlink:type="simple">http://genomeinterpretation.org</ext-link></mixed-citation></ref>
+<ref id="pcbi.1004150.ref004"><label>4</label><mixed-citation publication-type="journal" xlink:type="simple"><name name-style="western"><surname>Johnson</surname> <given-names>KF</given-names></name> and <name name-style="western"><surname>Lin</surname> <given-names>SM</given-names></name>. <article-title>Call to work together on microarray data analysis</article-title> <source>Nature</source> <year>2001</year>;<volume>411</volume>:<fpage>885</fpage>. <object-id pub-id-type="pmid">11418826</object-id></mixed-citation></ref>
+<ref id="pcbi.1004150.ref005"><label>5</label><mixed-citation publication-type="journal" xlink:type="simple"><name name-style="western"><surname>Hirschman</surname> <given-names>L</given-names></name>, <name name-style="western"><surname>Yeh</surname> <given-names>A</given-names></name>, <name name-style="western"><surname>Blaschke</surname> <given-names>C</given-names></name>, <name name-style="western"><surname>Valencia</surname> <given-names>A</given-names></name>. <article-title>Overview of BioCreAtIvE: critical assessment of information extraction for biology</article-title>. <source>BMC Bioinformatics</source> <year>2005</year>;<volume>6</volume> <issue>Suppl 1</issue>:<fpage>S1</fpage>. <object-id pub-id-type="pmid">16468169</object-id></mixed-citation></ref>
+<ref id="pcbi.1004150.ref006"><label>6</label><mixed-citation publication-type="journal" xlink:type="simple"><name name-style="western"><surname>Costello</surname> <given-names>JC</given-names></name> and <name name-style="western"><surname>Stolovitzky</surname> <given-names>G</given-names></name>. <article-title>Seeking the wisdom of crowds through challenge-based competitions in biomedical research</article-title>. <source>Clin Pharmacol Ther</source> <year>2013</year>;<volume>93</volume>(<issue>5</issue>):<fpage>396</fpage>–<lpage>398</lpage>. <comment>doi: <ext-link ext-link-type="uri" xlink:href="http://dx.doi.org/10.1038/clpt.2013.36" xlink:type="simple">10.1038/clpt.2013.36</ext-link></comment> <object-id pub-id-type="pmid">23549146</object-id></mixed-citation></ref>
+<ref id="pcbi.1004150.ref007"><label>7</label><mixed-citation publication-type="other" xlink:type="simple">Innocentive, Waltham, MA, USA. <ext-link ext-link-type="uri" xlink:href="http://www.innocentive.com/" xlink:type="simple">http://www.innocentive.com/</ext-link></mixed-citation></ref>
+<ref id="pcbi.1004150.ref008"><label>8</label><mixed-citation publication-type="other" xlink:type="simple">Xprize. Culver City, CA, USA. <ext-link ext-link-type="uri" xlink:href="http://www.xprize.org/" xlink:type="simple">http://www.xprize.org/</ext-link></mixed-citation></ref>
+<ref id="pcbi.1004150.ref009"><label>9</label><mixed-citation publication-type="book" xlink:type="simple"><chapter-title>The Automated Function Prediction SIG 2011 featuring the CAFA Challenge: Critical Assessment of Function Annotations</chapter-title>. <name name-style="western"><surname>Radivojac</surname> <given-names>P</given-names></name>, <name name-style="western"><surname>Friedberg</surname> <given-names>I</given-names></name>, Eds. <source>BMC Bioinformatics</source> <year>2011</year>;<volume>14</volume>(<issue>sup 3</issue>): <fpage>S1</fpage>–<lpage>S15</lpage>.</mixed-citation></ref>
+<ref id="pcbi.1004150.ref010"><label>10</label><mixed-citation publication-type="journal" xlink:type="simple"><name name-style="western"><surname>Corpas</surname> <given-names>M</given-names></name>, <name name-style="western"><surname>Gehlenborg</surname> <given-names>N</given-names></name>, <name name-style="western"><surname>Janga</surname> <given-names>SC</given-names></name>, <name name-style="western"><surname>Bourne</surname> <given-names>PE</given-names></name>. <article-title>Ten simple rules for organizing a scientific meeting</article-title>. <source>PLoS Comput Biol</source> <year>2008</year>;<volume>4</volume>(<issue>6</issue>):<fpage>e1000080</fpage>. <comment>doi: <ext-link ext-link-type="uri" xlink:href="http://dx.doi.org/10.1371/journal.pcbi.1000080" xlink:type="simple">10.1371/journal.pcbi.1000080</ext-link></comment> <object-id pub-id-type="pmid">18584020</object-id></mixed-citation></ref>
+</ref-list>
+</back>
+</article>
