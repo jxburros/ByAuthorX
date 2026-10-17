@@ -462,7 +462,11 @@ def library_document(tmp_path, monkeypatch):
 
 def test_excerpts_are_added_listed_checked_and_refreshed_as_proposals(library_document, capsys):
     path, ident, hit, root, definition, cache = library_document
-    added = execute('excerpt', {'path': path, 'action': 'add', 'source': ident, 'chunk_id': hit['chunk_id']})
+    # Chunker v3 merges the two short paragraphs into one chunk, so the excerpt names its own span.
+    added = execute(
+        'excerpt',
+        {'path': path, 'action': 'add', 'source': ident, 'chunk_id': hit['chunk_id'], 'start': 0, 'end': 20},
+    )
     assert added['excerpt']['source'] == ident and added['excerpt']['characters'] == 20
     listed = execute('excerpt', {'path': path, 'action': 'list'})
     assert [e['state'] for e in listed['excerpts']] == ['anchored'] and listed['excerpts'][0][

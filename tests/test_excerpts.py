@@ -48,7 +48,12 @@ def document(library):
     return doc, source, aria
 
 
+ARIA = 'Aria is the captain.'
+
+
 def add_excerpt(doc, library, source, aria, **kwargs):
+    # Chunker v3 merges the three short paragraphs into one chunk, so the excerpt names its own span.
+    kwargs = {'start': 0, 'end': len(ARIA), **kwargs}
     _root, _registry, _definition, cache = library
     planned = excerpts.add_operations(
         doc,
@@ -71,7 +76,7 @@ def test_an_excerpt_is_a_quotation_paragraph_with_a_back_pointer_to_the_source(l
     before = copy.deepcopy(doc)
     doc, planned = add_excerpt(doc, library, source, aria)
     block = next(b for b in doc['blocks'] if b['id'] == planned['excerpt']['block_id'])
-    assert block['text'] == aria['text'].strip() == 'Aria is the captain.' and block['style'] == 'quotation'
+    assert block['text'] == ARIA and aria['text'].startswith(ARIA) and block['style'] == 'quotation'
     assert [b['id'] for b in doc['blocks']].index(block['id']) == 2  # inserted after the body paragraph
     mark = mark_of(doc)
     assert mark['value'] == source['id'] and (mark['start'], mark['end']) == (0, len(block['text']))
@@ -98,7 +103,7 @@ def test_an_excerpt_can_name_a_phrase_and_it_is_checked_against_the_source(libra
         excerpts.add_operations(doc, source=source['id'], text='the captain is Dara', cache_dir=cache)
     with pytest.raises(ByaxError, match='not in that chunk'):
         excerpts.add_operations(
-            doc, source=source['id'], chunk_id=aria['chunk_id'], text='navigator', cache_dir=cache
+            doc, source=source['id'], chunk_id=aria['chunk_id'], text='Dara', cache_dir=cache
         )
     with pytest.raises(ByaxError):
         excerpts.add_operations(doc, source=source['id'], cache_dir=cache)

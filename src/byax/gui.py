@@ -620,18 +620,28 @@ class MainWindow(
             ('Readability report…', self.readability_report),
             ('Codex…', self.codex_panel),
             ('Provenance…', self.provenance_panel),
-            ('Bibliography health…', self.bibliography_health),
-            ('Where is this source used…', self.where_used),
-            ('Import from Zotero…', self.import_from_zotero),
-            ('Citation styles…', self.citation_styles),
             ('Synced folder safety…', self.sync_safety_details),
             ('On-device search…', self.local_models_dialog),
             ('Review conflicted copies…', self.review_conflicted_copies),
             ('Languages…', self.show_languages),
-            ('Extensions…', self.show_extensions),
-            ('Macros…', self.show_macros),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
+        # Nested so the Tools menu stays within the 20-entry limit (tests/test_gui_workspace.py).
+        for title, entries in (
+            (
+                'Bibliography',
+                (
+                    ('Bibliography health…', self.bibliography_health),
+                    ('Where is this source used…', self.where_used),
+                    ('Import from Zotero…', self.import_from_zotero),
+                    ('Citation styles…', self.citation_styles),
+                ),
+            ),
+            ('Automation', (('Extensions…', self.show_extensions), ('Macros…', self.show_macros))),
+        ):
+            submenu = menus['&Tools'].addMenu(self.tr(title))
+            for label, slot in entries:
+                submenu.addAction(self.action(self.tr(label), slot))
         self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
         self.submenus['styles'].addAction(
             self.action(self.tr('Styles and overrides…'), self.formatting_inspector)
