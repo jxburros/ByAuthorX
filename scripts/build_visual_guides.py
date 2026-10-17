@@ -186,10 +186,11 @@ def wrap(text, face, size, width):
 class Sheet:
     """One page of ops: hand-drawn shapes, text and images, with names kept unique."""
 
-    def __init__(self, key, ref, kicker, title, lede, alt, prefix=''):
+    def __init__(self, key, ref, kicker, title, lede, alt, prefix='', wobble=1.0):
         self.prefix = prefix
+        self.wobble = wobble
         self.meta = dict(key=key, ref=ref, kicker=kicker, title=title, lede=lede, alt=alt)
-        self.hand = Hand(key)
+        self.hand = Hand(key, 0.9 * wobble)
         self.ops = []
         self.count = 0
         self.nodes = {}
@@ -208,22 +209,22 @@ class Sheet:
 
     def box(self, x, y, w, h, fill=SURFACE, stroke=INK, sw=PEN, radius=10):
         pts = [(x, y), (x + w, y), (x + w, y + h), (x, y + h)]
-        self.path(self.name('box'), self.hand.poly(pts, True, radius, bow=1.0, amplitude=0.7), stroke, sw, fill)
+        self.path(self.name('box'), self.hand.poly(pts, True, radius, bow=1.0 * self.wobble, amplitude=0.7 * self.wobble), stroke, sw, fill)
 
     def pill(self, x, y, w, h, fill=SURFACE, stroke=INK, sw=PEN):
         pts = [(x, y), (x + w, y), (x + w, y + h), (x, y + h)]
-        self.path(self.name('pill'), self.hand.poly(pts, True, h / 2, bow=1.0, amplitude=0.6), stroke, sw, fill)
+        self.path(self.name('pill'), self.hand.poly(pts, True, h / 2, bow=1.0 * self.wobble, amplitude=0.6 * self.wobble), stroke, sw, fill)
 
     def diamond(self, cx, cy, w, h, fill=SURFACE, stroke=INK, sw=PEN):
         pts = [(cx, cy - h / 2), (cx + w / 2, cy), (cx, cy + h / 2), (cx - w / 2, cy)]
-        self.path(self.name('diamond'), self.hand.poly(pts, True, 7, bow=1.0, amplitude=0.7), stroke, sw, fill)
+        self.path(self.name('diamond'), self.hand.poly(pts, True, 7, bow=1.0 * self.wobble, amplitude=0.7 * self.wobble), stroke, sw, fill)
 
     def circle(self, cx, cy, r, fill=GREEN, stroke=None, sw=PEN):
         self.path(self.name('disc'), self.hand.ellipse(cx, cy, r), stroke, sw, fill)
 
     def stroke(self, points, color=INK, sw=PEN, radius=14, bow=1.0):
         """An open pen line through the points, corners softly rounded."""
-        self.path(self.name('line'), self.hand.poly(points, False, radius, bow=bow, amplitude=0.6), color, sw)
+        self.path(self.name('line'), self.hand.poly(points, False, radius, bow=bow * self.wobble, amplitude=0.6 * self.wobble), color, sw)
 
     def arrow(self, points, color=INK, sw=PEN, radius=14, label=None):
         """A pen line ending in an open chevron arrowhead; the line stops at the last point."""
@@ -233,11 +234,11 @@ class Sheet:
         head = 15
         wings = [(x2 - head * math.cos(angle + s * math.radians(28)),
                   y2 - head * math.sin(angle + s * math.radians(28))) for s in (1, -1)]
-        self.path(self.name('head'), self.hand.poly([wings[0], (x2, y2), wings[1]], False, 1.5, amplitude=0.4),
+        self.path(self.name('head'), self.hand.poly([wings[0], (x2, y2), wings[1]], False, 1.5, amplitude=0.4 * self.wobble),
                   color, sw)
 
     def wave(self, x1, x2, y, color=RULE, sw=FINE, bow=1.6):
-        self.path(self.name('rule'), self.hand.line(x1, y, x2, y, bow), color, sw)
+        self.path(self.name('rule'), self.hand.line(x1, y, x2, y, bow * self.wobble), color, sw)
 
     # -- text -----------------------------------------------------------------------
     def text(self, label, x, cy, w, size=22, color=INK, face='irongall', align='left', lh=LINE_HEIGHT, max_h=None, top=False):
