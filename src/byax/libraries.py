@@ -21,6 +21,7 @@ from contextlib import contextmanager
 from pathlib import Path
 from stat import S_ISREG
 
+from . import lexical_rerank
 from .context_assembly import estimate_tokens, tokens_to_chars
 from .errors import ByaxError
 from .providers import _atomic_json, _default_dir
@@ -1145,6 +1146,7 @@ class LibraryIndex:
             else:
                 collect(head, 'porter')
             report['passes'].append('porter')
+            self._rerank_head(db, located, parsed)
             # Substring and mid-word matches only when the stemmed pass is short of k hits.
             trigram = parsed.trigram() if self.trigram else None
             if trigram and len(located) < limit:
@@ -1182,6 +1184,27 @@ class LibraryIndex:
             'truncated': more,
             'continuation': offset + len(results) if more else None,
         }
+
+    @staticmethod
+    def _rerank_head(db, located, parsed):
+        """Break BM25 ties lexically among the best candidates (see :mod:`byax.lexical_rerank`)."""
+        window = located[: lexical_rerank.RERANK_WINDOW]
+        if len(window) < 2:
+            return
+        ids = [row['chunk_id'] for row, _, _, _ in window]
+        text = {}
+        for start in range(0, len(ids), 400):
+            batch = ids[start : start + 400]
+            marks = ','.join('?' * len(batch))
+            for chunk_id, heading, body in db.execute(
+                f'SELECT chunk_id,heading,text FROM chunks WHERE chunk_id IN ({marks})', batch
+            ):
+                text[chunk_id] = (heading or '', body or '')
+        order = lexical_rerank.order(
+            parsed.raw,
+            [(row['score'], *text.get(row['chunk_id'], ('', ''))) for row, _, _, _ in window],
+        )
+        located[: len(window)] = [window[position] for position in order]
 
     def literal_matches(self, term, *, limit=20):
         """Exhaustive lexical lookup of one term or phrase (porter and trigram, no ranking cut-off).

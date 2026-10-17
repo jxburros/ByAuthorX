@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "measured_at_utc": "2026-10-17T02:43:22.183451+00:00",
+  "measured_at_utc": "2026-10-17T03:58:41.086299+00:00",
   "environment": {
     "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
     "machine": "x86_64",
@@ -11,9 +11,9 @@
     "sqlite": "3.45.1",
     "engine": "0.3.0",
     "load_average_1m_5m_15m": [
-      1.82,
-      2.39,
-      3.25
+      1.97,
+      1.75,
+      1.74
     ],
     "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
   },
@@ -35,11 +35,11 @@
     "Model-backed embeddings, reranking and entailment (hybrid-fake uses a hashing function, not a model).",
     "Cross-library queries from webclips into the novels and papers."
   ],
-  "note": "retrieval.retrieve_context (method auto, global fusion, saved Fast rerank setting) over each library attached to a blank document: the route the AI features use.",
+  "note": "retrieval.retrieve_context (method auto, global fusion, saved Fast rerank setting) over each library attached to a blank document: the route the AI features use. Keyword search includes the lexical re-rank.",
   "load_average_at_end_1m_5m_15m": [
-    1.92,
-    2.31,
-    3.16
+    1.45,
+    1.65,
+    1.71
   ],
   "libraries": {
     "novel": {
@@ -57,39 +57,39 @@
         "expected_absent": 16
       },
       "metrics": {
-        "recall@5": 0.8456,
-        "recall@20": 0.9511,
-        "ndcg@10": 0.8317,
-        "mrr": 0.8231
+        "recall@5": 0.8945,
+        "recall@20": 0.9235,
+        "ndcg@10": 0.8797,
+        "mrr": 0.866
       },
       "by_type": {
         "absence_probe": {
           "queries": 14,
-          "recall@5": 0.9643,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9724,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         "citation_locating": {
           "queries": 13,
-          "recall@5": 0.9231,
+          "recall@5": 0.9744,
           "recall@20": 1.0,
-          "ndcg@10": 0.9078,
-          "mrr": 0.891
+          "ndcg@10": 0.9646,
+          "mrr": 0.9423
         },
         "continuity": {
           "queries": 20,
-          "recall@5": 0.9,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9158,
-          "mrr": 0.9094
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 25,
-          "recall@5": 0.76,
+          "recall@5": 0.8533,
           "recall@20": 0.88,
-          "ndcg@10": 0.734,
-          "mrr": 0.7194
+          "ndcg@10": 0.7918,
+          "mrr": 0.7767
         },
         "known_item_quote": {
           "queries": 26,
@@ -100,10 +100,10 @@
         },
         "thematic": {
           "queries": 11,
-          "recall@5": 0.3333,
-          "recall@20": 0.7879,
-          "ndcg@10": 0.2619,
-          "mrr": 0.2236
+          "recall@5": 0.3182,
+          "recall@20": 0.5152,
+          "ndcg@10": 0.3507,
+          "mrr": 0.2933
         }
       },
       "absence": {
@@ -114,22 +114,22 @@
         "absent_mean_results": 7.75
       },
       "latency_ms": {
-        "p50": 7.189,
-        "p95": 12.49,
-        "mean": 7.721,
-        "max": 25.474,
+        "p50": 22.427,
+        "p95": 35.488,
+        "mean": 19.335,
+        "max": 45.065,
         "samples": 125
       },
       "latency_cpu_ms": {
-        "p50": 5.663,
-        "p95": 10.185,
-        "mean": 6.117
+        "p50": 20.65,
+        "p95": 33.414,
+        "mean": 17.519
       },
       "index": {
         "documents": 3,
         "chunks": 604,
         "bytes": 9334784,
-        "build_seconds": 2.467,
+        "build_seconds": 2.354,
         "prepare_seconds": 0.0
       },
       "alignment": {
@@ -163,7 +163,7 @@
           "mrr": 0.0
         },
         {
-          "id": "novel-thema-006",
+          "id": "novel-thema-004",
           "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 0.0,
@@ -171,12 +171,12 @@
           "mrr": 0.0
         },
         {
-          "id": "novel-thema-005",
+          "id": "novel-thema-006",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 0.5,
+          "recall@20": 0.0,
           "ndcg@10": 0.0,
-          "mrr": 0.058823529411764705
+          "mrr": 0.0
         }
       ],
       "per_query": [
@@ -447,9 +447,9 @@
         {
           "id": "novel-citat-008",
           "type": "citation_locating",
-          "recall@5": 0.6667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9325,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -583,10 +583,10 @@
         {
           "id": "novel-factu-015",
           "type": "factual_lookup",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3333,
-          "mrr": 0.1429
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
         },
         {
           "id": "novel-factu-016",
@@ -601,16 +601,16 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3869,
-          "mrr": 0.2
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "novel-factu-018",
           "type": "factual_lookup",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.05
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-factu-019",
@@ -647,26 +647,26 @@
         {
           "id": "novel-factu-023",
           "type": "factual_lookup",
-          "recall@5": 0.0,
+          "recall@5": 0.3333,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0909
+          "ndcg@10": 0.2346,
+          "mrr": 0.3333
         },
         {
           "id": "novel-factu-024",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "novel-factu-025",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-thema-001",
@@ -681,32 +681,32 @@
           "type": "thematic",
           "recall@5": 0.5,
           "recall@20": 0.5,
-          "ndcg@10": 0.2372,
-          "mrr": 0.2
+          "ndcg@10": 0.2641,
+          "mrr": 0.25
         },
         {
           "id": "novel-thema-003",
           "type": "thematic",
-          "recall@5": 0.3333,
+          "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.486,
-          "mrr": 0.2
+          "ndcg@10": 0.4565,
+          "mrr": 0.1667
         },
         {
           "id": "novel-thema-004",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 1.0,
+          "recall@20": 0.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0556
+          "mrr": 0.0
         },
         {
           "id": "novel-thema-005",
           "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 0.5,
-          "ndcg@10": 0.0,
-          "mrr": 0.0588
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
         },
         {
           "id": "novel-thema-006",
@@ -719,49 +719,49 @@
         {
           "id": "novel-thema-007",
           "type": "thematic",
-          "recall@5": 0.5,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.525,
-          "mrr": 0.3333
+          "ndcg@10": 0.6241,
+          "mrr": 0.5
         },
         {
           "id": "novel-thema-008",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 1.0,
+          "recall@20": 0.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0526
+          "mrr": 0.0
         },
         {
           "id": "novel-thema-009",
           "type": "thematic",
-          "recall@5": 0.3333,
+          "recall@5": 0.0,
           "recall@20": 0.6667,
-          "ndcg@10": 0.2021,
-          "mrr": 0.25
+          "ndcg@10": 0.1564,
+          "mrr": 0.1429
         },
         {
           "id": "novel-thema-010",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-thema-011",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 1.0,
+          "recall@20": 0.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0588
+          "mrr": 0.0
         },
         {
           "id": "novel-citat-011",
           "type": "citation_locating",
-          "recall@5": 0.3333,
+          "recall@5": 0.6667,
           "recall@20": 1.0,
-          "ndcg@10": 0.3693,
+          "ndcg@10": 0.5401,
           "mrr": 0.25
         },
         {
@@ -777,8 +777,8 @@
           "type": "citation_locating",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-conti-001",
@@ -815,10 +815,10 @@
         {
           "id": "novel-conti-005",
           "type": "continuity",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0625
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-conti-006",
@@ -927,10 +927,10 @@
         {
           "id": "novel-conti-019",
           "type": "continuity",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3155,
-          "mrr": 0.125
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-conti-020",
@@ -975,9 +975,9 @@
         {
           "id": "novel-absen-005",
           "type": "absence_probe",
-          "recall@5": 0.5,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6131,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -1165,39 +1165,39 @@
         "expected_absent": 16
       },
       "metrics": {
-        "recall@5": 0.8811,
-        "recall@20": 0.9741,
-        "ndcg@10": 0.8796,
-        "mrr": 0.8712
+        "recall@5": 0.9181,
+        "recall@20": 0.9815,
+        "ndcg@10": 0.9231,
+        "mrr": 0.9114
       },
       "by_type": {
         "absence_probe": {
           "queries": 14,
-          "recall@5": 0.9286,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.871,
-          "mrr": 0.85
+          "ndcg@10": 0.9736,
+          "mrr": 0.9643
         },
         "citation_locating": {
           "queries": 13,
-          "recall@5": 0.9231,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9473,
-          "mrr": 0.9327
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "continuity": {
           "queries": 15,
           "recall@5": 0.7438,
-          "recall@20": 0.88,
-          "ndcg@10": 0.8326,
-          "mrr": 0.9
+          "recall@20": 0.9333,
+          "ndcg@10": 0.9158,
+          "mrr": 0.9333
         },
         "factual_lookup": {
           "queries": 28,
-          "recall@5": 0.8571,
+          "recall@5": 0.8929,
           "recall@20": 0.9643,
-          "ndcg@10": 0.8161,
-          "mrr": 0.7825
+          "ndcg@10": 0.8437,
+          "mrr": 0.8183
         },
         "known_item_quote": {
           "queries": 28,
@@ -1208,10 +1208,10 @@
         },
         "thematic": {
           "queries": 10,
-          "recall@5": 0.7,
+          "recall@5": 0.8,
           "recall@20": 1.0,
-          "ndcg@10": 0.7145,
-          "mrr": 0.6656
+          "ndcg@10": 0.7707,
+          "mrr": 0.7017
         }
       },
       "absence": {
@@ -1222,22 +1222,22 @@
         "absent_mean_results": 7.69
       },
       "latency_ms": {
-        "p50": 7.826,
-        "p95": 14.448,
-        "mean": 8.369,
-        "max": 22.506,
+        "p50": 19.959,
+        "p95": 32.364,
+        "mean": 17.929,
+        "max": 43.56,
         "samples": 124
       },
       "latency_cpu_ms": {
-        "p50": 5.882,
-        "p95": 12.399,
-        "mean": 6.722
+        "p50": 18.631,
+        "p95": 30.542,
+        "mean": 16.098
       },
       "index": {
         "documents": 24,
         "chunks": 849,
-        "bytes": 13242368,
-        "build_seconds": 5.02,
+        "bytes": 13250560,
+        "build_seconds": 4.735,
         "prepare_seconds": 0.0
       },
       "alignment": {
@@ -1263,28 +1263,28 @@
           "mrr": 0.0
         },
         {
-          "id": "series-conti-001",
-          "type": "continuity",
-          "recall@5": 0.2,
-          "recall@20": 0.2,
-          "ndcg@10": 0.21398626473452756,
-          "mrr": 0.5
-        },
-        {
           "id": "series-factu-018",
           "type": "factual_lookup",
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.05
+          "mrr": 0.05263157894736842
         },
         {
           "id": "series-thema-005",
           "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.05555555555555555
+          "ndcg@10": 0.2890648263178879,
+          "mrr": 0.1
+        },
+        {
+          "id": "series-factu-028",
+          "type": "factual_lookup",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.3010299956639812,
+          "mrr": 0.1111111111111111
         }
       ],
       "per_query": [
@@ -1750,15 +1750,15 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.05
+          "mrr": 0.0526
         },
         {
           "id": "series-factu-019",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-factu-020",
@@ -1797,16 +1797,16 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "series-factu-025",
           "type": "factual_lookup",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3562,
-          "mrr": 0.1667
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
         },
         {
           "id": "series-factu-026",
@@ -1821,8 +1821,8 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "series-factu-028",
@@ -1861,24 +1861,24 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "series-thema-005",
           "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0556
+          "ndcg@10": 0.2891,
+          "mrr": 0.1
         },
         {
           "id": "series-thema-006",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
         },
         {
           "id": "series-thema-007",
@@ -1891,10 +1891,10 @@
         {
           "id": "series-thema-008",
           "type": "thematic",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2891,
-          "mrr": 0.1
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-thema-009",
@@ -1915,18 +1915,18 @@
         {
           "id": "series-citat-013",
           "type": "citation_locating",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3155,
-          "mrr": 0.125
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-conti-001",
           "type": "continuity",
           "recall@5": 0.2,
-          "recall@20": 0.2,
-          "ndcg@10": 0.214,
-          "mrr": 0.5
+          "recall@20": 1.0,
+          "ndcg@10": 0.7701,
+          "mrr": 1.0
         },
         {
           "id": "series-conti-002",
@@ -1941,7 +1941,7 @@
           "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7877,
+          "ndcg@10": 0.9675,
           "mrr": 1.0
         },
         {
@@ -1949,7 +1949,7 @@
           "type": "continuity",
           "recall@5": 0.6,
           "recall@20": 1.0,
-          "ndcg@10": 0.9364,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -2005,7 +2005,7 @@
           "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8319,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -2013,7 +2013,7 @@
           "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8105,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -2037,7 +2037,7 @@
           "type": "continuity",
           "recall@5": 0.8571,
           "recall@20": 1.0,
-          "ndcg@10": 0.9084,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -2093,24 +2093,24 @@
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "series-absen-008",
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6934,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-absen-009",
           "type": "absence_probe",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0667
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-absen-010",
@@ -2265,39 +2265,39 @@
         "expected_absent": 10
       },
       "metrics": {
-        "recall@5": 0.9056,
+        "recall@5": 0.9157,
         "recall@20": 0.9697,
-        "ndcg@10": 0.885,
-        "mrr": 0.8686
+        "ndcg@10": 0.926,
+        "mrr": 0.9182
       },
       "by_type": {
         "absence_probe": {
           "queries": 14,
-          "recall@5": 0.9286,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8192,
-          "mrr": 0.7649
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 14,
-          "recall@5": 0.8571,
+          "recall@5": 0.9286,
           "recall@20": 0.9286,
-          "ndcg@10": 0.8251,
-          "mrr": 0.7929
+          "ndcg@10": 0.9286,
+          "mrr": 0.9286
         },
         "continuity": {
           "queries": 12,
           "recall@5": 0.8046,
           "recall@20": 1.0,
-          "ndcg@10": 0.9382,
+          "ndcg@10": 0.9863,
           "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 24,
-          "recall@5": 0.9583,
+          "recall@5": 0.9167,
           "recall@20": 1.0,
-          "ndcg@10": 0.9188,
-          "mrr": 0.8931
+          "ndcg@10": 0.9045,
+          "mrr": 0.8754
         },
         "known_item_quote": {
           "queries": 28,
@@ -2310,8 +2310,8 @@
           "queries": 7,
           "recall@5": 0.5714,
           "recall@20": 0.7143,
-          "ndcg@10": 0.4696,
-          "mrr": 0.3929
+          "ndcg@10": 0.4473,
+          "mrr": 0.4127
         }
       },
       "absence": {
@@ -2322,22 +2322,22 @@
         "absent_mean_results": 4.2
       },
       "latency_ms": {
-        "p50": 7.389,
-        "p95": 20.639,
-        "mean": 8.623,
-        "max": 32.181,
+        "p50": 20.439,
+        "p95": 28.659,
+        "mean": 17.719,
+        "max": 52.369,
         "samples": 109
       },
       "latency_cpu_ms": {
-        "p50": 5.821,
-        "p95": 19.215,
-        "mean": 7.078
+        "p50": 18.952,
+        "p95": 25.691,
+        "mean": 16.013
       },
       "index": {
         "documents": 1,
         "chunks": 1308,
-        "bytes": 18624512,
-        "build_seconds": 8.383,
+        "bytes": 18620416,
+        "build_seconds": 8.591,
         "prepare_seconds": 0.0
       },
       "alignment": {
@@ -2371,20 +2371,20 @@
           "mrr": 0.0
         },
         {
-          "id": "humanities-citat-014",
-          "type": "citation_locating",
+          "id": "humanities-thema-003",
+          "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2890648263178879,
-          "mrr": 0.1
+          "ndcg@10": 0.0,
+          "mrr": 0.05555555555555555
         },
         {
-          "id": "humanities-factu-017",
+          "id": "humanities-factu-023",
           "type": "factual_lookup",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2890648263178879,
-          "mrr": 0.1
+          "ndcg@10": 0.3333333333333333,
+          "mrr": 0.14285714285714285
         }
       ],
       "per_query": [
@@ -2657,8 +2657,8 @@
           "type": "citation_locating",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-citat-007",
@@ -2705,8 +2705,8 @@
           "type": "citation_locating",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-factu-001",
@@ -2839,18 +2839,18 @@
         {
           "id": "humanities-factu-017",
           "type": "factual_lookup",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2891,
-          "mrr": 0.1
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
         },
         {
           "id": "humanities-factu-018",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-factu-019",
@@ -2863,10 +2863,10 @@
         {
           "id": "humanities-factu-020",
           "type": "factual_lookup",
-          "recall@5": 1.0,
+          "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
         },
         {
           "id": "humanities-factu-021",
@@ -2887,10 +2887,10 @@
         {
           "id": "humanities-factu-023",
           "type": "factual_lookup",
-          "recall@5": 1.0,
+          "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 0.3333,
+          "mrr": 0.1429
         },
         {
           "id": "humanities-factu-024",
@@ -2919,18 +2919,18 @@
         {
           "id": "humanities-thema-003",
           "type": "thematic",
-          "recall@5": 1.0,
+          "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 0.0,
+          "mrr": 0.0556
         },
         {
           "id": "humanities-thema-004",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "humanities-thema-005",
@@ -2943,10 +2943,10 @@
         {
           "id": "humanities-thema-006",
           "type": "thematic",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3562,
-          "mrr": 0.1667
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-thema-007",
@@ -2967,10 +2967,10 @@
         {
           "id": "humanities-citat-014",
           "type": "citation_locating",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2891,
-          "mrr": 0.1
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-conti-001",
@@ -3001,7 +3001,7 @@
           "type": "continuity",
           "recall@5": 0.5455,
           "recall@20": 1.0,
-          "ndcg@10": 0.89,
+          "ndcg@10": 0.9504,
           "mrr": 1.0
         },
         {
@@ -3009,7 +3009,7 @@
           "type": "continuity",
           "recall@5": 0.5556,
           "recall@20": 1.0,
-          "ndcg@10": 0.9091,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -3017,7 +3017,7 @@
           "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6367,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -3057,7 +3057,7 @@
           "type": "continuity",
           "recall@5": 0.6,
           "recall@20": 1.0,
-          "ndcg@10": 0.9216,
+          "ndcg@10": 0.9842,
           "mrr": 1.0
         },
         {
@@ -3081,16 +3081,16 @@
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-absen-003",
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6509,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-absen-004",
@@ -3105,16 +3105,16 @@
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-absen-006",
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6934,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-absen-007",
@@ -3151,10 +3151,10 @@
         {
           "id": "humanities-absen-011",
           "type": "absence_probe",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.1934,
-          "mrr": 0.125
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "humanities-absen-012",
@@ -3257,18 +3257,18 @@
         "expected_absent": 16
       },
       "metrics": {
-        "recall@5": 0.9693,
-        "recall@20": 0.9971,
-        "ndcg@10": 0.9186,
-        "mrr": 0.9018
+        "recall@5": 0.9772,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9591,
+        "mrr": 0.9452
       },
       "by_type": {
         "absence_probe": {
           "queries": 10,
-          "recall@5": 0.9,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9315,
-          "mrr": 0.9125
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 10,
@@ -3279,31 +3279,31 @@
         },
         "continuity": {
           "queries": 12,
-          "recall@5": 0.7915,
-          "recall@20": 0.9722,
-          "ndcg@10": 0.8956,
-          "mrr": 0.9583
+          "recall@5": 0.8667,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 28,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9254,
-          "mrr": 0.9
+          "ndcg@10": 0.9665,
+          "mrr": 0.9554
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9877,
-          "mrr": 0.9833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 24,
-          "recall@5": 1.0,
+          "recall@5": 0.9583,
           "recall@20": 1.0,
-          "ndcg@10": 0.7967,
-          "mrr": 0.7285
+          "ndcg@10": 0.8447,
+          "mrr": 0.7917
         }
       },
       "absence": {
@@ -3314,22 +3314,22 @@
         "absent_mean_results": 7.5
       },
       "latency_ms": {
-        "p50": 6.359,
-        "p95": 15.447,
-        "mean": 7.226,
-        "max": 18.248,
+        "p50": 15.233,
+        "p95": 22.204,
+        "mean": 14.331,
+        "max": 59.171,
         "samples": 130
       },
       "latency_cpu_ms": {
-        "p50": 4.998,
-        "p95": 13.737,
-        "mean": 5.829
+        "p50": 13.591,
+        "p95": 19.859,
+        "mean": 12.388
       },
       "index": {
         "documents": 38,
         "chunks": 677,
         "bytes": 8835072,
-        "build_seconds": 6.158,
+        "build_seconds": 5.93,
         "prepare_seconds": 0.0
       },
       "alignment": {
@@ -3339,44 +3339,44 @@
       },
       "worst": [
         {
-          "id": "webclips-conti-005",
-          "type": "continuity",
-          "recall@5": 0.16666666666666666,
-          "recall@20": 0.6666666666666666,
-          "ndcg@10": 0.31516255047698366,
-          "mrr": 0.5
-        },
-        {
-          "id": "webclips-absen-005",
-          "type": "absence_probe",
+          "id": "webclips-thema-011",
+          "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.31546487678572877,
-          "mrr": 0.125
+          "ndcg@10": 0.3562071871080222,
+          "mrr": 0.16666666666666666
         },
         {
           "id": "webclips-factu-026",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.38685280723454163,
-          "mrr": 0.2
-        },
-        {
-          "id": "webclips-thema-011",
-          "type": "thematic",
-          "recall@5": 1.0,
-          "recall@20": 1.0,
-          "ndcg@10": 0.38685280723454163,
-          "mrr": 0.2
+          "ndcg@10": 0.43067655807339306,
+          "mrr": 0.25
         },
         {
           "id": "webclips-thema-022",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.38685280723454163,
-          "mrr": 0.2
+          "ndcg@10": 0.5,
+          "mrr": 0.3333333333333333
+        },
+        {
+          "id": "webclips-factu-027",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309297535714575,
+          "mrr": 0.5
+        },
+        {
+          "id": "webclips-thema-009",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6309297535714575,
+          "mrr": 0.5
         }
       ],
       "per_query": [
@@ -3593,8 +3593,8 @@
           "type": "known_item_quote",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-known-028",
@@ -3833,8 +3833,8 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-factu-018",
@@ -3857,16 +3857,16 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-factu-021",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-factu-022",
@@ -3905,8 +3905,8 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3869,
-          "mrr": 0.2
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
         },
         {
           "id": "webclips-factu-027",
@@ -3929,8 +3929,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-thema-002",
@@ -3999,25 +3999,25 @@
         {
           "id": "webclips-conti-004",
           "type": "continuity",
-          "recall@5": 0.8,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9068,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
           "id": "webclips-conti-005",
           "type": "continuity",
-          "recall@5": 0.1667,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.3152,
-          "mrr": 0.5
+          "recall@5": 0.5833,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-conti-006",
           "type": "continuity",
           "recall@5": 0.8571,
           "recall@20": 1.0,
-          "ndcg@10": 0.9084,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -4031,9 +4031,9 @@
         {
           "id": "webclips-conti-008",
           "type": "continuity",
-          "recall@5": 0.7143,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7082,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -4049,7 +4049,7 @@
           "type": "continuity",
           "recall@5": 0.8571,
           "recall@20": 1.0,
-          "ndcg@10": 0.9084,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -4081,32 +4081,32 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-thema-009",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "webclips-thema-010",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "webclips-thema-011",
           "type": "thematic",
-          "recall@5": 1.0,
+          "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3869,
-          "mrr": 0.2
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
         },
         {
           "id": "webclips-thema-012",
@@ -4193,8 +4193,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3869,
-          "mrr": 0.2
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "webclips-thema-023",
@@ -4209,8 +4209,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-absen-001",
@@ -4247,10 +4247,10 @@
         {
           "id": "webclips-absen-005",
           "type": "absence_probe",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3155,
-          "mrr": 0.125
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-absen-006",
@@ -4405,111 +4405,95 @@
         "expected_absent": 14
       },
       "metrics": {
-        "recall@5": 0.8938,
-        "recall@20": 0.9726,
-        "ndcg@10": 0.8691,
-        "mrr": 0.8512
+        "recall@5": 0.9452,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9167,
+        "mrr": 0.9035
       },
       "by_type": {
         "absence_probe": {
           "queries": 14,
-          "recall@5": 0.8214,
-          "recall@20": 0.9286,
-          "ndcg@10": 0.8286,
-          "mrr": 0.8333
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
+          "queries": 33,
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        "factual_lookup": {
           "queries": 33,
           "recall@5": 1.0,
           "recall@20": 1.0,
           "ndcg@10": 0.9776,
           "mrr": 0.9697
         },
-        "factual_lookup": {
+        "known_item_quote": {
           "queries": 33,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9625,
-          "mrr": 0.9495
-        },
-        "known_item_quote": {
-          "queries": 33,
-          "recall@5": 0.9697,
-          "recall@20": 1.0,
-          "ndcg@10": 0.9673,
-          "mrr": 0.9576
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 33,
-          "recall@5": 0.6364,
-          "recall@20": 0.9091,
-          "ndcg@10": 0.5862,
-          "mrr": 0.5354
+          "recall@5": 0.7576,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6536,
+          "mrr": 0.6035
         }
       },
       "absence": {
         "literal_probes": 14,
-        "literal_found_at_20": 13,
+        "literal_found_at_20": 14,
         "absent_probes": 14,
         "absent_returned_nothing": 14,
         "absent_mean_results": 0.0
       },
       "latency_ms": {
-        "p50": 8.89,
-        "p95": 19.695,
-        "mean": 9.922,
-        "max": 34.492,
+        "p50": 23.104,
+        "p95": 33.658,
+        "mean": 22.73,
+        "max": 40.973,
         "samples": 160
       },
       "latency_cpu_ms": {
-        "p50": 7.428,
-        "p95": 18.074,
-        "mean": 8.336
+        "p50": 21.258,
+        "p95": 30.807,
+        "mean": 20.656
       },
       "index": {
         "documents": 30,
         "chunks": 1090,
-        "bytes": 14315520,
-        "build_seconds": 15.356,
+        "bytes": 14323712,
+        "build_seconds": 15.629,
         "prepare_seconds": 0.0
       },
       "alignment": {
-        "hits": 2691,
+        "hits": 2689,
         "unmapped": 0,
         "unmapped_rate": 0.0
       },
       "worst": [
         {
-          "id": "papers-absen-002",
-          "type": "absence_probe",
-          "recall@5": 0.0,
-          "recall@20": 0.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0
-        },
-        {
-          "id": "papers-thema-022",
-          "type": "thematic",
-          "recall@5": 0.0,
-          "recall@20": 0.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0
-        },
-        {
           "id": "papers-thema-026",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 0.0,
+          "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0
+          "mrr": 0.05263157894736842
         },
         {
           "id": "papers-thema-028",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 0.0,
+          "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0
+          "mrr": 0.0625
         },
         {
           "id": "papers-thema-033",
@@ -4517,7 +4501,23 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.07142857142857142
+          "mrr": 0.06666666666666667
+        },
+        {
+          "id": "papers-thema-022",
+          "type": "thematic",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.09090909090909091
+        },
+        {
+          "id": "papers-thema-025",
+          "type": "thematic",
+          "recall@5": 0.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.0,
+          "mrr": 0.09090909090909091
         }
       ],
       "per_query": [
@@ -4548,10 +4548,10 @@
         {
           "id": "papers-known-002",
           "type": "known_item_quote",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2891,
-          "mrr": 0.1
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-factu-001",
@@ -4686,8 +4686,8 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-factu-006",
@@ -4702,8 +4702,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-thema-006",
@@ -4734,8 +4734,8 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "papers-thema-007",
@@ -4838,8 +4838,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "papers-citat-011",
@@ -4868,10 +4868,10 @@
         {
           "id": "papers-thema-011",
           "type": "thematic",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3562,
-          "mrr": 0.1667
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-citat-012",
@@ -4932,10 +4932,10 @@
         {
           "id": "papers-thema-013",
           "type": "thematic",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.301,
-          "mrr": 0.1111
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
         },
         {
           "id": "papers-citat-014",
@@ -4998,8 +4998,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "papers-citat-016",
@@ -5062,8 +5062,8 @@
           "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.2891,
-          "mrr": 0.1
+          "ndcg@10": 0.301,
+          "mrr": 0.1111
         },
         {
           "id": "papers-citat-018",
@@ -5126,16 +5126,16 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3869,
-          "mrr": 0.2
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "papers-citat-020",
           "type": "citation_locating",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-known-020",
@@ -5221,9 +5221,9 @@
           "id": "papers-thema-022",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 0.0,
+          "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0
+          "mrr": 0.0909
         },
         {
           "id": "papers-citat-023",
@@ -5284,10 +5284,10 @@
         {
           "id": "papers-thema-024",
           "type": "thematic",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0769
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "papers-citat-025",
@@ -5319,7 +5319,7 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0769
+          "mrr": 0.0909
         },
         {
           "id": "papers-citat-026",
@@ -5349,9 +5349,9 @@
           "id": "papers-thema-026",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 0.0,
+          "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0
+          "mrr": 0.0526
         },
         {
           "id": "papers-citat-027",
@@ -5390,8 +5390,8 @@
           "type": "citation_locating",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-known-028",
@@ -5413,9 +5413,9 @@
           "id": "papers-thema-028",
           "type": "thematic",
           "recall@5": 0.0,
-          "recall@20": 0.0,
+          "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0
+          "mrr": 0.0625
         },
         {
           "id": "papers-citat-029",
@@ -5446,8 +5446,8 @@
           "type": "thematic",
           "recall@5": 0.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3155,
-          "mrr": 0.125
+          "ndcg@10": 0.3562,
+          "mrr": 0.1667
         },
         {
           "id": "papers-citat-030",
@@ -5508,10 +5508,10 @@
         {
           "id": "papers-thema-031",
           "type": "thematic",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0833
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
         },
         {
           "id": "papers-citat-032",
@@ -5542,8 +5542,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "papers-citat-033",
@@ -5558,8 +5558,8 @@
           "type": "known_item_quote",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-factu-033",
@@ -5575,7 +5575,7 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0714
+          "mrr": 0.0667
         },
         {
           "id": "papers-absen-001",
@@ -5588,10 +5588,10 @@
         {
           "id": "papers-absen-002",
           "type": "absence_probe",
-          "recall@5": 0.0,
-          "recall@20": 0.0,
-          "ndcg@10": 0.0,
-          "mrr": 0.0
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-absen-003",
@@ -5604,10 +5604,10 @@
         {
           "id": "papers-absen-004",
           "type": "absence_probe",
-          "recall@5": 0.0,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3562,
-          "mrr": 0.1667
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-absen-005",
@@ -5636,9 +5636,9 @@
         {
           "id": "papers-absen-008",
           "type": "absence_probe",
-          "recall@5": 0.5,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6131,
+          "ndcg@10": 1.0,
           "mrr": 1.0
         },
         {
@@ -5646,8 +5646,8 @@
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "papers-absen-010",
@@ -5778,16 +5778,16 @@
   },
   "summary": {
     "macro_average": {
-      "recall@5": 0.8991,
-      "recall@20": 0.9729,
-      "ndcg@10": 0.8768,
-      "mrr": 0.8632
+      "recall@5": 0.9301,
+      "recall@20": 0.9749,
+      "ndcg@10": 0.9209,
+      "mrr": 0.9089
     },
     "queries_evaluated": 648,
-    "latency_ms_p95_max": 20.639,
-    "latency_cpu_ms_p95_max": 19.215,
-    "index_bytes_total": 64352256,
-    "build_seconds_total": 37.384
+    "latency_ms_p95_max": 35.488,
+    "latency_cpu_ms_p95_max": 33.414,
+    "index_bytes_total": 64364544,
+    "build_seconds_total": 37.239
   },
   "scale": {
     "library": "scale",
@@ -5833,16 +5833,16 @@
       "absent_mean_results": 0.0
     },
     "latency_ms": {
-      "p50": 34.883,
-      "p95": 110.362,
-      "mean": 52.724,
-      "max": 128.629,
+      "p50": 40.339,
+      "p95": 86.559,
+      "mean": 51.68,
+      "max": 103.328,
       "samples": 50
     },
     "latency_cpu_ms": {
-      "p50": 31.945,
-      "p95": 102.381,
-      "mean": 49.795
+      "p50": 37.204,
+      "p95": 82.574,
+      "mean": 49.407
     },
     "index": {
       "documents": 10000,

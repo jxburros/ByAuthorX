@@ -266,6 +266,7 @@ class Corpus:
         self._reverse: dict[str, str] = {}
         self._shadows: dict[str, Shadow] = {}
         self._chunk_spans: dict[str, dict[str, tuple[int, int] | None]] = {}
+        self._document_ids: dict[str, str] | None = None
         self.alignment = {'hits': 0, 'unmapped': 0}
 
     # -- source text in locator coordinates -------------------------------------------------------
@@ -327,6 +328,50 @@ class Corpus:
                 return [('span', path, span[0], span[1])]
         self.alignment['unmapped'] += 1
         return []
+
+    def _chunks_covering(self, locator: dict) -> set[str]:
+        """Ids of the stored chunks that overlap a label (a PDF page, or a span of a text file)."""
+        if self._document_ids is None:
+            self._document_ids = {
+                self.source_map.get(item['path'], item['path']): item['document_id']
+                for item in self.index.status()['files']
+            }
+        document_id = self._document_ids.get(locator['path'])
+        if document_id is None:
+            return set()
+        if 'page' in locator:
+            page = self.index.read(document_id, locator={'page': locator['page']}, limit=100000)
+            return {item['chunk_id'] for item in page['results']}
+        maps = self._chunk_spans.setdefault(document_id, {})
+        if not maps:
+            maps.update(self._map_document(document_id, locator['path']))
+        return {
+            chunk_id
+            for chunk_id, span in maps.items()
+            if span is not None and span[0] < locator['end'] and locator['start'] < span[1]
+        }
+
+    def ideal_ranks(self, locators: list[dict]) -> int:
+        """Fewest hits that could cover every label with this index's own chunks (greedy set cover).
+
+        A merged chunk can hold several labels, and a hit gains once however many it covers, so with
+        chunks of about 400 tokens the best possible ranking of a many-label query has fewer than
+        one hit per label. nDCG is measured against that ranking, not against one hit per label.
+        """
+        covering: dict[str, set[int]] = {}
+        for slot, locator in enumerate(locators):
+            for chunk_id in self._chunks_covering(locator):
+                covering.setdefault(chunk_id, set()).add(slot)
+        remaining, ranks = set(range(len(locators))), 0
+        while remaining:
+            best = max(covering.values(), key=lambda slots: len(slots & remaining), default=set())
+            gained = best & remaining
+            if not gained:
+                ranks += len(remaining)  # labels no chunk overlaps: each stays its own ideal rank
+                break
+            remaining -= gained
+            ranks += 1
+        return ranks
 
     def read_text(self, hit: dict) -> str:
         """Text that `LibraryIndex.read` returns for the hit's locator (the jump-fidelity round trip)."""
@@ -778,8 +823,14 @@ def overlaps(span: tuple, locator: dict) -> bool:
     return span[2] < locator['end'] and locator['start'] < span[3]
 
 
-def score_hits(hit_spans: list[list[tuple]], locators: list[dict]) -> dict[str, float]:
-    """Metrics for one ranked list. `hit_spans[i]` is the span set of the hit at rank i+1."""
+def score_hits(
+    hit_spans: list[list[tuple]], locators: list[dict], *, ideal_ranks: int | None = None
+) -> dict[str, float]:
+    """Metrics for one ranked list. `hit_spans[i]` is the span set of the hit at rank i+1.
+
+    `ideal_ranks` is the fewest hits that could cover every label (`Corpus.ideal_ranks`); it defaults to
+    one hit per label, which is exact when no chunk holds two labels.
+    """
     first = [None] * len(locators)  # best (lowest) rank at which each locator is covered
     new_gain_ranks = []
     for rank, spans in enumerate(hit_spans, 1):
@@ -796,9 +847,14 @@ def score_hits(hit_spans: list[list[tuple]], locators: list[dict]) -> dict[str, 
         return sum(1 for r in first if r is not None and r <= k) / total
 
     dcg = sum(1 / math.log2(rank + 1) for rank in new_gain_ranks if rank <= 10)
-    ideal = sum(1 / math.log2(rank + 1) for rank in range(1, min(total, 10) + 1))
+    ideal = sum(1 / math.log2(rank + 1) for rank in range(1, min(ideal_ranks or total, 10) + 1))
     reciprocal = 1 / min(r for r in first if r is not None) if any(r is not None for r in first) else 0.0
-    return {'recall@5': recall(5), 'recall@20': recall(20), 'ndcg@10': dcg / ideal, 'mrr': reciprocal}
+    return {
+        'recall@5': recall(5),
+        'recall@20': recall(20),
+        'ndcg@10': min(dcg / ideal, 1.0),
+        'mrr': reciprocal,
+    }
 
 
 def percentile(values: list[float], fraction: float) -> float:
@@ -924,7 +980,11 @@ def evaluate(
             absent.append({'type': record['type'], 'returned': len(row['hits']), 'id': record['id']})
             continue
         spans = [corpus.hit_spans(hit) for hit in row['hits']]
-        metrics = score_hits(spans, record['relevant_chunk_locators'])
+        metrics = score_hits(
+            spans,
+            record['relevant_chunk_locators'],
+            ideal_ranks=corpus.ideal_ranks(record['relevant_chunk_locators']),
+        )
         entry = {'id': record['id'], 'type': record['type'], **metrics}
         scored.append(entry)
         per_type.setdefault(record['type'], []).append(entry)

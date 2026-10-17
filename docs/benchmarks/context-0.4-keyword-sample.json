@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "measured_at_utc": "2026-10-17T01:46:26.028039+00:00",
+  "measured_at_utc": "2026-10-17T04:00:12.855143+00:00",
   "environment": {
     "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
     "machine": "x86_64",
@@ -11,9 +11,9 @@
     "sqlite": "3.45.1",
     "engine": "0.3.0",
     "load_average_1m_5m_15m": [
-      2.75,
-      2.87,
-      2.76
+      1.11,
+      1.48,
+      1.64
     ],
     "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
   },
@@ -37,16 +37,16 @@
   ],
   "note": "Fast sample subsets (evaluation.SAMPLES), every covered golden query: the like-for-like comparison for the model-backed runs.",
   "load_average_at_end_1m_5m_15m": [
-    2.61,
-    2.84,
-    2.75
+    1.02,
+    1.46,
+    1.63
   ],
   "libraries": {
     "novel": {
       "library": "novel",
       "config": {
         "name": "keyword",
-        "description": "LibraryIndex.search: FTS5 BM25 over line/paragraph chunks (the 0.2.0 engine)."
+        "description": "LibraryIndex.search: FTS5 BM25 over the index chunks (porter, then trigram when short of hits)."
       },
       "queries": {
         "total": 125,
@@ -57,10 +57,10 @@
         "expected_absent": 16
       },
       "metrics": {
-        "recall@5": 0.9483,
-        "recall@20": 0.9713,
-        "ndcg@10": 0.9315,
-        "mrr": 0.9124
+        "recall@5": 0.9655,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9527,
+        "mrr": 0.9382
       },
       "by_type": {
         "absence_probe": {
@@ -72,24 +72,24 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9604,
-          "mrr": 0.9333
+          "ndcg@10": 0.9712,
+          "mrr": 0.95
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9131,
-          "mrr": 0.8833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 5,
-          "recall@5": 0.6,
+          "recall@5": 0.7333,
           "recall@20": 0.8,
-          "ndcg@10": 0.6943,
-          "mrr": 0.6333
+          "ndcg@10": 0.7102,
+          "mrr": 0.65
         },
         "known_item_quote": {
           "queries": 22,
@@ -101,9 +101,9 @@
         "thematic": {
           "queries": 2,
           "recall@5": 0.6667,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.4102,
-          "mrr": 0.2917
+          "recall@20": 1.0,
+          "ndcg@10": 0.4971,
+          "mrr": 0.3333
         }
       },
       "absence": {
@@ -114,23 +114,37 @@
         "absent_mean_results": 6.75
       },
       "latency_ms": {
-        "p50": 1.814,
-        "p95": 4.335,
-        "mean": 2.14,
-        "max": 14.464,
+        "p50": 5.082,
+        "p95": 18.97,
+        "mean": 7.763,
+        "max": 26.906,
         "samples": 74
       },
       "latency_cpu_ms": {
-        "p50": 1.817,
-        "p95": 4.337,
-        "mean": 2.141
+        "p50": 5.086,
+        "p95": 18.128,
+        "mean": 7.619
       },
       "index": {
         "documents": 3,
         "chunks": 116,
         "bytes": 1822720,
-        "build_seconds": 0.566,
+        "build_seconds": 0.787,
         "prepare_seconds": 0.0
+      },
+      "verified_absence": {
+        "literal_probes": 9,
+        "false_absence": 0,
+        "false_absence_ids": [],
+        "absent_term_probes": 10,
+        "stem_variants_reported": 2,
+        "stem_variant_ids": [
+          "novel-absen-019",
+          "novel-absen-023"
+        ],
+        "substring_matches_reported": 0,
+        "substring_match_ids": [],
+        "method": "retrieval.verify_absence (porter and trigram passes, no ranking cut-off)"
       },
       "alignment": {
         "hits": 832,
@@ -147,36 +161,36 @@
           "mrr": 0.0
         },
         {
-          "id": "novel-thema-009",
-          "type": "thematic",
-          "recall@5": 0.3333333333333333,
-          "recall@20": 0.3333333333333333,
-          "ndcg@10": 0.20210734650054757,
+          "id": "novel-factu-023",
+          "type": "factual_lookup",
+          "recall@5": 0.6666666666666666,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5508095940041026,
           "mrr": 0.25
         },
         {
-          "id": "novel-factu-023",
-          "type": "factual_lookup",
-          "recall@5": 0.0,
+          "id": "novel-thema-003",
+          "type": "thematic",
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4716276524567204,
-          "mrr": 0.16666666666666666
+          "ndcg@10": 0.6182885020492784,
+          "mrr": 0.3333333333333333
+        },
+        {
+          "id": "novel-thema-009",
+          "type": "thematic",
+          "recall@5": 0.3333333333333333,
+          "recall@20": 1.0,
+          "ndcg@10": 0.37590633587120725,
+          "mrr": 0.3333333333333333
         },
         {
           "id": "novel-citat-011",
           "type": "citation_locating",
-          "recall@5": 0.6666666666666666,
-          "recall@20": 1.0,
-          "ndcg@10": 0.6039071644781281,
-          "mrr": 0.3333333333333333
-        },
-        {
-          "id": "novel-conti-005",
-          "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333333333333333
+          "ndcg@10": 0.7122630665145961,
+          "mrr": 0.5
         }
       ],
       "per_query": [
@@ -463,10 +477,10 @@
         {
           "id": "novel-factu-023",
           "type": "factual_lookup",
-          "recall@5": 0.0,
+          "recall@5": 0.6667,
           "recall@20": 1.0,
-          "ndcg@10": 0.4716,
-          "mrr": 0.1667
+          "ndcg@10": 0.5508,
+          "mrr": 0.25
         },
         {
           "id": "novel-thema-003",
@@ -480,17 +494,17 @@
           "id": "novel-thema-009",
           "type": "thematic",
           "recall@5": 0.3333,
-          "recall@20": 0.3333,
-          "ndcg@10": 0.2021,
-          "mrr": 0.25
+          "recall@20": 1.0,
+          "ndcg@10": 0.3759,
+          "mrr": 0.3333
         },
         {
           "id": "novel-citat-011",
           "type": "citation_locating",
-          "recall@5": 0.6667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6039,
-          "mrr": 0.3333
+          "ndcg@10": 0.7123,
+          "mrr": 0.5
         },
         {
           "id": "novel-conti-002",
@@ -505,8 +519,8 @@
           "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.5,
-          "mrr": 0.3333
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-conti-007",
@@ -561,8 +575,8 @@
           "type": "continuity",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "novel-conti-020",
@@ -746,7 +760,7 @@
       "library": "series",
       "config": {
         "name": "keyword",
-        "description": "LibraryIndex.search: FTS5 BM25 over line/paragraph chunks (the 0.2.0 engine)."
+        "description": "LibraryIndex.search: FTS5 BM25 over the index chunks (porter, then trigram when short of hits)."
       },
       "queries": {
         "total": 124,
@@ -759,16 +773,16 @@
       "metrics": {
         "recall@5": 0.9722,
         "recall@20": 0.9861,
-        "ndcg@10": 0.962,
-        "mrr": 0.9592
+        "ndcg@10": 0.9722,
+        "mrr": 0.9735
       },
       "by_type": {
         "absence_probe": {
           "queries": 8,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9539,
-          "mrr": 0.9375
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 13,
@@ -782,7 +796,7 @@
           "recall@5": 0.8947,
           "recall@20": 0.9474,
           "ndcg@10": 0.8947,
-          "mrr": 0.898
+          "mrr": 0.8995
         },
         "known_item_quote": {
           "queries": 28,
@@ -795,8 +809,8 @@
           "queries": 4,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9077,
-          "mrr": 0.875
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         }
       },
       "absence": {
@@ -807,23 +821,36 @@
         "absent_mean_results": 4.25
       },
       "latency_ms": {
-        "p50": 1.669,
-        "p95": 3.547,
-        "mean": 1.896,
-        "max": 5.191,
+        "p50": 3.695,
+        "p95": 10.778,
+        "mean": 4.654,
+        "max": 24.877,
         "samples": 88
       },
       "latency_cpu_ms": {
-        "p50": 1.643,
-        "p95": 2.594,
-        "mean": 1.805
+        "p50": 3.629,
+        "p95": 10.781,
+        "mean": 4.628
       },
       "index": {
         "documents": 2,
         "chunks": 72,
         "bytes": 1208320,
-        "build_seconds": 0.382,
+        "build_seconds": 0.379,
         "prepare_seconds": 0.0
+      },
+      "verified_absence": {
+        "literal_probes": 8,
+        "false_absence": 0,
+        "false_absence_ids": [],
+        "absent_term_probes": 10,
+        "stem_variants_reported": 1,
+        "stem_variant_ids": [
+          "series-absen-019"
+        ],
+        "substring_matches_reported": 0,
+        "substring_match_ids": [],
+        "method": "retrieval.verify_absence (porter and trigram passes, no ranking cut-off)"
       },
       "alignment": {
         "hits": 853,
@@ -845,26 +872,26 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0625
-        },
-        {
-          "id": "series-absen-009",
-          "type": "absence_probe",
-          "recall@5": 1.0,
-          "recall@20": 1.0,
-          "ndcg@10": 0.6309297535714575,
-          "mrr": 0.5
-        },
-        {
-          "id": "series-thema-008",
-          "type": "thematic",
-          "recall@5": 1.0,
-          "recall@20": 1.0,
-          "ndcg@10": 0.6309297535714575,
-          "mrr": 0.5
+          "mrr": 0.09090909090909091
         },
         {
           "id": "series-absen-001",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-002",
+          "type": "absence_probe",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 1.0,
+          "mrr": 1.0
+        },
+        {
+          "id": "series-absen-003",
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
@@ -1335,7 +1362,7 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0625
+          "mrr": 0.0909
         },
         {
           "id": "series-factu-026",
@@ -1366,8 +1393,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-thema-009",
@@ -1446,8 +1473,8 @@
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "series-absen-015",
@@ -1551,7 +1578,7 @@
       "library": "humanities",
       "config": {
         "name": "keyword",
-        "description": "LibraryIndex.search: FTS5 BM25 over line/paragraph chunks (the 0.2.0 engine)."
+        "description": "LibraryIndex.search: FTS5 BM25 over the index chunks (porter, then trigram when short of hits)."
       },
       "queries": {
         "total": 109,
@@ -1564,8 +1591,8 @@
       "metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9759,
-        "mrr": 0.974
+        "ndcg@10": 0.9701,
+        "mrr": 0.9664
       },
       "by_type": {
         "absence_probe": {
@@ -1580,14 +1607,14 @@
           "recall@5": 0.9231,
           "recall@20": 1.0,
           "ndcg@10": 0.9231,
-          "mrr": 0.9274
+          "mrr": 0.9295
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9639,
-          "mrr": 0.9529
+          "ndcg@10": 0.9706,
+          "mrr": 0.9608
         },
         "known_item_quote": {
           "queries": 28,
@@ -1600,8 +1627,8 @@
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         }
       },
       "absence": {
@@ -1612,23 +1639,37 @@
         "absent_mean_results": 0.6
       },
       "latency_ms": {
-        "p50": 1.314,
-        "p95": 3.511,
-        "mean": 1.618,
-        "max": 6.069,
+        "p50": 2.778,
+        "p95": 6.058,
+        "mean": 3.333,
+        "max": 10.366,
         "samples": 77
       },
       "latency_cpu_ms": {
-        "p50": 1.316,
-        "p95": 3.514,
-        "mean": 1.62
+        "p50": 2.669,
+        "p95": 6.061,
+        "mean": 3.298
       },
       "index": {
         "documents": 1,
         "chunks": 45,
         "bytes": 745472,
-        "build_seconds": 0.252,
+        "build_seconds": 0.209,
         "prepare_seconds": 0.0
+      },
+      "verified_absence": {
+        "literal_probes": 8,
+        "false_absence": 0,
+        "false_absence_ids": [],
+        "absent_term_probes": 10,
+        "stem_variants_reported": 2,
+        "stem_variant_ids": [
+          "humanities-absen-023",
+          "humanities-absen-024"
+        ],
+        "substring_matches_reported": 0,
+        "substring_match_ids": [],
+        "method": "retrieval.verify_absence (porter and trigram passes, no ranking cut-off)"
       },
       "alignment": {
         "hits": 744,
@@ -1642,15 +1683,23 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.05555555555555555
+          "mrr": 0.08333333333333333
         },
         {
           "id": "humanities-factu-017",
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.38685280723454163,
-          "mrr": 0.2
+          "ndcg@10": 0.5,
+          "mrr": 0.3333333333333333
+        },
+        {
+          "id": "humanities-thema-007",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333333333333333
         },
         {
           "id": "humanities-absen-001",
@@ -1662,14 +1711,6 @@
         },
         {
           "id": "humanities-absen-002",
-          "type": "absence_probe",
-          "recall@5": 1.0,
-          "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
-        },
-        {
-          "id": "humanities-absen-004",
           "type": "absence_probe",
           "recall@5": 1.0,
           "recall@20": 1.0,
@@ -2131,16 +2172,16 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.3869,
-          "mrr": 0.2
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "humanities-thema-007",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "humanities-citat-013",
@@ -2148,7 +2189,7 @@
           "recall@5": 0.0,
           "recall@20": 1.0,
           "ndcg@10": 0.0,
-          "mrr": 0.0556
+          "mrr": 0.0833
         },
         {
           "id": "humanities-absen-001",
@@ -2280,7 +2321,7 @@
       "library": "webclips",
       "config": {
         "name": "keyword",
-        "description": "LibraryIndex.search: FTS5 BM25 over line/paragraph chunks (the 0.2.0 engine)."
+        "description": "LibraryIndex.search: FTS5 BM25 over the index chunks (porter, then trigram when short of hits)."
       },
       "queries": {
         "total": 130,
@@ -2293,8 +2334,8 @@
       "metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9538,
-        "mrr": 0.9378
+        "ndcg@10": 0.9537,
+        "mrr": 0.9382
       },
       "by_type": {
         "absence_probe": {
@@ -2315,22 +2356,22 @@
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.941,
-          "mrr": 0.9206
+          "ndcg@10": 0.9348,
+          "mrr": 0.9127
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9877,
-          "mrr": 0.9833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7727,
-          "mrr": 0.6944
+          "ndcg@10": 0.7456,
+          "mrr": 0.6611
         }
       },
       "absence": {
@@ -2341,23 +2382,34 @@
         "absent_mean_results": 5.44
       },
       "latency_ms": {
-        "p50": 2.197,
-        "p95": 4.072,
-        "mean": 2.441,
-        "max": 5.022,
+        "p50": 4.135,
+        "p95": 9.684,
+        "mean": 4.435,
+        "max": 11.119,
         "samples": 95
       },
       "latency_cpu_ms": {
-        "p50": 2.201,
-        "p95": 4.075,
-        "mean": 2.438
+        "p50": 4.138,
+        "p95": 9.687,
+        "mean": 4.417
       },
       "index": {
         "documents": 7,
         "chunks": 121,
         "bytes": 1789952,
-        "build_seconds": 1.145,
+        "build_seconds": 1.057,
         "prepare_seconds": 0.0
+      },
+      "verified_absence": {
+        "literal_probes": 9,
+        "false_absence": 0,
+        "false_absence_ids": [],
+        "absent_term_probes": 10,
+        "stem_variants_reported": 0,
+        "stem_variant_ids": [],
+        "substring_matches_reported": 0,
+        "substring_match_ids": [],
+        "method": "retrieval.verify_absence (porter and trigram passes, no ranking cut-off)"
       },
       "alignment": {
         "hits": 1031,
@@ -2370,8 +2422,24 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
+          "ndcg@10": 0.38685280723454163,
+          "mrr": 0.2
+        },
+        {
+          "id": "webclips-thema-015",
+          "type": "thematic",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
           "ndcg@10": 0.43067655807339306,
           "mrr": 0.25
+        },
+        {
+          "id": "webclips-factu-020",
+          "type": "factual_lookup",
+          "recall@5": 1.0,
+          "recall@20": 1.0,
+          "ndcg@10": 0.5,
+          "mrr": 0.3333333333333333
         },
         {
           "id": "webclips-factu-026",
@@ -2382,24 +2450,8 @@
           "mrr": 0.3333333333333333
         },
         {
-          "id": "webclips-factu-020",
-          "type": "factual_lookup",
-          "recall@5": 1.0,
-          "recall@20": 1.0,
-          "ndcg@10": 0.6309297535714575,
-          "mrr": 0.5
-        },
-        {
           "id": "webclips-factu-027",
           "type": "factual_lookup",
-          "recall@5": 1.0,
-          "recall@20": 1.0,
-          "ndcg@10": 0.6309297535714575,
-          "mrr": 0.5
-        },
-        {
-          "id": "webclips-known-027",
-          "type": "known_item_quote",
           "recall@5": 1.0,
           "recall@20": 1.0,
           "ndcg@10": 0.6309297535714575,
@@ -2620,8 +2672,8 @@
           "type": "known_item_quote",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-known-028",
@@ -2860,8 +2912,8 @@
           "type": "factual_lookup",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         },
         {
           "id": "webclips-factu-024",
@@ -2916,8 +2968,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         {
           "id": "webclips-thema-007",
@@ -2932,16 +2984,16 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         },
         {
           "id": "webclips-thema-011",
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.4307,
-          "mrr": 0.25
+          "ndcg@10": 0.3869,
+          "mrr": 0.2
         },
         {
           "id": "webclips-thema-013",
@@ -2956,8 +3008,8 @@
           "type": "thematic",
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6309,
-          "mrr": 0.5
+          "ndcg@10": 0.4307,
+          "mrr": 0.25
         },
         {
           "id": "webclips-thema-020",
@@ -3141,7 +3193,7 @@
       "library": "papers",
       "config": {
         "name": "keyword",
-        "description": "LibraryIndex.search: FTS5 BM25 over line/paragraph chunks (the 0.2.0 engine)."
+        "description": "LibraryIndex.search: FTS5 BM25 over the index chunks (porter, then trigram when short of hits)."
       },
       "queries": {
         "total": 160,
@@ -3202,23 +3254,34 @@
         "absent_mean_results": 0.0
       },
       "latency_ms": {
-        "p50": 1.62,
-        "p95": 5.181,
-        "mean": 2.188,
-        "max": 9.432,
+        "p50": 4.187,
+        "p95": 12.296,
+        "mean": 5.523,
+        "max": 14.874,
         "samples": 48
       },
       "latency_cpu_ms": {
-        "p50": 1.622,
-        "p95": 4.341,
-        "mean": 1.995
+        "p50": 4.081,
+        "p95": 12.204,
+        "mean": 5.424
       },
       "index": {
         "documents": 3,
         "chunks": 63,
         "bytes": 991232,
-        "build_seconds": 0.968,
+        "build_seconds": 1.008,
         "prepare_seconds": 0.0
+      },
+      "verified_absence": {
+        "literal_probes": 10,
+        "false_absence": 0,
+        "false_absence_ids": [],
+        "absent_term_probes": 14,
+        "stem_variants_reported": 0,
+        "stem_variant_ids": [],
+        "substring_matches_reported": 0,
+        "substring_match_ids": [],
+        "method": "retrieval.verify_absence (porter and trigram passes, no ranking cut-off)"
       },
       "alignment": {
         "hits": 482,
@@ -3629,15 +3692,15 @@
   },
   "summary": {
     "macro_average": {
-      "recall@5": 0.9811,
-      "recall@20": 0.9915,
-      "ndcg@10": 0.9646,
-      "mrr": 0.9567
+      "recall@5": 0.9846,
+      "recall@20": 0.9938,
+      "ndcg@10": 0.9697,
+      "mrr": 0.9633
     },
     "queries_evaluated": 382,
-    "latency_ms_p95_max": 5.181,
-    "latency_cpu_ms_p95_max": 4.341,
+    "latency_ms_p95_max": 18.97,
+    "latency_cpu_ms_p95_max": 18.128,
     "index_bytes_total": 6557696,
-    "build_seconds_total": 3.313
+    "build_seconds_total": 3.44
   }
 }
