@@ -368,6 +368,7 @@ def build_corpus(
     *,
     sample: dict | None = None,
     limits: dict | None = None,
+    chunk_tokens: int | None = None,
     retrieval_policy: str = 'ask',
     refresh: bool = True,
 ) -> Corpus:
@@ -409,12 +410,33 @@ def build_corpus(
         source_map[materialised] = relative
     registry = LibraryRegistry(workdir / name / 'config')
     library = registry.create(name, [root], retrieval_policy=retrieval_policy)
-    index = LibraryIndex(library, workdir / name / 'cache', limits=limits)
+    index = LibraryIndex(library, workdir / name / 'cache', limits=limits, chunk_tokens=chunk_tokens)
     corpus = Corpus(name, registry, library, index, root, source_map, extent, workdir)
     if refresh:
         started = time.perf_counter()
         corpus.refresh = index.refresh()
         corpus.build_seconds = time.perf_counter() - started
+    return corpus
+
+
+def reopen_corpus(name: str, workdir: Path, info: dict) -> Corpus:
+    """A corpus whose index was built earlier (`scripts/build_scale_index.py`): nothing is parsed again.
+
+    `info` is that script's `scale-info.json` (library entry, cache folder, corpus root, build time).
+    """
+    from .libraries import LibraryIndex, LibraryRegistry
+
+    root = Path(info['root'])
+    registry = LibraryRegistry(Path(workdir) / name / 'config')
+    index = LibraryIndex(info['library'], info['cache'], limits={'chunks': 2_000_000})
+    source_map = {
+        p.relative_to(root).as_posix(): p.relative_to(root).as_posix() for p in root.rglob('*') if p.is_file()
+    }
+    extent = {rel: (root / rel).stat().st_size for rel in source_map}  # bytes bound the characters from above
+    corpus = Corpus(name, registry, info['library'], index, root, source_map, extent, Path(workdir))
+    status = index.status()
+    corpus.refresh = {'documents': status['documents'], 'chunks': status['chunks']}
+    corpus.build_seconds = float(info.get('build_seconds', 0.0))
     return corpus
 
 
@@ -455,6 +477,8 @@ class RetrievalConfig:
     description = ''
     # Slow configurations narrow the fast subset: libraries to run and sample overrides per library.
     sample_libraries: tuple[str, ...] | None = None
+    # Score only these query types (a reranker is judged on the hard ones). None scores everything.
+    types: tuple[str, ...] | None = None
     samples: ClassVar[dict[str, dict]] = {}  # read-only class data
 
     def prepare(self, corpus: Corpus) -> dict:
@@ -543,9 +567,6 @@ class FakeEmbedder:
 class HybridConfig(RetrievalConfig):
     """`LibraryIndex.hybrid_search` with an injected embedder (keyword + vector, reciprocal-rank fusion)."""
 
-    # hybrid_search stats every stored chunk per query at 0.3.0 (about 0.3 ms each), so the CI subset is tiny.
-    sample_libraries = ('papers',)
-
     def __init__(self, embedder=None, name='hybrid-fake'):
         self.embedder = embedder or FakeEmbedder()
         self.name = name
@@ -557,13 +578,57 @@ class HybridConfig(RetrievalConfig):
     def prepare(self, corpus):
         started = time.perf_counter()
         result = corpus.index.rebuild_vectors(provider=self.embedder)
-        return {'vectors': result['processed'], 'seconds': time.perf_counter() - started}
+        return {'vectors': result['done'], 'seconds': time.perf_counter() - started}
 
     def search(self, corpus, query, limit):
         result = corpus.index.hybrid_search(query, limit=min(limit, 100), provider=self.embedder)
         if result.get('embedding_state') != 'ready':
             raise ByaxError('invalid_input', 'Hybrid evaluation requires prepared vectors')
         return result['results']
+
+
+class LocalModelConfig(HybridConfig):
+    """Hybrid search with an on-device embedder from the model catalogue (needs the `local-models` extra
+    and the model installed, for example through `BYAX_MODELS_DIR`). Nothing is downloaded here."""
+
+    def __init__(self, model='qwen3-embedding-0.6b-int8', name='hybrid-qwen3', dimension=None):
+        from .local_inference import LocalEmbeddingProvider
+
+        super().__init__(LocalEmbeddingProvider(model, dimension=dimension), name=name)
+        self.description = f'hybrid_search with the on-device embedder {model} (local ONNX, no network).'
+
+    def prepare(self, corpus):
+        if not self.embedder.available():
+            raise ByaxError('unsupported_feature', f'On-device model {self.embedder.name} is not installed')
+        return super().prepare(corpus)
+
+
+class RerankedConfig(LocalModelConfig):
+    """On-device hybrid search followed by a catalogue reranker (late-interaction ColBERT by default) over the
+    top candidates, scored on the query types where ranking order matters most."""
+
+    types = ('thematic', 'continuity')  # noqa: RUF012 - read-only class data
+
+    def __init__(self, reranker='answerai-colbert-small-v1', name='hybrid-qwen3-colbert', depth=40, **kwargs):
+        super().__init__(name=name, **kwargs)
+        self.reranker_name, self.depth, self._reranker = reranker, depth, None
+        self.description += f' Top {depth} candidates reordered by {reranker}.'
+
+    def search(self, corpus, query, limit):
+        from .local_inference import load_reranker
+        from .retrieval import search_library
+
+        if self._reranker is None:
+            self._reranker = load_reranker(self.reranker_name)
+        result = search_library(
+            corpus.index,
+            query,
+            method='hybrid',
+            limit=min(max(limit, self.depth), 100),
+            provider=self.embedder,
+            reranker=self._reranker,
+        )
+        return result['results'][:limit]
 
 
 def model_hybrid_config(spec: dict, registry=None) -> HybridConfig:
@@ -670,15 +735,19 @@ def run_library(
     sample: bool = False,
     papers_dir: Path | None = None,
     root: Path | None = None,
+    chunk_tokens: int | None = None,
+    thin: bool = True,
 ) -> dict:
     """Build one fixture library and score `config` on its golden queries (the harness in one call)."""
     config = resolve_config(config)
     spec: bool | dict = False
     if sample:
         spec = config.samples.get(library, SAMPLES.get(library, {}))
-    corpus = build_fixture_corpus(library, workdir, sample=spec, root=root, papers_dir=papers_dir)
+    corpus = build_fixture_corpus(
+        library, workdir, sample=spec, root=root, papers_dir=papers_dir, chunk_tokens=chunk_tokens
+    )
     return evaluate(
-        corpus, load_queries(library, root), config, max_queries=SAMPLE_QUERIES if sample else None
+        corpus, load_queries(library, root), config, max_queries=SAMPLE_QUERIES if sample and thin else None
     )
 
 
@@ -791,7 +860,12 @@ def evaluate(
     `max_queries` thins the applicable queries (see `thin_queries`) so CI stays fast.
     """
     config = resolve_config(config)
-    covered = [q for q in queries if all(corpus.covers(loc) for loc in q['relevant_chunk_locators'])]
+    covered = [
+        q
+        for q in queries
+        if all(corpus.covers(loc) for loc in q['relevant_chunk_locators'])
+        and (config.types is None or q['type'] in config.types)
+    ]
     applicable = thin_queries(covered, max_queries) if max_queries else covered
     if prepared is None:
         started = time.perf_counter()
@@ -959,3 +1033,158 @@ def label_problems(
             where = locator.get('page', (locator.get('start'), locator.get('end')))
             problems.append(f'{record["id"]}: quote not in {locator["path"]} {where}')
     return problems
+
+
+# --------------------------------------------------------------------------------------------------
+# Quote verification (context engine plan 5.3): pass rates and the near-match threshold
+
+
+def genuine_quote_cases(
+    corpus_dir: Path, queries: list[dict], pages: dict[str, list[str]] | None = None
+) -> list[dict]:
+    """Genuine quotes whose wording comes from outside the extracted text (JATS) with the page they cite.
+
+    Each case is ``{quote, source}``: ``source`` is the text of the cited PDF page, the setting where raw
+    comparison fails (line-break hyphenation, ligatures) and normalisation has to rescue the quote.
+    """
+    cases, cache = [], {} if pages is None else pages
+    for record in queries:
+        for locator in record['relevant_chunk_locators']:
+            if 'page' not in locator or 'quote' not in locator:
+                continue
+            try:
+                source = locator_text(corpus_dir, locator, pages=cache)
+            except (OSError, IndexError):
+                continue
+            cases.append({'id': record['id'], 'quote': locator['quote'], 'source': source})
+    return cases
+
+
+def quote_pass_rates(cases: list[dict]) -> dict:
+    """Raw versus normalised pass rate of ``quote_match.locate`` over genuine quotes (the Phase 1 exit figure)."""
+    from . import quote_match
+
+    counts = {'exact': 0, 'normalized': 0, 'near': 0, 'none': 0}
+    for case in cases:
+        counts[quote_match.locate(case['quote'], case['source'])['match']] += 1
+    total = max(1, len(cases))
+    return {
+        'quotes': len(cases),
+        'by_match': counts,
+        'raw_pass_rate': round(counts['exact'] / total, 4),
+        'normalized_pass_rate': round((counts['exact'] + counts['normalized']) / total, 4),
+        'unverified': counts['near'] + counts['none'],
+    }
+
+
+def _typo(rng, text: str) -> str:
+    """One to three keyboard-level slips: substitution, deletion or a swapped pair, away from the edges."""
+    letters = list(text)
+    for _ in range(rng.choice((1, 1, 2, 3))):
+        spots = [i for i in range(3, len(letters) - 4) if letters[i].isalpha() and letters[i + 1].isalpha()]
+        i = rng.choice(spots)
+        kind = rng.choice(('sub', 'del', 'swap'))
+        if kind == 'sub':
+            letters[i] = rng.choice('abcdefghijklmnopqrstuvwxyz'.replace(letters[i].lower(), ''))
+        elif kind == 'del':
+            del letters[i]
+        else:
+            letters[i], letters[i + 1] = letters[i + 1], letters[i]
+    return ''.join(letters)
+
+
+QUOTE_KINDS = ('noisy', 'reworded', 'spliced', 'shuffled', 'neighbour')
+
+
+def altered_quote_cases(sources: list[str], seed: int = 20261016, per_kind: int = 120) -> list[dict]:
+    """Quotes labelled by what the verifier should say about them against their source passage.
+
+    ``noisy`` quotes are the passage's own words with a few typing or OCR slips (a near match is right);
+    the other kinds are not quotations of that passage and must never be accepted: ``reworded`` (two content
+    words changed), ``spliced`` (halves of two sentences), ``shuffled`` (same words, new order) and
+    ``neighbour`` (a real sentence from a different passage).
+    """
+    import random
+
+    rng = random.Random(seed)
+    sentence = re.compile(r'[^.!?\n]{50,160}[.!?]')
+
+    def pick(text):
+        found = [m.group().strip() for m in sentence.finditer(' '.join(text.split()))]
+        return [s for s in found if len(s.split()) >= 9]
+
+    pools = [(source, pick(source)) for source in sources]
+    pools = [(s, p) for s, p in pools if len(p) >= 2]
+    vocabulary = sorted({w for _, options in pools for s in options for w in s.split() if len(w) > 5})
+    cases = []
+    for kind in QUOTE_KINDS:
+        made = 0
+        while made < per_kind:
+            source, options = rng.choice(pools)
+            base = rng.choice(options)
+            words = base.split()
+            if kind == 'noisy':
+                quote = _typo(rng, base)
+            elif kind == 'reworded':
+                slots = rng.sample([i for i, w in enumerate(words) if len(w) > 4], 2)
+                for slot in slots:
+                    words[slot] = rng.choice(vocabulary)
+                quote = ' '.join(words)
+            elif kind == 'spliced':
+                other = rng.choice(options).split()
+                quote = ' '.join(words[: len(words) // 2] + other[len(other) // 2 :])
+            elif kind == 'shuffled':
+                head, tail = words[: len(words) // 2], words[len(words) // 2 :]
+                rng.shuffle(head)
+                quote = ' '.join(head + tail)
+            else:
+                foreign = [o for s, p in pools if s is not source for o in p]
+                quote = rng.choice(foreign)
+            if quote == base or (kind != 'noisy' and quote in ' '.join(source.split())):
+                continue
+            cases.append({'kind': kind, 'quote': quote, 'source': source, 'base': base})
+            made += 1
+    return cases
+
+
+def sweep_near_threshold(cases: list[dict], thresholds: list[float]) -> list[dict]:
+    """Precision and recall of a verdict at each ``near`` threshold.
+
+    Positives are ``noisy`` quotes (the span must overlap the sentence they were made from); anything else
+    that is reported as a match is a false positive. Precision comes first: a wrong "this is the quote" is
+    the misattribution failure the plan exists to prevent.
+    """
+    from . import quote_match
+
+    rows = []
+    for threshold in thresholds:
+        found = dict.fromkeys(QUOTE_KINDS, 0)
+        totals = dict.fromkeys(QUOTE_KINDS, 0)
+        for case in cases:
+            result = quote_match.locate(case['quote'], case['source'], threshold=threshold)
+            totals[case['kind']] += 1
+            if result['match'] == 'none':
+                continue
+            if case['kind'] != 'noisy':
+                found[case['kind']] += 1
+                continue
+            start = ' '.join(case['source'].split()).find(case['base'][:25])
+            span = result['span']
+            # Spans index the original source: accept any overlap with the sentence it was made from.
+            at = case['source'].find(case['base'][:25])
+            lo = at if at >= 0 else max(0, start)
+            if span and span[0] < lo + len(case['base']) + 20 and lo - 20 < span[1]:
+                found['noisy'] += 1
+        false_positives = sum(v for k, v in found.items() if k != 'noisy')
+        negatives = sum(v for k, v in totals.items() if k != 'noisy')
+        reported = found['noisy'] + false_positives
+        rows.append(
+            {
+                'threshold': threshold,
+                'precision': round(found['noisy'] / reported, 4) if reported else 1.0,
+                'recall': round(found['noisy'] / max(1, totals['noisy']), 4),
+                'false_positive_rate': round(false_positives / max(1, negatives), 4),
+                'false_positives_by_kind': {k: v for k, v in found.items() if k != 'noisy'},
+            }
+        )
+    return rows

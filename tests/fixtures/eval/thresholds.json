@@ -7,16 +7,16 @@
     "mrr": 0.03
   },
   "latency_p95_ms_max": {
-    "keyword": 2500,
-    "hybrid-fake": 5000
+    "keyword": 250,
+    "hybrid-fake": 1000
   },
   "floors": {
     "keyword": {
       "novel": {
-        "recall@5": 0.8636,
-        "recall@20": 0.8636,
-        "ndcg@10": 0.8636,
-        "mrr": 0.8636,
+        "recall@5": 0.9242,
+        "recall@20": 0.9242,
+        "ndcg@10": 0.9009,
+        "mrr": 0.8902,
         "queries": 24
       },
       "series": {
@@ -29,31 +29,59 @@
       "humanities": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9832,
-        "mrr": 0.9773,
+        "ndcg@10": 1.0,
+        "mrr": 1.0,
         "queries": 24
       },
       "webclips": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9605,
-        "mrr": 0.947,
+        "ndcg@10": 0.9664,
+        "mrr": 0.9545,
         "queries": 24
       },
       "papers": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9832,
-        "mrr": 0.9773,
+        "ndcg@10": 1.0,
+        "mrr": 1.0,
         "queries": 24
       }
     },
     "hybrid-fake": {
-      "papers": {
+      "novel": {
+        "recall@5": 0.7879,
+        "recall@20": 0.9545,
+        "ndcg@10": 0.7857,
+        "mrr": 0.7722,
+        "queries": 24
+      },
+      "series": {
         "recall@5": 0.9545,
         "recall@20": 1.0,
-        "ndcg@10": 0.9191,
-        "mrr": 0.8944,
+        "ndcg@10": 0.805,
+        "mrr": 0.7578,
+        "queries": 24
+      },
+      "humanities": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9378,
+        "mrr": 0.9167,
+        "queries": 24
+      },
+      "webclips": {
+        "recall@5": 0.9091,
+        "recall@20": 1.0,
+        "ndcg@10": 0.8361,
+        "mrr": 0.8023,
+        "queries": 24
+      },
+      "papers": {
+        "recall@5": 1.0,
+        "recall@20": 1.0,
+        "ndcg@10": 0.905,
+        "mrr": 0.8727,
         "queries": 24
       }
     }

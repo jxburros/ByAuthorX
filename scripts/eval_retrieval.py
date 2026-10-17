@@ -79,15 +79,23 @@ def papers_directory(full: bool, work: Path) -> tuple[Path | None, str]:
     return destination, 'full 30-article set'
 
 
-def run_scale(config_spec, documents: int, work: Path, queries: int) -> dict:
+def run_scale(config_spec, documents: int, work: Path, queries: int, kept: Path | None = None) -> dict:
+    """Generate, index and measure the synthetic corpus, or reuse an index built by build_scale_index.py."""
     import generate_fixtures
 
-    target = work / 'scale-source'
-    info = generate_fixtures.make_eval_scale(target, documents, queries=queries)
-    corpus = ev.build_corpus('scale', target / 'corpus', work, limits={'chunks': 2_000_000})
-    queries = ev.load_queries_file(target / 'queries.jsonl')
-    report = ev.evaluate(corpus, queries, config_spec)
-    report['scale'] = {'documents': info['documents'], 'queries': info['queries']}
+    if kept is not None:
+        info = json.loads((kept / 'scale-info.json').read_text(encoding='utf-8'))
+        corpus = ev.reopen_corpus('scale', work, info)
+        found = ev.load_queries_file(kept / 'scale-source' / 'queries.jsonl')
+        documents, count = info['documents'], len(found)
+    else:
+        target = work / 'scale-source'
+        info = generate_fixtures.make_eval_scale(target, documents, queries=queries)
+        corpus = ev.build_corpus('scale', target / 'corpus', work, limits={'chunks': 2_000_000})
+        found = ev.load_queries_file(target / 'queries.jsonl')
+        documents, count = info['documents'], info['queries']
+    report = ev.evaluate(corpus, found, config_spec)
+    report['scale'] = {'documents': documents, 'queries': count}
     return report
 
 
@@ -119,7 +127,14 @@ def main(argv=None) -> int:
     parser.add_argument(
         '--scale', type=int, default=0, metavar='N', help='also measure an N-document synthetic corpus'
     )
+    parser.add_argument(
+        '--scale-work', type=Path, help='reuse the index kept by scripts/build_scale_index.py'
+    )
     parser.add_argument('--scale-queries', type=int, default=50, help='golden queries for the scale corpus')
+    parser.add_argument(
+        '--all-sample-queries', action='store_true', help='with --sample, do not thin the queries'
+    )
+    parser.add_argument('--label', default=__version__, help='version label used in the output file name')
     parser.add_argument('--out-dir', type=Path, default=ROOT / 'docs' / 'benchmarks')
     parser.add_argument('--output', type=Path, help='exact output file (single config only)')
     parser.add_argument('--note', default='', help='free text recorded in the file')
@@ -156,6 +171,7 @@ def main(argv=None) -> int:
                     work,
                     sample=args.sample,
                     papers_dir=papers if library == 'papers' else None,
+                    thin=not args.all_sample_queries,
                 )
                 print(
                     f'{config_name:12s} {library:11s} '
@@ -163,7 +179,11 @@ def main(argv=None) -> int:
                     + f' p95={reports[library]["latency_ms"]["p95"]:.1f}ms ({time.perf_counter() - started:.1f}s)',
                     flush=True,
                 )
-            scale = run_scale(config_name, args.scale, work, args.scale_queries) if args.scale else None
+            scale = (
+                run_scale(config_name, args.scale, work, args.scale_queries, args.scale_work)
+                if args.scale
+                else None
+            )
             if scale:
                 print(f'{config_name:12s} scale({args.scale}) ' + ' '.join(f'{k}={v:.3f}' for k, v in scale['metrics'].items())
                       + f' p95={scale["latency_ms"]["p95"]:.1f}ms build={scale["index"]["build_seconds"]:.0f}s')  # fmt: skip
@@ -193,7 +213,7 @@ def main(argv=None) -> int:
             }
         if not args.update_thresholds:
             args.out_dir.mkdir(parents=True, exist_ok=True)
-            path = args.output or args.out_dir / f'context-{__version__}-{config_name}.json'
+            path = args.output or args.out_dir / f'context-{args.label}-{config_name}.json'
             path.write_text(json.dumps(result, indent=2, ensure_ascii=False) + '\n', encoding='utf-8')
             print('wrote', path)
     if args.update_thresholds:

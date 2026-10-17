@@ -1,0 +1,232 @@
+{
+  "language": "en",
+  "version": 1,
+  "note": "Lexicons for deterministic continuity checks (byax.continuity). A trait is checked only when its name is listed under an attribute's traits and its value contains a term from that attribute's lexicons. Modifiers are ignored. A broad term (dark, light, fair) is consistent with the terms listed for it.",
+  "attributes": {
+    "eyes": {
+      "traits": [
+        "eyes",
+        "eye",
+        "eye colour",
+        "eye color",
+        "eye-colour",
+        "eye-color"
+      ],
+      "nouns": [
+        "eyes",
+        "eye"
+      ],
+      "lexicons": [
+        "colours"
+      ]
+    },
+    "hair": {
+      "traits": [
+        "hair",
+        "hair colour",
+        "hair color",
+        "hair-colour",
+        "hair-color"
+      ],
+      "nouns": [
+        "hair"
+      ],
+      "lexicons": [
+        "hair_colours",
+        "colours"
+      ]
+    },
+    "hair_style": {
+      "traits": [
+        "hair style",
+        "hairstyle",
+        "hair-style"
+      ],
+      "nouns": [
+        "hair"
+      ],
+      "lexicons": [
+        "hair_styles"
+      ]
+    },
+    "age": {
+      "traits": [
+        "age"
+      ],
+      "nouns": [],
+      "lexicons": []
+    }
+  },
+  "lexicons": {
+    "colours": [
+      "amber",
+      "azure",
+      "black",
+      "blue",
+      "brown",
+      "chestnut",
+      "copper",
+      "emerald",
+      "gold",
+      "golden",
+      "green",
+      "grey",
+      "hazel",
+      "honey",
+      "red",
+      "silver",
+      "violet",
+      "white",
+      "auburn",
+      "sable",
+      "jet",
+      "dark",
+      "light"
+    ],
+    "hair_colours": [
+      "auburn",
+      "black",
+      "blonde",
+      "brown",
+      "chestnut",
+      "copper",
+      "fair",
+      "flaxen",
+      "ginger",
+      "golden",
+      "grey",
+      "raven",
+      "red",
+      "sandy",
+      "silver",
+      "strawberry-blonde",
+      "white",
+      "platinum",
+      "mousy",
+      "brunette",
+      "dark",
+      "light"
+    ],
+    "hair_styles": [
+      "bobbed",
+      "braided",
+      "cropped",
+      "curly",
+      "plaited",
+      "shaved",
+      "straight",
+      "wavy",
+      "frizzy",
+      "bald",
+      "cornrowed",
+      "dreadlocked",
+      "ringleted",
+      "shorn"
+    ]
+  },
+  "modifiers": [
+    "pale",
+    "deep",
+    "bright",
+    "very",
+    "quite",
+    "rather",
+    "soft",
+    "steel",
+    "ash"
+  ],
+  "synonyms": {
+    "gray": "grey",
+    "blond": "blonde",
+    "plaits": "plaited",
+    "braids": "braided",
+    "curled": "curly",
+    "curling": "curly",
+    "ringlets": "ringleted",
+    "russet": "red",
+    "flame": "red",
+    "jet-black": "black",
+    "raven-black": "black"
+  },
+  "verbs": [
+    "was",
+    "were",
+    "is",
+    "are",
+    "had been",
+    "have been",
+    "looked",
+    "seemed",
+    "remained",
+    "had become"
+  ],
+  "possessive_verbs": [
+    "had",
+    "has",
+    "with"
+  ],
+  "numbers": {
+    "one": 1,
+    "two": 2,
+    "three": 3,
+    "four": 4,
+    "five": 5,
+    "six": 6,
+    "seven": 7,
+    "eight": 8,
+    "nine": 9,
+    "ten": 10,
+    "eleven": 11,
+    "twelve": 12,
+    "thirteen": 13,
+    "fourteen": 14,
+    "fifteen": 15,
+    "sixteen": 16,
+    "seventeen": 17,
+    "eighteen": 18,
+    "nineteen": 19,
+    "twenty": 20,
+    "thirty": 30,
+    "forty": 40,
+    "fifty": 50,
+    "sixty": 60,
+    "seventy": 70,
+    "eighty": 80,
+    "ninety": 90
+  },
+  "broad": {
+    "dark": [
+      "black",
+      "brown",
+      "hazel",
+      "chestnut",
+      "sable",
+      "jet",
+      "raven",
+      "brunette",
+      "auburn"
+    ],
+    "light": [
+      "blue",
+      "grey",
+      "green",
+      "hazel",
+      "silver",
+      "amber",
+      "honey",
+      "blonde",
+      "flaxen",
+      "fair"
+    ],
+    "fair": [
+      "blonde",
+      "flaxen",
+      "golden",
+      "sandy",
+      "platinum",
+      "strawberry-blonde",
+      "light",
+      "gold"
+    ]
+  }
+}

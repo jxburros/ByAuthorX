@@ -1,0 +1,362 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T21:58:12.139760+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cpus": 4,
+    "python": "3.13.16",
+    "engine": "0.3.0",
+    "qt": "6.12.0",
+    "qt_platform": "offscreen",
+    "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
+  },
+  "file_view": "byax",
+  "provider_configuration": "None; local deterministic operations only.",
+  "definitions": {
+    "p95": "Nearest-rank percentile of wall-clock sample durations.",
+    "model_edit": "Canonical candidate transaction against original loaded fixture; includes validation/history; excludes GUI input and paint.",
+    "full_reflow": "After a canonical paragraph insertion, construct shared QTextDocument and resolve all physical display pages; includes full layout, excludes paint and the edit itself.",
+    "inspection": "Bounded semantic inspection against an already loaded document.",
+    "fixture_load": "Fixture construction excluded from every timed operation.",
+    "gui_startup_to_window": "Fresh interpreter process launch until MainWindow with the fixture is shown, exposed and its first paint processed; includes Python/Qt import and package load.",
+    "keystroke_to_paint": "QTest key press delivered through the event loop to the editor plus a synchronous viewport repaint; excludes the 300 ms idle commit.",
+    "typing_commit": "flush_edits after one keystroke: canonical transaction, history delta and sidebar/status refresh.",
+    "structural_edit_to_paint": "Paragraph style change from the GUI command through commit, editor document update and synchronous viewport repaint.",
+    "structural_full_rebuild_to_paint": "Same edit forced through a full shared-document rebuild, for comparison.",
+    "save_ui_block": "Time save() holds the UI thread before returning to the event loop; serialization continues on a worker.",
+    "save_completion": "Time until the worker save finishes and the window marks the document saved.",
+    "idle_cpu_percent": "Process CPU time divided by wall time while the loaded window runs its event loop without input."
+  },
+  "not_measured": [
+    "Cancellation acknowledgement",
+    "Physical Windows 11 / Ubuntu 24.04 desktop behavior",
+    "Remote provider latency"
+  ],
+  "fixtures": {
+    "project_100k": {
+      "semantic_sha256": "681c6616598b3eceac8aec7cd24a12ea9c99fa5a073e25034ba64bb01118fb9c",
+      "blocks": 518,
+      "words": 103681,
+      "binder_items": 155,
+      "definitions": {
+        "project_open": "load_document of the saved 100,000-word project package: unzip, hashes, validation.",
+        "project_typing_transaction": "One canonical insert_text in a scene paragraph, including validation and history.",
+        "project_reorder_chapter": "One canonical project_move of a chapter with its scenes, including anchor reporting.",
+        "project_save": "save_document of the reordered project to an existing path (atomic replacement).",
+        "project_binder_query": "project.items: binder rows with nesting and authored word counts."
+      },
+      "metrics": {
+        "project_open": {
+          "samples": 10,
+          "median_ms": 13.72629749994303,
+          "p95_ms": 22.218445999897085,
+          "min_ms": 12.82132000051206,
+          "max_ms": 22.218445999897085,
+          "raw_ms": [
+            13.733315000536095,
+            12.883034999504162,
+            14.420591999623866,
+            22.218445999897085,
+            13.563974000135204,
+            13.428852000288316,
+            13.719279999349965,
+            12.82132000051206,
+            14.130339000075764,
+            18.046624000817246
+          ]
+        },
+        "project_typing_transaction": {
+          "samples": 10,
+          "median_ms": 36.6190595000262,
+          "p95_ms": 99.88602700013871,
+          "min_ms": 34.620415000063076,
+          "max_ms": 99.88602700013871,
+          "raw_ms": [
+            99.88602700013871,
+            38.73591000046872,
+            40.24414700052148,
+            34.620415000063076,
+            37.05551300026855,
+            36.17903600024874,
+            35.99846300039644,
+            35.09810800005653,
+            40.37069700007123,
+            36.182605999783846
+          ]
+        },
+        "project_reorder_chapter": {
+          "samples": 10,
+          "median_ms": 39.54233649983507,
+          "p95_ms": 59.475927000676165,
+          "min_ms": 37.07796699927712,
+          "max_ms": 59.475927000676165,
+          "raw_ms": [
+            37.99387900016882,
+            37.07796699927712,
+            37.328145999708795,
+            42.17402499944001,
+            43.02357100004883,
+            39.997721999498026,
+            59.475927000676165,
+            39.08695100017212,
+            37.66366099989682,
+            42.20634400007839
+          ]
+        },
+        "project_save": {
+          "samples": 10,
+          "median_ms": 50.17510100014988,
+          "p95_ms": 117.22954099968774,
+          "min_ms": 41.438995999669714,
+          "max_ms": 117.22954099968774,
+          "raw_ms": [
+            68.48559199988813,
+            46.39906700049323,
+            46.98089599969535,
+            41.438995999669714,
+            41.893485999935365,
+            52.477131000159716,
+            47.873071000140044,
+            82.66106199971546,
+            117.22954099968774,
+            63.834844000666635
+          ]
+        },
+        "project_binder_query": {
+          "samples": 10,
+          "median_ms": 2.9419894999591634,
+          "p95_ms": 7.163109000430268,
+          "min_ms": 2.6089980001415825,
+          "max_ms": 7.163109000430268,
+          "raw_ms": [
+            3.30286500047805,
+            7.163109000430268,
+            2.9709150003327522,
+            6.960681000236946,
+            2.7370010002414347,
+            2.635272000588884,
+            2.6457990006747423,
+            2.6089980001415825,
+            3.9533010003651725,
+            2.9130639995855745
+          ]
+        },
+        "gui_startup_to_window": {
+          "samples": 2,
+          "median_ms": 1912.0310754997263,
+          "p95_ms": 1926.135255999725,
+          "min_ms": 1897.9268949997277,
+          "max_ms": 1926.135255999725,
+          "raw_ms": [
+            1926.135255999725,
+            1897.9268949997277
+          ]
+        },
+        "keystroke_to_paint": {
+          "samples": 10,
+          "median_ms": 9.999855999922147,
+          "p95_ms": 14.143100999717717,
+          "min_ms": 9.066867000001366,
+          "max_ms": 14.143100999717717,
+          "raw_ms": [
+            9.066867000001366,
+            14.143100999717717,
+            13.360313999328355,
+            9.273169999687525,
+            9.459156000048097,
+            10.232358999928692,
+            9.195382000143582,
+            12.864258000263362,
+            10.468848000527942,
+            9.767352999915602
+          ]
+        },
+        "typing_commit": {
+          "samples": 10,
+          "median_ms": 78.34230250000473,
+          "p95_ms": 103.73668500051281,
+          "min_ms": 72.96334799957549,
+          "max_ms": 103.73668500051281,
+          "raw_ms": [
+            99.72635500071192,
+            78.13503499983199,
+            90.35934199982876,
+            78.40775299973757,
+            74.59981000010885,
+            72.96334799957549,
+            76.12237899957108,
+            78.2768520002719,
+            79.7715460003019,
+            103.73668500051281
+          ]
+        },
+        "structural_edit_to_paint": {
+          "samples": 10,
+          "median_ms": 96.21342050013482,
+          "p95_ms": 132.66958799977147,
+          "min_ms": 84.57057099985832,
+          "max_ms": 132.66958799977147,
+          "raw_ms": [
+            110.02897799971834,
+            95.2742749996105,
+            117.76003900013166,
+            97.15256600065914,
+            100.95745099988562,
+            90.7151609999346,
+            89.31340399976762,
+            84.57057099985832,
+            132.66958799977147,
+            90.54812799968204
+          ]
+        },
+        "structural_full_rebuild_to_paint": {
+          "samples": 3,
+          "median_ms": 1044.3713029999344,
+          "p95_ms": 1146.5699099999256,
+          "min_ms": 1021.7891499996767,
+          "max_ms": 1146.5699099999256,
+          "raw_ms": [
+            1146.5699099999256,
+            1021.7891499996767,
+            1044.3713029999344
+          ]
+        },
+        "save_ui_block": {
+          "samples": 3,
+          "median_ms": 14.187005000167119,
+          "p95_ms": 22.468539000328747,
+          "min_ms": 11.79887400030566,
+          "max_ms": 22.468539000328747,
+          "raw_ms": [
+            14.187005000167119,
+            11.79887400030566,
+            22.468539000328747
+          ]
+        },
+        "save_completion": {
+          "samples": 3,
+          "median_ms": 222.61596099997405,
+          "p95_ms": 248.5425730001225,
+          "min_ms": 143.56959799988545,
+          "max_ms": 248.5425730001225,
+          "raw_ms": [
+            222.61596099997405,
+            248.5425730001225,
+            143.56959799988545
+          ]
+        }
+      },
+      "package_bytes": 13877,
+      "reorder_anchor_mappings": 1,
+      "target_comparison": {
+        "typing_50ms": true,
+        "reorder_500ms": true,
+        "reorder_note": "Engine transaction only; GUI paint after a binder move (keyboard and drop) is in the binder metrics, measured through the Binder panel.",
+        "structural_500ms": true,
+        "binder_reorder_500ms": true,
+        "binder_build_500ms": true
+      },
+      "gui": {
+        "idle": {
+          "seconds": 2.997,
+          "cpu_seconds": 0.0083,
+          "idle_cpu_percent": 0.277
+        },
+        "history_after_edits": {
+          "edits": 50,
+          "history_json_bytes": 1350884
+        },
+        "errors": []
+      },
+      "binder": {
+        "definitions": {
+          "binder_build": "Rebuild the Binder panel (outline rows, corkboard cards, header) from the 100,000-word project and repaint it.",
+          "binder_reorder_keyboard_to_paint": "Alt+Down/Alt+Up on a chapter: plan, one canonical project_move envelope through the window commit (editor document update included), binder rebuild and synchronous repaint of editor and binder.",
+          "binder_reorder_drop_to_paint": "The same move requested by a drop on another chapter (heading levels normalized), through the window commit, to repaint.",
+          "binder_corkboard_switch": "Switch the panel between outline and corkboard and repaint.",
+          "binder_synopsis_to_paint": "Save a synopsis through project_set_meta, rebuild the binder and repaint."
+        },
+        "binder_items": 150,
+        "metrics": {
+          "binder_build": {
+            "samples": 5,
+            "median_ms": 29.26508400014427,
+            "p95_ms": 30.74274200025684,
+            "min_ms": 27.667035999911604,
+            "max_ms": 30.74274200025684,
+            "raw_ms": [
+              30.74274200025684,
+              27.667035999911604,
+              29.203795999819704,
+              29.26508400014427,
+              29.340987999603385
+            ]
+          },
+          "binder_reorder_keyboard_to_paint": {
+            "samples": 5,
+            "median_ms": 160.7375489993501,
+            "p95_ms": 199.1313810003703,
+            "min_ms": 149.8938939994332,
+            "max_ms": 199.1313810003703,
+            "raw_ms": [
+              169.11501799950202,
+              160.7375489993501,
+              149.8938939994332,
+              199.1313810003703,
+              151.25538600022992
+            ]
+          },
+          "binder_reorder_drop_to_paint": {
+            "samples": 5,
+            "median_ms": 135.9284629998001,
+            "p95_ms": 139.92768299976888,
+            "min_ms": 126.82342500011146,
+            "max_ms": 139.92768299976888,
+            "raw_ms": [
+              135.9284629998001,
+              126.82342500011146,
+              139.92768299976888,
+              131.50547300028848,
+              138.50364300014917
+            ]
+          },
+          "binder_corkboard_switch": {
+            "samples": 5,
+            "median_ms": 30.30897200005711,
+            "p95_ms": 33.97686500011332,
+            "min_ms": 27.934239000387606,
+            "max_ms": 33.97686500011332,
+            "raw_ms": [
+              30.646813999737788,
+              28.842595999776677,
+              27.934239000387606,
+              30.30897200005711,
+              33.97686500011332
+            ]
+          },
+          "binder_synopsis_to_paint": {
+            "samples": 5,
+            "median_ms": 155.74147700044705,
+            "p95_ms": 176.7939560004379,
+            "min_ms": 139.85598199997185,
+            "max_ms": 176.7939560004379,
+            "raw_ms": [
+              151.84007999960158,
+              170.98532799991517,
+              176.7939560004379,
+              139.85598199997185,
+              155.74147700044705
+            ]
+          }
+        },
+        "target_comparison": {
+          "binder_reorder_500ms": true,
+          "binder_build_500ms": true
+        },
+        "errors": []
+      }
+    }
+  }
+}

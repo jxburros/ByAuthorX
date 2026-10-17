@@ -14,10 +14,22 @@ _SURROGATE = regex.compile('[\ud800-\udfff]')
 BLOCK_TYPES = {'paragraph', 'heading', 'table', 'image', 'page_break', 'section_break', 'toc', 'footnote'}
 # Current document schema. Older supported versions are upgraded by explicit
 # transitions in ``migration``; newer versions are rejected without rewriting.
-SCHEMA_VERSION = 2
+SCHEMA_VERSION = 3
 STYLE_KINDS = ('paragraph', 'character')
 DEPENDENCY_POLICIES = ('link', 'embedded')
 DEPENDENCY_STATUSES = ('unresolved', 'current', 'changed', 'missing', 'embedded')
+# Citation marks keep ``prefix``/``suffix`` for rendering affixes (such as ``see ``). The source-side
+# context selectors for re-anchoring (context engine plan 6.5) live in a separate optional ``anchor``
+# object: ``{quote, prefix, suffix, position: {start, end}, content_hash?, state?}``. Its ``prefix``
+# and ``suffix`` are up to 32 characters of source text either side of the quote, ``position`` is
+# the quote's span in the cited chunk text and ``content_hash`` the source version it was anchored
+# to. Older readers ignore the object.
+# An ``excerpt`` mark (context engine plan 9, A2) covers text that was taken from a source and keeps a
+# back-pointer to it: ``value`` is the source ID, ``quote`` the source text, ``locator`` where in the source and
+# ``anchor`` the same source-side selectors a citation keeps. When the source is removed or the text can
+# no longer be found, ``anchor.state`` becomes ``unanchored``; the excerpt text is never removed with it.
+ANCHOR_CONTEXT_CHARS = 32
+ANCHOR_STATES = ('anchored', 'unanchored')
 
 
 def new_id(prefix='obj'):
@@ -30,6 +42,30 @@ def canonical_json(value):
 
 def object_hash(value):
     return hashlib.sha256(canonical_json(value).encode()).hexdigest()
+
+
+def citation_anchor_problem(anchor):
+    """Why a citation ``anchor`` object is malformed, or None when it is valid."""
+    if not isinstance(anchor, dict):
+        return 'Citation anchor must be an object.'
+    allowed = {'quote', 'prefix', 'suffix', 'position', 'content_hash', 'state'}
+    if set(anchor) - allowed or 'quote' not in anchor:
+        return 'Citation anchor fields are quote, prefix, suffix, position, content_hash and state.'
+    if any(not isinstance(anchor.get(key, ''), str) for key in ('quote', 'prefix', 'suffix', 'content_hash')):
+        return 'Citation anchor text fields must be text.'
+    if any(len(anchor.get(key, '')) > ANCHOR_CONTEXT_CHARS for key in ('prefix', 'suffix')):
+        return 'Citation anchor context is at most 32 characters on each side.'
+    position = anchor.get('position')
+    if position is not None and (
+        not isinstance(position, dict)
+        or set(position) != {'start', 'end'}
+        or any(type(position[key]) is not int or position[key] < 0 for key in ('start', 'end'))
+        or position['start'] > position['end']
+    ):
+        return 'Citation anchor position must be {start, end} offsets.'
+    if anchor.get('state', 'anchored') not in ANCHOR_STATES:
+        return 'Citation anchor state must be anchored or unanchored.'
+    return None
 
 
 def new_document(title='Untitled', text=''):
@@ -210,6 +246,24 @@ def validate_document(doc, *, include_history=True):
                 boundaries = {0} | {m.end() for m in regex.finditer(r'\X', b.get('text', ''))}
             if mark['start'] not in boundaries or mark['end'] not in boundaries:
                 fail('Text mark cannot split a grapheme cluster.', path + '.marks')
+            if mark['type'] == 'citation' and any(
+                not isinstance(mark.get(key, ''), str) for key in ('prefix', 'suffix')
+            ):
+                fail('Citation prefix and suffix must be text.', path + '.marks')
+            if mark['type'] in ('citation', 'excerpt') and 'anchor' in mark:
+                problem = citation_anchor_problem(mark['anchor'])
+                if problem:
+                    fail(problem, path + '.marks')
+            if mark['type'] == 'excerpt' and (
+                not isinstance(mark.get('value'), str)
+                or not isinstance(mark.get('quote', ''), str)
+                or not isinstance(mark.get('locator', {}), dict)
+                or not isinstance(mark.get('unanchored_reason', ''), str)
+            ):
+                fail(
+                    'Excerpt marks need a source ID, text quote, locator object and text reason.',
+                    path + '.marks',
+                )
         if b['type'] == 'table':
             rows = b.get('rows')
             if not isinstance(rows, list) or not rows:
@@ -269,6 +323,17 @@ def validate_document(doc, *, include_history=True):
     ):
         fail('Margins require finite nonnegative measurements.', 'layout.margins')
     validate_layout_extensions(doc, fail)
+    from .project import validate_project
+
+    validate_project(doc, fail)
+    from .codex import validate_codex
+    from .project_index import validate_saved_searches
+
+    validate_codex(doc, fail)
+    validate_saved_searches(doc, fail)
+    from .provenance import validate_provenance
+
+    validate_provenance(doc, fail)
     history = doc['history']
     if (
         not isinstance(history.get('revisions'), list)
@@ -276,6 +341,17 @@ def validate_document(doc, *, include_history=True):
         or not isinstance(history.get('current_branch'), str)
     ):
         fail('History requires revisions, branches and a current branch.', 'history')
+    drafts = history.get('drafts')
+    if drafts is not None and (
+        not isinstance(drafts, dict)
+        or any(
+            not isinstance(name, str)
+            or not isinstance(record, dict)
+            or not isinstance(record.get('note', ''), str)
+            for name, record in drafts.items()
+        )
+    ):
+        fail('Draft records map draft names to objects with a text note.', 'history.drafts')
     if include_history:
         revision_ids = set()
         for record in history['revisions']:

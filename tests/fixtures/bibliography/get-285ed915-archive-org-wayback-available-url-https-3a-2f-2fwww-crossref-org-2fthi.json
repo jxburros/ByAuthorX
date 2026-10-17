@@ -1,0 +1,16 @@
+{
+ "request": {
+  "method": "GET",
+  "url": "https://archive.org/wayback/available?url=https%3A%2F%2Fwww.crossref.org%2Fthis-page-does-not-exist-byax"
+ },
+ "response": {
+  "headers": {
+   "content-type": "application/json"
+  },
+  "json": {
+   "archived_snapshots": {},
+   "url": "https://www.crossref.org/this-page-does-not-exist-byax"
+  },
+  "status": 200
+ }
+}

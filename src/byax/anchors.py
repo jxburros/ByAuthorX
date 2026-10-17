@@ -1,8 +1,8 @@
 """Review-anchor remapping and range-level tracked changes.
 
-Comments (with threaded replies), bookmarks, proposal edit ranges and tracked
-changes follow text through insertions, deletions, paragraph splits/joins and
-section moves. Each moved anchor is reported; anchors whose text disappears
+Comments (with threaded replies), bookmarks, proposal edit ranges, tracked
+changes and provenance spans and claims (``byax.provenance``) follow text
+through insertions, deletions, paragraph splits/joins and section moves. Each moved anchor is reported; anchors whose text disappears
 become explicitly ``unresolved`` and deleted targets become ``orphaned``.
 """
 
@@ -175,9 +175,12 @@ def _mark_unresolved(proposal, edit, reason):
 def _move_edit(proposal, edit, operation, anchor, text):
     before = copy.deepcopy(edit['anchor'])
     edit['anchor'] = anchor
+    # The target changed, so its recorded object hash no longer applies even when this range did not
+    # move; acceptance then revalidates the exact anchored text instead.
+    if edit.get('state') == 'exact' or 'state' not in edit:
+        edit['state'] = 'remapped'
     if anchor != before:
         _set_operation_range(operation, anchor, text)
-        edit['state'] = 'remapped' if edit.get('state') == 'exact' or 'state' not in edit else edit['state']
         proposal['anchor_status'] = proposal.get('anchor_status', 'remapped')
         note(
             'anchor_mappings',
@@ -256,6 +259,9 @@ def remap_splice(doc, obj, start, end, length, *, skip_change=None):
         _report(
             'tracked_change', change['id'], before, _location(change), change.get('anchor_status', effect)
         )
+    from . import provenance
+
+    provenance.remap_splice(doc, obj, start, end, length)
 
 
 def remap_split(doc, obj, new, offset):
@@ -365,6 +371,9 @@ def remap_split(doc, obj, new, offset):
             _report('tracked_change', change['id'], before, _location(change), 'split')
             _report('tracked_change', second['id'], before, _location(second), 'split')
     doc['review']['tracked_changes'].extend(additions)
+    from . import provenance
+
+    provenance.remap_split(doc, obj, new, offset)
 
 
 def remap_join(doc, obj, other, offset):
@@ -426,6 +435,9 @@ def remap_join(doc, obj, other, offset):
         else:
             change['anchor_status'] = 'unresolved'
         _report('tracked_change', change['id'], before, _location(change), 'moved')
+    from . import provenance
+
+    provenance.remap_join(doc, obj, other, offset)
 
 
 def report_moved(doc, ids):
@@ -514,6 +526,9 @@ def orphan(doc, removed_ids):
                         'status': 'orphaned',
                     },
                 )
+    from . import provenance
+
+    provenance.orphan(doc, removed_ids)
 
 
 def _clusters(text):

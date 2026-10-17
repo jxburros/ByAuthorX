@@ -320,7 +320,7 @@ class LayerDialog(DocumentSettingsDialog):
         ):
             field = QLineEdit(', '.join(layer.get(key, [])))
             field.setAccessibleName(self.tr(label))
-            field.setPlaceholderText('pdf, docx, odt, rtf, html, md, txt')
+            field.setPlaceholderText('pdf, docx, odt, epub, rtf, html, md, txt')
             self.form.addRow(self.tr(label), field)
             self.outputs[key] = field
         self.finish()

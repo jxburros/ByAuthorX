@@ -215,6 +215,10 @@ def test_connection_tests_use_real_transport_contract(tmp_path, monkeypatch, kin
 
     def handler(request):
         requests.append(request)
+        if request.url.path == '/api/show':
+            # Ollama connection tests also read the model's context length (explicit test only).
+            assert request.method == 'POST' and json.loads(request.content) == {'model': 'fixture-model'}
+            return httpx.Response(200, json={})
         assert request.method == 'GET'
         assert request.url.path.endswith(suffix)
         assert 'fixture-key' in request.headers[key_header]
@@ -227,7 +231,7 @@ def test_connection_tests_use_real_transport_contract(tmp_path, monkeypatch, kin
     report = reg.test('test', authorized=True)
     assert report['status'] == 'connected'
     assert report['capability_verified'] is False
-    assert len(requests) == 1
+    assert len(requests) == (2 if kind == 'ollama' else 1)
 
 
 @pytest.mark.parametrize(

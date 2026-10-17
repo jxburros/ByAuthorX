@@ -1,0 +1,90 @@
+{
+  "measured_at_utc": "2026-10-16T23:05:11Z",
+  "machine": "x86_64 / Python 3.13.16",
+  "logical_cpus": 4,
+  "load_average_at_start": 3.6201171875,
+  "budget_ms": {
+    "hybrid_p95": 300
+  },
+  "rows": [
+    {
+      "vectors": 10000,
+      "dimension": 512,
+      "insert_seconds": 1.0,
+      "numpy_brute_ms": {
+        "p50": 64.3,
+        "p95": 95.0
+      },
+      "python_brute_ms": {
+        "p50": 337.2,
+        "p95": 374.3
+      },
+      "sqlite_vec_index_seconds": 0.2,
+      "sqlite_vec_ms": {
+        "p50": 28.5,
+        "p95": 34.7
+      },
+      "sqlite_vec_recall_at_10": 0.977
+    },
+    {
+      "vectors": 25000,
+      "dimension": 512,
+      "insert_seconds": 2.6,
+      "numpy_brute_ms": {
+        "p50": 229.5,
+        "p95": 282.7
+      },
+      "sqlite_vec_index_seconds": 0.6,
+      "sqlite_vec_ms": {
+        "p50": 59.7,
+        "p95": 71.4
+      },
+      "sqlite_vec_recall_at_10": 0.983
+    },
+    {
+      "vectors": 50000,
+      "dimension": 512,
+      "insert_seconds": 4.8,
+      "numpy_brute_ms": {
+        "p50": 405.7,
+        "p95": 524.0
+      },
+      "sqlite_vec_index_seconds": 0.9,
+      "sqlite_vec_ms": {
+        "p50": 119.1,
+        "p95": 140.8
+      },
+      "sqlite_vec_recall_at_10": 0.993
+    },
+    {
+      "vectors": 100000,
+      "dimension": 512,
+      "insert_seconds": 9.8,
+      "numpy_brute_ms": {
+        "p50": 728.3,
+        "p95": 928.7
+      },
+      "sqlite_vec_index_seconds": 1.8,
+      "sqlite_vec_ms": {
+        "p50": 220.4,
+        "p95": 235.5
+      },
+      "sqlite_vec_recall_at_10": 0.973
+    },
+    {
+      "vectors": 200000,
+      "dimension": 512,
+      "insert_seconds": 17.8,
+      "numpy_brute_ms": {
+        "p50": 1460.7,
+        "p95": 1900.2
+      },
+      "sqlite_vec_index_seconds": 3.3,
+      "sqlite_vec_ms": {
+        "p50": 337.8,
+        "p95": 403.8
+      },
+      "sqlite_vec_recall_at_10": 0.97
+    }
+  ]
+}

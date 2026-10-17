@@ -1,0 +1,284 @@
+[
+ {
+  "key": "ABCD2345",
+  "version": 1201,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/ABCD2345",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 2
+  },
+  "data": {
+   "key": "ABCD2345",
+   "version": 1201,
+   "itemType": "journalArticle",
+   "title": "Deep learning",
+   "creators": [
+    {
+     "creatorType": "author",
+     "firstName": "Yann",
+     "lastName": "LeCun"
+    },
+    {
+     "creatorType": "author",
+     "firstName": "Yoshua",
+     "lastName": "Bengio"
+    },
+    {
+     "creatorType": "author",
+     "firstName": "Geoffrey",
+     "lastName": "Hinton"
+    }
+   ],
+   "abstractNote": "Deep learning allows computational models that are composed of multiple processing layers.",
+   "publicationTitle": "Nature",
+   "volume": "521",
+   "issue": "7553",
+   "pages": "436-444",
+   "date": "2015-05-28",
+   "DOI": "10.1038/nature14539",
+   "ISSN": "0028-0836",
+   "url": "https://www.nature.com/articles/nature14539",
+   "accessDate": "2026-03-01T09:00:00Z",
+   "extra": "Citation Key: lecun2015deep\nPMID: 26017442",
+   "tags": [
+    {
+     "tag": "machine learning",
+     "type": 0
+    }
+   ],
+   "collections": [
+    "COLL0001"
+   ],
+   "relations": {},
+   "dateAdded": "2026-03-02T10:15:00Z",
+   "dateModified": "2026-03-02T10:15:00Z"
+  },
+  "csljson": {
+   "id": "http://zotero.org/users/local/xyz/items/ABCD2345",
+   "type": "article-journal",
+   "title": "Deep learning",
+   "container-title": "Nature",
+   "page": "436-444",
+   "volume": "521",
+   "issue": "7553",
+   "source": "www.nature.com",
+   "abstract": "Deep learning allows computational models that are composed of multiple processing layers.",
+   "DOI": "10.1038/nature14539",
+   "ISSN": "0028-0836",
+   "language": "en",
+   "author": [
+    {
+     "family": "LeCun",
+     "given": "Yann"
+    },
+    {
+     "family": "Bengio",
+     "given": "Yoshua"
+    },
+    {
+     "family": "Hinton",
+     "given": "Geoffrey"
+    }
+   ],
+   "issued": {
+    "date-parts": [
+     [
+      2015,
+      5,
+      28
+     ]
+    ]
+   }
+  }
+ },
+ {
+  "key": "KUHN1962",
+  "version": 88,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/KUHN1962",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 1
+  },
+  "data": {
+   "key": "KUHN1962",
+   "version": 88,
+   "itemType": "book",
+   "title": "The Structure of Scientific Revolutions",
+   "creators": [
+    {
+     "creatorType": "author",
+     "firstName": "Thomas S.",
+     "lastName": "Kuhn"
+    },
+    {
+     "creatorType": "editor",
+     "firstName": "Ian",
+     "lastName": "Hacking"
+    }
+   ],
+   "abstractNote": "",
+   "series": "Phoenix Books",
+   "edition": "4th",
+   "place": "Chicago",
+   "publisher": "University of Chicago Press",
+   "date": "June 2012",
+   "numPages": "264",
+   "language": "en",
+   "ISBN": "978-0-226-45812-0",
+   "url": "",
+   "extra": "",
+   "citationKey": "kuhn_structure_2012",
+   "tags": [],
+   "collections": [],
+   "relations": {},
+   "dateAdded": "2026-03-02T10:15:00Z",
+   "dateModified": "2026-03-02T10:15:00Z"
+  }
+ },
+ {
+  "key": "WEBP0001",
+  "version": 14,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/WEBP0001",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "WEBP0001",
+   "version": 14,
+   "itemType": "webpage",
+   "title": "Lighthouse Keeping in the 1890s",
+   "creators": [
+    {
+     "creatorType": "author",
+     "name": "Northern Lights Board"
+    }
+   ],
+   "websiteTitle": "Maritime Archive",
+   "date": "1894",
+   "url": "https://example.org/lighthouse",
+   "accessDate": "2026-02-11",
+   "extra": "",
+   "tags": [],
+   "collections": [
+    "COLL0001"
+   ],
+   "relations": {},
+   "dateAdded": "2026-03-02T10:15:00Z",
+   "dateModified": "2026-03-02T10:15:00Z"
+  }
+ },
+ {
+  "key": "NOTE0001",
+  "version": 3,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/NOTE0001",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "NOTE0001",
+   "version": 3,
+   "itemType": "note",
+   "note": "<p>A standalone note.</p>",
+   "tags": [],
+   "collections": [],
+   "relations": {}
+  }
+ },
+ {
+  "key": "PDFONLY1",
+  "version": 5,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/PDFONLY1",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "PDFONLY1",
+   "version": 5,
+   "itemType": "attachment",
+   "title": "Loose PDF",
+   "linkMode": "imported_file",
+   "contentType": "application/pdf",
+   "tags": [],
+   "collections": [],
+   "relations": {}
+  }
+ }
+]

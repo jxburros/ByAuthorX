@@ -1,0 +1,24 @@
+{
+  "id": "wordcount-csv",
+  "name": "Word-count CSV after export",
+  "version": "1.0.0",
+  "api_version": 1,
+  "description": "An export hook. After an export it counts the words in the exported file and writes a small CSV report next to it. It sees only a read-only copy of the exported file and the loss report, never the master document.",
+  "author": "ByAuthorX project",
+  "licence": "MIT",
+  "kinds": ["export-hook"],
+  "scopes": ["export-hook"],
+  "entry_points": {
+    "export_hooks": [
+      {
+        "id": "wordcount",
+        "path": "hooks/wordcount.py",
+        "runtime": "python",
+        "timeout": 30,
+        "title": "Word-count CSV",
+        "description": "Writes <file>.wordcount.csv with the word count, size and number of reported losses.",
+        "formats": ["md", "txt", "html", "docx", "odt", "epub", "rtf"]
+      }
+    ]
+  }
+}

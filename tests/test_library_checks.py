@@ -16,7 +16,9 @@ def cited(tmp_path, monkeypatch):
     root = tmp_path / 'sources'
     root.mkdir()
     path = root / 'notes.txt'
-    path.write_text('Aria is the captain.\n\nBren is the navigator.')
+    # The long middle paragraph keeps the two short ones in separate chunks (the chunker merges short ones).
+    filler = ' '.join(['The harbour was quiet that evening.'] * 60)
+    path.write_text(f'Aria is the captain.\n\n{filler}\n\nBren is the navigator.')
     registry = LibraryRegistry(tmp_path / 'config')
     definition = registry.create('Research', [root])
     index = LibraryIndex(definition, tmp_path / 'cache')
@@ -162,3 +164,23 @@ def test_gui_index_completion_invalidates_current_document_only(cited):
     window.doc = model.new_document(text='Another document')
     callbacks.pop()({})
     assert updated == [True]
+
+
+def test_quote_missing_at_locator_is_searched_elsewhere_before_reporting(cited):
+    """Verified absence (Q14): a quote that exists at another locator is offered, not called missing."""
+    doc, _, _, _, _ = cited
+    doc['blocks'][0]['text'] = '“Bren is the navigator.”'
+    doc['blocks'][0]['marks'][0]['end'] = len(doc['blocks'][0]['text'])
+    finding = next(
+        f for f in run_checks(doc, 'factual')['findings'] if f['rule'] == 'factual.library_citation'
+    )
+    assert 'occurs at another indexed location' in finding['explanation']
+    match = finding['measured']['literal_matches'][0]
+    assert match['path'] == 'notes.txt' and 'Bren is the navigator.' in match['excerpt']
+    doc['blocks'][0]['text'] = '“Cora is the pilot.”'
+    doc['blocks'][0]['marks'][0]['end'] = len(doc['blocks'][0]['text'])
+    absent = next(
+        f for f in run_checks(doc, 'factual')['findings'] if f['rule'] == 'factual.library_citation'
+    )
+    assert absent['explanation'] == 'Quoted passage does not match the cited library locator.'
+    assert 'literal_matches' not in absent['measured']

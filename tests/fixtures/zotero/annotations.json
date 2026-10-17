@@ -1,0 +1,167 @@
+[
+ {
+  "key": "ANNO0001",
+  "version": 1300,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/ANNO0001",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "ANNO0001",
+   "version": 1300,
+   "itemType": "annotation",
+   "parentItem": "PDFA0001",
+   "annotationType": "highlight",
+   "annotationAuthorName": "",
+   "annotationText": "Deep-learning methods are representation-learning methods with multiple levels of representation",
+   "annotationComment": "Key definition; quote this one.",
+   "annotationColor": "#ffd400",
+   "annotationPageLabel": "436",
+   "annotationSortIndex": "00000|000812|00298",
+   "annotationPosition": "{\"pageIndex\": 0, \"rects\": [[56.0, 410.2, 301.5, 421.9]]}",
+   "tags": [
+    {
+     "tag": "definition"
+    }
+   ],
+   "dateAdded": "2026-03-02T10:15:00Z",
+   "dateModified": "2026-03-02T10:15:00Z",
+   "relations": {}
+  }
+ },
+ {
+  "key": "ANNO0002",
+  "version": 1301,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/ANNO0002",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "ANNO0002",
+   "version": 1301,
+   "itemType": "annotation",
+   "parentItem": "PDFA0001",
+   "annotationType": "note",
+   "annotationText": "",
+   "annotationComment": "Compare with Kuhn on paradigm shifts.",
+   "annotationColor": "#2ea8e5",
+   "annotationPageLabel": "",
+   "annotationSortIndex": "00004|000100|00010",
+   "annotationPosition": "{\"pageIndex\": 4, \"rects\": [[10, 10, 20, 20]]}",
+   "tags": [],
+   "dateAdded": "2026-03-02T10:15:00Z",
+   "dateModified": "2026-03-02T10:15:00Z",
+   "relations": {}
+  }
+ },
+ {
+  "key": "ANNO0003",
+  "version": 92,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/ANNO0003",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "ANNO0003",
+   "version": 92,
+   "itemType": "annotation",
+   "parentItem": "PDFA0002",
+   "annotationType": "underline",
+   "annotationText": "Normal science means research firmly based upon one or more past scientific achievements",
+   "annotationComment": "",
+   "annotationColor": "#a28ae5",
+   "annotationPageLabel": "x",
+   "annotationSortIndex": "00009|000300|00100",
+   "annotationPosition": "{\"pageIndex\": 9, \"rects\": [[1, 2, 3, 4]]}",
+   "tags": [],
+   "dateAdded": "2026-03-02T10:15:00Z",
+   "dateModified": "2026-03-02T10:15:00Z",
+   "relations": {}
+  }
+ },
+ {
+  "key": "ANNO0004",
+  "version": 93,
+  "library": {
+   "type": "user",
+   "id": 0,
+   "name": "My Library",
+   "links": {
+    "alternate": {
+     "href": "https://www.zotero.org/user",
+     "type": "text/html"
+    }
+   }
+  },
+  "links": {
+   "self": {
+    "href": "http://localhost:23119/api/users/0/items/ANNO0004",
+    "type": "application/json"
+   }
+  },
+  "meta": {
+   "numChildren": 0
+  },
+  "data": {
+   "key": "ANNO0004",
+   "version": 93,
+   "itemType": "annotation",
+   "parentItem": "PDFA0003",
+   "annotationType": "highlight",
+   "annotationText": "Belongs to an item that is not imported",
+   "annotationComment": "",
+   "annotationPageLabel": "1",
+   "annotationSortIndex": "00000|000000|00000",
+   "tags": [],
+   "relations": {}
+  }
+ }
+]

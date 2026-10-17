@@ -6,6 +6,7 @@ import hashlib
 import json
 import os
 import stat
+import struct
 import sys
 import tempfile
 import threading
@@ -18,6 +19,7 @@ from platformdirs import user_cache_path
 
 from .errors import ByaxError
 from .model import SCHEMA_VERSION, new_id, validate_document
+from .platform_support import fsync_file, lock_identity
 
 MAX_PACKAGE_BYTES = 256 * 1024 * 1024
 MAX_MEMBER_BYTES = 64 * 1024 * 1024
@@ -83,7 +85,7 @@ class DocumentLock:
             else:
                 # Keep a stable inode across contenders. Unlinking a sidecar on
                 # release can let two processes lock different inodes for one file.
-                lock_key = hashlib.sha256(os.path.normcase(self.path).encode('utf-8')).hexdigest()
+                lock_key = hashlib.sha256(lock_identity(self.path).encode('utf-8')).hexdigest()
                 lock_path = user_cache_path('ByAuthorX') / 'locks' / (lock_key + '.lock')
                 lock_path.parent.mkdir(parents=True, exist_ok=True)
                 handle = open(lock_path, 'a+b')  # noqa: SIM115 -- held until DocumentLock.release across calls
@@ -314,6 +316,28 @@ def load_document(path: str | os.PathLike[str]) -> dict[str, Any]:
     return open_document(path)[0]
 
 
+def _unreadable_details(path):
+    from .sync_safety import placeholder_state
+
+    held = placeholder_state(path)
+    return {'reason': held['kind']} if held else {}
+
+
+def _unreadable_message(path, exc):
+    """Explain a failed read, naming the usual cause when a sync client left a partial file."""
+    from .sync_safety import placeholder_state
+
+    held = placeholder_state(path)
+    if held:
+        return f'Cannot read native package: {held["message"]} Wait for sync to finish, then retry.'
+    if isinstance(exc, zipfile.BadZipFile | EOFError | zlib.error):
+        return (
+            f'Cannot read native package: it is incomplete or damaged ({exc}). A file that is still '
+            'syncing looks like this; wait for sync to finish. The file was not changed.'
+        )
+    return f'Cannot read native package: {exc}'
+
+
 def open_document(path: str | os.PathLike[str]) -> tuple[dict[str, Any], dict[str, Any] | None]:
     """Load a package, upgrading supported older schemas in memory only.
 
@@ -343,8 +367,19 @@ def open_document(path: str | os.PathLike[str]) -> tuple[dict[str, Any], dict[st
             return doc, (reports[0] if reports else None)
     except ByaxError:
         raise
-    except (OSError, zipfile.BadZipFile, RuntimeError, zlib.error, EOFError) as exc:
-        raise ByaxError('invalid_input', f'Cannot read native package: {exc}', target=str(path)) from exc
+    except (
+        OSError,
+        zipfile.BadZipFile,
+        RuntimeError,
+        zlib.error,
+        EOFError,
+        NotImplementedError,
+        OverflowError,
+        struct.error,
+    ) as exc:
+        raise ByaxError(
+            'invalid_input', _unreadable_message(path, exc), target=str(path), **_unreadable_details(path)
+        ) from exc
 
 
 def _verify_written(path, members):
@@ -358,9 +393,32 @@ def _verify_written(path, members):
                 raise ByaxError('invalid_input', 'Written package failed verification.', target=name)
 
 
+UNCHECKED: Any = object()
+
+
+def file_stamp(path: str | os.PathLike[str]) -> tuple[int, int] | None:
+    """Modification time (ns) and size of a file, or None when it does not exist."""
+    try:
+        status = os.stat(path)
+    except OSError:
+        return None
+    return (status.st_mtime_ns, status.st_size)
+
+
 def save_document(
-    doc: dict[str, Any], path: str | os.PathLike[str], *, owner: str | None = None
+    doc: dict[str, Any],
+    path: str | os.PathLike[str],
+    *,
+    owner: str | None = None,
+    expected_stamp: Any = UNCHECKED,
 ) -> dict[str, Any]:
+    """Atomically replace ``path`` with the document.
+
+    ``expected_stamp`` (a :func:`file_stamp` value, ``None`` for "must not exist") makes the save
+    refuse with ``conflict`` when the file changed since it was read. A sync client that delivers
+    a newer copy between opening and saving is the usual cause; the check runs under the document
+    lock immediately before the replace, so the delivered file is never overwritten unseen.
+    """
     members = _members(doc)
     target = Path(path).resolve()
     target.parent.mkdir(parents=True, exist_ok=True)
@@ -387,8 +445,15 @@ def save_document(
                         info.external_attr = 0o600 << 16
                         archive.writestr(info, data)
                 stream.flush()
-                os.fsync(stream.fileno())
+                fsync_file(stream.fileno())
             _verify_written(tmp, members)
+            if expected_stamp is not UNCHECKED and file_stamp(target) != expected_stamp:
+                raise ByaxError(
+                    'conflict',
+                    'The file changed on disk since it was opened (a sync client may have delivered a '
+                    'newer version). Nothing was overwritten; save under another name or reopen the file.',
+                    target=str(target),
+                )
             if target.exists():
                 # mkstemp creates 0600 files; keep the document's existing mode.
                 os.chmod(tmp, stat.S_IMODE(target.stat().st_mode))
@@ -441,7 +506,7 @@ def _preserve_original(target, version):
             with os.fdopen(fd, 'wb') as stream:
                 stream.write(data)
                 stream.flush()
-                os.fsync(stream.fileno())
+                fsync_file(stream.fileno())
             os.replace(tmp, backup)
         finally:
             if os.path.exists(tmp):

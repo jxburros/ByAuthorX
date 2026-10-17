@@ -4,6 +4,7 @@ import base64
 import copy
 import difflib
 import hashlib
+import math
 import re
 import threading
 from datetime import UTC, datetime
@@ -11,7 +12,7 @@ from typing import Any, NoReturn
 
 import regex as unicode_regex
 
-from . import anchors, formatting
+from . import anchors, codex, formatting, project, project_index, provenance
 from .checks import run_checks
 from .compare import compare as semantic_compare
 from .compare import plan_merge
@@ -39,7 +40,7 @@ OP_SCHEMAS = {
     'move_section': ('target', 'after'),
     'reorder_row': ('target index to_index', ''),
     'reorder_column': ('target index to_index', ''),
-    'reply_comment': ('target text', 'author'),
+    'reply_comment': ('target text', 'author id date'),
     'split_block': ('target offset', 'id'),
     'join_blocks': ('target next', ''),
     'apply_style': ('target style', ''),
@@ -54,10 +55,13 @@ OP_SCHEMAS = {
     'remove_row': ('target index', ''),
     'add_column': ('target', 'index values'),
     'remove_column': ('target index', ''),
-    'add_comment': ('target text', 'start end author'),
+    'add_comment': ('target text', 'start end author id date source'),
     'resolve_comment': ('target', ''),
     'add_reference': ('id values', ''),
-    'cite': ('target start end source', 'locator quote kind prefix suffix'),
+    'cite': ('target start end source', 'locator quote kind prefix suffix anchor'),
+    'reanchor_citation': ('target start end source anchor', 'locator'),
+    'excerpt': ('target start end source', 'locator quote anchor'),
+    'reanchor_excerpt': ('target start end source anchor', 'locator'),
     'fill_fields': ('values', ''),
     'add_layer': ('values', ''),
     'update_layer': ('target values', ''),
@@ -113,6 +117,13 @@ OP_SCHEMAS.update(
         'remove_reference': ('id', ''),
     }
 )
+# Manuscript project (binder) operations; handlers live in ``project``.
+OP_SCHEMAS.update(project.OP_SCHEMAS)
+# Codex entries and saved project searches; handlers live in ``codex`` and ``project_index``.
+OP_SCHEMAS.update(codex.OP_SCHEMAS)
+OP_SCHEMAS.update(project_index.SAVED_OP_SCHEMAS)
+# Claim-level provenance log (context engine plan 10); handlers live in ``provenance``.
+OP_SCHEMAS.update(provenance.OP_SCHEMAS)
 # Source corrections stay separate from document corrections (spec 13.2).
 SOURCE_OPERATIONS = {'add_reference', 'remove_reference'}
 CONTENT_OPERATIONS = {
@@ -139,6 +150,7 @@ CONTENT_OPERATIONS = {
     'place_image',
     'apply_repair',
 }
+CONTENT_OPERATIONS |= project.CONTENT_OPERATIONS
 
 
 def operation_schema() -> dict[str, Any]:
@@ -210,6 +222,7 @@ def _validate_op(op, index):
         'group',
         'origin',
         'object',
+        'date',
     ):
         if key in op and not isinstance(op[key], str) and not (key == 'after' and op[key] is None):
             _error('Expected a string.', f'operations[{index}].{key}')
@@ -444,10 +457,8 @@ def _section_end(blocks, start):
     )
 
 
-def _move_section(doc, op):
-    heading = _target(doc, op)
-    if heading.get('type') != 'heading' or heading not in doc['blocks']:
-        _error('Section target must be a heading.', 'target')
+def _section_members(doc, heading):
+    """IDs of a heading's section, plus blocks explicitly anchored to it elsewhere."""
     blocks = doc['blocks']
     start = blocks.index(heading)
     members = {b['id'] for b in blocks[start : _section_end(blocks, start)]}
@@ -468,14 +479,34 @@ def _move_section(doc, op):
                 members.add(block['id'])
         if len(members) == old_count:
             break
+    return members
+
+
+def _move_section(doc, op, *, before=None, inside=None):
+    """Move a heading's section after a block (default), before a heading or to the end of one.
+
+    ``before`` and ``inside`` are internal placements used by binder moves.
+    """
+    heading = _target(doc, op)
+    if heading.get('type') != 'heading' or heading not in doc['blocks']:
+        _error('Section target must be a heading.', 'target')
+    blocks = doc['blocks']
+    members = _section_members(doc, heading)
     after = op.get('after')
-    if after in members:
-        raise ByaxError('conflict', 'A section cannot be moved inside itself.', target=after)
+    for anchor in (after, before, inside):
+        if anchor in members:
+            raise ByaxError('conflict', 'A section cannot be moved inside itself.', target=anchor)
     moving = [b for b in blocks if b['id'] in members]
     for block in moving:
         _target(doc, {'target': block['id']})
     retained = [b for b in blocks if b['id'] not in members]
-    if after is None:
+    if before is not None or inside is not None:
+        anchor = before if before is not None else inside
+        destination = next((i for i, b in enumerate(retained) if b['id'] == anchor), None)
+        if destination is None:
+            raise ByaxError('missing_target', 'Section destination does not exist.', target=anchor)
+        insertion = destination if before is not None else _section_end(retained, destination)
+    elif after is None:
         insertion = len(retained)
     else:
         destination = next((i for i, b in enumerate(retained) if b['id'] == after), None)
@@ -534,6 +565,7 @@ def _op_text_edit(doc, op, base_revision, kind, changed, allow_policy_changes):
     before_marks = copy.deepcopy(obj.get('marks', []))
     _splice(obj, start, end, replacement)
     anchors.remap_splice(doc, obj, start, end, len(replacement))
+    provenance.record(doc, obj, start, len(replacement))
     changed.append(obj['id'])
     anchors.track_text(doc, obj, original, before_marks, start, end, replacement, base_revision)
 
@@ -543,6 +575,7 @@ def _op_insert_paragraph(doc, op, base_revision, kind, changed, allow_policy_cha
     if obj['style'] not in doc['styles']:
         _error('Unknown named style.', 'style')
     _insert(doc, obj, op.get('after'))
+    provenance.record_object(doc, obj)
     changed.append(obj['id'])
 
 
@@ -829,15 +862,29 @@ def _op_add_comment(doc, op, base_revision, kind, changed, allow_policy_changes)
             _error('Comment ranges require both start and end.', 'range')
         _boundaries(obj.get('text', ''), op['start'], op['end'])
     comment = {k: v for k, v in op.items() if k not in ('type', 'op')}
-    comment.update(id=new_id('comment'), status='open', revision=base_revision)
+    comment.update(id=_comment_id(doc, op), status='open', revision=base_revision)
     doc['review']['comments'].append(comment)
     changed.append(comment['id'])
+
+
+def _comment_id(doc, op):
+    """A caller-supplied stable identity (for example from an imported review file), or a new one."""
+    if 'id' not in op:
+        return new_id('comment')
+    identity = op['id']
+    if not identity.startswith('comment_') or len(identity) > 80:
+        _error('Comment identities start with comment_ and have at most 80 characters.', 'id')
+    try:
+        _find_review(doc, 'comments', identity)
+    except ByaxError:
+        return identity
+    raise ByaxError('conflict', 'Comment identity already exists.', target=identity)
 
 
 def _op_reply_comment(doc, op, base_revision, kind, changed, allow_policy_changes):
     parent = _find_review(doc, 'comments', op['target'])
     reply = {
-        'id': new_id('comment'),
+        'id': _comment_id(doc, op),
         'parent_id': parent['id'],
         'target': parent['target'],
         'text': op['text'],
@@ -846,6 +893,8 @@ def _op_reply_comment(doc, op, base_revision, kind, changed, allow_policy_change
         'revision': base_revision,
         'replies': [],
     }
+    if 'date' in op:
+        reply['date'] = op['date']
     parent.setdefault('replies', []).append(reply)
     changed.extend((parent['id'], reply['id']))
 
@@ -888,19 +937,7 @@ def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
     citation_kind = op.get('kind', 'paraphrase')
     if citation_kind not in ('quotation', 'paraphrase', 'inference'):
         _error('Unknown citation evidence kind.', 'kind')
-    locator = op.get('locator', {})
-
-    def valid_locator(key, value):
-        if key == 'heading_path':
-            return isinstance(value, list) and all(isinstance(part, str) for part in value)
-        if key in ('start', 'end', 'ordinal'):
-            return type(value) is int and value >= 0
-        if key in ('page', 'paragraph'):
-            return isinstance(value, str) or (type(value) is int and value >= 0)
-        return key in ('block', 'chunk', 'label', 'text') and isinstance(value, str)
-
-    if not isinstance(locator, dict) or any(not valid_locator(key, value) for key, value in locator.items()):
-        _error('Citation locator contains unsupported fields or invalid values.', 'locator')
+    _citation_locator(op.get('locator', {}))
     for key in ('quote', 'prefix', 'suffix'):
         if key in op and not isinstance(op[key], str):
             _error('Expected citation text.', key)
@@ -912,11 +949,122 @@ def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
         'kind': citation_kind,
         'quote': op.get('quote', obj['text'][op['start'] : op['end']]),
     }
-    for key in ('locator', 'prefix', 'suffix'):
+    if 'anchor' in op:
+        _citation_anchor(op['anchor'])
+    for key in ('locator', 'prefix', 'suffix', 'anchor'):
         if key in op:
             mark[key] = copy.deepcopy(op[key])
     if mark not in obj.setdefault('marks', []):
         obj['marks'].append(mark)
+    changed.append(obj['id'])
+
+
+def _op_excerpt(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Mark text as an excerpt of a source (context engine plan 9, A2): a back-pointer, no text change."""
+    obj = _target(doc, op)
+    if 'text' not in obj:
+        _error('Excerpts require an editable text target.', 'target')
+    _boundaries(obj['text'], op['start'], op['end'])
+    if op['start'] == op['end']:
+        _error('Select the excerpted text.', 'end')
+    if op['source'] not in doc['references']:
+        _error('Excerpt source does not exist.', 'source')
+    _citation_locator(op.get('locator', {}))
+    if 'quote' in op and not isinstance(op['quote'], str):
+        _error('Expected excerpt text.', 'quote')
+    mark = {
+        'type': 'excerpt',
+        'value': op['source'],
+        'start': op['start'],
+        'end': op['end'],
+        'quote': op.get('quote', obj['text'][op['start'] : op['end']]),
+    }
+    if 'anchor' in op:
+        _citation_anchor(op['anchor'])
+        mark['anchor'] = copy.deepcopy(op['anchor'])
+    if 'locator' in op:
+        mark['locator'] = copy.deepcopy(op['locator'])
+    if mark not in obj.setdefault('marks', []):
+        obj['marks'].append(mark)
+    changed.append(obj['id'])
+
+
+def _op_reanchor_excerpt(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Record an excerpt's re-anchoring result; an ``unanchored`` state keeps the mark and its text."""
+    obj = _target(doc, op)
+    _citation_anchor(op['anchor'])
+    marks = [
+        m
+        for m in obj.get('marks', [])
+        if m.get('type') == 'excerpt'
+        and m.get('value') == op['source']
+        and (m.get('start'), m.get('end')) == (op['start'], op['end'])
+    ]
+    if not marks:
+        raise ByaxError('missing_target', 'No excerpt mark matches this target, range and source.')
+    if 'locator' in op:
+        _citation_locator(op['locator'])
+    for mark in marks:
+        mark['anchor'] = copy.deepcopy(op['anchor'])
+        if 'locator' in op:
+            mark['locator'] = copy.deepcopy(op['locator'])
+        if op['anchor'].get('state') != 'unanchored':
+            mark.pop('unanchored_reason', None)
+    changed.append(obj['id'])
+
+
+def _citation_locator(locator):
+    def valid_locator(key, value):
+        if key == 'heading_path':
+            return isinstance(value, list) and all(isinstance(part, str) for part in value)
+        if key in ('start', 'end', 'ordinal', 'ordinal_end'):
+            return type(value) is int and value >= 0
+        if key == 'bbox':
+            return (
+                isinstance(value, list)
+                and len(value) == 4
+                and all(type(n) in (int, float) and math.isfinite(n) for n in value)
+            )
+        if key in ('page', 'paragraph'):
+            return isinstance(value, str) or (type(value) is int and value >= 0)
+        return key in ('block', 'chunk', 'label', 'text', 'parent', 'note') and isinstance(value, str)
+
+    if not isinstance(locator, dict) or any(not valid_locator(key, value) for key, value in locator.items()):
+        _error('Citation locator contains unsupported fields or invalid values.', 'locator')
+
+
+def _citation_anchor(anchor):
+    from .model import citation_anchor_problem
+
+    problem = citation_anchor_problem(anchor)
+    if problem:
+        _error(problem, 'anchor')
+
+
+def _op_reanchor_citation(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Record a citation mark's re-anchoring result (context engine plan 6.5).
+
+    The mark is identified by target, range and source. Only its source-side ``anchor`` and,
+    optionally, its ``locator`` change; an ``unanchored`` state keeps the mark and its quote.
+    """
+    obj = _target(doc, op)
+    _citation_anchor(op['anchor'])
+    marks = [
+        m
+        for m in obj.get('marks', [])
+        if m.get('type') == 'citation'
+        and m.get('value') == op['source']
+        and (m.get('start'), m.get('end')) == (op['start'], op['end'])
+    ]
+    if not marks:
+        raise ByaxError('missing_target', 'No citation mark matches this target, range and source.')
+    locator = op.get('locator')
+    if locator is not None:
+        _citation_locator(locator)
+    for mark in marks:
+        mark['anchor'] = copy.deepcopy(op['anchor'])
+        if locator is not None:
+            mark['locator'] = copy.deepcopy(locator)
     changed.append(obj['id'])
 
 
@@ -1016,6 +1164,7 @@ _ANCHOR_MODES = {
     'delete_text': 'range',
     'format_text': 'range',
     'cite': 'range',
+    'excerpt': 'range',
     'add_comment': 'range',
     'apply_character_style': 'range',
     'clear_formatting': 'range',
@@ -1114,6 +1263,17 @@ def _plan_edits(doc, operations, explicit=None, existing=None):
     return edits
 
 
+def _find_reviewable(doc, target):
+    """A body object, a binder item or a codex entry (``project_*``/``codex_*`` operations)."""
+    try:
+        return find_object(doc, target)
+    except ByaxError:
+        item = project.find_item(doc, target) or codex.find_entry(doc, target)
+        if item is None:
+            raise
+        return item
+
+
 def _register_proposal(doc, values, base_revision, *, allow_empty=False):
     values = copy.deepcopy(values)
     operations = values.get('operations')
@@ -1155,7 +1315,7 @@ def _register_proposal(doc, values, base_revision, *, allow_empty=False):
     preconditions = {}
     for target in sorted(target_ids):
         try:
-            preconditions[target] = object_hash(find_object(doc, target))
+            preconditions[target] = object_hash(_find_reviewable(doc, target))
         except ByaxError:
             # Dependencies and review records are revalidated by their own operations.
             if target not in doc.get('dependencies', {}):
@@ -1228,7 +1388,7 @@ def _revalidate(doc, proposal, selected):
                 if digest is None:
                     continue
                 try:
-                    current = object_hash(find_object(doc, reference))
+                    current = object_hash(_find_reviewable(doc, reference))
                 except ByaxError:
                     _stale('Proposal target no longer exists.', target=reference, edit=edit['id'])
                 if current != digest:
@@ -1239,7 +1399,7 @@ def _revalidate(doc, proposal, selected):
             reference = operation.get(key)
             if isinstance(reference, str) and reference not in created:
                 try:
-                    find_object(doc, reference)
+                    _find_reviewable(doc, reference)
                 except ByaxError:
                     _stale('Proposal insertion anchor no longer exists.', target=reference, edit=edit['id'])
 
@@ -1365,6 +1525,9 @@ def _op_resolve_proposal(doc, op, base_revision, kind, changed, allow_policy_cha
                 operation = proposal['operations'][edit['index']]
                 if current is not None:
                     current['attribution']['edit'] = edit['id']
+                    declared = provenance.from_proposal(proposal, edit['index'])
+                    if declared is not None:
+                        current['attribution']['provenance'] = declared
                 changed.extend(_operation(doc, operation, base_revision))
                 touched |= _edited_ids(operation) | _created_ids(operation)
         finally:
@@ -1705,6 +1868,7 @@ def _op_set_block(doc, op, base_revision, kind, changed, allow_policy_changes):
     if obj.get('text', '') != original:
         position, deleted, inserted = anchors.minimal_change(original, 0, len(original), obj.get('text', ''))
         anchors.remap_splice(doc, obj, position, position + len(deleted), len(inserted))
+        provenance.record(doc, obj, position, len(inserted))
         anchors.track_text(
             doc, obj, original, before_marks, 0, len(original), obj.get('text', ''), base_revision
         )
@@ -1956,7 +2120,11 @@ def _op_replace_content(doc, op, base_revision, kind, changed, allow_policy_chan
                 'Replacement content must keep locked blocks unchanged.',
                 target=block['id'],
             )
+    before_text = provenance._objects(doc)
     doc['blocks'] = copy.deepcopy(op['blocks'])
+    after_text = provenance._objects(doc)
+    # Wholesale replacement keeps identities but not offsets: changed objects lose their spans.
+    provenance.forget(doc, [k for k, v in before_text.items() if after_text.get(k, v) != v])
     doc['assets'].update(copy.deepcopy(op.get('assets', {})))
     if 'import_provenance' in op:
         doc['metadata']['import'] = copy.deepcopy(op['import_provenance'])
@@ -2153,6 +2321,9 @@ _HANDLERS = {
     'resolve_comment': _op_resolve_comment,
     'add_reference': _op_document_record,
     'cite': _op_cite,
+    'reanchor_citation': _op_reanchor_citation,
+    'excerpt': _op_excerpt,
+    'reanchor_excerpt': _op_reanchor_excerpt,
     'set_profile': _op_document_record,
     'set_requirement': _op_document_record,
     'add_layer': _op_add_layer,
@@ -2196,6 +2367,10 @@ _HANDLERS = {
     'reorder_layer': _op_reorder_layer,
     'insert_cross_reference': _op_insert_cross_reference,
 }
+_HANDLERS.update(project.HANDLERS)
+_HANDLERS.update(codex.HANDLERS)
+_HANDLERS.update(project_index.SAVED_HANDLERS)
+_HANDLERS.update(provenance.HANDLERS)
 
 
 def _operation(doc, op, base_revision, *, allow_policy_changes=False):
@@ -2404,6 +2579,10 @@ def _op_remove_reference(doc, op, base_revision, kind, changed, allow_policy_cha
         raise ByaxError('missing_target', 'Reference does not exist.', target=op['id'])
     del doc['references'][op['id']]
     changed.append(op['id'])
+    # Excerpts keep their text and their pointer; they become unanchored, never erased.
+    from .excerpts import detach_source
+
+    changed.extend(detach_source(doc, op['id']))
 
 
 _CHECK_HANDLERS = {
@@ -2642,9 +2821,14 @@ def apply(
         'required_suites',
         'origin',
         'author',
+        'provenance',
     }
     if unknown:
         _error('Unknown edit envelope fields.', '$', unknown=sorted(unknown))
+    if 'provenance' in envelope:
+        problem = provenance.envelope_problem(envelope['provenance'])
+        if problem:
+            _error(problem, 'provenance')
     if type(envelope.get('schema_version', 1)) is not int or envelope.get('schema_version', 1) != 1:
         _error('Unsupported operation schema version.', 'schema_version')
     if 'author' in envelope and not isinstance(envelope['author'], str):
@@ -2697,6 +2881,7 @@ def apply(
             'author': envelope.get('author', ''),
             'origin': envelope.get('origin', 'api'),
             'timestamp': datetime.now(UTC).isoformat(),
+            **({'provenance': copy.deepcopy(envelope['provenance'])} if 'provenance' in envelope else {}),
         }
     }
     token = anchors._JOURNAL.set(journal)
@@ -2706,7 +2891,7 @@ def apply(
         )
     finally:
         anchors._JOURNAL.reset(token)
-    for key in ('anchor_mappings', 'identity_changes'):
+    for key in ('anchor_mappings', 'identity_changes', 'project_orphans'):
         if journal.get(key):
             result[key] = journal[key]
     # Desktop commits are never retried by identity, so they keep no replay record.
@@ -2732,6 +2917,11 @@ def _apply_operations(
             raise
         except (KeyError, TypeError, ValueError, IndexError) as exc:
             raise ByaxError('schema_error', f'Invalid operation value: {exc}', operation_index=i) from exc
+    provenance.normalize(candidate)
+    if 'project' in candidate:
+        # Binder items whose heading an edit removed are reported, never dropped.
+        for orphan in project.new_orphans(doc, candidate):
+            anchors.note('project_orphans', orphan)
     validate_document(candidate, include_history=False)
     _preserve(
         doc,
@@ -3055,6 +3245,111 @@ def switch_branch(
     _preserve(doc, switched, [], allow_policy_changes=allow_policy_changes)
     validate_document(switched, include_history=False)
     return switched, _result(switched, doc['revision'], [b['id'] for b in switched['blocks']])
+
+
+def revision_ancestors(doc: dict[str, Any], revision: str | None = None) -> list[str]:
+    """Revisions reachable from ``revision`` (default: the head) through recorded parents.
+
+    Documents written before ancestry was recorded fall back to their retained linear history.
+    """
+    history = doc['history']
+    parents = history.get('parents', {})
+    start = revision or doc['revision']
+    order, pending, seen = [], [start], set()
+    while pending:
+        current = pending.pop(0)
+        if current in seen or current is None:
+            continue
+        seen.add(current)
+        order.append(current)
+        pending.extend(parents.get(current, []))
+    if start == doc['revision'] and start not in parents:
+        order.extend(r['revision'] for r in history.get('revisions', []) if r['revision'] not in seen)
+    return order
+
+
+def import_branch(
+    doc: dict[str, Any], other: dict[str, Any], name: str
+) -> tuple[dict[str, Any], dict[str, Any]]:
+    """Bring another copy of this document into its history as a branch, without a new revision.
+
+    ``other`` is a diverged copy with the same document identity (for example a sync conflicted
+    copy). Its head and the retained revisions this document has not seen become reachable, so
+    ``propose_merge`` can find the common ancestor and plan a reviewable three-way merge. Nothing
+    in the working document changes and neither input is modified.
+    """
+    if not isinstance(name, str) or not name.strip():
+        _error('Branch name cannot be empty.', 'name')
+    if other.get('id') != doc['id']:
+        raise ByaxError(
+            'conflict', 'The other file is a different document and cannot be merged.', target=other.get('id')
+        )
+    if name in doc['history']['branches']:
+        raise ByaxError('conflict', 'Branch already exists.', target=name)
+    candidate = _candidate(doc)
+    history = candidate['history']
+    theirs = other['history']
+    records = history['revisions']
+    known = {r['revision'] for r in records} | {doc['revision']}
+    names = {r['name'] for r in records if r.get('name')}
+    limit = candidate['settings'].get('history_limit', 1000)
+    unseen = [r for r in theirs.get('revisions', []) if r['revision'] not in known]
+    # Foreign intermediate revisions are kept only while the history limit allows it, so an import
+    # never blocks the writer's next edit; the head and merge ancestry are always imported.
+    keep_intermediate = len(records) + len(unseen) + 1 <= limit
+    if doc['revision'] not in history.get('parents', {}) and records:
+        # Written before ancestry was recorded: the retained history is linear.
+        history['parents'] = {**history.get('parents', {}), doc['revision']: [records[-1]['revision']]}
+    previous = None
+    imported = 0
+    for record in theirs.get('revisions', []):
+        revision = record['revision']
+        if revision not in known and keep_intermediate:
+            copied = {
+                k: copy.deepcopy(v) for k, v in record.items() if k not in ('snapshot', 'delta', 'name')
+            }
+            if record.get('name') and record['name'] not in names:
+                copied['name'] = record['name']
+                names.add(record['name'])
+            if 'snapshot' in record:
+                copied['snapshot'] = copy.deepcopy(record['snapshot'])
+            elif records and previous == records[-1]['revision'] and 'delta' in record:
+                # Same predecessor state in this list, so the stored delta still applies.
+                copied['delta'] = copy.deepcopy(record['delta'])
+            else:
+                copied['snapshot'] = _revision(other, revision)
+            copied['bytes'] = len(canonical_json(copied.get('snapshot', copied.get('delta'))))
+            records.append(copied)
+            known.add(revision)
+            imported += 1
+        previous = revision
+    head = other['revision']
+    if head not in known:
+        state = snapshot(other)
+        records.append(
+            {
+                'revision': head,
+                'snapshot': state,
+                'bytes': len(canonical_json(state)),
+                'timestamp': datetime.now(UTC).isoformat(),
+                'origin': 'imported_copy',
+                'operations': [],
+            }
+        )
+        imported += 1
+    theirs_parents = {k: list(v) for k, v in theirs.get('parents', {}).items()}
+    if head not in theirs_parents and theirs.get('revisions'):
+        theirs_parents[head] = [theirs['revisions'][-1]['revision']]
+    history['parents'] = {**theirs_parents, **history.get('parents', {})}
+    history['provenance'] = {**theirs.get('provenance', {}), **history.get('provenance', {})}
+    history['branches'].setdefault(history['current_branch'], doc['revision'])
+    history['branches'][name] = head
+    base = _merge_base(candidate, doc['revision'], head, name)
+    history['forks'] = {**history.get('forks', {}), name: base}
+    validate_document(candidate, include_history=True)
+    result = _result(candidate, doc['revision'])
+    result.update(branch=name, merge_base=base, imported_revisions=imported)
+    return candidate, result
 
 
 def compare_documents(before: dict[str, Any], after: dict[str, Any]) -> dict[str, Any]:

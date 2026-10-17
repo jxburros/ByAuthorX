@@ -1,0 +1,928 @@
+{
+ "note": "Bulky fields the checks never read were dropped to keep the fixture small: ['citationsOverTime', 'downloadsOverTime', 'relatedIdentifiers', 'relatedItems', 'viewsOverTime', 'xml'].",
+ "request": {
+  "method": "GET",
+  "url": "https://api.datacite.org/dois/10.5281/zenodo.3233118"
+ },
+ "response": {
+  "headers": {
+   "content-type": "application/json; charset=utf-8"
+  },
+  "json": {
+   "data": {
+    "attributes": {
+     "alternateIdentifiers": [],
+     "citationCount": 0,
+     "container": {},
+     "contentUrl": null,
+     "contributors": [],
+     "created": "2019-05-28T02:18:12.000Z",
+     "creators": [
+      {
+       "affiliation": [
+        "School of Psychology, University of Birmingham, Birmingham, UK"
+       ],
+       "familyName": "Brett",
+       "givenName": "Matthew",
+       "name": "Brett, Matthew",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-5500-2546",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Stanford University"
+       ],
+       "familyName": "Markiewicz",
+       "givenName": "Christopher J.",
+       "name": "Markiewicz, Christopher J.",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-6533-164X",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Otto-von-Guericke-University Magdeburg, Germany"
+       ],
+       "familyName": "Hanke",
+       "givenName": "Michael",
+       "name": "Hanke, Michael",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-6398-6370",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Microsoft Research, Montréal, Québec, Canada"
+       ],
+       "familyName": "Côté",
+       "givenName": "Marc-Alexandre",
+       "name": "Côté, Marc-Alexandre",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-5147-7859",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "UC San Diego"
+       ],
+       "familyName": "Cipollini",
+       "givenName": "Ben",
+       "name": "Cipollini, Ben",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-7782-0790",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "McCarthy",
+       "givenName": "Paul",
+       "name": "McCarthy, Paul",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "Center for Open Neuroscience, Dartmouth College"
+       ],
+       "familyName": "Cheng",
+       "givenName": "Christopher P.",
+       "name": "Cheng, Christopher P.",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-9112-9464",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Dartmouth College: Hanover, NH, United States"
+       ],
+       "familyName": "Halchenko",
+       "givenName": "Yaroslav O.",
+       "name": "Halchenko, Yaroslav O.",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-3456-2493",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Wellcome Centre for Integrative Neuroimaging, University of Oxford, UK"
+       ],
+       "familyName": "Cottaar",
+       "givenName": "Michiel",
+       "name": "Cottaar, Michiel",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-4679-7724",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "MIT, HMS"
+       ],
+       "familyName": "Ghosh",
+       "givenName": "Satrajit",
+       "name": "Ghosh, Satrajit",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-5312-6729",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "University of Washington: Seattle, WA, United States"
+       ],
+       "familyName": "Larson",
+       "givenName": "Eric",
+       "name": "Larson, Eric",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-4782-5360",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Athena EPI, Inria Sophia-Antipolis"
+       ],
+       "familyName": "Wassermann",
+       "givenName": "Demian",
+       "name": "Wassermann, Demian",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-5194-6056",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Institute of Neuroinformatics, ETH/University of Zurich"
+       ],
+       "familyName": "Gerhard",
+       "givenName": "Stephan",
+       "name": "Gerhard, Stephan",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-4454-6171",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Deptartment of Radiology, University of Cincinnati College of Medicine, Cincinnati, OH"
+       ],
+       "familyName": "Lee",
+       "givenName": "Gregory R.",
+       "name": "Lee, Gregory R.",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-8895-2740",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Harvard University - Psychology"
+       ],
+       "familyName": "Kastman",
+       "givenName": "Erik",
+       "name": "Kastman, Erik",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-7221-9042",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "The University of Washington eScience Institute"
+       ],
+       "familyName": "Rokem",
+       "givenName": "Ariel",
+       "name": "Rokem, Ariel",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-0679-1985",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Madison",
+       "givenName": "Cindee",
+       "name": "Madison, Cindee",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Morency",
+       "givenName": "Félix C.",
+       "name": "Morency, Félix C.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Moloney",
+       "givenName": "Brendan",
+       "name": "Moloney, Brendan",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Burns",
+       "givenName": "Christopher",
+       "name": "Burns, Christopher",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "Berkeley Institute for Data Science, UC Berkeley"
+       ],
+       "familyName": "Millman",
+       "givenName": "Jarrod",
+       "name": "Millman, Jarrod",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-5263-5070",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "CNRS LTCI, Telecom ParisTech, Université Paris-Saclay"
+       ],
+       "familyName": "Gramfort",
+       "givenName": "Alexandre",
+       "name": "Gramfort, Alexandre",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-9791-4404",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Leppäkangas",
+       "givenName": "Jaakko",
+       "name": "Leppäkangas, Jaakko",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "Montreal Neurological Institute and Hospital"
+       ],
+       "familyName": "Markello",
+       "givenName": "Ross",
+       "name": "Markello, Ross",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-1057-1336",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "van den Bosch",
+       "givenName": "Jasper J.F.",
+       "name": "van den Bosch, Jasper J.F.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Vincent",
+       "givenName": "Robert D.",
+       "name": "Vincent, Robert D.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Subramaniam",
+       "givenName": "Krish",
+       "name": "Subramaniam, Krish",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "Rotman Research Institute, Baycrest Health Sciences, Toronto, ON, Canada"
+       ],
+       "familyName": "Raamana",
+       "givenName": "Pradeep Reddy",
+       "name": "Raamana, Pradeep Reddy",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-4662-0558",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "SRI International"
+       ],
+       "familyName": "Nichols",
+       "givenName": "B. Nolan",
+       "name": "Nichols, B. Nolan",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-1099-3328",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Baker",
+       "givenName": "Eric M.",
+       "name": "Baker, Eric M.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "MIT"
+       ],
+       "familyName": "Goncalves",
+       "givenName": "Mathias",
+       "name": "Goncalves, Mathias",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-7252-7771",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Hayashi",
+       "givenName": "Soichi",
+       "name": "Hayashi, Soichi",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Pinsard",
+       "givenName": "Basile",
+       "name": "Pinsard, Basile",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Haselgrove",
+       "givenName": "Christian",
+       "name": "Haselgrove, Christian",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Hymers",
+       "givenName": "Mark",
+       "name": "Hymers, Mark",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Koudoro",
+       "givenName": "Serge",
+       "name": "Koudoro, Serge",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Oosterhof",
+       "givenName": "Nikolaas N.",
+       "name": "Oosterhof, Nikolaas N.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Amirbekian",
+       "givenName": "Bago",
+       "name": "Amirbekian, Bago",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Nimmo-Smith",
+       "givenName": "Ian",
+       "name": "Nimmo-Smith, Ian",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Nguyen",
+       "givenName": "Ly",
+       "name": "Nguyen, Ly",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "BrainSpec, Boston, MA"
+       ],
+       "familyName": "Reddigari",
+       "givenName": "Samir",
+       "name": "Reddigari, Samir",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-1472-5881",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "St-Jean",
+       "givenName": "Samuel",
+       "name": "St-Jean, Samuel",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Garyfallidis",
+       "givenName": "Eleftherios",
+       "name": "Garyfallidis, Eleftherios",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "INRIA"
+       ],
+       "familyName": "Varoquaux",
+       "givenName": "Gael",
+       "name": "Varoquaux, Gael",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-1076-5122",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "MIT"
+       ],
+       "familyName": "Kaczmarzyk",
+       "givenName": "Jakub",
+       "name": "Kaczmarzyk, Jakub",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-5544-7577",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Université de Sherbrooke"
+       ],
+       "familyName": "Legarreta",
+       "givenName": "Jon Haitz",
+       "name": "Legarreta, Jon Haitz",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-9661-1396",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Hahn",
+       "givenName": "Kevin S.",
+       "name": "Hahn, Kevin S.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Hinds",
+       "givenName": "Oliver P.",
+       "name": "Hinds, Oliver P.",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Fauber",
+       "givenName": "Bennet",
+       "name": "Fauber, Bennet",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "McGill University"
+       ],
+       "familyName": "Poline",
+       "givenName": "Jean-Baptiste",
+       "name": "Poline, Jean-Baptiste",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-9794-749X",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "University College London, London, UK"
+       ],
+       "familyName": "Stutters",
+       "givenName": "Jon",
+       "name": "Stutters, Jon",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-9151-0844",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "University of California, San Francisco"
+       ],
+       "familyName": "Jordan",
+       "givenName": "Kesshi",
+       "name": "Jordan, Kesshi",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-6313-0580",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "Department of Neuropsychiatry, University of Pennsylvania"
+       ],
+       "familyName": "Cieslak",
+       "givenName": "Matthew",
+       "name": "Cieslak, Matthew",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-1931-4734",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Moreno",
+       "givenName": "Miguel Estevan",
+       "name": "Moreno, Miguel Estevan",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Haenel",
+       "givenName": "Valentin",
+       "name": "Haenel, Valentin",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Schwartz",
+       "givenName": "Yannick",
+       "name": "Schwartz, Yannick",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "INRIA"
+       ],
+       "familyName": "Thirion",
+       "givenName": "Bertrand",
+       "name": "Thirion, Bertrand",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-5018-7895",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "CEA"
+       ],
+       "familyName": "Papadopoulos Orfanos",
+       "givenName": "Dimitri",
+       "name": "Papadopoulos Orfanos, Dimitri",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-1242-8990",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "University College London"
+       ],
+       "familyName": "Pérez-García",
+       "givenName": "Fernando",
+       "name": "Pérez-García, Fernando",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-9090-3024",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Solovey",
+       "givenName": "Igor",
+       "name": "Solovey, Igor",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "Athinoula A. Martinos Center for Biomedical Imaging, Charlestown, MA"
+       ],
+       "familyName": "Gonzalez",
+       "givenName": "Ivan",
+       "name": "Gonzalez, Ivan",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0002-6451-6909",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Lecher",
+       "givenName": "Justin",
+       "name": "Lecher, Justin",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "TIB – Leibniz Information Centre for Science and Technology and University Library, Hannover, Germany"
+       ],
+       "familyName": "Leinweber",
+       "givenName": "Katrin",
+       "name": "Leinweber, Katrin",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-5135-5758",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [
+        "National Technical University of Athens, Greece"
+       ],
+       "familyName": "Raktivan",
+       "givenName": "Konstantinos",
+       "name": "Raktivan, Konstantinos",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "Friedrich-Alexander-Universität Erlangen-Nürnberg, Erlangen, Germany"
+       ],
+       "familyName": "Fischer",
+       "givenName": "Peter",
+       "name": "Fischer, Peter",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0003-3242-9867",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "familyName": "Gervais",
+       "givenName": "Philippe",
+       "name": "Gervais, Philippe",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Gadde",
+       "givenName": "Syam",
+       "name": "Gadde, Syam",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Ballinger",
+       "givenName": "Thomas",
+       "name": "Ballinger, Thomas",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [],
+       "familyName": "Roos",
+       "givenName": "Thomas",
+       "name": "Roos, Thomas",
+       "nameIdentifiers": []
+      },
+      {
+       "affiliation": [
+        "National Institute of Mental Health and Neuro-Sciences, India"
+       ],
+       "familyName": "Reddam",
+       "givenName": "Venkateswara Reddy",
+       "name": "Reddam, Venkateswara Reddy",
+       "nameIdentifiers": [
+        {
+         "nameIdentifier": "https://orcid.org/0000-0001-6817-2966",
+         "nameIdentifierScheme": "ORCID",
+         "schemeUri": "https://orcid.org"
+        }
+       ]
+      },
+      {
+       "affiliation": [],
+       "name": "Freec84",
+       "nameIdentifiers": []
+      }
+     ],
+     "dates": [
+      {
+       "date": "2019-05-28",
+       "dateType": "Issued"
+      }
+     ],
+     "descriptions": [
+      {
+       "description": "Bug fix release for the 2.4.x series. Most work on NiBabel so far has been by Matthew Brett (MB), Chris Markiewicz (CM), Michael Hanke (MH), Marc-Alexandre Côté (MC), Ben Cipollini (BC), Paul McCarthy (PM), Chris Cheng (CC), Yaroslav Halchenko (YOH), Satra Ghosh (SG), Eric Larson (EL), Demian Wassermann, and Stephan Gerhard. References like \"pr/298\" refer to github pull request numbers. 2.4.1 (Monday 27 May 2019) Contributions from Egor Pafilov, Jath Palasubramaniam, Richard Nemec, and Dave Allured. Enhancements Enable <code>mmap</code>, <code>keep_file_open</code> options when loading any <code>DataobjImage</code> (pr/759) (CM, reviewed by PM) Bug fixes Ensure loaded GIFTI files expose writable data arrays (pr/750) (CM, reviewed by PM) Safer warning registry manipulation when checking for overflows (pr/753) (CM, reviewed by MB) Correctly write .annot files with duplicate lables (pr/763) (Richard Nemec with CM) Maintenance Fix typo in coordinate systems doc (pr/751) (Egor Panfilov, reviewed by CM) Replace invalid MINC1 test file with fixed file (pr/754) (Dave Allured with CM) Update Sphinx config to support recent Sphinx/numpydoc (pr/749) (CM, reviewed by PM) Pacify <code>FutureWarning</code> and <code>DeprecationWarning</code> from h5py, numpy (pr/760) (CM) Accommodate Python 3.8 deprecation of collections.MutableMapping (pr/762) (Jath Palasubramaniam, reviewed by CM) API changes and deprecations Deprecate <code>keep_file_open == 'auto'</code> (pr/761) (CM, reviewed by PM)",
+       "descriptionType": "Abstract"
+      }
+     ],
+     "doi": "10.5281/zenodo.3233118",
+     "downloadCount": 0,
+     "formats": [],
+     "fundingReferences": [],
+     "geoLocations": [],
+     "identifiers": [],
+     "isActive": true,
+     "language": null,
+     "metadataVersion": 2,
+     "partCount": 0,
+     "partOfCount": 0,
+     "prefix": "10.5281",
+     "publicationYear": 2019,
+     "published": "2019",
+     "publisher": "Zenodo",
+     "reason": null,
+     "referenceCount": 0,
+     "registered": "2019-05-28T02:18:12.000Z",
+     "rightsList": [
+      {
+       "rights": "MIT License",
+       "rightsIdentifier": "mit",
+       "rightsIdentifierScheme": "SPDX",
+       "rightsUri": "https://opensource.org/licenses/MIT",
+       "schemeUri": "https://spdx.org/licenses/"
+      },
+      {
+       "rights": "Open Access",
+       "rightsUri": "info:eu-repo/semantics/openAccess"
+      }
+     ],
+     "schemaVersion": "http://datacite.org/schema/kernel-4",
+     "sizes": [],
+     "source": "mds",
+     "state": "findable",
+     "subjects": [
+      {
+       "subject": "neuroimaging"
+      }
+     ],
+     "suffix": "zenodo.3233118",
+     "titles": [
+      {
+       "title": "nipy/nibabel: 2.4.1"
+      }
+     ],
+     "types": {
+      "bibtex": "misc",
+      "citeproc": "article",
+      "resourceTypeGeneral": "Software",
+      "ris": "COMP",
+      "schemaOrg": "SoftwareSourceCode"
+     },
+     "updated": "2024-10-08T18:26:58.000Z",
+     "url": "https://zenodo.org/record/3233118",
+     "version": "2.4.1",
+     "versionCount": 0,
+     "versionOfCount": 1,
+     "viewCount": 0
+    },
+    "id": "10.5281/zenodo.3233118",
+    "relationships": {
+     "citations": {
+      "data": []
+     },
+     "client": {
+      "data": {
+       "id": "cern.zenodo",
+       "type": "clients"
+      }
+     },
+     "media": {
+      "data": {
+       "id": "10.5281/zenodo.3233118",
+       "type": "media"
+      }
+     },
+     "partOf": {
+      "data": []
+     },
+     "parts": {
+      "data": []
+     },
+     "provider": {
+      "data": {
+       "id": "cern",
+       "type": "providers"
+      }
+     },
+     "references": {
+      "data": []
+     },
+     "versionOf": {
+      "data": [
+       {
+        "id": "10.5281/zenodo.591597",
+        "type": "dois"
+       }
+      ]
+     },
+     "versions": {
+      "data": []
+     }
+    },
+    "type": "dois"
+   }
+  },
+  "status": 200
+ }
+}

@@ -1,6 +1,6 @@
 # Reference libraries, retrieval and citations
 
-Status: **implemented first-release paths, with later capabilities still pending.** This document extends sections 5.2, 12, 13, 14, 16 and 17 of the product specification. The local keyword library, citation, context/review and configured embedding paths are implemented; optional downloadable model weights and phase 5 remain pending. See [the usage and limitations guide](library-and-citations-guide.md) and [the acceptance matrix](acceptance-matrix.md) for delivered behavior and evidence.
+Status: **implemented first-release paths, with later capabilities still pending.** This document extends sections 5.2, 12, 13, 14, 16 and 17 of the product specification. The local keyword library, citation, context/review and configured embedding paths are implemented; on-device embedding and reranking with explicit, verified model downloads are implemented (context engine Phase 3); phase 5 remains pending. See [the usage and limitations guide](library-and-citations-guide.md) and [the acceptance matrix](acceptance-matrix.md) for delivered behavior and evidence.
 
 Normative words follow the product specification: "shall" is a requirement, "may" is optional, "should" is a recommendation that can be departed from with a stated reason.
 
@@ -298,8 +298,8 @@ Each phase shall ship with acceptance criteria added to the acceptance matrix be
 ## 14 Open decisions
 
 1. Which Python CSL processor to use, and whether its license and size are acceptable for the installers.
-2. Which local embedding model and runtime to bundle or offer as a download, and its license.
-3. Whether SQLite FTS5 plus brute-force vector search meets size and speed needs, or a vector index extension is needed. Decide from measurements on realistic libraries.
+2. Which local embedding model and runtime to bundle or offer as a download, and its license. *Decided (16 October 2026):* ONNX Runtime with Qwen3-Embedding-0.6B (int8, 512 dimensions, Apache-2.0) and the 33M answerai-colbert-small-v1 reranker are bundled in the standard installer; bge-reranker-v2-m3 is an optional download. See the [library guide](library-and-citations-guide.md#on-device-semantic-search).
+3. Whether SQLite FTS5 plus brute-force vector search meets size and speed needs, or a vector index extension is needed. Decide from measurements on realistic libraries. *Measured:* exact search is enough to about 10,000 chunks; above that the optional sqlite-vec backend applies (numbers in the library guide).
 4. How `settings.libraries` and source structure are validated, and whether validation changes force a schema version.
 5. Concurrency target: how many simultaneous indexers on one library, and behavior when two machines index the same network folder (each builds a local index; confirm this is acceptable for very large libraries).
 6. PDF text extraction library and its license.

@@ -1,0 +1,137 @@
+{
+  "schema_version": 1,
+  "measured_at_utc": "2026-10-16T23:28:30.034491+00:00",
+  "environment": {
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "machine": "x86_64",
+    "processor": "x86_64",
+    "python": "3.13.16",
+    "engine": "0.3.0",
+    "hardware_qualification": "Unqualified execution host; reference laptops not verified."
+  },
+  "commands": [
+    "uv run python scripts/router_benchmark.py --write"
+  ],
+  "fixture": {
+    "document": "tests/fixtures/router/novel.json (synthetic; built by fixture_document)",
+    "requests": "tests/fixtures/router/requests.jsonl",
+    "models": [
+      "local-32k",
+      "local-8k",
+      "none",
+      "remote-200k",
+      "remote-unverified"
+    ]
+  },
+  "method": "byax.router.decide on each labelled request; a request is correct when the decided route equals its label. Accuracy = correct / requests. Deterministic: no model, network or index.",
+  "qualification": "One writer's labels on one synthetic manuscript, written from the plan's route table; it measures the rules, not answer quality. Learned routing is not used.",
+  "routing": {
+    "requests": 132,
+    "correct": 126,
+    "accuracy": 0.9545,
+    "per_route": {
+      "R0": {
+        "labelled": 25,
+        "correct": 24,
+        "accuracy": 0.96
+      },
+      "R1": {
+        "labelled": 25,
+        "correct": 25,
+        "accuracy": 1.0
+      },
+      "R2": {
+        "labelled": 36,
+        "correct": 34,
+        "accuracy": 0.9444
+      },
+      "R3": {
+        "labelled": 21,
+        "correct": 20,
+        "accuracy": 0.9524
+      },
+      "R4": {
+        "labelled": 25,
+        "correct": 23,
+        "accuracy": 0.92
+      }
+    },
+    "confusion": {
+      "R0": {
+        "R0": 24,
+        "R1": 1
+      },
+      "R1": {
+        "R1": 25
+      },
+      "R2": {
+        "R1": 1,
+        "R2": 34,
+        "R4": 1
+      },
+      "R3": {
+        "R2": 1,
+        "R3": 20
+      },
+      "R4": {
+        "R2": 1,
+        "R3": 1,
+        "R4": 23
+      }
+    },
+    "misses": [
+      {
+        "id": "r023",
+        "request": "Give me a stronger last line for this paragraph.",
+        "expected": "R0",
+        "observed": "R1",
+        "rule": "selection_local",
+        "note": "a rewrite phrased with 'give'; the rules read it as a local request"
+      },
+      {
+        "id": "r083",
+        "request": "Who wrote the letters Mara found?",
+        "expected": "R2",
+        "observed": "R1",
+        "rule": "selection_local",
+        "note": "the letters are found in chapter two, outside the selection"
+      },
+      {
+        "id": "r084",
+        "request": "Look up what I said about the lens.",
+        "expected": "R2",
+        "observed": "R4",
+        "rule": "fits_full_document",
+        "note": "no entity: the rules read it as a whole-document question when the document fits"
+      },
+      {
+        "id": "r106",
+        "request": "Where else does the brass key appear?",
+        "expected": "R3",
+        "observed": "R2",
+        "rule": "entity_lookup",
+        "note": "'where else' asks for every other place; the rules read it as a lookup"
+      },
+      {
+        "id": "r129",
+        "request": "Is the opening strong?",
+        "expected": "R4",
+        "observed": "R2",
+        "rule": "lookup_default",
+        "note": "too large for the local model; the rules fall back to search instead of chapter summaries"
+      },
+      {
+        "id": "r130",
+        "request": "How does Mara change over the book?",
+        "expected": "R4",
+        "observed": "R3",
+        "rule": "everywhere",
+        "note": "a character arc; the rules read 'how does ... change' as an everywhere question"
+      }
+    ],
+    "decide_ms": {
+      "median": 0.229,
+      "p95": 1.971
+    }
+  }
+}

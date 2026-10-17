@@ -121,9 +121,61 @@ def flowing_fixture(pages):
     return validate_document(doc)
 
 
+def project_fixture(parts=3, chapters=10, scenes=4, repeat=7):
+    """A manuscript project of about 100,000 words: parts, chapters, scenes and two notes."""
+    from byax.project import item_id_for
+
+    doc = document('project_100k')
+    doc['settings']['fixture'].update(structure=f'{parts} parts x {chapters} chapters x {scenes} scenes')
+    items = {}
+
+    def heading(ident, text, level, kind, **meta):
+        doc['blocks'].append(dict(block(ident, text, 'heading', level=level), style=f'heading{level}'))
+        identity = item_id_for(ident)
+        items[identity] = {'id': identity, 'heading': ident, 'kind': kind, 'status': 'draft', **meta}
+
+    doc['blocks'].append(block('dedication', 'For the field team.'))
+    for part in range(1, parts + 1):
+        heading(f'part_{part}', f'Part {part}', 1, 'part')
+        for chapter in range(1, chapters + 1):
+            number = (part - 1) * chapters + chapter
+            heading(f'chapter_{number}', f'Chapter {number}', 2, 'chapter', target_words=3500)
+            for scene in range(1, scenes + 1):
+                ident = f'scene_{number}_{scene}'
+                heading(
+                    ident, f'Scene {number}.{scene}', 3, 'scene', synopsis=f'Observation {number}.{scene}.'
+                )
+                for paragraph in range(3):
+                    doc['blocks'].append(block(f'{ident}_p{paragraph}', PROSE * repeat))
+            doc['review']['comments'].append(
+                {
+                    'id': f'comment_chapter_{number}',
+                    'target': f'scene_{number}_1_p0',
+                    'start': 4,
+                    'end': 9,
+                    'text': 'Check this observation.',
+                    'author': 'fixture',
+                    'status': 'open',
+                    'revision': doc['revision'],
+                    'replies': [],
+                }
+            )
+    heading('notes_characters', 'Character sheets', 1, 'note')
+    doc['blocks'].append(block('notes_characters_p0', 'Alex Rivera leads the field team.'))
+    heading('notes_research', 'Research notes', 1, 'note')
+    doc['blocks'].append(block('notes_research_p0', PROSE))
+    doc['settings']['bookmarks'] = {
+        'midpoint': {'target': f'scene_{parts * chapters // 2}_1_p0', 'offset': 4}
+    }
+    doc['project'] = {'items': items, 'target_words': 100000}
+    return validate_document(doc)
+
+
 def make_fixture(name):
     if name in {'flowing_100', 'flowing_500', 'flowing_2000'}:
         return flowing_fixture(int(name.split('_')[1]))
+    if name == 'project_100k':
+        return project_fixture()
     doc = document(name)
     if name == 'letter':
         doc['blocks'] = [
@@ -344,6 +396,7 @@ NAMES = (
     'flowing_100',
     'flowing_500',
     'flowing_2000',
+    'project_100k',
 )
 
 

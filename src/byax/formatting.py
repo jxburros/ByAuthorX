@@ -32,7 +32,7 @@ INLINE_MARKS = (
     'code',
     CHARACTER_MARK,
 )
-SEMANTIC_MARKS = ('field', 'citation', 'reference', 'link', 'href', 'footnote', 'note', 'anchor')
+SEMANTIC_MARKS = ('field', 'citation', 'excerpt', 'reference', 'link', 'href', 'footnote', 'note', 'anchor')
 # Paragraph-level direct formatting; structural attributes (lists, levels,
 # anchors, locks, assets, captions, sections) are never cleared.
 PARAGRAPH_FORMAT = (

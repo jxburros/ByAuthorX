@@ -11,6 +11,7 @@ import pytest
 from eval_support import sample_corpus, sample_queries, small_queries
 
 from byax import evaluation as ev
+from byax import quote_match
 from byax.errors import ByaxError
 from byax.libraries import LibraryIndex, LibraryRegistry
 from byax.model import new_document
@@ -18,15 +19,10 @@ from byax.retrieval import authorize_library_context, retrieve_context, validate
 
 LIBRARIES = ev.FIXTURE_LIBRARIES
 
-# Cases the 0.3.0 engine fails, keyed by query id, each with the plan item that fixes it.
-JUMP_XFAIL = {
-    'papers-citat-003': 'CE Phase 1 §5.3: quote_match.locate normalises line-break hyphenation before comparing',
-    'papers-citat-004': 'CE Phase 1 §5.3: quote_match.locate normalises line-break hyphenation before comparing',
-}
-ABSENCE_XFAIL = {
-    'novel-absen-011': 'CE Phase 1 §5.2 phrase queries over paragraph chunks, and §5.6 exhaustive lexical pass: '
-    'the phrase only occurs across a hard line wrap, so no single line chunk contains it',
-}
+# Cases the engine fails today, keyed by query id, each with the plan item that fixes it. (The 0.3.0 gaps
+# this table once held, phrase-over-hard-wrap false absence and hyphenated JATS quotes, were closed by
+# the schema 3 chunker, verify_absence and quote_match.)
+ABSENCE_XFAIL = {}
 
 
 def collapse(text):
@@ -63,15 +59,38 @@ JUMP_CASES = [
 ]
 
 
-@pytest.mark.parametrize(('query_id', 'position'), marked(JUMP_CASES, JUMP_XFAIL))
+def page_text(corpus, locator):
+    result = corpus.index.read(
+        document_ids(corpus)[locator['path']], locator={'page': locator['page']}, limit=100000
+    )
+    assert result['results']
+    return '\n'.join(item['text'] for item in result['results'])
+
+
+@pytest.mark.parametrize(('query_id', 'position'), JUMP_CASES, ids=lambda v: str(v))
 def test_jump_lands_on_recorded_page_with_quote(query_id, position):
-    """Following a recorded page locator through `LibraryIndex.read` yields text containing the cited quote."""
+    """Following a recorded page locator through `LibraryIndex.read` yields text containing the cited quote
+    (exactly or after quote_match normalisation: PDF extraction hyphenates lines and expands ligatures)."""
     corpus = sample_corpus('papers')
     record = next(q for q in sample_queries('papers') if q['id'] == query_id)
     locator = record['relevant_chunk_locators'][position]
-    result = corpus.index.read(document_ids(corpus)[locator['path']], locator={'page': locator['page']})
-    assert result['results']
-    assert any(collapse(locator['quote']) in collapse(item['text']) for item in result['results'])
+    found = quote_match.locate(locator['quote'], page_text(corpus, locator))
+    assert found['normalized_pass'], found
+
+
+def test_normalisation_rescues_quotes_that_a_raw_comparison_misses():
+    """The Phase 1 exit figure: raw versus normalised quote pass rate on genuine quotes (JATS wording located
+    in extracted PDF pages). Raw is strictly lower; normalised is complete."""
+    corpus = sample_corpus('papers')
+    raw = normalised = total = 0
+    for query_id, position in JUMP_CASES:
+        record = next(q for q in sample_queries('papers') if q['id'] == query_id)
+        locator = record['relevant_chunk_locators'][position]
+        found = quote_match.locate(locator['quote'], page_text(corpus, locator))
+        raw += found['raw_pass']
+        normalised += found['normalized_pass']
+        total += 1
+    assert total >= 20 and normalised == total and raw < total
 
 
 def test_every_pdf_hit_locator_round_trips_through_read():
@@ -93,7 +112,7 @@ def test_every_stored_chunk_aligns_to_the_source_in_order():
     corpus = sample_corpus('humanities')
     (item,) = corpus.index.status()['files']
     spans = corpus._map_document(item['document_id'], item['path'])
-    assert len(spans) > 500 and None not in spans.values()
+    assert len(spans) > 30 and None not in spans.values()
     starts = [start for start, _ in spans.values()]
     assert starts == sorted(starts)
     text = corpus.text(item['path'])
@@ -229,14 +248,18 @@ def test_local_only_passages_cannot_be_authorised_for_a_remote_provider(scope, t
         authorize_library_context(context, remote=True, provider='host', config_dir=tmp_path, authorized=True)
 
 
-@pytest.mark.xfail(
-    strict=True, reason='CE Phase 1 §5.1 global RRF fusion (ranking.py): the first library starves the rest'
-)
-def test_second_library_is_not_starved_by_the_first(scope):
-    doc = attach(scope, [('wild', 'supplementary'), ('open', 'supplementary')])
-    second = scope['libraries']['open']['library_id']
-    result = route(scope, doc, library_queries(scope, 'papers')[0], limit=12)
-    assert any(p['library_id'] == second for p in result['included'])
+@pytest.mark.parametrize('order', [('wild', 'open'), ('open', 'wild')])
+def test_a_library_attached_later_is_not_starved_by_the_first(scope, order):
+    """Cross-library starvation (CE §5.1): concatenating per-library results in attachment order would fill the
+    budget with the first library. Global fusion must put the library that actually holds the quote in the
+    top results whichever way round the two are attached."""
+    doc = attach(scope, [(name, 'supplementary') for name in order])
+    ids = {name: scope['libraries'][name]['library_id'] for name in order}
+    for library, name in (('papers', 'open'), ('webclips', 'wild')):
+        for query in library_queries(scope, library, 3):
+            result = route(scope, doc, query, limit=12)
+            top = [p['library_id'] for p in result['included'][:3]]
+            assert ids[name] in top, (library, query)
 
 
 # --- false absence -------------------------------------------------------------------------------------
@@ -306,11 +329,13 @@ def test_cited_ids_are_a_subset_of_retrieved_ids(scope):
         for query in library_queries(scope, library, 4):
             result = route(scope, doc, query)
             retrieved = [p['chunk_id'] for p in result['included']]
-            assert result['allowed_citation_ids'] == retrieved
+            assert set(result['allowed_citation_ids']) == set(retrieved)
             context = {'library_passages': result['included'], 'references': {}}
-            validate_citations(' '.join(f'Claim [[cite:{c}]].' for c in retrieved), context)
-            with pytest.raises(ByaxError):
-                validate_citations('Invented [[cite:chunk_not_retrieved]].', context)
+            cited = ' '.join(f'Claim [[cite:{c}]].' for c in retrieved)
+            assert validate_citations(cited, context) == {'text': cited, 'invalid': []}
+            stripped = validate_citations(cited + ' Invented [[cite:chunk_not_retrieved]].', context)
+            assert stripped['invalid'] == ['chunk_not_retrieved']
+            assert 'chunk_not_retrieved' not in stripped['text']
             for passage in result['included']:
                 index = LibraryIndex(
                     next(

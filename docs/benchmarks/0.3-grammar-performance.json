@@ -1,0 +1,25 @@
+{
+ "builtin": {
+  "sentences": 299,
+  "words": 2799,
+  "seconds_best_of": 0.0565556050005398,
+  "words_per_second": 49491
+ },
+ "document_100k_words": {
+  "words": 100042,
+  "paragraphs": 1783,
+  "findings": 4996,
+  "full_check_seconds": 4.47,
+  "one_paragraph_edit_seconds": 0.195,
+  "units_rechecked_after_edit": 1
+ },
+ "environment": {
+  "python": "3.13.16",
+  "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+  "java": [
+   "openjdk version \"21.0.12.1\" 2026-08-18",
+   "OpenJDK Runtime Environment (build 21.0.12.1+1-1-24.04.4-Ubuntu)",
+   "OpenJDK 64-Bit Server VM (build 21.0.12.1+1-1-24.04.4-Ubuntu, mixed mode, sharing)"
+  ]
+ }
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "chunk_id": "chunk_log_1",
+    "library_id": "lib_fixture",
+    "library_name": "Research",
+    "document_id": "doc_logbook",
+    "content_hash": "hash_logbook",
+    "path": "logbook.txt",
+    "title": "logbook.txt",
+    "locator": {"ordinal": 0, "heading_path": [], "start": 0, "end": 63},
+    "text": "Night of 3 March: the lamp burned all night and the glass held."
+  },
+  {
+    "chunk_id": "chunk_log_2",
+    "library_id": "lib_fixture",
+    "library_name": "Research",
+    "document_id": "doc_logbook",
+    "content_hash": "hash_logbook",
+    "path": "logbook.txt",
+    "title": "logbook.txt",
+    "locator": {"ordinal": 1, "heading_path": [], "start": 0, "end": 52},
+    "text": "Mrs. Wren rowed the supplies across before the gale."
+  },
+  {
+    "chunk_id": "chunk_harbour_1",
+    "library_id": "lib_fixture",
+    "library_name": "Research",
+    "document_id": "doc_harbour",
+    "content_hash": "hash_harbour",
+    "path": "harbour.pdf",
+    "title": "harbour.pdf",
+    "locator": {"page": 2, "start": 0, "end": 66},
+    "text": "The storm reached the harbour at dawn, and the café roof was lost."
+  }
+]

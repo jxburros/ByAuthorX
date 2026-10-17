@@ -1,0 +1,17 @@
+[
+  {"query": "a general observation that rich bachelors are expected to look for wives", "relevant": ["truth universally acknowledged"]},
+  {"query": "Darcy dismisses Elizabeth as plain and not worth dancing with", "relevant": ["not handsome enough"]},
+  {"query": "Elizabeth tells Darcy he is the last person she could ever be persuaded to marry", "relevant": ["last man in the world"]},
+  {"query": "the family fears the couple have fled toward Scotland to be wed", "relevant": ["Gretna Green"]},
+  {"query": "the estate can only pass to a male heir, leaving the daughters unprovided for", "relevant": ["entail"]},
+  {"query": "Lady Catherine tries to extract a vow that Elizabeth will never accept her nephew", "relevant": ["Lady Catherine", "promise", "nephew"]},
+  {"query": "Mr. Collins is turned down when he asks Elizabeth to marry him", "relevant": ["Mr\\. Collins", "(?:refus|declin|reject)", "(?:marry|marriage|addresses)"]},
+  {"query": "Charlotte accepts the clergyman and the engagement is announced", "relevant": ["Charlotte", "Mr\\. Collins", "engaged|engagement"]},
+  {"query": "Jane catches a chill after riding through the rain to the neighbouring house", "relevant": ["Jane", "(?:cold|ill)", "rain|wet|rode"]},
+  {"query": "Wickham's false story of being denied the church living he was promised", "relevant": ["Wickham", "(?:living|church|Mr\\. Darcy)", "(?:promise|refus|cheat|injur|disinherit)"]},
+  {"query": "Darcy sets out in writing his conduct toward Wickham and toward Bingley", "relevant": ["Darcy", "letter", "Wickham", "Bingley"]},
+  {"query": "Bingley abruptly leaves the neighbourhood for the capital", "relevant": ["Bingley", "(?:London|town)", "(?:left|quitted|gone|departure)"]},
+  {"query": "Lydia's hasty wedding to Wickham and the money settlement behind it", "relevant": ["Lydia", "Wickham", "(?:married|marriage|settlement)"]},
+  {"query": "dancing at the ball held at Netherfield", "relevant": ["Netherfield", "ball", "danc"]},
+  {"query": "Mr. Bennet withdrawing to his library", "relevant": ["Mr\\. Bennet", "library"]}
+]
