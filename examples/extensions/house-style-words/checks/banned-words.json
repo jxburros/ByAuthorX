@@ -1,0 +1,31 @@
+{
+  "description": "House style for a small press. Edit the lists; every rule is plain data.",
+  "rules": [
+    {
+      "id": "filler",
+      "kind": "words",
+      "title": "Filler words",
+      "words": ["very", "really", "quite", "just", "basically", "literally"],
+      "message": "House style: cut the filler word \"{match}\".",
+      "severity": "advisory"
+    },
+    {
+      "id": "preferred-spelling",
+      "kind": "words",
+      "title": "Preferred spellings",
+      "words": ["utilize", "utilise", "commence", "whilst"],
+      "replacements": {"utilize": "use", "utilise": "use", "commence": "begin", "whilst": "while"},
+      "message": "House style prefers a plainer word than \"{match}\".",
+      "severity": "warning"
+    },
+    {
+      "id": "double-hyphen",
+      "kind": "regex",
+      "title": "Spaced hyphens",
+      "pattern": "\\s-{1,2}\\s",
+      "replacement": "—",
+      "message": "Use an em dash without spaces.",
+      "severity": "advisory"
+    }
+  ]
+}

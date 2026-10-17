@@ -9,6 +9,7 @@
 | Understand how views, formats and losses work | [File views](file-views.md), [compatibility](compatibility.md) |
 | Understand grammar checking, its tiers and measured accuracy | [Grammar](grammar.md) |
 | Install dictionaries and grammar packs; see translation coverage | [Language packs and translations](translations.md) |
+| Add custom checks or export hooks; save command macros | [Extensions](extensions.md) |
 | Fix a problem | [Troubleshooting](troubleshooting.md) |
 | Understand the design | [Architecture](architecture.md), [implementation contract](implementation-contract.md) |
 | Work on the code | [Development guide](development.md), [CONTRIBUTING](../CONTRIBUTING.md) |

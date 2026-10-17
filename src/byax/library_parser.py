@@ -203,6 +203,10 @@ def main(argv=None):
 def dispatch_worker(argv=None):
     """Frozen entrypoints dispatch before importing GUI/transport modules."""
     args = sys.argv[1:] if argv is None else argv
+    if args and args[0] == '--byax-extension-worker':
+        from .extension_worker import dispatch_worker as dispatch_extension
+
+        dispatch_extension(args)
     if args and args[0] == '--byax-library-parser':
         if len(args) not in (4, 6):
             raise SystemExit(2)

@@ -38,6 +38,12 @@ def isolated_user_config(tmp_path_factory, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def isolated_extensions(tmp_path_factory, monkeypatch):
+    """Installed extensions live in a throwaway folder, never the developer's user data directory."""
+    monkeypatch.setenv('BYAX_EXTENSIONS_DIR', str(tmp_path_factory.mktemp('extensions')))
+
+
+@pytest.fixture(autouse=True)
 def release_test_windows():
     from PySide6.QtCore import QCoreApplication, QEvent
     from PySide6.QtWidgets import QApplication

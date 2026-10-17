@@ -122,6 +122,12 @@ LOCAL_CHECKS = (
         'Checks every citation’s quotation against its source, and whether the source changed. No AI.',
         False,
     ),
+    (
+        'extensions',
+        'Extension checks',
+        'Checks from extensions you installed and enabled (Tools → Extensions). They run outside the app and only suggest.',
+        False,
+    ),
 )
 AI_CHECKS = (
     (
@@ -409,7 +415,11 @@ class ChecksPanel(QWidget):
             self.window.ai_panel.check_spelling()
         if 'citations' in kinds:
             self.run_citation_audit()
-        suites = (['grammar'] if 'grammar' in kinds else []) + (HEALTH_SUITES if 'health' in kinds else [])
+        suites = (
+            (['grammar'] if 'grammar' in kinds else [])
+            + (HEALTH_SUITES if 'health' in kinds else [])
+            + (['extension'] if 'extensions' in kinds else [])
+        )
         groups = [kind.split(':', 1)[1] for kind in kinds if kind.startswith('fiction:')]
         if groups:
             self.window.run_checks(suites + ['fiction'], fiction_groups=groups)

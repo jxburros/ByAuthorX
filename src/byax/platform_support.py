@@ -94,8 +94,12 @@ def lock_identity(path: str) -> str:
     return os.path.normcase(path)
 
 
-def apply_parser_limits(memory_bytes: int | None, cpu_seconds: int) -> dict[str, bool]:
-    """Apply resource limits to the isolated library parser; report which ones the OS accepted.
+def apply_parser_limits(
+    memory_bytes: int | None, cpu_seconds: int, file_bytes: int | None = None
+) -> dict[str, bool]:
+    """Apply resource limits to an isolated worker (library parser, extension script); report which took effect.
+
+    ``file_bytes`` also caps the size of any single file the process writes (extension scripts).
 
     Windows has no ``resource`` module. macOS accepts ``RLIMIT_AS`` in some releases, rejects it with
     ``ValueError`` in others and does not enforce it either way, so a refusal is not an error: the
@@ -109,10 +113,11 @@ def apply_parser_limits(memory_bytes: int | None, cpu_seconds: int) -> dict[str,
         import resource
     except ImportError:
         return applied
-    for name, limit, key in (
-        ('RLIMIT_AS', memory_bytes, 'memory'),
-        ('RLIMIT_CPU', cpu_seconds, 'cpu'),
-    ):
+    limits = [('RLIMIT_AS', memory_bytes, 'memory'), ('RLIMIT_CPU', cpu_seconds, 'cpu')]
+    if file_bytes is not None:
+        applied['file'] = False
+        limits.append(('RLIMIT_FSIZE', file_bytes, 'file'))
+    for name, limit, key in limits:
         if limit is None:  # no address-space cap for a layout model, which needs far more than a text parser
             continue
         try:

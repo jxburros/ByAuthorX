@@ -43,6 +43,8 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `sync_safety`, `gui_sync` | Synced-folder detection, risk report, conflicted-copy discovery and merge-as-proposal (`engine.import_branch` + `propose_merge`), explicit archive of merged copies; the notice bar and review dialog |
 | `platform_support`, `gui_platform` | Platform seams read at call time so tests can patch `sys.platform`: macOS font folders and scan, full fsync, lock identity (case and Unicode folding), best-effort parser limits; Finder open events, application-menu roles and native key names |
 | `updates`, `samples`, `gui_onboarding` | The one manual update request (GitHub Releases API, proxy-aware, never at startup), the bundled sample project and its safe copy, and the Help menu glue: first-run tour, sample, update check |
+| `extensions`, `extension_worker`, `gui_extensions` | Extension layer (E4): strict `byax-extension.json` manifest (`api_version` 1) with scopes `read`, `checks`, `propose`, `export-hook`; install only by explicit local action that shows the archive/folder SHA-256 and the requested scopes and requires both back; per-file hashes recorded at install and re-checked; data checks (word lists and regular expressions, evaluated in-process with runaway-pattern probes) and script checks and export hooks run out of process through `extension_worker` (shared `platform_support.apply_parser_limits`, process group, wall-clock timeout, output caps, scrubbed environment); script output validated strictly as a whole; findings under family `extension:<id>` in the `extension` suite; Tools → Extensions… |
+| `macros` | Saved command macros (user config or `settings.macros`): placeholders, automatic `expect_revision` chaining, dry run, stop on first error, transcript; each step through `cli.execute` after `transport_policy.check_provider_admin` (unless the local CLI passes `--allow-admin`) and, behind REST, the service path policy; Tools → Macros… |
 | `brand`, `resources/` | Bundled identity, fonts, tokens and baked UI art; `resources/samples/` holds the generated sample project (`scripts/build_sample_project.py`) |
 
 ## Mutation and persistence
@@ -215,6 +217,24 @@ Semantic search and reranking can run on the user's computer. The runtime (`onnx
 A library opts in per library (*Enable on-device semantic search? Nothing leaves this computer.*): its embedding setting becomes `local:<model>` and `LocalEmbeddingProvider` (not remote, so `local_only` libraries may use it) feeds the existing incremental embedding rebuild. Search quality is Fast (the default) or Accurate: Accurate reorders the fused top 30 to 50 hits with a local reranker, falls back to Fast with a notice when the runtime or model is missing, and reports each moved hit's previous rank. Administrative actions (`download`, `remove`, `configure`, `semantic-enable`) are refused by MCP and REST like provider configuration.
 
 Chunker v3 merges short paragraphs up to a token target (400 by default, per library `chunk_tokens`), never crosses a heading, keeps the heading path in the indexed form only and gives every chunk a `parent` pointer for expanding a hit into its section. Contextual notes are stored in their own table and full-text column; embeddings include them, `chunks.text` never does.
+## Extensions and trust boundaries
+
+Extensions (see [extensions](extensions.md)) cross the process boundary in four places, each narrow and
+validated:
+
+| Direction | What crosses | Enforcement |
+| --- | --- | --- |
+| Engine → script check | JSON with `targets` (id, block, type, text, language) and the check's declared `options`; intentional passages excluded; scrubbed environment | Only the `read` scope sends text; no metadata, comments, history, sources, libraries, settings or paths |
+| Script check → engine | Findings JSON on stdout | Parsed as UTF-8 JSON without `NaN`; unknown keys, bad ranges, unknown targets, `error` severity, replacements without `propose`, more than 1,000 findings or more than 4 MiB reject the whole output; a replacement string, never operations; failure is `failed` coverage and an `incomplete` report |
+| Engine → export hook → folder | Read-only copy of the exported file and the loss report; a staging folder | Hook output is collected from the staging folder only (plain files, safe names, count and size limits) and copied to the folder you chose; the master is never passed |
+| Extension → REST service | A bearer token derived from the service token | `read` (read-only commands) and `propose` (text-edit proposals with `expect_revision`, author stamped) only; bound to an installed, enabled, intact extension and expiring |
+
+Installing, enabling, disabling, removing and issuing tokens are administrative (local CLI and desktop
+only), like provider configuration. Installed extensions are code you chose to run; they are not
+sandboxed, and the limits are resource limits (memory and CPU where the platform enforces them, always a
+wall-clock timeout and output caps), not a security boundary against a malicious author. Macros add no
+privilege: each step passes the same administrative and path checks as a request over the transport it
+arrived on.
 
 ## Rendering limits
 

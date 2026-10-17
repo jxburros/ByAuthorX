@@ -70,6 +70,7 @@ from .gui_compile import CompilePanels
 from .gui_docx_review import DocxReviewPanels
 from .gui_drafts import DraftPanels
 from .gui_editor import PageCanvas, ProofMark, SemanticEditor
+from .gui_extensions import ExtensionPanels
 from .gui_goals import GoalPanels
 from .gui_icons import themed_icon
 from .gui_languages import LanguagePanels
@@ -116,6 +117,7 @@ class MainWindow(
     SyncPanels,
     OnboardingPanels,
     LanguagePanels,
+    ExtensionPanels,
     BinderPanels,
     GoalPanels,
     DraftPanels,
@@ -611,6 +613,8 @@ class MainWindow(
             ('On-device search…', self.local_models_dialog),
             ('Review conflicted copies…', self.review_conflicted_copies),
             ('Languages…', self.show_languages),
+            ('Extensions…', self.show_extensions),
+            ('Macros…', self.show_macros),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
         self.submenus['text'].addAction(self.action(self.tr('Apply character style…'), self.character_style))
@@ -3299,9 +3303,15 @@ class MainWindow(
         )
         if writer is export_document:
             profile = {**(profile or {}), 'allow_markdown_losses': True}
+
+        def run_export():
+            report = writer(doc, path, profile=profile)
+            hooks = self.run_export_hooks_after(path, Path(path).suffix.lstrip('.').lower(), report)
+            return dict(report, hooks=hooks) if hooks else report
+
         self.background(
             self.tr('Exporting…'),
-            lambda: writer(doc, path, profile=profile),
+            run_export,
             lambda report: self.report(
                 self.tr('Export result and compatibility'),
                 report,

@@ -190,6 +190,8 @@ button; **Run all active checks** in **Proposed changes** runs the active ones t
 - *Fiction analysis (advisory)*: dialogue tags, filter words and telling, repeated words and
   openings, rhythm, sensory balance and invented-name spelling. Local and inactive by default; see
   [Fiction checks and readability](#fiction-checks-and-readability).
+- *Extension checks*: checks added by extensions you installed and enabled under **Tools →
+  Extensions…**. Inactive by default; see [Extensions and macros](#extensions-and-macros).
 - *With an AI provider*: information repository, factual accuracy, voice consistency and any
   number of named custom checks you write. Inactive by default; each asks for authorization.
 
@@ -502,6 +504,39 @@ book. A book's own entry wins over a series entry with the same name, and its ow
 attachment wins over the series'. The series file can also list member documents, which then join
 project find. The format is described in the
 [library and citations guide](library-and-citations-guide.md#series-files).
+
+## Extensions and macros
+
+**Extensions** add checks and export hooks. They run as separate programs outside ByAuthorX, are given
+only the text a check needs or the exported copy a hook needs, and can only *suggest*: they cannot edit
+your document. ByAuthorX has no extension store and never downloads one; you install from a folder or
+ZIP you already have. They are not sandboxed, so install only extensions whose author you trust. The
+full guide, with the file format for writing your own, is in [Extensions](extensions.md).
+
+**Tools → Extensions…**
+
+1. *Install from folder…* (or *from archive…*). A confirmation shows the extension's name, author and
+   licence, the permissions it asks for in plain words (for example "read: receive the text of the
+   document"), and the SHA-256 that was checked. Say **Yes** only if you trust it; nothing is
+   installed otherwise. It is installed **switched off**.
+2. Select it and press *Enable*. The list shows its permissions and status. If a file changes after
+   install, the status becomes *modified*, it stops running, and *Verify* names the file.
+3. *Run its checks on this document* tries a check without touching the document; its findings also
+   appear with the other checks when you tick **Extension checks** in the Inspector's Checks tab.
+4. *Run an export hook on a file…* runs a hook on a file you pick. Tick *Run enabled export hooks
+   after each export* to run them after every export (off by default). Hook results are listed in the
+   export result; a hook that fails never makes the export fail, and your document is never opened by
+   a hook.
+5. *Disable* or *Remove…* at any time.
+
+**Tools → Macros…** runs saved sequences of ByAuthorX commands, such as "check, then export", on the
+saved copy of the open document. Pick a macro, optionally give parameters as a JSON object, and press
+*Dry run* (changes nothing; steps that cannot preview are skipped and marked) or *Run*. The transcript
+lists each step and what happened; select a step for its details. A macro stops at the first problem,
+and steps that need the local command line (for example changing provider or language-pack settings)
+are refused here and shown in the *Needs command line* column. *Import from file…* saves a macro JSON
+into **My macros** or into **This document** (it then travels with the file). The document must be
+saved as a ByAuthorX file first. Macros are also available as `byax macro` and over MCP and REST.
 
 ## Libraries and citations
 

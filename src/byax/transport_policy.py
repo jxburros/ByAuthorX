@@ -26,6 +26,10 @@ PATH_KEYS = frozenset(
 )
 
 
+# Extension actions that install, change or authorize code: local CLI and desktop only.
+EXTENSION_ADMIN_ACTIONS = ('inspect-package', 'install', 'enable', 'disable', 'remove', 'token')
+
+
 def is_path_argument(name):
     """Naming rule used to audit that every path-like argument is scoped."""
     return name in PATH_KEYS or name.endswith(('_path', '_dir', '_root', '_file'))
@@ -89,6 +93,20 @@ def check_provider_admin(command, arguments):
             'unsupported_feature',
             'Writing goals are local preferences of the person at this computer; set them through the local CLI or desktop',
         )
+    if command == 'extensions' and arguments.get('action', 'list') in EXTENSION_ADMIN_ACTIONS:
+        raise ByaxError(
+            'unsupported_feature',
+            'Install, inspect packages, enable, disable, remove or issue tokens for extensions through the local CLI or desktop',
+        )
+    if command == 'macro':
+        if arguments.get('allow_admin'):
+            raise ByaxError(
+                'unsupported_feature', 'Macro steps that transports refuse run only from the local CLI'
+            )
+        if arguments.get('action') in ('save', 'remove') and arguments.get('store', 'user') != 'document':
+            raise ByaxError(
+                'unsupported_feature', 'Saved user macros are managed through the local CLI or desktop'
+            )
     if command == 'jobs' and arguments.get('action') == 'submit':
         spec = arguments.get('input', {})
         if not isinstance(spec, dict):
@@ -779,4 +797,79 @@ INTERFACE_INVENTORY = (
     ('Files', 'detach series', 'codex --action series-detach', 'byax.engine.apply', None),
     ('Files', 'export series codex', 'codex --action series-export', 'byax.series.save', None),
     ('Inspection', 'entity lookup (read only)', 'entity', 'byax.cli_codex.entity_command', None),
+    # Extension layer (CP 7.4): out-of-process checks and export hooks, and saved command macros.
+    (
+        'Discovery',
+        'list extensions',
+        'extensions --action list',
+        'byax.extensions.summaries',
+        'Tools > Extensions…',
+    ),
+    (
+        'Inspection',
+        'extension details',
+        'extensions --action info',
+        'byax.extensions.describe',
+        'Tools > Extensions…',
+    ),
+    (
+        'Inspection',
+        'verify installed extensions',
+        'extensions --action verify',
+        'byax.extensions.verify',
+        'Tools > Extensions…',
+    ),
+    (
+        'Checks',
+        'run extension checks',
+        'extensions --action run-check',
+        'byax.extensions.evaluate',
+        'Tools > Extensions…',
+    ),
+    (
+        'Output',
+        'run an export hook',
+        'extensions --action run-hook',
+        'byax.extensions.run_hook',
+        'Tools > Extensions…',
+    ),
+    (
+        'Output',
+        'export with hooks',
+        'export --hooks',
+        'byax.extensions.run_export_hooks',
+        'Tools > Extensions…',
+    ),
+    (
+        'Files',
+        'install extension',
+        'extensions --action install',
+        'byax.extensions.install',
+        'Tools > Extensions…',
+    ),
+    (
+        'Files',
+        'enable or disable extension',
+        'extensions --action enable',
+        'byax.extensions.set_enabled',
+        'Tools > Extensions…',
+    ),
+    (
+        'Files',
+        'remove extension',
+        'extensions --action remove',
+        'byax.extensions.remove',
+        'Tools > Extensions…',
+    ),
+    (
+        'Files',
+        'scoped extension token',
+        'extensions --action token',
+        'byax.service.issue_extension_token',
+        None,
+    ),
+    ('Inspection', 'list macros', 'macro --action list', 'byax.macros.user_macros', 'Tools > Macros…'),
+    ('Editing', 'run or dry-run a macro', 'macro --action run', 'byax.macros.run_macro', 'Tools > Macros…'),
+    ('Files', 'save macro', 'macro --action save', 'byax.macros.validate_macro', 'Tools > Macros…'),
+    ('Files', 'remove macro', 'macro --action remove', 'byax.macros.find', 'Tools > Macros…'),
 )

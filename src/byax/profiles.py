@@ -28,6 +28,7 @@ FAMILY_SUITES = {
     'accessibility': ('accessibility',),
     'print': ('print',),
     'fiction': ('fiction',),
+    'extension': ('extension',),
 }
 SOURCE_AUTHORITY = ('exclusive', 'supplementary', 'open')
 APPLICATION_POLICY = ('suggestions_only', 'automatic_direct', 'automatic_cleanup')
