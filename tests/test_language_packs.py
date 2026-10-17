@@ -3,6 +3,7 @@
 import hashlib
 import http.server
 import json
+import os
 import re
 import threading
 import zipfile
@@ -165,6 +166,10 @@ def test_a_file_changed_after_install_fails_verification_and_is_not_used(tmp_pat
     installed.write_text(
         json.dumps(RULES | {'rules': [dict(RULES['rules'][0], pattern=r'\bbar\b')]}), encoding='utf-8'
     )
+    # A same-size rewrite inside one clock tick keeps the modification time on Windows; a real later
+    # edit does not, so move the time on like one would.
+    stat = installed.stat()
+    os.utime(installed, ns=(stat.st_atime_ns, stat.st_mtime_ns + 2_000_000_000))
     [report] = language_packs.verify_packs('xx-core')
     assert report['ok'] is False and 'SHA-256 differs' in report['problems'][0]
     assert grammar.rule_set('xx') is None

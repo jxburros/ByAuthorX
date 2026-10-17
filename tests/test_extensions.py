@@ -2,6 +2,7 @@
 resource limits, export hooks and the CLI/MCP/REST surfaces."""
 
 import hashlib
+import importlib.util
 import json
 import os
 import subprocess
@@ -231,7 +232,9 @@ def test_archives_with_unsafe_member_names_are_refused(tmp_path, name):
     with zipfile.ZipFile(archive, 'w') as zf:
         zf.write(folder / extensions.MANIFEST_NAME, extensions.MANIFEST_NAME)
         zf.write(folder / 'check.py', 'check.py')
-        zf.writestr(name, 'x = 1\n')
+        member = zipfile.ZipInfo('placeholder')
+        member.filename = name  # ZipInfo would turn a backslash into '/' on Windows
+        zf.writestr(member, 'x = 1\n')
     with pytest.raises(ByaxError):
         extensions.inspect_package(archive)
 
@@ -796,6 +799,9 @@ def test_hostile_hooks_are_contained_and_report_failure_without_leaving_outputs(
         {'path': str(source), 'out': str(tmp_path / 'd.md'), 'hooks': True, 'hooks_dir': str(target)},
     )
     (hook,) = result['hooks']
+    if name == 'file_too_big' and importlib.util.find_spec('resource') is None:
+        # Without a file-size limit (Windows) the oversized output is written, then refused when collected.
+        kind = 'invalid'
     assert hook['status'] in ('failed', 'timeout') and hook['failure'] == kind, hook
     assert hook['outputs'] == [] and not target.exists()
     assert (tmp_path / 'd.md').is_file()

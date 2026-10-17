@@ -7,6 +7,7 @@ pending maintainer verification (docs/acceptance-matrix.md, "Reach").
 import importlib.util
 import json
 import plistlib
+import posixpath
 import re
 import runpy
 import shutil
@@ -115,6 +116,7 @@ def test_lock_identity_folds_case_and_unicode_form_only_on_macos(monkeypatch):
     monkeypatch.setattr(sys, 'platform', 'darwin')
     assert platform_support.lock_identity(composed) == platform_support.lock_identity(decomposed)
     monkeypatch.setattr(sys, 'platform', 'linux')
+    monkeypatch.setattr(platform_support.os.path, 'normcase', posixpath.normcase)
     assert platform_support.lock_identity('/a/B.byax') != platform_support.lock_identity('/a/b.byax')
 
 

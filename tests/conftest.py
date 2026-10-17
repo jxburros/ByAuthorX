@@ -77,7 +77,11 @@ def no_stray_processes_or_threads_survive_a_module(request):
     lingering = [
         t.name
         for t in threading.enumerate()
-        if t.ident not in threads_before and t.is_alive() and not t.daemon
+        if t.ident not in threads_before
+        and t.is_alive()
+        and not t.daemon
+        # pytest-timeout's own watchdog (its only method on Windows) is not the module's thread.
+        and not t.name.startswith('pytest_timeout')
     ]
     if lingering:
         problems.append(f'non-daemon threads still running: {lingering}')
