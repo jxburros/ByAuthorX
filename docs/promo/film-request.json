@@ -1,11 +1,11 @@
 {
-  "output": "ByAuthorX-promo-draft.mp4",
+  "output": "ByAuthorX-promo.mp4",
   "spec": {
     "version": 1,
     "width": 1920,
     "height": 1080,
     "fps": 24,
-    "quality": "draft",
+    "quality": "final",
     "shots": [
       {
         "source": "scenes/01-title.vixl",
