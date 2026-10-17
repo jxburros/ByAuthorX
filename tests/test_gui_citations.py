@@ -17,8 +17,10 @@ from byax.libraries import LibraryIndex, LibraryRegistry
 from byax.providers import ProviderConfig, ProviderRegistry
 from byax.storage import save_document
 
+# Chunker v3 merges short neighbouring paragraphs; padding keeps each paragraph its own chunk.
+PAD = ' Margin note about nothing in particular.' * 25
 FIXTURE_TEXT = {
-    'notes.txt': 'Aria is the captain.\n\nThe lamp burned all night and the glass held.',
+    'notes.txt': f'Aria is the captain.{PAD}\n\nThe lamp burned all night and the glass held.{PAD}',
     'harbour.md': '# Harbour\n\nThe storm reached the harbour at dawn.\n\n## Later\n\nThe café roof was lost.',
 }
 PDF_PAGES = ['The first page mentions the copper lamp.', 'Page two records the storm at dawn.']
@@ -104,7 +106,7 @@ def ask(window, qtbot, monkeypatch, tmp_path, reply, passages):
 
 def test_chips_render_with_hover_card_and_unverified_marker(window, qtbot, monkeypatch, tmp_path, library):
     _, index = library
-    lamp, storm = passage(index, 'lamp burned'), passage(index, 'storm harbour')
+    lamp, storm = passage(index, 'burned'), passage(index, 'storm harbour')
     reply = (
         f'The log says "The lamp burned all night" [[cite:{lamp["chunk_id"]}]]. '
         f'A storm came at dawn [[cite:{storm["chunk_id"]}]]. Gulls nested [[cite:chunk_invented]].'
@@ -159,7 +161,7 @@ def test_jump_fidelity_is_total_on_the_fixture_library(window, qtbot, monkeypatc
 
 def test_insert_as_citation_creates_a_verifiable_mark(window, qtbot, monkeypatch, tmp_path, library):
     _, index = library
-    lamp = passage(index, 'lamp burned')
+    lamp = passage(index, 'burned')
     panel = ask(
         window,
         qtbot,
@@ -196,7 +198,7 @@ def test_checks_tab_citation_audit_matches_the_cli_report(window, qtbot, monkeyp
     from byax.gui_review import audit_html
 
     definition, index = library
-    lamp = index.search('lamp burned')['results'][0]
+    lamp = index.search('burned')['results'][0]
     from byax.citations import source_from_hit
 
     source = source_from_hit(lamp)

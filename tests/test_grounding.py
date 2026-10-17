@@ -186,7 +186,17 @@ def test_cohere_citation_spans_map_to_supplied_documents():
 # --- the writer's own citations ------------------------------------------------------------------
 
 
-NOTES = 'Aria is the captain.\n\nBren is the navigator of the long ship.\n\nCora keeps the lighthouse lamp.'
+# Chunker v3 merges short neighbouring paragraphs; padding keeps one paragraph per chunk (past half of the
+# 400-token target) so a quote can be cited against a passage that does not contain it.
+PAD = ' Margin note about nothing in particular.' * 40
+NOTES = '\n\n'.join(
+    line + PAD
+    for line in (
+        'Aria is the captain.',
+        'Bren is the navigator of the long ship.',
+        'Cora keeps the lighthouse lamp.',
+    )
+)
 
 
 @pytest.fixture
@@ -428,7 +438,7 @@ def test_locate_record_follows_a_changed_source(library):
     assert located['status'] == 'available'
     assert located['chunk']['text'][slice(*located['span'])] == 'navigator of the long ship'
     (root / 'notes.txt').write_text(
-        'New opening.\n\nMore.\n\nBren is the navigator of the long ship.', encoding='utf-8'
+        f'New opening.{PAD}\n\nMore.{PAD}\n\nBren is the navigator of the long ship.', encoding='utf-8'
     )
     LibraryIndex(definition, cache).refresh()
     moved = grounding.locate_record(record)

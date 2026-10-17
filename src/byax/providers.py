@@ -984,6 +984,15 @@ class ProviderRegistry:
             proposal['provenance']['scope'] = 'assistant work mode'
         return result
 
+    def _complete(self, config, instruction, messages, *, json_output=True, report=None):
+        """One text completion over each adapter's own wire protocol; returns raw and text.
+
+        Used by jobs that send a fixed instruction and untrusted data (contextual notes), not by chat.
+        """
+        suffix, body, extractor = _wire(config, instruction, messages, json_output)
+        raw = self._request(config, 'POST', suffix, json=body, report=report)
+        return raw, _extract(raw, extractor)
+
     def _chat_turn(self, config, mode, context, messages, native, cancel_event):
         """One assistant request in cache order; returns ``(result, raw output, grounding)``."""
         from .context_assembly import layout_prompt

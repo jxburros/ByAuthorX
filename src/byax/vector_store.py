@@ -377,7 +377,9 @@ def choose_backend(index):
     ``auto`` (the default) uses the exact float backend up to :data:`BRUTE_FORCE_LIMIT` chunks and the
     sqlite-vec backend above that, when the optional extra is installed.
     """
-    configured = (index.library.get('embedding') or {}).get('vector_backend') or 'auto'
+    # A project index has no library settings: it always chooses automatically.
+    settings = getattr(index, 'library', None) or {}
+    configured = (settings.get('embedding') or {}).get('vector_backend') or 'auto'
     if configured != 'auto':
         return configured
     with index._db() as db:
