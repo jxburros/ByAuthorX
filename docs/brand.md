@@ -1,15 +1,66 @@
-# ByAuthorX identity and native motion
+# ByAuthorX brand, voice and motion
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/wordmark-dark.svg">
   <img src="images/wordmark-light.svg" alt="ByAuthorX" width="360">
 </picture>
 
-**Your words. Your call.** The supplied brand guide describes a working manuscript: warm, useful, and calm. Expressive marks introduce the app; familiar controls frame the author's writing.
+**Your words. Your call.** ByAuthorX looks and sounds like a working manuscript: warm, useful and calm. Expressive marks introduce the app; familiar controls frame the author's writing.
 
 ![Native writing view with branded chrome](images/editor.png)
 
+## Voice and messaging
+
+ByAuthorX is a word processor that keeps the author in charge. Everything we write, in the app, the documentation and the website, should make that visible.
+
+**Who we write for.** Writers first, from a letter to a book. Lead with the writer's work and the choices they make. Letters, resumes, reports and press kits sit beside essays and manuscripts to show this is a full word processor. Developers and automation come second, in their own section.
+
+**Tagline and hierarchy.**
+
+| Level | Line | Use |
+| --- | --- | --- |
+| Promise | Your words. Your call. | Logo lockups, About, onboarding, README, social |
+| Description | A desktop word processor for writers, from a first letter to a finished book. | First sentence of any introduction |
+| Proof points | You own the file. Suggestions, not surprises. Private by default. | Feature lists and campaigns |
+| Calls to action | Write. Review. Make it yours. / Review the suggestion. Keep what works. | Marketing headers and empty states |
+
+**Tone.**
+
+- Warm, plain and direct. Talk to the writer as "you". Say what happened and what they can do next.
+- Calm. No exclamation marks, urgency, hype or "magic". Do not call features "smart" or "powerful".
+- Honest. Say what is verified and what is not. Say what an export lost and where. Never claim a document is clean without evidence.
+- Sentence case for headings, buttons and menu items. Keep the interface label exactly as it appears on screen, in bold: **File → Export**.
+- Lead with the benefit, then the mechanism. "Nothing changes your text until you accept it" comes before "proposals are stored as pending operations".
+
+**Vocabulary.**
+
+| Say | Not |
+| --- | --- |
+| proposal, proposed change | suggestion queue, patch, diff |
+| draft, compare, bring changes from | branch, merge, fork |
+| your file, the master | project folder, source of truth |
+| check | lint, validate, scan |
+| provider, your own key | integration, API plumbing |
+| "not yet verified" | "should work", "probably fine" |
+| note what an export left out | "lossy conversion" without detail |
+
+**Privacy language.** Always say AI is opt-in. Use the same four claims everywhere: no account, no telemetry, no background network traffic, and nothing leaves your computer until you choose a provider.
+
+**Copy examples.**
+
+| Moment | Write | Avoid |
+| --- | --- | --- |
+| Empty review panel | "Nothing to review yet. Run the local checks, or keep writing." | "No items found." |
+| Check passed | "No problems found by these checks." | "Your document is perfect!" |
+| Save | "Saved locally" | "Success!" |
+| Export finished | "Exported. 2 items could not be carried into Word. See the report." | "Export complete." |
+| Error | "Could not save. Your document is unchanged. Check that the folder is writable." | "Error 0x80070005" |
+
+**Name and credit.** The product name is ByAuthorX, set as one word with a capital B, A and X in running text; the command is `byax`. The approved wordmark is outlined artwork, so never retype or redraw it. ByAuthorX is a product of JX Holdings, LLC.
+
 ## Tokens and typography
+
+> **Where this departs from the original brand guide.** The guide specified IM Fell English for display, Manrope for the interface and Source Serif 4 for reading. In the product, Irongall, a face drawn from the wordmark, is the interface and display font, Manrope is the fallback for scripts Irongall lacks and for high-contrast mode, and Source Serif 4 remains an optional document font. The guide's palette, spacing and focus rules are unchanged.
 
 [`src/byax/resources/brand/tokens.json`](../src/byax/resources/brand/tokens.json) is the canonical runtime source. `byax.brand` reads it for the application palette, stylesheet, font roles, and animation duration. The original kit's JSON/CSS remain reference copies. Do not change the approved logo colors when adjusting neutral UI surfaces.
 
@@ -17,14 +68,14 @@
 | --- | --- | --- |
 | Paper | `#F4EEE3` | Chrome and preview surround |
 | Ink | `#252927` | Main text |
-| Pen green | `#367B6C` | Primary buttons and supplied gestures |
+| Pen green | `#367B6C` | Primary buttons and brand gestures |
 | Ink red | `#AD283E` | Signature artwork; errors also need explicit labels |
 | Surface | `#FFFCF7` | Menus, controls, and inspector surfaces |
 | Rule | `#D7D0C3` | Quiet separators |
 | Muted | `#52615B` | Secondary labels |
 | Deep green | `#246052` | Small green text, selections, and focus rings |
 
-Controls use a 6 px radius; panels use 8 px. Layout uses the supplied 4/8 px rhythm. A 2 px deep-green focus border identifies keyboard focus. Primary green buttons carry white text. Color never replaces the control label.
+Controls use a 6 px radius; panels use 8 px. Layout uses the brand guide's 4/8 px rhythm. A 2 px deep-green focus border identifies keyboard focus. Primary green buttons carry white text. Color never replaces the control label.
 
 The native workspace keeps a professional control layer: Irongall labels and controls, restrained toolbar buttons, and a white writing surface within warm-paper margins. The document header reports its title, save state, and current view. Outline and Inspector start at 230 and 300 px and remain resizable. Selected paragraph styles have readable labels while retaining canonical engine keys.
 
@@ -91,9 +142,9 @@ Six custom display faces drawn with Vixl live in [assets/brand-fonts](../assets/
 
 The full light wordmark appears at 240 px in the writing toolbar, with 20 px surrounding clearance, and at 360 px in About. Preserve aspect ratio, the loop, the rough terminal, and at least half a capital B's height of clear space. The approved name is outlined artwork; do not retype or redraw it as a substitute.
 
-Qt's SVG Tiny renderer skips nested SVG elements in these supplied exports. Native widgets therefore draw the supplied 960 px transparent wordmark PNG at its intended logical size, preserving fidelity through common display scales. Original SVG and Vixl masters remain available for design and documentation. The README and this page use light/dark SVG variants via `picture`.
+Qt's SVG Tiny renderer skips nested SVG elements in these logo exports. Native widgets therefore draw the 960 px transparent wordmark PNG at its intended logical size, preserving fidelity through common display scales. Original SVG and Vixl masters remain available for design and documentation. The README and this page use light/dark SVG variants via `picture`.
 
-The Qt application icon uses the simplified micro mark at 16–24 px and the X/loop mark at larger sizes. The runtime contains PNG sizes through 1024 px. Windows executable/installer icons use the supplied multiresolution ICO. Linux packaging installs the scalable transparent master plus matching hicolor PNG sizes. Avatars and social previews are available in `design/brand/social`; website manifests and duplicate raster export families are not part of the native desktop build.
+The Qt application icon uses the simplified micro mark at 16–24 px and the X/loop mark at larger sizes. The runtime contains PNG sizes through 1024 px. Windows executable/installer icons use the approved multiresolution ICO. Linux packaging installs the scalable transparent master plus matching hicolor PNG sizes. Avatars and social previews are available in `design/brand/social`; website manifests and duplicate raster export families are not part of the native desktop build.
 
 ## Motion contract
 
@@ -164,6 +215,4 @@ The earlier [pen-settle experiment](../design/brand/motion/pen-settle.vixl), its
 
 ## Verification
 
-The [editable sources](../design/brand/README.md) preserve the supplied guide, examples, and new timeline. Vixl is the animation authoring tool; native playback stays in `gui_motion.py`. Preserve the immediate reduced-motion path when adding transitions.
-
-`tests/test_ui_icons_marks.py` checks the library against its own checksums and manifest, the icon atlases (every designed icon present, exact pixmaps at every size, distinct drawings, brand colors only), the new stills, loops and rules with their provenance, icons and icon-only buttons in the toolbar and menus, the illustrated result headers and when they appear, the checking and dictation loops starting and stopping with their tasks (including failure and closing), that pen-stroke decorations exist only in the editing view and never reach `resolve_pages` or another thread, that marks sit under the word they measure, hide when their block changes, write over 180 ms and not under reduced motion, never enter the document, and fall back to plain lines. `tests/test_brand_motion.py`, `tests/test_ui_art.py`, and `tests/test_gui_ai.py` exercise resources, companion provenance and loop endpoints, palette-based variant choice, task-owned AI/spelling loops, exact sprite endpoints, completion/interruption, reduced motion, hidden/minimized windows, concurrent workers, terminal job states, explicit save versus autosave, style-key mapping, and document preservation. Existing GUI and engine tests remain required. Screenshots are captured from Qt's offscreen native renderer using a sample document (`python scripts/capture_screens.py` regenerates them after a typography or branding change); its Source Serif 4 style is an explicit specimen choice. The busy capture holds a local task open for inspection. Windows installer appearance, Linux desktop icon caches, screen-reader announcements, and physical high-DPI displays require target-desktop verification.
+Editable sources are described in [brand sources](../design/brand/README.md). Vixl is the animation authoring tool; native playback stays in `gui_motion.py`. Preserve the immediate reduced-motion path when adding transitions. The brand and interface tests, and how to regenerate screenshots, are in the [development guide](development.md#brand-and-interface-tests).

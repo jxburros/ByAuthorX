@@ -3,7 +3,7 @@
 Thanks for helping. Start with the [development guide](docs/development.md) for setup, layout,
 tests and the CI gates, and the [architecture](docs/architecture.md) for the design rules.
 
-1. Open or pick an issue; for behavior changes check the [product specification](ByAuthorX-Product-Specification%20%281%29.md)
+1. Open or pick an issue; for behavior changes check the [product specification](PRODUCT-SPECIFICATION.md)
    and the [acceptance matrix](docs/acceptance-matrix.md).
 2. Branch from `main`, keep changes focused, and add tests. Run the CI gates locally:
    `ruff format --check .`, `ruff check src tests`, `mypy`, and `pytest` with `QT_QPA_PLATFORM=offscreen`.
