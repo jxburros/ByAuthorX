@@ -2,7 +2,8 @@
 
 All four are dispatched through ``cli.execute``, so they are also MCP tools (``byax_route``,
 ``byax_outline``, ``byax_verify_citations``, ``byax_summaries``) and REST commands. ``route``,
-``outline`` and ``verify-citations`` are read-only and never call a model: ``route`` explains the
+``outline`` and ``verify-citations`` are read-only and never call a model (``route --inspect --llm-rerank``
+is the one opt-in exception, local CLI only): ``route`` explains the
 route a request would take (and, with ``inspect``, what the assistant would see), ``outline`` exposes
 the outline parameters of ``inspect``, and ``verify-citations`` returns grounding records verified
 against the indexed source text. ``summaries`` builds chapter summaries only on explicit request with
@@ -79,6 +80,10 @@ def route_command(a: dict[str, Any], owner: str | None = None) -> dict[str, Any]
         'privacy': a.get('privacy', 'exclude'),
         'local_providers': local,
     }
+    if a.get('llm_rerank') and not a.get('inspect'):
+        raise ByaxError('invalid_input', '--llm-rerank applies to --inspect (it orders retrieved passages)')
+    if a.get('authorize') and not a.get('llm_rerank'):
+        raise ByaxError('invalid_input', '--authorize applies to --llm-rerank', field='authorize')
     if not a.get('inspect'):
         decision = router.decide(
             a['request'],
@@ -89,6 +94,18 @@ def route_command(a: dict[str, Any], owner: str | None = None) -> dict[str, Any]
             **options,
         )
         return envelope({'route': decision, 'sent': False}, doc)
+    reranker = None
+    if a.get('llm_rerank'):
+        from .llm_rerank import make_reranker
+        from .providers import ProviderRegistry
+
+        # Phase 6: only a thematic R3 request reaches it, and only under the provider's consent rules.
+        reranker = make_reranker(
+            ProviderRegistry(config_dir=a.get('config_dir')),
+            a['llm_rerank'],
+            authorized=a.get('authorize', False),
+            library_authorized=a.get('authorize', False),
+        )
     assembled = context_assembly.assemble(
         view,
         a['request'],
@@ -96,6 +113,7 @@ def route_command(a: dict[str, Any], owner: str | None = None) -> dict[str, Any]
         provider=config,
         use_libraries=use_libraries,
         excluded=a.get('exclude'),
+        llm_reranker=reranker,
         **options,
     )
     inspector = context_assembly.inspector_payload(assembled, provider=config)
@@ -111,6 +129,9 @@ def route_command(a: dict[str, Any], owner: str | None = None) -> dict[str, Any]
         'provider': assembled['provider'],
         'sent': False,
     }
+    if reranker is not None:
+        # The request itself is never sent by `route`; only the candidates of a thematic search may be.
+        result['llm_rerank'] = {**reranker.info, 'model_identity': reranker.identity, **reranker.last}
     return envelope(copy.deepcopy(result), doc)
 
 
@@ -201,6 +222,10 @@ def verify_citations_command(a: dict[str, Any], owner: str | None = None) -> dic
     reply = a.get('reply') if a.get('reply') is not None else spec.get('reply')
     if reply is None:
         report = grounding.audit_citations(doc)
+        if a.get('entailment'):
+            from .grounding_entailment import audit_entailment, make_stage
+
+            report = audit_entailment(report, doc, make_stage())
         items, paging = _page(report['citations'], a)
         report['citations'] = items
         return envelope(
@@ -213,6 +238,11 @@ def verify_citations_command(a: dict[str, Any], owner: str | None = None) -> dic
         raise ByaxError('invalid_input', 'reply must be text', field='reply')
     passages, problems = _verified_passages(doc, a['path'], spec.get('passages') or [])
     grounded = grounding.ground_reply(reply, passages=passages, references=doc.get('references', {}))
+    if a.get('entailment'):
+        from .grounding_entailment import entail_grounding
+
+        # Advisory support categories from the on-device model; "not installed" is reported, not hidden.
+        grounded = entail_grounding(grounded, passages=passages, references=doc.get('references', {}))
     records, paging = _page(grounded['records'], a)
     return envelope(
         {
@@ -223,6 +253,7 @@ def verify_citations_command(a: dict[str, Any], owner: str | None = None) -> dic
             'summary': grounded['summary'],
             'invalid': grounded['invalid'],
             'stages': grounded['stages'],
+            **({'entailment': grounded['entailment']} if 'entailment' in grounded else {}),
             'unavailable_passages': problems,
             'source_text': 'Passage text is read from the attached library index or the open document; '
             'text supplied with the request is never trusted.',

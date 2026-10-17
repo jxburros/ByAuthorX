@@ -179,6 +179,16 @@ claim and the cited text travel as untrusted data, the answer is a category (`su
 `unsupported`) with a short reason, and a reply that cannot be read is recorded as not run. See
 [Optional judge](library-and-citations-guide.md#optional-judge-stage-3).
 
+## A model to order thematic search results
+
+An alias that can hold a text conversation can also be named as the **LLM reranker** for the multi-step search of a
+thematic question: `byax route PATH --request "…" --inspect --llm-rerank ALIAS` (library: `llm_rerank.make_reranker`).
+It is opt-in and local-CLI only. A remote alias needs the usual remote authorization (`--authorize` for one run, or a
+saved remote policy) and the `library_passages` permission before library candidates are sent, and never receives text
+from a `local_only` library; a model on this computer needs none of that. The candidates travel as untrusted data, the
+answer must be a list of numbers, and anything else leaves the order unchanged. See
+[LLM reranker](library-and-citations-guide.md#optional-llm-reranker-for-thematic-searches).
+
 ## Streaming recognition
 
 `list_capabilities()` declares `streaming` per adapter, and only adapters with an implemented incremental path claim it:

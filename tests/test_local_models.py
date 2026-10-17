@@ -156,7 +156,12 @@ def isolated(tmp_path, monkeypatch):
 def test_pinned_catalogue_is_complete_and_licensed():
     catalogue = local_models.load_catalogue()
     names = [m['name'] for m in catalogue['models']]
-    assert {'qwen3-embedding-0.6b-int8', 'bge-reranker-v2-m3-int8', 'answerai-colbert-small-v1'} <= set(names)
+    assert {
+        'qwen3-embedding-0.6b-int8',
+        'bge-reranker-v2-m3-int8',
+        'answerai-colbert-small-v1',
+        'hhem-2.1-open-int8',
+    } <= set(names)
     assets = set()
     for model in catalogue['models']:
         assert model['licence']['spdx'] == 'Apache-2.0'
@@ -165,7 +170,13 @@ def test_pinned_catalogue_is_complete_and_licensed():
         assert model['size_bytes'] == sum(f['size'] for f in model['files'])
         assert any(f['role'] == 'card' for f in model['files'])
         for item in model['files']:
-            assert len(item['sha256']) == 64 and item['url'].startswith('https://huggingface.co/')
+            assert len(item['sha256']) == 64
+            if item.get('mirror_only'):
+                # The project's own build of a model with no upstream ONNX file (scripts/export_hhem_onnx.py).
+                base = catalogue['mirror']['base_url'].rstrip('/')
+                assert item['url'] == f'{base}/{item["mirror_asset"]}' and model['upstream']['export_recipe']
+                continue
+            assert item['url'].startswith('https://huggingface.co/')
             # Every file is pinned to an immutable commit, never a moving branch.
             assert re.search(r'/resolve/[0-9a-f]{40}/', item['url'])
             assert item['mirror_asset'] not in assets

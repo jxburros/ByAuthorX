@@ -188,7 +188,8 @@ def mmr(
 
 
 class Reranker(Protocol):
-    """Reorders candidates for a query. Implementations must be local and deterministic."""
+    """Reorders candidates for a query. The built-in rerankers are local and deterministic; the optional
+    LLM reranker (:mod:`byax.llm_rerank`) asks a model the writer chose and consented to."""
 
     identity: str
 

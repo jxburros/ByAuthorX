@@ -66,7 +66,8 @@ class LocalModelPanels:
         layout = QVBoxLayout(dialog)
         intro = QLabel(
             self.tr(
-                'On-device search models run on this computer; nothing you write leaves it. '
+                'On-device models run on this computer; nothing you write leaves it. They rank search results '
+                'and, for the AI tab and the citation audit, check claims against the text they cite. '
                 'A model is downloaded only when you press Download and confirm the source, size and checksum.'
             )
         )
@@ -171,6 +172,7 @@ class LocalModelPanels:
             def finished(result):
                 self.status_label.setText(self.tr('Model {0} downloaded and verified.').format(name))
                 refresh()
+                self._models_changed()
 
             self.start_job(
                 'model_download',
@@ -229,6 +231,13 @@ class LocalModelPanels:
         timer.start()
         refresh()
         dialog.exec()
+        self._models_changed()
+
+    def _models_changed(self):
+        """Controls that depend on an installed model (the AI tab's support check) re-read what is installed."""
+        panel = getattr(self, 'ai_panel', None)
+        if panel is not None and hasattr(panel, 'refresh_support_check'):
+            panel.refresh_support_check()
 
     def enable_semantic_search(self, library, done=None):
         """Ask the on-device prompt, then configure the library and index it in a background job."""

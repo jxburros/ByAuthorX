@@ -711,7 +711,12 @@ says something is not in your sources, ByAuthorX searches your libraries and thi
 literally and shows any matches. The assistant's citations appear as numbered chips: hover to
 see the cited passage, click to open the source at that page or block, and **Insert as
 citation** to cite it in your text. Checks → **Citation audit** (or `byax check --citations`)
-checks every citation you made against its source on this computer, without AI. See the
+checks every citation you made against its source on this computer, without AI. If you install
+the optional on-device **support check** model (Tools → On-device search…), the AI tab can underline each cited
+claim as supported, partly supported or not supported by the text it cites (tick **Check claims against their
+sources**), and the Checks tab can do the same for your paraphrased citations (**Paraphrase support
+(on-device)**). The underlines are advisory pointers, not verdicts: each has a symbol and a tooltip, the check is off
+until you turn it on, and nothing is sent anywhere. See the
 [library and citations guide](library-and-citations-guide.md#grounding-citation-chips-and-the-citation-audit).
 The audit also tells you when a citation points to an **earlier version** of its source (a library
 file that changed, or another `.byax` draft you cited that has moved on); see

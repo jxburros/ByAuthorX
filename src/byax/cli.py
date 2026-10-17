@@ -233,6 +233,8 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'strict': 'boolean',
         # Context engine plan 6.4: audit every citation mark (stage 1; local, no consent).
         'citations': 'boolean',
+        # Plan 9, stage 2: also check paraphrase citations with the on-device entailment model (local, advisory).
+        'entailment': 'boolean',
         # Plan 9, stage 3: also put the low-confidence citations to this provider alias (local CLI only).
         'judge': 'string',
         'authorize': 'boolean',
@@ -573,6 +575,9 @@ ARGUMENTS['route'] = {
     'use_libraries': 'boolean',
     'inspect': 'boolean',
     'exclude': 'array',
+    # Phase 6: let this provider order the top candidates of a thematic R3 search (opt-in; local CLI only).
+    'llm_rerank': 'string',
+    'authorize': 'boolean',
     'limit': 'integer',
     'offset': 'integer',
     'config_dir': 'string',
@@ -592,6 +597,7 @@ COMMANDS['verify-citations'] = (
 ARGUMENTS['verify-citations'] = {
     'path': 'string',
     'reply': 'string',
+    'entailment': 'boolean',
     'input': 'object',
     'limit': 'integer',
     'offset': 'integer',
@@ -1218,14 +1224,20 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
     from .checks import run_checks
 
     doc = _load(a['path'])
-    if (a.get('judge') or a.get('authorize')) and not a.get('citations'):
-        _error('invalid_input', '--judge and --authorize apply to --citations', field='judge')
+    if (a.get('judge') or a.get('authorize') or a.get('entailment')) and not a.get('citations'):
+        _error('invalid_input', '--judge, --authorize and --entailment apply to --citations', field='judge')
     if a.get('citations'):
         from .grounding import audit_citations
 
         if a.get('suite') or a.get('family'):
             _error('invalid_input', 'Run --citations on its own; it is a separate audit', field='citations')
         report = audit_citations(doc, document_path=a['path'])
+        if a.get('entailment'):
+            from .grounding_entailment import audit_entailment
+            from .grounding_entailment import make_stage as entailment_stage
+
+            # Plan 9, stage 2: paraphrases are read against the cited text by a model on this computer.
+            report = audit_entailment(report, doc, entailment_stage())
         if a.get('judge'):
             from .grounding_judge import judge_audit, make_stage
             from .providers import ProviderRegistry

@@ -25,6 +25,8 @@ VERIFIED = '2026-10-16'
 MIRROR_REPOSITORY = 'jxburros/ByAuthorX'
 MIRROR_TAG = 'models-v1'
 HF = 'https://huggingface.co'
+HHEM_REVISION = 'de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8'
+FLAN_REVISION = '7bcac572ce56db69c1ea7c8af255c5d7c9672fc2'
 
 # (card repository, card revision) holds the licence statement; (export repository, revision) the ONNX files.
 MODELS = [
@@ -128,6 +130,52 @@ MODELS = [
         ],
         'runtime': {'family': 'docling-layout', 'artifacts_folder': 'docling-project--docling-layout-heron'},
     },
+    {
+        # The project's own ONNX build of an upstream model that publishes no ONNX file (no trust_remote_code
+        # at run time). ``fixed`` files carry the size and SHA-256 of the exact bytes produced by
+        # ``scripts/export_hhem_onnx.py`` (deterministic for the pinned library versions in its docstring);
+        # ``mirror_only`` files are served from the project mirror release, never from an upstream host.
+        'name': 'hhem-2.1-open-int8',
+        'title': 'HHEM-2.1-Open (int8 ONNX entailment checker, English)',
+        'kind': 'entailment',
+        'version': '1',
+        'bundled': False,
+        'description': 'Checks whether a claim is supported by the text it cites (cascade stage 2). '
+        'English only; advisory. Installed only on request.',
+        'licence': {
+            'spdx': 'Apache-2.0',
+            'source': f'{HF}/vectara/hallucination_evaluation_model (model card front matter: '
+            f'license: apache-2.0); base model {HF}/google/flan-t5-base (license: apache-2.0)',
+            'verified': '2026-10-17',
+        },
+        'base': ('vectara/hallucination_evaluation_model', HHEM_REVISION),
+        'export': ('vectara/hallucination_evaluation_model', HHEM_REVISION),
+        'export_recipe': 'scripts/export_hhem_onnx.py',
+        'files': [],
+        'fixed': [
+            {
+                'path': 'model.onnx',
+                'role': 'model',
+                'size': 166804567,
+                'sha256': '8ac275e8177561ed5d94ef836b83931738d39945f4275b1b179e35f478050dbe',
+                'mirror_only': True,
+            },
+        ],
+        'extra': [
+            ('google/flan-t5-base', FLAN_REVISION, 'tokenizer.json', 'tokenizer.json', 'tokenizer'),
+            ('google/flan-t5-base', FLAN_REVISION, 'README.md', 'BASE-MODEL-CARD.md', 'card'),
+        ],
+        'runtime': {
+            'family': 'hhem-t5',
+            'language': 'en',
+            'max_tokens': 1024,
+            'pad_token_id': 0,
+            'prompt': '<pad> Determine if the hypothesis is true given the premise?\n\n'
+            'Premise: {text1}\n\nHypothesis: {text2}',
+            'supported_at': 0.8,
+            'unsupported_at': 0.65,
+        },
+    },
 ]
 
 
@@ -174,6 +222,11 @@ def build(client):
         files.append(
             file_entry(client, base_repository, base_revision, 'README.md', 'MODEL-CARD.md', 'card', cache)
         )
+        for repo, rev, source, destination, role in spec.get('extra', []):
+            files.append(file_entry(client, repo, rev, source, destination, role, cache))
+        mirror = f'https://github.com/{MIRROR_REPOSITORY}/releases/download/{MIRROR_TAG}'
+        for fixed in reversed(spec.get('fixed', [])):
+            files.insert(0, {**fixed, 'url': f'{mirror}/{spec["name"]}__{fixed["path"]}'})
         for item in files:
             item['mirror_asset'] = f'{spec["name"]}__{item["path"]}'
         models.append(
@@ -184,12 +237,13 @@ def build(client):
                 'version': spec['version'],
                 'description': spec['description'],
                 'bundled': spec['bundled'],
-                'licence': {**spec['licence'], 'verified': VERIFIED},
+                'licence': {**spec['licence'], 'verified': spec['licence'].get('verified', VERIFIED)},
                 'upstream': {
                     'model': base_repository,
                     'export': repository,
                     'revision': revision,
                     'url': f'{HF}/{repository}/tree/{revision}',
+                    **({'export_recipe': spec['export_recipe']} if 'export_recipe' in spec else {}),
                 },
                 'runtime': spec['runtime'],
                 'size_bytes': sum(f['size'] for f in files),

@@ -1,0 +1,1838 @@
+{
+ "schema": 1,
+ "description": "Hand-labelled claim/source pairs for the entailment stage (context engine plan 9). Written and labelled by the project; see scripts/build_entailment_fixture.py for the label definitions.",
+ "labels": [
+  "supported",
+  "partial",
+  "unsupported"
+ ],
+ "counts": {
+  "supported": 103,
+  "partial": 59,
+  "unsupported": 82
+ },
+ "sources": {
+  "A": {
+   "origin": "pp",
+   "text": "“Why, my dear, you must know, Mrs. Long says that Netherfield is taken by a young man of large fortune from the north of England; that he came down on Monday in a chaise and four to see the place, and was so much delighted with it that he agreed with Mr. Morris immediately; that he is to take possession before Michaelmas, and some of his servants are to be in the house by the end of next week.”"
+  },
+  "B": {
+   "origin": "pp",
+   "text": "Mr. Bennet was so odd a mixture of quick parts, sarcastic humour, reserve, and caprice, that the experience of three-and-twenty years had been insufficient to make his wife understand his character. Her mind was less difficult to develope. She was a woman of mean understanding, little information, and uncertain temper. When she was discontented, she fancied herself nervous. The business of her life was to get her daughters married: its solace was visiting and news."
+  },
+  "C": {
+   "origin": "pp",
+   "text": "Not all that Mrs. Bennet, however, with the assistance of her five daughters, could ask on the subject, was sufficient to draw from her husband any satisfactory description of Mr. Bingley. They attacked him in various ways, with barefaced questions, ingenious suppositions, and distant surmises; but he eluded the skill of them all; and they were at last obliged to accept the second-hand intelligence of their neighbour, Lady Lucas. Her report was highly favourable. Sir William had been delighted with him. He was quite young, wonderfully handsome, extremely agreeable, and, to crown the whole, he meant to be at the next assembly with a large party. Nothing could be more delightful! To be fond of dancing was a certain step towards falling in love; and very lively hopes of Mr. Bingley’s heart were entertained."
+  },
+  "D": {
+   "origin": "pp",
+   "text": "In a few days Mr. Bingley returned Mr. Bennet’s visit, and sat about ten minutes with him in his library. He had entertained hopes of being admitted to a sight of the young ladies, of whose beauty he had heard much; but he saw only the father. The ladies were somewhat more fortunate, for they had the advantage of ascertaining, from an upper window, that he wore a blue coat and rode a black horse."
+  },
+  "E": {
+   "origin": "pp",
+   "text": "Mr. Bingley was good-looking and gentlemanlike: he had a pleasant countenance, and easy, unaffected manners. His sisters were fine women, with an air of decided fashion. His brother-in-law, Mr. Hurst, merely looked the gentleman; but his friend Mr. Darcy soon drew the attention of the room by his fine, tall person, handsome features, noble mien, and the report, which was in general circulation within five minutes after his entrance, of his having ten thousand a year. The gentlemen pronounced him to be a fine figure of a man, the ladies declared he was much handsomer than Mr. Bingley, and he was looked at with great admiration for about half the evening, till his manners gave a disgust which turned the tide of his popularity; for he was discovered to be proud, to be above his company, and above being pleased; and not all his large estate in Derbyshire could save him from having a most forbidding, disagreeable countenance, and being unworthy to be compared with his friend."
+  },
+  "F": {
+   "origin": "pp",
+   "text": "Mr. Bingley had soon made himself acquainted with all the principal people in the room: he was lively and unreserved, danced every dance, was angry that the ball closed so early, and talked of giving one himself at Netherfield. Such amiable qualities must speak for themselves. What a contrast between him and his friend! Mr. Darcy danced only once with Mrs. Hurst and once with Miss Bingley, declined being introduced to any other lady, and spent the rest of the evening in walking about the room, speaking occasionally to one of his own party. His character was decided. He was the proudest, most disagreeable man in the world, and everybody hoped that he would never come there again. Amongst the most violent against him was Mrs. Bennet, whose dislike of his general behaviour was sharpened into particular resentment by his having slighted one of her daughters."
+  },
+  "G": {
+   "origin": "pp",
+   "text": "“Come, Darcy,” said he, “I must have you dance. I hate to see you standing about by yourself in this stupid manner. You had much better dance.” “I certainly shall not. You know how I detest it, unless I am particularly acquainted with my partner. At such an assembly as this, it would be insupportable. Your sisters are engaged, and there is not another woman in the room whom it would not be a punishment to me to stand up with.” “I would not be so fastidious as you are,” cried Bingley, “for a kingdom! Upon my honour, I never met with so many pleasant girls in my life as I have this evening; and there are several of them, you see, uncommonly pretty.” “You are dancing with the only handsome girl in the room,” said Mr. Darcy, looking at the eldest Miss Bennet. “Oh, she is the most beautiful creature I ever beheld! But there is one of her sisters sitting down just behind you, who is very pretty, and I dare say very agreeable. Do let me ask my partner to introduce you.” “Which do you mean?” and turning round, he looked for a moment at Elizabeth, till, catching her eye, he withdrew his own, and coldly said, “She is tolerable: but not handsome enough to tempt me; and I am in no humour at present to give consequence to young ladies who are slighted by other men. You had better return to your partner and enjoy her smiles, for you are wasting your time with me.”"
+  },
+  "H": {
+   "origin": "pp",
+   "text": "Mr. Bingley inherited property to the amount of nearly a hundred thousand pounds from his father, who had intended to purchase an estate, but did not live to do it. Mr. Bingley intended it likewise, and sometimes made choice of his county; but, as he was now provided with a good house and the liberty of a manor, it was doubtful to many of those who best knew the easiness of his temper, whether he might not spend the remainder of his days at Netherfield, and leave the next generation to purchase. His sisters were very anxious for his having an estate of his own; but though he was now established only as a tenant, Miss Bingley was by no means unwilling to preside at his table; nor was Mrs. Hurst, who had married a man of more fashion than fortune, less disposed to consider his house as her home when it suited her. Mr. Bingley had not been of age two years when he was tempted, by an accidental recommendation, to look at Netherfield House. He did look at it, and into it, for half an hour; was pleased with the situation and the principal rooms, satisfied with what the owner said in its praise, and took it immediately."
+  },
+  "I": {
+   "origin": "pp",
+   "text": "Between him and Darcy there was a very steady friendship, in spite of a great opposition of character. Bingley was endeared to Darcy by the easiness, openness, and ductility of his temper, though no disposition could offer a greater contrast to his own, and though with his own he never appeared dissatisfied. On the strength of Darcy’s regard, Bingley had the firmest reliance, and of his judgment the highest opinion. In understanding, Darcy was the superior. Bingley was by no means deficient; but Darcy was clever. He was at the same time haughty, reserved, and fastidious; and his manners, though well bred, were not inviting. In that respect his friend had greatly the advantage. Bingley was sure of being liked wherever he appeared; Darcy was continually giving offence."
+  },
+  "J": {
+   "origin": "pp",
+   "text": "Within a short walk of Longbourn lived a family with whom the Bennets were particularly intimate. Sir William Lucas had been formerly in trade in Meryton, where he had made a tolerable fortune, and risen to the honour of knighthood by an address to the king during his mayoralty. The distinction had, perhaps, been felt too strongly. It had given him a disgust to his business and to his residence in a small market town; and, quitting them both, he had removed with his family to a house about a mile from Meryton, denominated from that period Lucas Lodge; where he could think with pleasure of his own importance, and, unshackled by business, occupy himself solely in being civil to all the world. For, though elated by his rank, it did not render him supercilious; on the contrary, he was all attention to everybody. By nature inoffensive, friendly, and obliging, his presentation at St. James’s had made him courteous."
+  },
+  "K": {
+   "origin": "pp",
+   "text": "“Perhaps you mean what I overheard between him and Mr. Robinson: did not I mention it to you? Mr. Robinson’s asking him how he liked our Meryton assemblies, and whether he did not think there were a great many pretty women in the room, and which he thought the prettiest? and his answering immediately to the last question, ‘Oh, the eldest Miss Bennet, beyond a doubt: there cannot be two opinions on that point.’”"
+  },
+  "L": {
+   "origin": "pp",
+   "text": "Occupied in observing Mr. Bingley’s attention to her sister, Elizabeth was far from suspecting that she was herself becoming an object of some interest in the eyes of his friend. Mr. Darcy had at first scarcely allowed her to be pretty: he had looked at her without admiration at the ball; and when they next met, he looked at her only to criticise. But no sooner had he made it clear to himself and his friends that she had hardly a good feature in her face, than he began to find it was rendered uncommonly intelligent by the beautiful expression of her dark eyes. To this discovery succeeded some others equally mortifying. Though he had detected with a critical eye more than one failure of perfect symmetry in her form, he was forced to acknowledge her figure to be light and pleasing; and in spite of his asserting that her manners were not those of the fashionable world, he was caught by their easy playfulness. Of this she was perfectly unaware: to her he was only the man who made himself agreeable nowhere, and who had not thought her handsome enough to dance with."
+  },
+  "M": {
+   "origin": "pp",
+   "text": "“What a charming amusement for young people this is, Mr. Darcy! There is nothing like dancing, after all. I consider it as one of the first refinements of polished societies.” “Certainly, sir; and it has the advantage also of being in vogue amongst the less polished societies of the world: every savage can dance.” Sir William only smiled. “Your friend performs delightfully,” he continued, after a pause, on seeing Bingley join the group; “and I doubt not that you are an adept in the science yourself, Mr. Darcy.” “You saw me dance at Meryton, I believe, sir.” “Yes, indeed, and received no inconsiderable pleasure from the sight. Do you often dance at St. James’s?” “Never, sir.” “Do you not think it would be a proper compliment to the place?” “It is a compliment which I never pay to any place if I can avoid it.” “You have a house in town, I conclude?” Mr. Darcy bowed. “I had once some thoughts of fixing in town myself, for I am fond of superior society; but I did not feel quite certain that the air of London would agree with Lady Lucas.”"
+  },
+  "N1": {
+   "origin": "novel",
+   "text": "Tom Vane opened the tower door only wide enough to look at her. He refused to say why the lamp had gone dark. On a nail inside the door hung a brass key, green at the edges. Tom saw her looking and closed the door. That night she wrote in her notebook that he was afraid of something, and that it was not the sea."
+  },
+  "N2": {
+   "origin": "novel",
+   "text": "In the desk Mara found a bundle of letters tied with string. They were from her father, written the winter before he drowned. One letter asked Tom to keep the key safe until his daughter came. Another was signed only with the name Edwin. She put the letters back exactly as she had found them and told no one."
+  },
+  "N3": {
+   "origin": "novel",
+   "text": "The storm came in on the third day. Waves broke over the harbour wall and the ferry stayed in port. Mara asked Tom about the brass key, and he said he had lost it years ago. It was hanging on the nail behind him as he spoke. She did not call him a liar. She asked him instead to teach her how to light the lamp by hand."
+  },
+  "N4": {
+   "origin": "novel",
+   "text": "Near dawn a fishing boat struck the rocks below the tower. Bram rowed out with two men from the inn. Mara held the lamp steady while Tom turned the lens, and the light reached the water in time. They brought one survivor ashore, a young woman wrapped in a sail."
+  },
+  "N5": {
+   "origin": "novel",
+   "text": "The survivor said her name was Ada Lindqvist and that she had come to find the keeper. Ada carried a letter in the same hand as the bundle in the desk. Mara read it twice before she understood it. Tom sat down on the stairs and finally told her the truth about her father."
+  },
+  "N6": {
+   "origin": "novel",
+   "text": "In the morning the storm had passed and the harbour was flat and bright. Mara decided to stay through the winter. Bram said the inn would keep her room. That evening she lit the lamp herself, and the brass key went back on its nail."
+  },
+  "N7": {
+   "origin": "novel",
+   "text": "The evening ferry pushed through grey water toward Gull Point, and the lighthouse stood dark against the cliffs. Nobody on deck spoke. Mara Quill held her suitcase on her knees and counted the gulls. She had not seen the Point since she was a child, and she did not like the way the tower watched the harbour. At the inn, Bram Hollis poured her a cup of tea and said the keeper would not see visitors. The innkeeper's hands shook when he mentioned the lamp."
+  },
+  "R1": {
+   "origin": "research",
+   "text": "Early lighthouses burned wood or coal in open braziers on the summit of a tower. The brazier’s light was weak and its smoke dimmed it in damp weather, so keepers often spent the night feeding the fire. In 1822 the French engineer Augustin Fresnel proposed a lens built from concentric rings of glass prisms, which captured far more of the lamp’s light and bent it into a narrow horizontal beam. The first Fresnel lens was installed at the Cordouan lighthouse in 1823. Fresnel lenses were graded into orders by size, the first order being the largest, and a first-order lens could be seen from more than twenty miles away in clear weather."
+  },
+  "R2": {
+   "origin": "research",
+   "text": "The herring gull colony on the island was surveyed in June of three consecutive years. Observers counted 412 occupied nests in the first year, 389 in the second and 301 in the third. Most nests were on bare ground above the high-tide line, though a small number were built among the ruins of the old signal station. Chick survival was lowest in the third year, when a rat was seen near the northern cliffs. The authors caution that the survey cannot show whether the rat caused the decline, because food supply was not measured."
+  },
+  "R3": {
+   "origin": "research",
+   "text": "The monastery library at Saint-Aure held about nine hundred volumes in 1340, most of them copied in its own scriptorium. A catalogue made that year lists the books by shelf, and notes that borrowing was allowed only with the abbot’s written permission. Two volumes were recorded as missing. The catalogue’s compiler, Brother Anselm, added that damp had spoiled the lower shelves of the north wall, and that the books stored there had been moved upstairs."
+  },
+  "R4": {
+   "origin": "research",
+   "text": "Arabica coffee grows best at altitudes between 1,000 and 2,000 metres, where nights are cool and rainfall is steady. Trees begin bearing fruit about three years after planting and yield their largest harvests between years five and twenty. Cherries ripen unevenly, so on many farms pickers return to the same tree several times during the season. After picking, the fruit is either dried whole or pulped and fermented before drying; the choice affects flavour but not the number of beans in each cherry, which is usually two."
+  },
+  "R5": {
+   "origin": "research",
+   "text": "In winter, honey bees do not hibernate. The workers form a cluster around the queen and shiver their flight muscles to generate heat, keeping the centre of the cluster near 30 degrees Celsius even when the air outside is below freezing. Bees on the outside of the cluster rotate inward at intervals so that no individual stays in the cold for long. The colony survives on stored honey, and a hive that runs out of stores before spring will starve even if the temperature is mild."
+  },
+  "R6": {
+   "origin": "research",
+   "text": "Spring tides occur twice each lunar month, at new moon and full moon, when the sun, moon and earth are roughly aligned and their gravitational effects combine. They produce the highest high tides and the lowest low tides. Neap tides occur in between, at the first and last quarter moons, when the sun and moon pull at right angles and the tidal range is smallest. The name “spring” has nothing to do with the season; it comes from an old sense of the word meaning to leap or rise."
+  },
+  "R7": {
+   "origin": "research",
+   "text": "The harbour board approved dredging of the main channel in March 1894, at an estimated cost of 14,000 pounds. Work began in September and was completed the following May, two months behind schedule because of winter storms. The channel was deepened from 14 to 19 feet at low water, allowing steamers of up to 1,800 tons to reach the quay. The board noted that silting returned quickly at the seaward end, and recommended annual surveys."
+  },
+  "R8": {
+   "origin": "research",
+   "text": "Rag paper dominated European printing until the nineteenth century. Mills pulped old linen and cotton cloth, and shortages of rags periodically limited how many books could be printed. In the 1840s, Friedrich Keller in Saxony and Charles Fenerty in Nova Scotia independently developed methods for making paper from wood pulp. Wood-pulp paper was cheaper but contained acids that made it brittle with age, which is why many books printed between 1850 and 1950 are now crumbling."
+  }
+ },
+ "pairs": [
+  {
+   "id": 1,
+   "source": "A",
+   "claim": "Netherfield has been taken by a young man of large fortune from the north of England.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 2,
+   "source": "A",
+   "claim": "Mrs. Long reports that the new tenant looked over the house on Monday and agreed terms with Mr. Morris at once.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 3,
+   "source": "A",
+   "claim": "The new tenant is to take possession before Michaelmas.",
+   "label": "supported",
+   "kind": "verbatim"
+  },
+  {
+   "id": 4,
+   "source": "A",
+   "claim": "Some of his servants are expected to be at Netherfield by the end of the following week.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 5,
+   "source": "A",
+   "claim": "The young man took Netherfield on Monday and has already moved in.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 6,
+   "source": "A",
+   "claim": "The tenant is a rich young man from the north who will take possession in the spring.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 7,
+   "source": "A",
+   "claim": "A young man of large fortune has taken Netherfield, and he is said to be engaged to one of the Lucas daughters.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 8,
+   "source": "A",
+   "claim": "Mrs. Long told Mrs. Bennet that the new tenant has four or five thousand a year.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 9,
+   "source": "A",
+   "claim": "The young man who has taken Netherfield is from London.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 10,
+   "source": "A",
+   "claim": "Mr. Morris refused the young man’s offer for Netherfield.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 11,
+   "source": "A",
+   "claim": "The new tenant arrived on Friday on horseback.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 12,
+   "source": "A",
+   "claim": "Mrs. Long has quarrelled with the new tenant.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 13,
+   "source": "B",
+   "claim": "Mr. Bennet’s wife had still not come to understand his character after about twenty-three years.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 14,
+   "source": "B",
+   "claim": "The main business of Mrs. Bennet’s life was getting her daughters married.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 15,
+   "source": "B",
+   "claim": "Mrs. Bennet was a woman of limited understanding and little information.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 16,
+   "source": "B",
+   "claim": "Mrs. Bennet liked to visit neighbours and hear the news.",
+   "label": "supported",
+   "kind": "inference"
+  },
+  {
+   "id": 17,
+   "source": "B",
+   "claim": "Mrs. Bennet was a woman of little information, and she spent most of her income on entertaining visitors.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 18,
+   "source": "B",
+   "claim": "Mr. Bennet was witty and reserved, and he deliberately kept his wife in the dark about his plans.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 19,
+   "source": "B",
+   "claim": "Mrs. Bennet claimed to be nervous whenever she was discontented, and her physician prescribed rest.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 20,
+   "source": "B",
+   "claim": "Mrs. Bennet was a woman of sharp intelligence and wide reading.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 21,
+   "source": "B",
+   "claim": "Mr. Bennet and his wife had been married for only a year.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 22,
+   "source": "B",
+   "claim": "Mrs. Bennet’s chief solace was her garden.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 23,
+   "source": "B",
+   "claim": "Mr. Bennet understood his wife’s character less well than she understood his.",
+   "label": "unsupported",
+   "kind": "role swap"
+  },
+  {
+   "id": 24,
+   "source": "C",
+   "claim": "Mr. Bennet would not give his family any satisfactory description of Mr. Bingley.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 25,
+   "source": "C",
+   "claim": "The Bennet women relied on Lady Lucas’s report for information about Mr. Bingley.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 26,
+   "source": "C",
+   "claim": "According to Lady Lucas, Sir William had been delighted with Mr. Bingley.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 27,
+   "source": "C",
+   "claim": "Lady Lucas said Mr. Bingley meant to attend the next assembly with a large party.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 28,
+   "source": "C",
+   "claim": "Lady Lucas reported that Mr. Bingley was young, handsome and agreeable, and that he had recently inherited a fortune.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 29,
+   "source": "C",
+   "claim": "Mrs. Bennet and her daughters questioned Mr. Bennet cleverly, and Lady Lucas, who had met Mr. Bingley herself, gave a favourable report.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 30,
+   "source": "C",
+   "claim": "Lady Lucas’s report was highly favourable, and as a result Mrs. Bennet immediately invited Mr. Bingley to dinner.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 31,
+   "source": "C",
+   "claim": "Mr. Bennet described Mr. Bingley at length to his daughters.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 32,
+   "source": "C",
+   "claim": "Lady Lucas reported that Mr. Bingley was proud and disagreeable.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 33,
+   "source": "C",
+   "claim": "Mr. Bingley had said he did not intend to go to the next assembly.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 34,
+   "source": "C",
+   "claim": "Sir William Lucas disliked Mr. Bingley.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 35,
+   "source": "D",
+   "claim": "Mr. Bingley called on Mr. Bennet and stayed about ten minutes in his library.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 36,
+   "source": "D",
+   "claim": "Bingley hoped to see the young ladies but met only their father.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 37,
+   "source": "D",
+   "claim": "The ladies saw from an upper window that Bingley wore a blue coat and rode a black horse.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 38,
+   "source": "D",
+   "claim": "Mr. Bingley returned Mr. Bennet’s visit a few days later and, after ten minutes in the library, was introduced to Jane.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 39,
+   "source": "D",
+   "claim": "Bingley paid his call within a few days, riding a black horse, and brought a gift of game for Mrs. Bennet.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 40,
+   "source": "D",
+   "claim": "Mr. Bingley spent the whole afternoon with the family.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 41,
+   "source": "D",
+   "claim": "Mr. Bingley was shown into the drawing-room, where he met all five daughters.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 42,
+   "source": "D",
+   "claim": "Mr. Bennet declined to receive Mr. Bingley.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 43,
+   "source": "E",
+   "claim": "Mr. Darcy drew the attention of the room by his fine figure and handsome features.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 44,
+   "source": "E",
+   "claim": "A report spread through the room within minutes that Darcy had ten thousand a year.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 45,
+   "source": "E",
+   "claim": "Mr. Hurst was Mr. Bingley’s brother-in-law, and he merely looked the gentleman.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 46,
+   "source": "E",
+   "claim": "The ladies at first thought Darcy handsomer than Bingley, but his manners turned the room against him.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 47,
+   "source": "E",
+   "claim": "Darcy was admired for his figure and his income, and his estate in Derbyshire was said to be the finest in England.",
+   "label": "partial",
+   "kind": "overstatement"
+  },
+  {
+   "id": 48,
+   "source": "E",
+   "claim": "Mr. Bingley’s manners were easy and unaffected, and he was the best dancer in the room.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 49,
+   "source": "E",
+   "claim": "Mr. Darcy was widely liked at the assembly because of his friendly manner.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 50,
+   "source": "E",
+   "claim": "Darcy’s estate was in Yorkshire.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 51,
+   "source": "E",
+   "claim": "Bingley’s sisters were plain and badly dressed.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 52,
+   "source": "E",
+   "claim": "Mr. Hurst was Mr. Darcy’s cousin.",
+   "label": "unsupported",
+   "kind": "role swap"
+  },
+  {
+   "id": 53,
+   "source": "F",
+   "claim": "Bingley danced every dance and was angry that the ball closed so early.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 54,
+   "source": "F",
+   "claim": "Mr. Darcy danced only twice, once with Mrs. Hurst and once with Miss Bingley.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 55,
+   "source": "F",
+   "claim": "Mrs. Bennet disliked Darcy especially because he had slighted one of her daughters.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 56,
+   "source": "F",
+   "claim": "Bingley spoke of giving a ball himself at Netherfield.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 57,
+   "source": "F",
+   "claim": "Darcy danced only with Mrs. Hurst and Miss Bingley, and left the ball early in disgust.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 58,
+   "source": "F",
+   "claim": "Bingley was lively and unreserved, danced every dance, and promised to hold a ball at Netherfield the following week.",
+   "label": "partial",
+   "kind": "overstatement"
+  },
+  {
+   "id": 59,
+   "source": "F",
+   "claim": "Mr. Darcy danced every dance and was the life of the party.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 60,
+   "source": "F",
+   "claim": "Mrs. Bennet was delighted with Mr. Darcy’s behaviour.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 61,
+   "source": "F",
+   "claim": "Bingley left the ball early because he was bored.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 62,
+   "source": "G",
+   "claim": "Darcy told Bingley that he detested dancing with partners he was not acquainted with.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 63,
+   "source": "G",
+   "claim": "Bingley urged Darcy to dance and pointed out one of the Miss Bennets sitting behind him.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 64,
+   "source": "G",
+   "claim": "Darcy said that Elizabeth was tolerable but not handsome enough to tempt him.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 65,
+   "source": "G",
+   "claim": "Darcy said the only handsome girl in the room was the eldest Miss Bennet.",
+   "label": "supported",
+   "kind": "inference"
+  },
+  {
+   "id": 66,
+   "source": "G",
+   "claim": "Darcy refused to dance and said that Elizabeth was tolerable, adding that he would ask her for the next set if she were not engaged.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 67,
+   "source": "G",
+   "claim": "Bingley called Jane the most beautiful creature he had ever seen and said Elizabeth was also lively and witty.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 68,
+   "source": "G",
+   "claim": "Darcy asked Elizabeth to dance but she refused.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 69,
+   "source": "G",
+   "claim": "Darcy thought Elizabeth the most beautiful woman in the room.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 70,
+   "source": "G",
+   "claim": "Bingley agreed with Darcy that the girls at the assembly were dull.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 71,
+   "source": "G",
+   "claim": "Bingley told Darcy he would dance with Elizabeth himself.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 72,
+   "source": "H",
+   "claim": "Bingley inherited nearly a hundred thousand pounds from his father.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 73,
+   "source": "H",
+   "claim": "Bingley’s father had intended to buy an estate but died before he could.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 74,
+   "source": "H",
+   "claim": "Bingley looked over Netherfield for half an hour and took it immediately.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 75,
+   "source": "H",
+   "claim": "Bingley held Netherfield as a tenant, not as its owner.",
+   "label": "supported",
+   "kind": "inference"
+  },
+  {
+   "id": 76,
+   "source": "H",
+   "claim": "Bingley inherited a hundred thousand pounds, which he used to buy Netherfield from its owner.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 77,
+   "source": "H",
+   "claim": "Miss Bingley was willing to preside at her brother’s table, and she hoped he would marry Miss Darcy.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 78,
+   "source": "H",
+   "claim": "Bingley bought Netherfield outright after inheriting his father’s property.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 79,
+   "source": "H",
+   "claim": "Bingley spent several weeks deliberating before taking Netherfield.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 80,
+   "source": "H",
+   "claim": "Mrs. Hurst had married a very wealthy man.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 81,
+   "source": "I",
+   "claim": "Bingley and Darcy were close friends despite very different characters.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 82,
+   "source": "I",
+   "claim": "Darcy was the cleverer of the two.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 83,
+   "source": "I",
+   "claim": "Bingley was readily liked wherever he went, while Darcy often gave offence.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 84,
+   "source": "I",
+   "claim": "Darcy was clever and haughty, and his greater wealth made Bingley defer to him.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 85,
+   "source": "I",
+   "claim": "Bingley admired Darcy’s judgment, and Darcy in turn relied on Bingley’s business sense.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 86,
+   "source": "I",
+   "claim": "Darcy was warmer and more sociable than Bingley.",
+   "label": "unsupported",
+   "kind": "role swap"
+  },
+  {
+   "id": 87,
+   "source": "I",
+   "claim": "Bingley was deficient in understanding.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 88,
+   "source": "I",
+   "claim": "Darcy and Bingley had known each other since they were at school together.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 89,
+   "source": "J",
+   "claim": "Sir William Lucas had once been in trade in Meryton and was knighted for an address to the king while he was mayor.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 90,
+   "source": "J",
+   "claim": "After his knighthood Sir William left his business and moved to a house about a mile from Meryton, called Lucas Lodge.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 91,
+   "source": "J",
+   "claim": "Sir William was friendly and obliging to everyone, even though he was pleased with his rank.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 92,
+   "source": "J",
+   "claim": "Sir William was knighted as mayor and kept his shop in Meryton, where he continued to trade.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 93,
+   "source": "J",
+   "claim": "Sir William moved to Lucas Lodge, a house a mile from Meryton, because he wanted to be nearer to London.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 94,
+   "source": "J",
+   "claim": "Sir William’s knighthood made him proud and haughty toward his neighbours.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 95,
+   "source": "J",
+   "claim": "Sir William inherited his title from his father.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 96,
+   "source": "J",
+   "claim": "Lucas Lodge stood in the middle of Meryton.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 97,
+   "source": "K",
+   "claim": "Charlotte overheard Mr. Robinson ask Bingley which woman in the room he thought the prettiest.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 98,
+   "source": "K",
+   "claim": "Bingley answered at once that the eldest Miss Bennet was the prettiest, beyond a doubt.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 99,
+   "source": "K",
+   "claim": "Bingley told Mr. Robinson that Jane Bennet was the prettiest woman present, and that he intended to ask her to marry him.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 100,
+   "source": "K",
+   "claim": "Mr. Robinson asked Bingley how he liked the Meryton assemblies, and Bingley replied that he found them dull.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 101,
+   "source": "K",
+   "claim": "Bingley named Charlotte Lucas as the prettiest woman in the room.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 102,
+   "source": "K",
+   "claim": "Mr. Darcy was the one who asked Bingley his opinion of the ladies.",
+   "label": "unsupported",
+   "kind": "role swap"
+  },
+  {
+   "id": 103,
+   "source": "L",
+   "claim": "Darcy at first hardly allowed that Elizabeth was pretty.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 104,
+   "source": "L",
+   "claim": "Darcy came to find Elizabeth’s face uncommonly intelligent because of her dark eyes.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 105,
+   "source": "L",
+   "claim": "Elizabeth was unaware that Darcy was becoming interested in her.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 106,
+   "source": "L",
+   "claim": "Darcy was caught by Elizabeth’s easy playfulness although he had said her manners were not those of the fashionable world.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 107,
+   "source": "L",
+   "claim": "Darcy came to admire Elizabeth’s eyes and figure, and he told Bingley so that same week.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 108,
+   "source": "L",
+   "claim": "Elizabeth noticed Jane’s growing attachment to Bingley, and she was equally aware of Darcy’s interest in herself.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 109,
+   "source": "L",
+   "claim": "Darcy found Elizabeth’s figure heavy and ungraceful.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 110,
+   "source": "L",
+   "claim": "Elizabeth believed Darcy to be a man who made himself agreeable everywhere.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 111,
+   "source": "M",
+   "claim": "Darcy replied that he never danced at St. James’s.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 112,
+   "source": "M",
+   "claim": "Darcy remarked that even savages can dance.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 113,
+   "source": "M",
+   "claim": "Sir William called dancing one of the first refinements of polished society.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 114,
+   "source": "M",
+   "claim": "Darcy told Sir William he never danced at St. James’s, because he disliked the crowds there.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 115,
+   "source": "M",
+   "claim": "Sir William asked whether Darcy had a house in town, and Darcy bowed and invited him to visit.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 116,
+   "source": "M",
+   "claim": "Darcy said he often danced at St. James’s.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 117,
+   "source": "M",
+   "claim": "Sir William told Darcy he thought dancing a vulgar amusement.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 118,
+   "source": "M",
+   "claim": "Darcy asked Sir William to introduce him to Elizabeth.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 119,
+   "source": "N1",
+   "claim": "Tom Vane opened the tower door only a little way when Mara came to it.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 120,
+   "source": "N1",
+   "claim": "Tom would not explain why the lamp had gone dark.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 121,
+   "source": "N1",
+   "claim": "A brass key hung on a nail inside the door.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 122,
+   "source": "N1",
+   "claim": "Mara concluded in her notebook that Tom feared something other than the sea.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 123,
+   "source": "N1",
+   "claim": "Tom Vane refused to say why the lamp was dark, and he told Mara to leave the island on the next ferry.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 124,
+   "source": "N1",
+   "claim": "A green-edged brass key hung inside the door, and Tom took it down and hid it when he saw Mara looking.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 125,
+   "source": "N1",
+   "claim": "Tom Vane invited Mara inside and showed her the lamp.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 126,
+   "source": "N1",
+   "claim": "Mara wrote that Tom was afraid of the sea.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 127,
+   "source": "N1",
+   "claim": "Tom Vane gave Mara the brass key.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 128,
+   "source": "N2",
+   "claim": "Mara found a bundle of letters from her father in the desk.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 129,
+   "source": "N2",
+   "claim": "The letters were written the winter before her father drowned.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 130,
+   "source": "N2",
+   "claim": "One of the letters asked Tom to keep the key safe until the daughter arrived.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 131,
+   "source": "N2",
+   "claim": "Mara left the letters as she found them and told nobody about them.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 132,
+   "source": "N2",
+   "claim": "Mara found letters from her father in the desk and took them with her to read at the inn.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 133,
+   "source": "N2",
+   "claim": "One letter was signed only “Edwin”, and it warned Tom about the lamp.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 134,
+   "source": "N2",
+   "claim": "The letters were written by Tom Vane to Mara’s mother.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 135,
+   "source": "N2",
+   "claim": "Mara showed the letters to Bram Hollis at once.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 136,
+   "source": "N2",
+   "claim": "Mara’s father died in a fire.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 137,
+   "source": "N3",
+   "claim": "The storm arrived on the third day and the ferry stayed in port.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 138,
+   "source": "N3",
+   "claim": "Tom told Mara he had lost the brass key years before, though it hung on the nail behind him.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 139,
+   "source": "N3",
+   "claim": "Mara did not accuse Tom of lying; she asked him to teach her to light the lamp by hand.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 140,
+   "source": "N3",
+   "claim": "Tom said the key was lost and Mara angrily accused him of lying, then demanded to be taught the lamp.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 141,
+   "source": "N3",
+   "claim": "The storm broke over the harbour wall, and Mara asked Tom about the key and the letters.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 142,
+   "source": "N3",
+   "claim": "The storm struck on the first night and the ferry kept running.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 143,
+   "source": "N3",
+   "claim": "Tom handed Mara the key and told her the truth.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 144,
+   "source": "N4",
+   "claim": "A fishing boat hit the rocks below the tower near dawn.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 145,
+   "source": "N4",
+   "claim": "Bram rowed out with two men from the inn.",
+   "label": "supported",
+   "kind": "verbatim"
+  },
+  {
+   "id": 146,
+   "source": "N4",
+   "claim": "The light reached the water in time because Mara held the lamp steady while Tom turned the lens.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 147,
+   "source": "N4",
+   "claim": "One survivor, a young woman wrapped in a sail, was brought ashore.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 148,
+   "source": "N4",
+   "claim": "Bram rowed out with two men from the inn and rescued the whole crew of the fishing boat.",
+   "label": "partial",
+   "kind": "overstatement"
+  },
+  {
+   "id": 149,
+   "source": "N4",
+   "claim": "The fishing boat struck the rocks at midnight, and Mara steadied the lamp while Tom turned the lens.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 150,
+   "source": "N4",
+   "claim": "Tom rowed out to the fishing boat while Mara kept the lamp.",
+   "label": "unsupported",
+   "kind": "role swap"
+  },
+  {
+   "id": 151,
+   "source": "N4",
+   "claim": "No one survived the wreck.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 152,
+   "source": "N5",
+   "claim": "The survivor gave her name as Ada Lindqvist and said she had come to find the keeper.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 153,
+   "source": "N5",
+   "claim": "Ada was carrying a letter in the same handwriting as the bundle in the desk.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 154,
+   "source": "N5",
+   "claim": "Tom finally told Mara the truth about her father.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 155,
+   "source": "N5",
+   "claim": "Ada Lindqvist said she had come to find the keeper, and she was Mara’s half-sister.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 156,
+   "source": "N5",
+   "claim": "Mara read Ada’s letter twice before she understood it, then confronted Bram.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 157,
+   "source": "N5",
+   "claim": "Ada Lindqvist was the daughter of the keeper.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 158,
+   "source": "N5",
+   "claim": "Tom refused to say anything about Mara’s father.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 159,
+   "source": "N6",
+   "claim": "Mara decided to stay at Gull Point through the winter.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 160,
+   "source": "N6",
+   "claim": "Bram told her the inn would keep her room.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 161,
+   "source": "N6",
+   "claim": "Mara lit the lamp herself that evening, and the brass key was returned to its nail.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 162,
+   "source": "N6",
+   "claim": "The storm had passed, and Mara decided to stay for the winter, taking over the keeper’s cottage.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 163,
+   "source": "N6",
+   "claim": "Mara left on the morning ferry.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 164,
+   "source": "N6",
+   "claim": "The harbour was rough and grey after the storm.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 165,
+   "source": "N7",
+   "claim": "Mara arrived at Gull Point by the evening ferry.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 166,
+   "source": "N7",
+   "claim": "Mara had not seen Gull Point since she was a child.",
+   "label": "supported",
+   "kind": "verbatim"
+  },
+  {
+   "id": 167,
+   "source": "N7",
+   "claim": "The innkeeper’s hands shook when he mentioned the lamp.",
+   "label": "supported",
+   "kind": "verbatim"
+  },
+  {
+   "id": 168,
+   "source": "N7",
+   "claim": "Bram Hollis served Mara tea and warned her the keeper would not see visitors, adding that the lamp had been dark for a month.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 169,
+   "source": "N7",
+   "claim": "Nobody on the ferry spoke, and Mara was eager to see the lighthouse again.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 170,
+   "source": "N7",
+   "claim": "Mara was travelling to Gull Point for the first time.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 171,
+   "source": "N7",
+   "claim": "The lighthouse was blazing against the cliffs as the ferry approached.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 172,
+   "source": "R1",
+   "claim": "Fresnel proposed a lens made of concentric rings of glass prisms in 1822.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 173,
+   "source": "R1",
+   "claim": "The first Fresnel lens was installed at the Cordouan lighthouse in 1823.",
+   "label": "supported",
+   "kind": "verbatim"
+  },
+  {
+   "id": 174,
+   "source": "R1",
+   "claim": "Early lighthouse braziers produced a weak light, and smoke dimmed it in damp weather.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 175,
+   "source": "R1",
+   "claim": "A first-order lens was the largest class and could be seen from over twenty miles in clear weather.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 176,
+   "source": "R1",
+   "claim": "Fresnel’s lens was installed at Cordouan in 1823 and made lighthouses visible from fifty miles away.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 177,
+   "source": "R1",
+   "claim": "Fresnel lenses were graded into orders by size, and the largest were used on lighthouses on exposed coasts.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 178,
+   "source": "R1",
+   "claim": "Fresnel developed his lens after working as a lighthouse keeper.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 179,
+   "source": "R1",
+   "claim": "The first Fresnel lens was installed in Britain in 1851.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 180,
+   "source": "R1",
+   "claim": "Open braziers were more reliable than Fresnel lenses in damp weather.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 181,
+   "source": "R2",
+   "claim": "Observers counted 412 occupied nests in the first year and 301 in the third.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 182,
+   "source": "R2",
+   "claim": "Chick survival was lowest in the third year.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 183,
+   "source": "R2",
+   "claim": "The authors say the survey cannot show whether the rat caused the decline.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 184,
+   "source": "R2",
+   "claim": "Most nests were on bare ground above the high-tide line.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 185,
+   "source": "R2",
+   "claim": "A rat was seen near the northern cliffs in the third year, when chick survival was lowest.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 186,
+   "source": "R2",
+   "claim": "Nest counts fell over the three years, and the authors conclude that the rat was responsible.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 187,
+   "source": "R2",
+   "claim": "Occupied nests fell from 412 to 301 over three annual surveys, and food supply was found to be adequate.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 188,
+   "source": "R2",
+   "claim": "Gull nests increased steadily over the three years.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 189,
+   "source": "R2",
+   "claim": "The survey took place in December.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 190,
+   "source": "R2",
+   "claim": "Most nests were built in the old signal station.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 191,
+   "source": "R3",
+   "claim": "A 1340 catalogue of the Saint-Aure library listed about nine hundred volumes.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 192,
+   "source": "R3",
+   "claim": "Borrowing books required the abbot’s written permission.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 193,
+   "source": "R3",
+   "claim": "Brother Anselm noted that damp had ruined the lower shelves on the north wall.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 194,
+   "source": "R3",
+   "claim": "Two volumes were recorded as missing in the catalogue.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 195,
+   "source": "R3",
+   "claim": "Most of the library’s books were copied in its own scriptorium, and Brother Anselm listed them alphabetically by author.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 196,
+   "source": "R3",
+   "claim": "Borrowing required the abbot’s permission, and borrowers paid a fee for each volume.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 197,
+   "source": "R3",
+   "claim": "The library held about nine thousand volumes.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 198,
+   "source": "R3",
+   "claim": "Anyone in the village could borrow books freely.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 199,
+   "source": "R3",
+   "claim": "Brother Anselm built a new library after the damp ruined the shelves.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 200,
+   "source": "R4",
+   "claim": "Arabica trees begin to bear fruit about three years after planting.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 201,
+   "source": "R4",
+   "claim": "Pickers often make several passes over the same tree because the cherries ripen unevenly.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 202,
+   "source": "R4",
+   "claim": "Each coffee cherry usually contains two beans.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 203,
+   "source": "R4",
+   "claim": "Arabica prefers altitudes between 1,000 and 2,000 metres with cool nights and steady rain.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 204,
+   "source": "R4",
+   "claim": "Arabica yields its largest harvests between years five and twenty and tolerates frost better than other coffee species.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 205,
+   "source": "R4",
+   "claim": "Coffee cherries are either dried whole or pulped and fermented, and the choice determines how many beans each cherry holds.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 206,
+   "source": "R4",
+   "claim": "Arabica grows best near sea level in hot, dry climates.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 207,
+   "source": "R4",
+   "claim": "Trees yield their first harvest in the first year.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 208,
+   "source": "R4",
+   "claim": "Coffee cherries ripen all at once.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 209,
+   "source": "R5",
+   "claim": "Honey bees stay active through winter by clustering and shivering their flight muscles for heat.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 210,
+   "source": "R5",
+   "claim": "Bees on the outside of the cluster rotate inward so that none stays in the cold for long.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 211,
+   "source": "R5",
+   "claim": "A hive that runs out of stored honey before spring will starve even if the weather is mild.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 212,
+   "source": "R5",
+   "claim": "The centre of the winter cluster is kept near 30 degrees Celsius.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 213,
+   "source": "R5",
+   "claim": "Honey bees cluster around the queen in winter and feed on stored honey, and the queen stops laying eggs entirely until spring.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 214,
+   "source": "R5",
+   "claim": "Bees do not hibernate; they warm the cluster by shivering, which is why hives lose weight faster in cold snaps.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 215,
+   "source": "R5",
+   "claim": "Honey bees hibernate through the winter.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 216,
+   "source": "R5",
+   "claim": "The cluster stays at the same temperature as the surrounding air.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 217,
+   "source": "R5",
+   "claim": "Bees migrate south for the winter.",
+   "label": "unsupported",
+   "kind": "absent"
+  },
+  {
+   "id": 218,
+   "source": "R6",
+   "claim": "Spring tides happen at new moon and full moon.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 219,
+   "source": "R6",
+   "claim": "The name spring tide has nothing to do with the season.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 220,
+   "source": "R6",
+   "claim": "Neap tides occur at the first and last quarter moons, when the tidal range is smallest.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 221,
+   "source": "R6",
+   "claim": "Spring tides bring the highest high tides and the lowest low tides.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 222,
+   "source": "R6",
+   "claim": "Spring tides occur twice a lunar month, and they are strongest in March because of the equinox.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 223,
+   "source": "R6",
+   "claim": "Neap tides come at the quarter moons, when the sun and moon pull at right angles, and they flood coastal marshes.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 224,
+   "source": "R6",
+   "claim": "Spring tides occur at the quarter moons.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 225,
+   "source": "R6",
+   "claim": "Spring tides are named for the season in which they are strongest.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 226,
+   "source": "R6",
+   "claim": "Neap tides produce the greatest tidal range.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 227,
+   "source": "R7",
+   "claim": "The harbour board approved dredging of the main channel in March 1894.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 228,
+   "source": "R7",
+   "claim": "The channel was deepened from 14 to 19 feet at low water.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 229,
+   "source": "R7",
+   "claim": "The dredging finished two months late because of winter storms.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 230,
+   "source": "R7",
+   "claim": "After the dredging, steamers of up to 1,800 tons could reach the quay.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 231,
+   "source": "R7",
+   "claim": "Dredging cost an estimated 14,000 pounds and the board recommended annual surveys, which the town council funded.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 232,
+   "source": "R7",
+   "claim": "Work began in September 1894 and the channel was deepened to 25 feet.",
+   "label": "partial",
+   "kind": "contradicted part"
+  },
+  {
+   "id": 233,
+   "source": "R7",
+   "claim": "The dredging was completed ahead of schedule.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 234,
+   "source": "R7",
+   "claim": "Silting at the seaward end was no longer a problem after the work.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 235,
+   "source": "R7",
+   "claim": "The board approved dredging in 1904.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 236,
+   "source": "R8",
+   "claim": "Until the nineteenth century European printers mainly used paper made from rags.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 237,
+   "source": "R8",
+   "claim": "Keller and Fenerty independently developed methods for making paper from wood pulp in the 1840s.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 238,
+   "source": "R8",
+   "claim": "Wood-pulp paper was cheaper, but its acids make it brittle over time.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 239,
+   "source": "R8",
+   "claim": "Shortages of rags sometimes limited the number of books that could be printed.",
+   "label": "supported",
+   "kind": "paraphrase"
+  },
+  {
+   "id": 240,
+   "source": "R8",
+   "claim": "Wood-pulp paper was developed in the 1840s and was cheaper than rag paper, and it was also easier to print on with fine type.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 241,
+   "source": "R8",
+   "claim": "Fenerty developed wood-pulp paper in Nova Scotia, and he became wealthy from its manufacture.",
+   "label": "partial",
+   "kind": "extra detail"
+  },
+  {
+   "id": 242,
+   "source": "R8",
+   "claim": "Wood-pulp paper lasts longer than rag paper.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 243,
+   "source": "R8",
+   "claim": "Rag paper was introduced in the nineteenth century.",
+   "label": "unsupported",
+   "kind": "contradiction"
+  },
+  {
+   "id": 244,
+   "source": "R8",
+   "claim": "Keller worked in Nova Scotia.",
+   "label": "unsupported",
+   "kind": "role swap"
+  }
+ ]
+}

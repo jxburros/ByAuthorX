@@ -70,7 +70,7 @@ command's flags.
 | `fill` | Fill document fields using a JSON values object |
 | `history` | List revisions, checkpoint, branch, or restore |
 | `diff` | Compare semantic content against a saved revision |
-| `check` | Run deterministic validation suites (`--family continuity` for the advisory continuity suite). `--citations` audits every citation mark instead, including version pins; `--citations --judge ALIAS [--authorize]` also puts the low-confidence citations to a second provider (local CLI only) |
+| `check` | Run deterministic validation suites (`--family continuity` for the advisory continuity suite). `--citations` audits every citation mark instead, including version pins; `--citations --entailment` also reads each paraphrase against its cited text with the on-device model (advisory; needs the model); `--citations --judge ALIAS [--authorize]` also puts the low-confidence citations to a second provider (local CLI only) |
 | `review` | Inspect, propose, accept, or reject changes and comments |
 | `import` | Import an exchange document into a native package |
 | `save-as` | Save an existing document under another path |
@@ -112,7 +112,7 @@ command's flags.
 | `excerpt` | Add live excerpts with a pointer to their source, check them against the source, and show where each source is used |
 | `route` | Explain the assistant route (R0–R4) for a request and, with `--inspect`, what it would see; never calls a model |
 | `outline` | Read-only outline: headings with depth, word counts per section and binder metadata |
-| `verify-citations` | Read-only grounding records for a reply checked against indexed sources, or the citation audit |
+| `verify-citations` | Read-only grounding records for a reply checked against indexed sources, or the citation audit; `--entailment` adds the on-device support check |
 | `summaries` | Chapter and book summaries: status, show, build with a provider you choose (opt-in), propose a synopsis |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
@@ -162,6 +162,18 @@ a `summary`, and proposed `operations` (`add_reference` pointer updates and `rea
 that change nothing until applied with `byax apply --input`. `validation` is `failed` (exit 4) when a
 quotation is not found or a citation is unanchored. `--citations` cannot be combined with
 `--suite` or `--family`. MCP: `byax_check` with `"citations": true`.
+
+`--entailment` (with `--citations`) is cascade stage 2 for the writer's own paraphrase citations: the
+on-device entailment model (`hhem-2.1-open-int8`, see [On-device models](#on-device-models)) reads each
+paraphrase against the cited chunk or excerpt and each item gains `entailment` with `result`
+`supported`, `partial` or `unsupported` (categories only; no score), or `not_run` and the reason. Stage 1
+`status` is unchanged; the report is marked `deterministic: false` and `advisory: true`, adds
+`entailment: {model, checked, support}`, and `review` becomes `required` when any paraphrase is
+`partial` or `unsupported`. It makes no network request and needs no consent. Without the optional
+runtime or the model the command stops with `missing_dependency` or `model_missing` and the remedy
+(`byax models --action download --name hhem-2.1-open-int8`). MCP and REST run it. Agreement with
+human labels is in [`benchmarks/0.4-entailment.json`](benchmarks/0.4-entailment.json) and the
+[library guide](library-and-citations-guide.md#support-check-stage-2).
 
 Look at the document as another format without changing the master:
 
@@ -573,8 +585,8 @@ byax excerpt Essay.byax --action refresh          # records the proposals for re
 
 ## Routing, inspector, outline, citations and summaries
 
-`route`, `outline` and `verify-citations` are read-only and never call a model (MCP marks them
-`readOnlyHint`). See the [library guide](library-and-citations-guide.md#routing-what-the-assistant-sees-for-each-request)
+`route`, `outline` and `verify-citations` are read-only and never call a remote model (MCP marks them
+`readOnlyHint`); the one opt-in exception is `route --inspect --llm-rerank`, local CLI only. See the [library guide](library-and-citations-guide.md#routing-what-the-assistant-sees-for-each-request)
 for what each route sends.
 
 ```bash
@@ -582,6 +594,7 @@ byax route Novel.byax --request "Where does Tom keep the key?" --json         # 
 byax route Novel.byax --request "Tighten this." --target p_… --start 0 --end 80 --inspect
 byax route Novel.byax --request "Summarize the book" --alias local-llama --inspect --limit 20
 byax route Novel.byax --request "…" --override R2 --use-libraries --privacy local --exclude CHUNK_ID
+byax route Novel.byax --request "How does the book treat guilt?" --alias cloud --inspect --llm-rerank local-llama
 byax outline Novel.byax --depth 2 --counts --binder --limit 50
 byax verify-citations Novel.byax                                              # the citation audit
 byax verify-citations Novel.byax --input reply.json                           # records for a reply
@@ -601,6 +614,13 @@ byax summaries Novel.byax --action propose-synopsis --target item_…
   items with tokens, score source, library and locality, dropped items, token budget, research
   log, cost before sending) with `items_page` for `--limit`/`--offset`, and `abstain` (the verified
   absence report when the assistant would not call the model).
+  `--inspect --llm-rerank ALIAS [--authorize]` lets that provider reorder the top candidates of a
+  *thematic* R3 request (opt-in; the only case where `route` sends text to a model, so MCP and REST refuse
+  it). A remote alias needs `--authorize` or a saved remote policy, and library candidates also need the
+  `library_passages` permission (`--authorize` covers both); `local_only` library text never goes to a
+  remote model. The result adds `llm_rerank` (`applied`, `sent`, `withheld`, `reason`), the reordered rows
+  show score source `llm-rerank`, and the research log has an `llm_rerank` step. See the
+  [library guide](library-and-citations-guide.md#optional-llm-reranker-for-thematic-searches).
 - `outline`: `--depth` (1–6, relative to the shallowest heading level), `--counts` (`words` up to the
   next heading, `total_words` for the section, the document total), `--binder` (item, kind, status,
   synopsis, targets, compile inclusion); bounded with `--limit`/`--offset`.
@@ -609,6 +629,8 @@ byax summaries Novel.byax --action propose-synopsis --target item_…
   `summary` and `invalid`; passage text is read from the attached library index or the open
   document, never from the request. Without a reply it returns the citation audit
   (`validation`/`review` as for `check --citations`). Records are paged with `--limit`/`--offset`.
+  `--entailment` adds the on-device support check to the records (a `reply`, with an `entailment` block
+  that says when the model is not installed) or to the audit (as `check --citations --entailment`).
 - `summaries`: actions `status`, `show` (paged), `build` (`--alias` required, `--target` for one
   chapter, `--rebuild`, `--allow-remote` authorizes a remote provider, `--dry-run` previews),
   `propose-synopsis` (`--target` binder item; a pending proposal, `--expect-revision`,
@@ -737,8 +759,9 @@ match in the attached libraries and the document. See the
 ## On-device models
 
 `byax models` manages the pinned catalogue of on-device search models (`src/byax/resources/models.json`):
-the Qwen3-Embedding-0.6B embedder, two rerankers (answerai-colbert-small-v1 and bge-reranker-v2-m3) and
-the Docling layout model. Every entry lists its licence, upstream source at a pinned commit, mirror URL,
+the Qwen3-Embedding-0.6B embedder, two rerankers (answerai-colbert-small-v1 and bge-reranker-v2-m3),
+the Docling layout model and the entailment checker (`hhem-2.1-open-int8`, an optional 167 MB download
+that is served from the project mirror only; it is not bundled). Every entry lists its licence, upstream source at a pinned commit, mirror URL,
 size and SHA-256. It needs the optional runtime (`pip install byauthorx[local-models]`; the installers
 include it) and reports `not installed` without it. Nothing downloads in the background: only the
 commands below, run by you, fetch a model.
@@ -764,7 +787,9 @@ installer lives beside the application and `remove` never deletes it. `--models-
 
 `download`, `remove` and `configure` are administrative: MCP and REST refuse them. `list`, `status` and
 `verify` are allowed there. `configure` sets Fast (`rerank: "fast"`, the default) or Accurate
-(`"accurate"`) search, the reranker and the number of fused results it reorders (5 to 100).
+(`"accurate"`) search, the reranker, the number of fused results it reorders (5 to 100) and the
+`entailer` used by the support check. A model published only on the mirror reports `plan_unavailable`
+in `status`, and `download` refuses with that explanation, until the mirror release is populated.
 
 Turn on on-device semantic search for a library (the prompt is *Enable on-device semantic search?
 Nothing leaves this computer.*), then search:

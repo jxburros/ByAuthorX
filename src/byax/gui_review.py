@@ -29,6 +29,7 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
+SUPPORT_RESULTS = ('supported', 'partial', 'unsupported')
 AUDIT_LABELS = {
     'quote_found': 'Quote found',
     'near_match': 'Near match',
@@ -45,11 +46,26 @@ def audit_html(report):
     from .grounding import describe_audit
 
     rows = [f'<p><b>{html.escape(describe_audit(report)[0])}</b></p>']
+    support = report.get('entailment') or {}
+    if support and not support.get('available', True):
+        rows.append(f'<p><b>Support check not run.</b> {html.escape(support.get("reason", ""))}</p>')
     for item in report['citations']:
         quote = html.escape(item.get('quote') or item['text'])
         if item['status'] == 'unanchored':
             quote = f'<s>{quote}</s>'
         message = f'<br>{html.escape(item["message"])}' if item.get('message') else ''
+        check = item.get('entailment') or {}
+        if check.get('result') in SUPPORT_RESULTS:
+            # Underline plus a bracketed glyph and words: the category is never carried by colour alone.
+            from .gui_ai import SUPPORT, support_glyph, support_meaning, support_span
+
+            quote = support_span(quote, check['result']) + support_glyph(check['result'])
+            message += (
+                f'<br><b>Support check (advisory, on this computer):</b> '
+                f'{SUPPORT[check["result"]][0]} {html.escape(support_meaning(check["result"]))}'
+            )
+        elif check.get('reason'):
+            message += f'<br>Support check not run: {html.escape(check["reason"])}'
         if item.get('superseded'):
             message += f'<br><b>Superseded:</b> {html.escape(item["superseded"].get("message", ""))}'
         rows.append(
@@ -143,6 +159,15 @@ LOCAL_CHECKS = (
         'citations',
         'Citation audit',
         'Checks every citation’s quotation against its source, and whether the source changed. No AI.',
+        False,
+    ),
+    (
+        'support',
+        'Paraphrase support (on-device)',
+        (
+            'Also reads each paraphrased citation against the cited text with an on-device model. '
+            'Advisory; needs the model from Tools → On-device search. Nothing leaves this computer.'
+        ),
         False,
     ),
     (
@@ -429,8 +454,12 @@ class ChecksPanel(QWidget):
     def run_all(self):
         self.run(self.active_checks())
 
-    def run_citation_audit(self):
-        """Stage 1 over every citation mark (plan 6.4): same report as ``byax check --citations``."""
+    def run_citation_audit(self, support=False):
+        """Stage 1 over every citation mark (plan 6.4): same report as ``byax check --citations``.
+
+        With ``support`` the paraphrases are also read against their cited text by the on-device
+        entailment model (``--entailment``); when it is not installed the audit says so and still runs.
+        """
         from .grounding import audit_citations
 
         window = self.window
@@ -443,16 +472,27 @@ class ChecksPanel(QWidget):
             self.audit_dialog.show()
 
         path = getattr(window, 'path', None)
-        window.background(
-            self.tr('Auditing citations…'), lambda: audit_citations(frozen, document_path=path), done
-        )
+
+        def work():
+            report = audit_citations(frozen, document_path=path)
+            if not support:
+                return report
+            from .grounding_entailment import audit_entailment, availability, try_stage
+
+            state = availability()
+            stage = try_stage() if state['available'] else None
+            if stage is None:
+                return {**report, 'entailment': {**state, 'available': False, 'checked': 0}}
+            return audit_entailment(report, frozen, stage)
+
+        window.background(self.tr('Auditing citations…'), work, done)
 
     def run(self, kinds):
         """Run local checks in the background, then each AI check with its own authorization."""
         if 'spelling' in kinds:
             self.window.ai_panel.check_spelling()
-        if 'citations' in kinds:
-            self.run_citation_audit()
+        if 'citations' in kinds or 'support' in kinds:
+            self.run_citation_audit(support='support' in kinds)
         if 'bibliography' in kinds:
             self.window.bibliography_health()
         suites = (

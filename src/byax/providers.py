@@ -862,6 +862,7 @@ class ProviderRegistry:
         native_citations=None,
         judge_alias=None,
         judge_authorized=False,
+        entailment=False,
     ):
         """Multi-turn assistant conversation about a document.
 
@@ -878,6 +879,10 @@ class ProviderRegistry:
         optional second provider (never this one) that judges the low-confidence citations
         (:mod:`byax.grounding_judge`); it is refused before anything is sent when it is the
         generator, and a remote judge needs ``judge_authorized`` plus its own library permission.
+        ``entailment`` also checks each cited claim, and each proposed edit's cited text, against the
+        cited source with the on-device entailment model (:mod:`byax.grounding_entailment`): categories
+        only, advisory, nothing leaves this computer; the reply is returned as usual with an
+        ``entailment`` note when the model is not installed.
         """
         config = self.get(alias)
         if config.kind not in {'openai', 'anthropic', 'gemini', 'ollama'}:
@@ -979,6 +984,16 @@ class ProviderRegistry:
                 else 'Remote provider; enable citation_retry for this provider to allow one corrective retry',
                 'invalid_ids': grounded['token_invalid'],
             }
+        if entailment:
+            from .grounding_entailment import entail_grounding, entail_proposals
+
+            grounded = entail_grounding(
+                grounded, passages=passages, references=context.get('references') or {}
+            )
+            if result['proposals']:
+                result['proposal_grounding'] = entail_proposals(
+                    result['proposals'], passages=passages, references=context.get('references') or {}
+                )
         if judge is not None:
             from .grounding_judge import judge_grounding
 

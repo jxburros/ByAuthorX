@@ -82,12 +82,15 @@ def rerank_results(query, results, reranker, depth):
     ordered = []
     for hit in reranker.rerank(query, hits):
         prior, row = rows[hit.chunk_id]
+        # An LLM reranker (byax.llm_rerank) orders without scoring; its rows say who ordered them.
+        source = {k: hit.payload[k] for k in ('rerank_source', 'reranker') if k in hit.payload}
         ordered.append(
             dict(
                 row,
                 rerank_score=hit.payload.get('rerank_score'),
                 rerank_rank=hit.ranks.get('rerank'),
                 prior_rank=prior,
+                **source,
             )
         )
     return ordered + tail

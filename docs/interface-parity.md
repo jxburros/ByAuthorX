@@ -389,6 +389,7 @@ desktop. All network lookups go through the `citation_lookup` permission.
 | Checks | bibliography health | `byax bibliography --action health` | `byax_bibliography` | `POST /v1/execute` | `byax.bibliography.health` | Tools > Bibliography health… |
 | Checks | online bibliography checks | `byax bibliography --action health --online` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.registry_record` | Tools > Bibliography health… |
 | Checks | dead links and archived copies | `byax bibliography --action health --online --archive` | `byax_bibliography` (refused) | `POST /v1/execute` (refused) | `byax.citation_lookup.Lookup.archived_copy` | Tools > Bibliography health… |
+| Checks | citation support check (cascade stage 2) | `byax check --citations --entailment` | `byax_check` (`citations: true`, `entailment: true`) | `POST /v1/execute` | `byax.grounding_entailment.audit_entailment` | Inspector > Checks |
 | Checks | citation judge (cascade stage 3) | `byax check --citations --judge` | `byax_check` (refused) | `POST /v1/execute` (refused) | `byax.grounding_judge.judge_audit` | — (headless) |
 | Checks | excerpt check | `byax excerpt --action check` | `byax_excerpt` | `POST /v1/execute` | `byax.excerpts.check` | Tools > Where is this source used… |
 | Inspection | bibliography status | `byax bibliography --action status` | `byax_bibliography` | `POST /v1/execute` | `byax.citation_lookup.RetractionIndex.info` | Tools > Bibliography health… |
@@ -429,12 +430,14 @@ embeddings or providers. Every list is bounded with `offset` continuations.
 | Family | Operation | CLI | MCP tool | REST | Library | GUI |
 | --- | --- | --- | --- | --- | --- | --- |
 | Providers | assistant route | `byax route --request TEXT` | `byax_route` | `POST /v1/execute` | `byax.router.decide` | AI tab > What the AI saw |
+| Providers | LLM reranker for thematic searches | `byax route --request TEXT --inspect --llm-rerank ALIAS` | `byax_route` (refused) | `POST /v1/execute` (refused) | `byax.llm_rerank.LLMReranker` | — (headless) |
 | Providers | what the AI saw (inspector) | `byax route --request TEXT --inspect` | `byax_route` | `POST /v1/execute` | `byax.context_assembly.inspector_payload` | AI tab > What the AI saw |
 | Providers | routed context assembly | `byax route --request TEXT --inspect` | `byax_route` | `POST /v1/execute` | `byax.context_assembly.assemble` | AI tab > What the AI saw |
 | Providers | research log export | — (desktop) | — | — | `byax.research_log.export_conversation` | AI tab > Export conversation… |
 | Inspection | outline with counts and binder | `byax outline --counts --binder` | `byax_outline` | `POST /v1/execute` | `byax.outline.outline` | View > Outline |
 | Checks | verify reply citations | `byax verify-citations --reply TEXT` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding.ground_reply` | AI tab (citation chips) |
 | Checks | citation audit (read only) | `byax verify-citations` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding.audit_citations` | Inspector > Checks |
+| Checks | reply support check (cascade stage 2) | `byax verify-citations --reply TEXT --entailment` | `byax_verify_citations` | `POST /v1/execute` | `byax.grounding_entailment.entail_grounding` | AI tab (support underlines) |
 | Providers | chapter summaries status | `byax summaries --action status` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.status` | AI tab > Build chapter summaries… |
 | Providers | build chapter summaries | `byax summaries --action build --alias A` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.build` | AI tab > Build chapter summaries… |
 | Inspection | show chapter summaries | `byax summaries --action show` | `byax_summaries` | `POST /v1/execute` | `byax.summaries.collected` | — (headless) |

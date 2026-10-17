@@ -55,6 +55,11 @@ def check_provider_admin(command, arguments):
             'unsupported_feature',
             'Manage library attachments and configuration through the local CLI or desktop',
         )
+    if command == 'route' and arguments.get('llm_rerank'):
+        raise ByaxError(
+            'unsupported_feature',
+            'Sending retrieved passages to a model to reorder them is done through the local CLI or desktop',
+        )
     if command == 'check' and arguments.get('judge'):
         raise ByaxError(
             'unsupported_feature',
@@ -997,6 +1002,13 @@ INTERFACE_INVENTORY = (
     ),
     (
         'Checks',
+        'citation support check (cascade stage 2)',
+        'check --citations --entailment',
+        'byax.grounding_entailment.audit_entailment',
+        'Inspector > Checks',
+    ),
+    (
+        'Checks',
         'citation judge (cascade stage 3)',
         'check --citations --judge',
         'byax.grounding_judge.judge_audit',
@@ -1128,6 +1140,13 @@ INTERFACE_INVENTORY = (
     ('Providers', 'assistant route', 'route', 'byax.router.decide', 'AI tab > What the AI saw'),
     (
         'Providers',
+        'LLM reranker for thematic searches',
+        'route --request TEXT --inspect --llm-rerank ALIAS',
+        'byax.llm_rerank.LLMReranker',
+        None,
+    ),
+    (
+        'Providers',
         'what the AI saw (inspector)',
         'route --inspect',
         'byax.context_assembly.inspector_payload',
@@ -1161,6 +1180,13 @@ INTERFACE_INVENTORY = (
         'verify-citations',
         'byax.grounding.audit_citations',
         'Inspector > Checks',
+    ),
+    (
+        'Checks',
+        'reply support check (cascade stage 2)',
+        'verify-citations --reply --entailment',
+        'byax.grounding_entailment.entail_grounding',
+        'AI tab (support underlines)',
     ),
     (
         'Providers',

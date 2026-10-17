@@ -64,6 +64,10 @@ def print_models_help():
     mirror = catalogue['mirror']
     print(f'Create the {mirror["release_tag"]} release in {mirror["repository"]} (maintainer step):')
     print('  1. Download every file listed in src/byax/resources/models.json from its upstream "url".')
+    print(
+        '     Files marked mirror_only have no upstream copy: build them with the recipe in upstream.export_recipe'
+    )
+    print('     (scripts/export_hhem_onnx.py) and check the printed size and SHA-256 against the catalogue.')
     print('  2. Verify each SHA-256 (python scripts/build_model_catalogue.py --check).')
     print('  3. Upload each file under the asset name in "mirror_asset" plus SHA256SUMS.txt:')
     for model in catalogue['models']:
