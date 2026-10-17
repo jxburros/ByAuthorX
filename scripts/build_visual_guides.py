@@ -1,9 +1,13 @@
 """Flowcharts, guides and a booklet that explain ByAuthorX, authored and checked in Vixl.
 
-Every sheet is a Vixl document (`docs/visual-guides/vixl/*.vixl`) with exports beside it. The booklet is
-one multi-page Vixl document exported as a PDF. Colours, type roles and artwork come from the brand
-system in docs/brand.md: paper, ink and pen green, Irongall for text, Scholium for helper lines and
-Onionskin for counters. The wordmark, icons and illustrations are the approved files, never redrawn.
+Every sheet is a Vixl document (`docs/visual-guides/vixl/*.vixl`) with exports beside it, and the booklet
+is one multi-page document exported as a PDF. The look follows docs/brand.md: paper, ink and pen green,
+Irongall for text, Scholium for helper lines, Onionskin for counters, and the approved wordmark, icons,
+illustrations and hand-inked rules, never redrawn.
+
+Boxes, connectors, arrowheads and badges are hand-drawn the way the app's own artwork is
+(scripts/logo_ui_art.py): seeded, slightly irregular pen strokes, so a rebuild is byte-for-byte
+reproducible. Everything sits on an explicit grid; there is no automatic layout.
 
     python -m venv .venv-assets
     .venv-assets/bin/python -m pip install -r assets/brand-fonts/requirements.txt
@@ -13,10 +17,13 @@ Onionskin for counters. The wordmark, icons and illustrations are the approved f
 from __future__ import annotations
 
 import argparse
+import math
+import random
+import re
 import sys
 from pathlib import Path
 
-from PIL import Image
+from PIL import Image, ImageFont
 from vixl import Project
 from vixl.fonts import import_font
 
@@ -24,399 +31,614 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'docs' / 'visual-guides'
 FONTS = ROOT / 'assets' / 'brand-fonts' / 'fonts'
 UI = ROOT / 'assets' / 'logo-ui-library'
-LOGO = ROOT / 'design' / 'brand' / 'kit' / 'logos' / 'primary.png'
+BRAND = ROOT / 'design' / 'brand' / 'kit'
+LOGO = BRAND / 'logos' / 'primary.png'
+INK_DOT = BRAND / 'graphics' / 'ink-dot.png'
+RULE_H = UI / 'rules' / 'rule-h-light@2x.png'
+UNDERLINE = UI / 'rules' / 'tab-underline-light@2x.png'
 
 PAPER, INK, GREEN, RED = '#F4EEE3', '#252927', '#367B6C', '#AD283E'
 SURFACE, RULE, MUTED, DEEP = '#FFFCF7', '#D7D0C3', '#52615B', '#246052'
 W, H = 1600, 1000
-MARGIN = 80
+M = 80  # page margin; every sheet's content sits between M and W - M
 FACES = {
     'irongall': 'irongall/Irongall-Regular.ttf',
     'scholium': 'scholium/Scholium-Regular.ttf',
     'onionskin': 'onionskin/Onionskin-Regular.ttf',
 }
+LINE_HEIGHT = 1.2
+PEN = 3.0  # outline weight on the 1600 px page; the app's icons use 6 on a 96 grid
+FINE = 2.4
+
+_NUMBER = re.compile(r'-?\d+(?:\.\d+)?')
+_FONT_CACHE = {}
 
 
-def text(name, content, size, x, y, w, h, font='irongall', color=INK, align='left', line_height=1.25, **extra):
-    return [
-        dict(type='text', name=name, text=content, font=font, size=size, color=color, x=x, y=y, align=align,
-             line_height=line_height, **extra),
-        dict(type='text-layout', target=name, width=w, height=h, fit=False),
-    ]
+def _f(value):
+    return f'{value:.2f}'.rstrip('0').rstrip('.') if value != int(value) else str(int(value))
 
 
-def box(name, x, y, w, h, fill=SURFACE, stroke=RULE, radius=8, stroke_width=2):
-    return [dict(type='shape', name=name, shape='rounded-rectangle', x=x, y=y, width=w, height=h, fill=fill,
-                 stroke=stroke, stroke_width=stroke_width, radius=radius)]
+class Hand:
+    """Seeded hand-drawn path construction (absolute coordinates, M/L/Q/C/Z only), after logo_ui_art.Hand."""
+
+    def __init__(self, seed, wobble=0.9):
+        self.rng = random.Random(seed)
+        self.wobble = wobble
+
+    def jitter(self, amplitude=None):
+        return self.rng.uniform(-1.0, 1.0) * (self.wobble if amplitude is None else amplitude)
+
+    def points(self, points, amplitude=None):
+        return [(x + self.jitter(amplitude), y + self.jitter(amplitude)) for x, y in points]
+
+    def poly(self, points, closed=False, radius=3.0, bow=0.8, amplitude=None):
+        """Straight-ish edges that bow a little, with softly rounded corners."""
+        pts = self.points(points, amplitude)
+        count = len(pts)
+        cut = []
+        for index, (x, y) in enumerate(pts):
+            if not closed and index in (0, count - 1):
+                cut.append(((x, y), (x, y)))
+                continue
+            px, py = pts[index - 1]
+            nx, ny = pts[(index + 1) % count]
+            back = math.hypot(px - x, py - y) or 1.0
+            ahead = math.hypot(nx - x, ny - y) or 1.0
+            tb, ta = min(radius / back, 0.45), min(radius / ahead, 0.45)
+            cut.append(((x + (px - x) * tb, y + (py - y) * tb), (x + (nx - x) * ta, y + (ny - y) * ta)))
+
+        def point(p):
+            return f'{_f(p[0])} {_f(p[1])}'
+
+        def edge(start, end):
+            length = math.hypot(end[0] - start[0], end[1] - start[1])
+            if not length:
+                return f'L{point(end)}'
+            nx_, ny_ = -(end[1] - start[1]) / length, (end[0] - start[0]) / length
+            offset = self.jitter(bow) if length > 14 else 0.0
+            middle = ((start[0] + end[0]) / 2 + nx_ * offset, (start[1] + end[1]) / 2 + ny_ * offset)
+            return f'Q{point(middle)} {point(end)}'
+
+        d = [f'M{point(cut[0][1] if closed else cut[0][0])}']
+        for index in range(count if closed else count - 1):
+            nxt = (index + 1) % count
+            d.append(edge(cut[index][1], cut[nxt][0]))
+            if closed or nxt < count - 1:
+                d.append(f'Q{point(pts[nxt])} {point(cut[nxt][1])}')
+        if closed:
+            d.append('Z')
+        return ' '.join(d)
+
+    def curve(self, points, closed=False, tension=0.5, amplitude=None):
+        """Smooth Catmull-Rom curve through the points."""
+        pts = self.points(points, amplitude)
+        count = len(pts)
+        d = [f'M{_f(pts[0][0])} {_f(pts[0][1])}']
+        for index in range(count if closed else count - 1):
+            p0 = pts[(index - 1) % count] if closed or index > 0 else pts[index]
+            p1 = pts[index]
+            p2 = pts[(index + 1) % count]
+            p3 = pts[(index + 2) % count] if closed or index + 2 < count else p2
+            c1 = (p1[0] + (p2[0] - p0[0]) * tension / 3 * 2, p1[1] + (p2[1] - p0[1]) * tension / 3 * 2)
+            c2 = (p2[0] - (p3[0] - p1[0]) * tension / 3 * 2, p2[1] - (p3[1] - p1[1]) * tension / 3 * 2)
+            d.append(f'C{_f(c1[0])} {_f(c1[1])} {_f(c2[0])} {_f(c2[1])} {_f(p2[0])} {_f(p2[1])}')
+        if closed:
+            d.append('Z')
+        return ' '.join(d)
+
+    def ellipse(self, cx, cy, rx, ry=None, count=None):
+        ry = rx if ry is None else ry
+        count = count or max(10, min(18, int(max(rx, ry) * 0.5) + 6))
+        pts = []
+        for index in range(count):
+            theta = math.radians(-90 + 360 * index / count)
+            scale = 1 + self.jitter(0.03)
+            pts.append((cx + rx * scale * math.cos(theta), cy + ry * scale * math.sin(theta)))
+        return self.curve(pts, closed=True, amplitude=0.0)
+
+    def line(self, x1, y1, x2, y2, bow=1.2):
+        pts = self.points([(x1, y1), (x2, y2)], 0.5)
+        length = math.hypot(pts[1][0] - pts[0][0], pts[1][1] - pts[0][1]) or 1.0
+        nx_, ny_ = -(pts[1][1] - pts[0][1]) / length, (pts[1][0] - pts[0][0]) / length
+        offset = self.jitter(bow) if length > 12 else 0.0
+        cx, cy = (pts[0][0] + pts[1][0]) / 2 + nx_ * offset, (pts[0][1] + pts[1][1]) / 2 + ny_ * offset
+        return f'M{_f(pts[0][0])} {_f(pts[0][1])} Q{_f(cx)} {_f(cy)} {_f(pts[1][0])} {_f(pts[1][1])}'
 
 
-def rule(name, x, y, w, color=RULE, h=2):
-    return [dict(type='shape', name=name, shape='rectangle', x=x, y=y, width=w, height=h, fill=color)]
+def localize(d):
+    """Shift an absolute path to its own origin; return the path, x, y, width, height."""
+    numbers = [float(n) for n in _NUMBER.findall(d)]
+    xs, ys = numbers[0::2], numbers[1::2]
+    left, top = math.floor(min(xs)), math.floor(min(ys))
+    width, height = max(math.ceil(max(xs)) - left, 1), max(math.ceil(max(ys)) - top, 1)
+    out, index = [], 0
+    for token in re.split(r'(-?\d+(?:\.\d+)?)', d):
+        if _NUMBER.fullmatch(token or ''):
+            out.append(_f(float(token) - (left if index % 2 == 0 else top)))
+            index += 1
+        else:
+            out.append(token)
+    return ''.join(out), left, top, width, height
 
 
-def image(name, path, x, y, w):
-    with Image.open(path) as picture:
-        ratio = picture.height / picture.width
-    return [dict(type='add', name=name, path=str(path), x=x, y=y, width=w, height=round(w * ratio, 2))]
+def measure(face, size, text):
+    key = (face, size)
+    if key not in _FONT_CACHE:
+        _FONT_CACHE[key] = ImageFont.truetype(str(FONTS / FACES[face]), size)
+    return _FONT_CACHE[key].getlength(text) * 1.05  # a margin for Vixl's kerning and rounding
 
 
-def icon(name, key, x, y, size=64):
-    return image(f'icon-{name}', UI / 'icons' / f'{key}-light.png', x, y, size)
+def wrap(text, face, size, width):
+    lines = []
+    for paragraph in text.split('\n'):
+        current = ''
+        for word in paragraph.split(' '):
+            trial = f'{current} {word}'.strip()
+            if current and measure(face, size, trial) > width:
+                lines.append(current)
+                current = word
+            else:
+                current = trial
+        lines.append(current)
+    return lines
 
 
-def art(name, key, x, y, w):
-    return image(f'art-{name}', UI / 'illustrations' / f'{key}-light.png', x, y, w)
+class Sheet:
+    """One page of ops: hand-drawn shapes, text and images, with names kept unique."""
+
+    def __init__(self, key, ref, kicker, title, lede, alt, prefix=''):
+        self.prefix = prefix
+        self.meta = dict(key=key, ref=ref, kicker=kicker, title=title, lede=lede, alt=alt)
+        self.hand = Hand(key)
+        self.ops = []
+        self.count = 0
+        self.nodes = {}
+
+    def name(self, kind):
+        self.count += 1
+        return f'{self.prefix}{kind}-{self.count}'
+
+    # -- strokes --------------------------------------------------------------------
+    def path(self, name, d, stroke=INK, sw=PEN, fill='none'):
+        local, x, y, w, h = localize(d)
+        op = dict(type='shape', name=name, shape='path', x=x, y=y, width=w, height=h, fill=fill, path=local)
+        if stroke:
+            op.update(stroke=stroke, stroke_width=sw, line_cap='round', line_join='round')
+        self.ops.append(op)
+
+    def box(self, x, y, w, h, fill=SURFACE, stroke=INK, sw=PEN, radius=10):
+        pts = [(x, y), (x + w, y), (x + w, y + h), (x, y + h)]
+        self.path(self.name('box'), self.hand.poly(pts, True, radius, bow=1.0, amplitude=0.7), stroke, sw, fill)
+
+    def pill(self, x, y, w, h, fill=SURFACE, stroke=INK, sw=PEN):
+        pts = [(x, y), (x + w, y), (x + w, y + h), (x, y + h)]
+        self.path(self.name('pill'), self.hand.poly(pts, True, h / 2, bow=1.0, amplitude=0.6), stroke, sw, fill)
+
+    def diamond(self, cx, cy, w, h, fill=SURFACE, stroke=INK, sw=PEN):
+        pts = [(cx, cy - h / 2), (cx + w / 2, cy), (cx, cy + h / 2), (cx - w / 2, cy)]
+        self.path(self.name('diamond'), self.hand.poly(pts, True, 7, bow=1.0, amplitude=0.7), stroke, sw, fill)
+
+    def circle(self, cx, cy, r, fill=GREEN, stroke=None, sw=PEN):
+        self.path(self.name('disc'), self.hand.ellipse(cx, cy, r), stroke, sw, fill)
+
+    def stroke(self, points, color=INK, sw=PEN, radius=14, bow=1.0):
+        """An open pen line through the points, corners softly rounded."""
+        self.path(self.name('line'), self.hand.poly(points, False, radius, bow=bow, amplitude=0.6), color, sw)
+
+    def arrow(self, points, color=INK, sw=PEN, radius=14, label=None):
+        """A pen line ending in an open chevron arrowhead; the line stops at the last point."""
+        self.stroke(points, color, sw, radius)
+        (x1, y1), (x2, y2) = points[-2], points[-1]
+        angle = math.atan2(y2 - y1, x2 - x1)
+        head = 15
+        wings = [(x2 - head * math.cos(angle + s * math.radians(28)),
+                  y2 - head * math.sin(angle + s * math.radians(28))) for s in (1, -1)]
+        self.path(self.name('head'), self.hand.poly([wings[0], (x2, y2), wings[1]], False, 1.5, amplitude=0.4),
+                  color, sw)
+
+    def wave(self, x1, x2, y, color=RULE, sw=FINE, bow=1.6):
+        self.path(self.name('rule'), self.hand.line(x1, y, x2, y, bow), color, sw)
+
+    # -- text -----------------------------------------------------------------------
+    def text(self, label, x, cy, w, size=22, color=INK, face='irongall', align='left', lh=LINE_HEIGHT, max_h=None, top=False):
+        """Wrapped text whose block is centred on cy (or starts at cy when top); returns its height. x is the left edge, the centre for 'center' or the right edge for 'right'."""
+        lines = wrap(label, face, size, w)
+        h = len(lines) * size * lh
+        if max_h and h > max_h:
+            raise ValueError(f'{label!r} needs {len(lines)} lines ({h:.0f}px) but the box allows {max_h}px')
+        name = self.name('text')
+        left = x - w / 2 if align == 'center' else (x - w if align == 'right' else x)
+        y0 = cy if top else cy - h / 2
+        self.ops += [
+            dict(type='text', name=name, text='\n'.join(lines), font=face, size=size, color=color, x=left, y=y0,
+                 align=align, line_height=lh),
+            dict(type='text-layout', target=name, width=w, height=round(h + 4), fit=False),
+        ]
+        return h
+
+    def image(self, path, x, y, w):
+        with Image.open(path) as picture:
+            ratio = picture.height / picture.width
+        self.ops.append(dict(type='add', name=self.name('image'), path=str(path), x=x, y=y, width=w,
+                             height=round(w * ratio, 2)))
+
+    def icon(self, key, x, y, size=64):
+        self.image(UI / 'icons' / f'{key}-light.png', x, y, size)
+
+    def badge(self, n, cx, cy, r=22):
+        self.circle(cx, cy, r, GREEN)
+        self.text(str(n), cx, cy, 2 * r, size=r * 1.15, color='#FFFFFF', align='center', lh=1.0)
+
+    # -- flowchart nodes --------------------------------------------------------------
+    def node(self, nid, kind, cx, cy, w, h, label, key=False, size=22):
+        fill, stroke, color = (GREEN, DEEP, '#FFFFFF') if key else (SURFACE, INK, INK)
+        if kind == 'diamond':
+            self.diamond(cx, cy, w, h, fill, stroke)
+            inner, room = w * 0.58, h * 0.7
+        elif kind == 'pill':
+            self.pill(cx - w / 2, cy - h / 2, w, h, fill, stroke)
+            inner, room = w - 2 * (h / 2) + 14, h - 10
+        else:
+            self.box(cx - w / 2, cy - h / 2, w, h, fill, stroke)
+            inner, room = w - 28, h - 12
+        self.text(label, cx, cy, inner, size, color, align='center', max_h=room)
+        self.nodes[nid] = dict(cx=cx, cy=cy, w=w, h=h)
+        return self.nodes[nid]
+
+    def port(self, nid, side, gap=3):
+        n = self.nodes[nid]
+        return {'l': (n['cx'] - n['w'] / 2 - gap, n['cy']), 'r': (n['cx'] + n['w'] / 2 + gap, n['cy']),
+                't': (n['cx'], n['cy'] - n['h'] / 2 - gap), 'b': (n['cx'], n['cy'] + n['h'] / 2 + gap)}[side]
+
+    def link(self, a, b, sides='rl', via=(), label=None, at=None, color=INK):
+        """Arrow from node a's side to node b's side through the waypoints in `via`."""
+        points = [self.port(a, sides[0], 3), *via, self.port(b, sides[1], 4)]
+        self.arrow(points, color)
+        if label:
+            self.text(label, at[0], at[1], 120, 19, DEEP, align='center')
+
+    def label(self, label, x, cy, face='onionskin', color=DEEP, size=17, w=520):
+        self.text(label.upper(), x, cy, w, size, color, face)
 
 
-def badge(name, number, x, y, d=44):
-    cx = d / 2
-    return [
-        dict(type='shape', name=f'{name}-disc', shape='ellipse', x=x, y=y, width=d, height=d, fill=GREEN),
-        *text(f'{name}-n', str(number), d * 0.55, x, y + d * 0.2, d, d, color='#FFFFFF', align='center', line_height=1.0),
-    ]
-
+# --------------------------------------------------------------------------- page chrome
 
 def chrome(sheet, page, total):
-    """Wordmark, kicker, headline with the pen line and ink dot, and the footer."""
-    ops = [dict(type='accessibility', lang='en', title=f"ByAuthorX: {sheet['title']}")]
-    ops += image('wordmark', LOGO, MARGIN, 44, 240)
-    ops += text('kicker', sheet['kicker'].upper(), 17, W - MARGIN - 700, 72, 700, 30, font='onionskin', color=MUTED,
-                align='right', tracking=1.5)
-    ops += text('headline', sheet['title'], 56, MARGIN, 136, W - 2 * MARGIN, 76, line_height=1.0)
-    ops += [
-        dict(type='shape', name='ink-dot', shape='ellipse', x=MARGIN, y=226, width=16, height=16, fill=RED),
-        dict(type='shape', name='pen-line', shape='rectangle', x=MARGIN + 8, y=231, width=330, height=4, fill=GREEN,
-             radius=2),
-    ]
-    ops += text('lede', sheet['lede'], 24, MARGIN, 252, W - 2 * MARGIN, 36, font='scholium', color=INK)
-    ops += rule('footer-rule', MARGIN, 934, W - 2 * MARGIN)
-    ops += text('footer', 'Your words. Your call.', 20, MARGIN, 952, 600, 28, color=MUTED)
-    ops += text('footer-ref', f"{sheet['ref']}   {page} / {total}", 17, W - MARGIN - 700, 954, 700, 28,
-                font='onionskin', color=MUTED, align='right')
-    return ops
-
-
-def node(nid, label, kind=None, key=False):
-    spec = dict(id=nid, label=label)
-    if kind:
-        spec['kind'] = kind
-    if key:
-        spec.update(color=GREEN, text_color='#FFFFFF')
-    return spec
-
-
-def diagram(name, nodes, edges, y, h, x=MARGIN, w=W - 2 * MARGIN, direction='LR', size=22, **extra):
-    return [dict(type='diagram', name=name, layout='layered', direction=direction, theme='light', font='irongall',
-                 size=size, node_color=SURFACE, edge_color=INK, text_color=INK, x=x, y=y, width=w, height=h,
-                 nodes=nodes, edges=edges, **extra)]
+    meta = sheet.meta
+    s = Sheet('chrome-' + meta['key'], '', '', '', '', '', prefix='page-')
+    s.ops.append(dict(type='accessibility', lang='en', title=f"ByAuthorX: {meta['title']}"))
+    s.image(LOGO, M, 44, 240)
+    s.text(meta['kicker'].upper(), W - M, 76, 700, 17, MUTED, 'onionskin', 'right')
+    s.text(meta['title'], M, 166, W - 2 * M, 56, INK, lh=1.0)
+    s.image(INK_DOT, M, 212, 18)
+    s.image(UNDERLINE, M + 14, 217, 340)
+    s.text(meta['lede'], M, 262, W - 2 * M, 24, INK, 'scholium')
+    s.image(RULE_H, M, 928, W - 2 * M)
+    s.text('Your words. Your call.', M, 966, 600, 20, MUTED)
+    s.text(f"{meta['ref']}   {page} / {total}", W - M, 966, 700, 17, MUTED, 'onionskin', 'right')
+    return s.ops
 
 
 # --------------------------------------------------------------------------- flowcharts
 
 def proposals():
-    sources = [
-        ('s1', 'Spelling and grammar checks'),
-        ('s2', 'Fiction and document checks'),
-        ('s3', "An editor's changes from Word"),
-        ('s4', "A beta reader's suggestion"),
-        ('s5', 'The assistant in Work mode'),
-        ('s6', 'A saved draft or synced copy'),
-    ]
-    nodes = [node(i, t) for i, t in sources]
-    nodes += [
-        node('p', 'Proposed changes', key=True),
-        node('d', 'You decide, one by one', 'decision'),
-        node('yes', 'Your text changes. One revision, which you can undo.'),
-        node('no', 'Your text stays exactly as it is.'),
-        node('rep', 'Reply or leave it pending for later.'),
-    ]
-    edges = [[i, 'p'] for i, _ in sources]
-    edges += [['p', 'd'], ['d', 'yes', 'accept'], ['d', 'no', 'reject'], ['d', 'rep', 'not yet']]
-    return dict(
-        key='proposals', ref='Flowchart 1', kicker='Flowchart', title='Nothing changes your text until you accept it',
-        lede='Everything that wants to change your writing arrives as a proposal first.',
-        ops=diagram('flow', nodes, edges, 310, 570, size=21),
-        alt='Six sources of suggestions flow into Proposed changes. You accept, reject or postpone each one.',
-    )
+    s = Sheet('proposals', 'Flowchart 1', 'Flowchart', 'Nothing changes your text until you accept it',
+              'Everything that wants to change your writing arrives as a proposal first.',
+              'Six sources of suggestions flow into Proposed changes. You accept, reject or postpone each one.')
+    sources = ["Spelling and grammar checks", "Fiction and document checks", "An editor's changes from Word",
+               "A beta reader's suggestion", "The assistant in Work mode", "A saved draft or synced copy"]
+    pitch, top = 94, 366
+    s.label('Something suggests', M, 320)
+    s.text('PROPOSED', 670, 320, 300, 17, DEEP, 'onionskin', 'center')
+    s.text('YOU DECIDE', 965, 320, 300, 17, DEEP, 'onionskin', 'center')
+    s.label('What happens', 1230, 320, w=290)
+    ys = [top + i * pitch for i in range(6)]
+    mid = (ys[0] + ys[-1]) / 2
+    bus = 485
+    for i, (label, cy) in enumerate(zip(sources, ys)):
+        s.node(f's{i}', 'box', M + 175, cy, 350, 70, label)
+        s.stroke([(M + 350 + 3, cy), (bus, cy)], bow=0.6)
+    s.stroke([(bus, ys[0]), (bus, ys[-1])], radius=1)
+    s.node('p', 'box', 670, mid, 220, 110, 'Proposed changes', key=True)
+    s.arrow([(bus, mid), (s.port('p', 'l', 4)[0], mid)])
+    s.node('d', 'diamond', 965, mid, 250, 150, 'You decide, one by one')
+    s.link('p', 'd', 'rl')
+    bus2 = 1130
+    outs = [('accept', 'Your text changes. One revision, which you can undo.', mid - 190),
+            ('not yet', 'Reply, or leave it pending for later.', mid),
+            ('reject', 'Your text stays exactly as it is.', mid + 190)]
+    s.stroke([s.port('d', 'r', 3), (bus2, mid)], radius=1)
+    s.stroke([(bus2, outs[0][2]), (bus2, outs[2][2])], radius=1)
+    for i, (label, text, cy) in enumerate(outs):
+        s.node(f'o{i}', 'box', 1375, cy, 290, 100, text, key=(i == 0))
+        s.arrow([(bus2, cy), s.port(f'o{i}', 'l', 4)])
+        s.text(label, (bus2 + 1230) / 2, cy - 20, 90, 19, DEEP, align='center')
+    return s
 
 
 def share():
-    chains = {
-        'a': ('editing', ['An editor who uses Word', 'File → Send for review (Word)…', 'File → Merge reviewed copy…',
-                          "The editor's changes arrive as proposals"]),
-        'b': ('feedback', ['Readers who read and comment', 'File → Send to beta readers…', 'File → Import reader comments…',
-                           'Comments and proposals arrive, marked with each name']),
-        'c': ('publishing', ['A printer, shop or store', 'File → Compile…', 'Choose a preset and run preflight',
-                             'A print PDF, EPUB or Word file']),
-        'd': ('a copy', ['Someone who needs a copy', 'File → Export', 'PDF, Word, EPUB or Markdown',
-                         'Read the note on what it could not carry']),
-    }
-    nodes = [node('start', 'I want to share my work', 'terminator', key=True), node('who', 'Who is it for?', 'decision')]
-    edges = [['start', 'who']]
-    for p, (label, labels) in chains.items():
-        for i, t in enumerate(labels, 1):
-            nodes.append(node(f'{p}{i}', t, key=(i == len(labels))))
-        edges.append(['who', f'{p}1', label])
-        edges += [[f'{p}{i}', f'{p}{i + 1}'] for i in range(1, len(labels))]
-    return dict(
-        key='share', ref='Flowchart 2', kicker='Flowchart', title='How do I share this?',
-        lede='Your master never leaves your computer unless you send it. Every route makes a copy.',
-        ops=diagram('flow', nodes, edges, 300, 610, size=20),
-        alt='A decision tree from "Who is it for?" to Word review, beta readers, compile for publishing or a plain export.',
-    )
+    s = Sheet('share', 'Flowchart 2', 'Flowchart', 'How do I share this?',
+              'Your master never leaves your computer unless you send it. Every route makes a copy.',
+              'A decision tree from "Who is it for?" to Word review, beta readers, compile for publishing or a plain export.')
+    chains = [
+        ['An editor who uses Word', 'File → Send for review (Word)…', 'File → Merge reviewed copy…',
+         "The editor's changes arrive as proposals"],
+        ['Readers who read and comment', 'File → Send to beta readers…', 'File → Import reader comments…',
+         'Comments and proposals, each named'],
+        ['A printer, shop or store', 'File → Compile…', 'Choose a preset and run preflight',
+         'A print PDF, EPUB or Word file'],
+        ['Someone who needs a copy', 'File → Export', 'PDF, Word, EPUB or Markdown', 'Check what it left out'],
+    ]
+    ys = [372 + i * 140 for i in range(4)]
+    mid = (ys[0] + ys[-1]) / 2
+    s.node('start', 'pill', M + 80, mid, 160, 100, 'I want to share my work', key=True, size=19)
+    s.node('who', 'diamond', 405, mid, 210, 140, 'Who is it for?', size=21)
+    s.link('start', 'who', 'rl')
+    bus = 545
+    s.stroke([s.port('who', 'r', 3), (bus, mid)], radius=1)
+    s.stroke([(bus, ys[0]), (bus, ys[-1])], radius=1)
+    col_w, pitch, x0 = 190, 240, 600
+    for row, (chain, cy) in enumerate(zip(chains, ys)):
+        for col, label in enumerate(chain):
+            s.node(f'c{row}{col}', 'box', x0 + col_w / 2 + col * pitch, cy, col_w, 100, label,
+                   key=(col == 3), size=20)
+        s.arrow([(bus, cy), s.port(f'c{row}0', 'l', 4)])
+        for col in range(3):
+            s.link(f'c{row}{col}', f'c{row}{col + 1}', 'rl')
+    return s
 
 
 def book():
-    plan = [
-        node('p1', 'Binder → Create binder', key=True),
-        node('p2', 'Write. Move scenes in the outline or corkboard.'),
-        node('p3', 'Tools → Writing goals…'),
-        node('p4', 'Review → Versions and drafts → Save draft as…'),
-        node('p5', 'Rework in a new draft?', 'decision'),
-        node('p6', 'Compare drafts… then Bring changes from draft…'),
-    ]
-    plan_edges = [['p1', 'p2'], ['p2', 'p3'], ['p3', 'p4'], ['p4', 'p5'], ['p5', 'p6', 'yes'], ['p6', 'p2']]
-    comp = [
-        node('c1', 'File → Compile…', key=True),
-        node('c2', 'Pick a preset: Novel, Non-fiction or Manuscript'),
-        node('c3', 'Choose trim size and what goes in'),
-        node('c4', 'Run preflight'),
-        node('c5', 'Anything to fix?', 'decision'),
-        node('c6', 'Compile… and choose where to save', key=True),
-    ]
-    comp_edges = [['c1', 'c2'], ['c2', 'c3'], ['c3', 'c4'], ['c4', 'c5'], ['c5', 'c6', 'no'], ['c5', 'c2', 'yes, fix and rerun']]
-    ops = text('plan-label', 'PLAN AND WRITE', 17, MARGIN, 304, 400, 28, font='onionskin', color=DEEP, tracking=1.5)
-    ops += diagram('plan', plan, plan_edges, 336, 250, size=17)
-    ops += text('compile-label', 'COMPILE', 17, MARGIN, 614, 400, 28, font='onionskin', color=DEEP, tracking=1.5)
-    ops += diagram('compile', comp, comp_edges, 646, 250, size=17)
-    return dict(
-        key='manuscript-to-book', ref='Flowchart 3', kicker='Flowchart', title='From manuscript to book',
-        lede='Your master is never changed by a compile. Each format tells you what it could not carry.',
-        ops=ops, alt='Two flows: planning and writing with drafts, then compiling a book with preflight.',
-    )
-
-
-def labelled(label, y):
-    return text(f'{label.lower().replace(" ", "-")}-label', label, 17, MARGIN, y, 600, 28, font='onionskin', color=DEEP,
-                tracking=1.5)
+    s = Sheet('manuscript-to-book', 'Flowchart 3', 'Flowchart', 'From manuscript to book',
+              'Your master is never changed by a compile. Each format tells you what it could not carry.',
+              'Two flows: planning and writing with drafts, then compiling a book with preflight.')
+    x = [M + 100 + i * 248 for i in range(6)]
+    top, bottom = 420, 750
+    s.label('Plan and write', M, 308)
+    plan = [('box', 'Binder → Create binder', True), ('box', 'Write. Move scenes in the outline or corkboard', False),
+            ('box', 'Tools → Writing goals…', False), ('box', 'Review → Versions and drafts → Save draft as…', False),
+            ('diamond', 'Rework in a new draft?', False), ('box', 'Compare drafts… then Bring changes from draft…', False)]
+    for i, (kind, label, key) in enumerate(plan):
+        s.node(f'p{i}', kind, x[i], top, 200, 130 if kind == 'diamond' else 112, label, key, 20)
+    for i in range(5):
+        s.link(f'p{i}', f'p{i + 1}', 'rl', label='yes' if i == 4 else None, at=(x[i] + 124, top - 24))
+    loop_y = top - 100
+    s.arrow([s.port('p5', 't'), (x[5], loop_y), (x[1], loop_y), s.port('p1', 't', 4)], radius=18)
+    s.text('Back to writing', (x[1] + x[5]) / 2, loop_y - 20, 300, 19, DEEP, align='center')
+    s.label('Compile', M, 600)
+    comp = [('box', 'File → Compile…', True), ('box', 'Pick a preset: Novel, Non-fiction or Manuscript', False),
+            ('box', 'Choose trim size and what goes in', False), ('box', 'Run preflight', False),
+            ('diamond', 'Anything to fix?', False), ('box', 'Compile… and choose where to save', True)]
+    for i, (kind, label, key) in enumerate(comp):
+        s.node(f'c{i}', kind, x[i], bottom, 200, 130 if kind == 'diamond' else 112, label, key, 20)
+    for i in range(5):
+        s.link(f'c{i}', f'c{i + 1}', 'rl', label='no' if i == 4 else None, at=(x[i] + 124, bottom - 24))
+    back_y = bottom + 100
+    s.arrow([s.port('c4', 'b'), (x[4], back_y), (x[1], back_y), s.port('c1', 'b', 4)], radius=18)
+    s.text('Yes: fix it, then run preflight again', (x[1] + x[4]) / 2, back_y + 24, 480, 19, DEEP, align='center')
+    s.arrow([s.port('p4', 'b'), (x[4], 546), (x[0], 546), s.port('c0', 't', 4)], radius=18)
+    s.text('No: ready to compile', (x[0] + x[4]) / 2 + 100, 524, 300, 19, DEEP, align='center')
+    return s
 
 
 def ai():
-    setup = [
-        node('q', 'Do you want AI help?', 'decision'),
-        node('no', 'Write, save, print and check locally. Nothing is sent.'),
-        node('prov', 'Tools → Provider settings'),
-        node('where', 'Where does the model run?', 'decision'),
-        node('host', 'Hosted, with your own key in the OS keyring'),
-        node('loc', 'On your computer: Ollama, whisper.cpp or a local server'),
-    ]
-    setup_edges = [['q', 'no', 'no'], ['q', 'prov', 'yes'], ['prov', 'where'], ['where', 'host', 'hosted'],
-                   ['where', 'loc', 'local']]
-    use = [
-        node('mode', 'Chat or Work?', 'decision'),
-        node('chat', 'Chat answers. It never touches your document.'),
-        node('work', 'Work suggests exact edits'),
-        node('pay', 'A hosted provider: you see the exact outbound text and authorize it'),
-        node('prop', 'Edits appear in Proposed changes. You accept each one.', key=True),
-    ]
-    use_edges = [['mode', 'chat', 'chat'], ['mode', 'work', 'work'], ['work', 'pay'], ['pay', 'prop']]
-    ops = labelled('SET UP', 296) + diagram('setup', setup, setup_edges, 322, 280, size=20)
-    ops += labelled('USE IT', 622) + diagram('use', use, use_edges, 648, 270, size=20)
-    return dict(
-        key='ai-opt-in', ref='Flowchart 4', kicker='Flowchart', title='AI is opt-in, not opt-out',
-        lede='No account, no telemetry, no background network traffic. You choose the provider and the moment.',
-        ops=ops,
-        alt='Two flows: deciding whether to use AI and choosing a provider, then Chat or Work ending in proposals you accept.',
-    )
+    s = Sheet('ai-opt-in', 'Flowchart 4', 'Flowchart', 'AI is opt-in, not opt-out',
+              'No account, no telemetry, no background network traffic. You choose the provider and the moment.',
+              'Two flows: deciding whether to use AI and choosing a provider, then Chat or Work ending in proposals you accept.')
+    s.label('Set up', M, 308)
+    s.node('q', 'diamond', 210, 485, 240, 130, 'Do you want AI help?', size=21)
+    s.node('no', 'box', 580, 372, 360, 80, 'Write, save, print and check locally. Nothing is sent.')
+    s.arrow([s.port('q', 't'), (210, 372), (s.port('no', 'l', 4)[0], 372)], radius=14)
+    s.text('no', 255, 352, 60, 19, DEEP, align='center')
+    s.node('prov', 'box', 540, 485, 220, 84, 'Tools → Provider settings')
+    s.link('q', 'prov', 'rl', label='yes', at=(375, 463))
+    s.node('where', 'diamond', 860, 485, 250, 140, 'Where does the model run?', size=21)
+    s.link('prov', 'where', 'rl')
+    s.node('host', 'box', 1325, 420, 390, 84, 'Hosted, with your own key in the OS keyring')
+    s.node('loc', 'box', 1325, 550, 390, 84, 'On your computer: Ollama, whisper.cpp or a local server')
+    bus = 1030
+    s.stroke([s.port('where', 'r', 3), (bus, 485)], radius=1)
+    s.stroke([(bus, 420), (bus, 550)], radius=1)
+    s.arrow([(bus, 420), s.port('host', 'l', 4)])
+    s.arrow([(bus, 550), s.port('loc', 'l', 4)])
+    s.text('hosted', 1080, 398, 90, 19, DEEP, align='center')
+    s.text('local', 1080, 528, 90, 19, DEEP, align='center')
+
+    s.label('Use it', M, 640)
+    s.node('ready', 'pill', M + 110, 775, 220, 80, 'A provider is set up', key=True)
+    s.node('mode', 'diamond', 460, 775, 220, 130, 'Chat or Work?', size=21)
+    s.link('ready', 'mode', 'rl')
+    bus = 610
+    s.stroke([s.port('mode', 'r', 3), (bus, 775)], radius=1)
+    s.stroke([(bus, 715), (bus, 835)], radius=1)
+    s.node('chat', 'box', 920, 715, 420, 80, 'Chat answers. It never touches your document.')
+    s.node('work', 'box', 805, 835, 190, 80, 'Work suggests exact edits')
+    s.arrow([(bus, 715), s.port('chat', 'l', 4)])
+    s.arrow([(bus, 835), s.port('work', 'l', 4)])
+    s.text('chat', 662, 693, 70, 19, DEEP, align='center')
+    s.text('work', 662, 813, 70, 19, DEEP, align='center')
+    s.node('pay', 'box', 1075, 835, 250, 100, 'A hosted provider shows you the exact text first. You authorize it.', size=20)
+    s.node('prop', 'box', 1385, 835, 270, 100, 'Edits appear in Proposed changes. You accept each one.', key=True, size=20)
+    s.link('work', 'pay', 'rl')
+    s.link('pay', 'prop', 'rl')
+    return s
 
 
 def conflict():
-    refused = [
-        node('s', 'Save says the file changed on disk', 'terminator', key=True),
-        node('n', 'Nothing was overwritten'),
-        node('sa', 'Save as, to keep both versions'),
-        node('r', 'Tools → Review conflicted copies…'),
-    ]
-    review = [
-        node('q', 'Same section edited on both?', 'decision'),
-        node('ok', 'Different sections merge with nothing lost'),
-        node('cf', 'Review → Versions and drafts → Resolve selected merge conflicts…'),
-        node('acc', 'Accept the merge and save', key=True),
-        node('mv', 'Optionally move the copy to a conflicted copies folder'),
-    ]
-    review_edges = [['q', 'ok', 'no'], ['q', 'cf', 'yes'], ['ok', 'acc'], ['cf', 'acc'], ['acc', 'mv']]
-    ops = labelled('WHEN A SAVE IS REFUSED', 296) + diagram('refused', refused, [['s', 'n'], ['n', 'sa'], ['sa', 'r']], 322, 190, size=20)
-    ops += labelled('REVIEW THE OTHER COPY', 536) + diagram('review', review, review_edges, 562, 340, size=20)
-    return dict(
-        key='synced-folders', ref='Flowchart 5', kicker='Flowchart', title='Two computers, one manuscript',
-        lede='Work on one computer at a time. If both edited, you review the merge. Nothing is deleted.',
-        ops=ops,
-        alt='What to do when a save is refused in a synced folder: save as, review the conflicted copy, resolve and accept.',
-    )
+    s = Sheet('synced-folders', 'Flowchart 5', 'Flowchart', 'Two computers, one manuscript',
+              'Work on one computer at a time. If both edited, you review the merge. Nothing is deleted.',
+              'What to do when a save is refused in a synced folder: save as, review the conflicted copy, resolve and accept.')
+    s.label('When a save is refused', M, 308)
+    labels = [('pill', 'Save says the file changed on disk', True), ('box', 'Nothing was overwritten', False),
+              ('box', 'Save as, to keep both versions', False), ('box', 'Tools → Review conflicted copies…', False)]
+    xs = [M + 150 + i * 380 for i in range(4)]
+    for i, (kind, label, key) in enumerate(labels):
+        s.node(f't{i}', kind, xs[i], 400, 300, 100, label, key, 24)
+    for i in range(3):
+        s.link(f't{i}', f't{i + 1}', 'rl')
+    s.label('Review the other copy', M, 490)
+    s.node('q', 'diamond', 235, 700, 270, 150, 'Same section edited on both?', size=21)
+    s.node('ok', 'box', 640, 620, 340, 90, 'Different sections merge with nothing lost', size=21)
+    s.node('cf', 'box', 640, 780, 340, 120, 'Review → Versions and drafts → Resolve selected merge conflicts…', size=21)
+    bus = 410
+    s.stroke([s.port('q', 'r', 3), (bus, 700)], radius=1)
+    s.stroke([(bus, 620), (bus, 780)], radius=1)
+    s.arrow([(bus, 620), s.port('ok', 'l', 4)])
+    s.arrow([(bus, 780), s.port('cf', 'l', 4)])
+    s.text('no', 440, 598, 50, 19, DEEP, align='center')
+    s.text('yes', 440, 758, 50, 19, DEEP, align='center')
+    bus2 = 850
+    s.stroke([s.port('ok', 'r', 3), (bus2, 620)], radius=1)
+    s.stroke([s.port('cf', 'r', 3), (bus2, 780)], radius=1)
+    s.stroke([(bus2, 620), (bus2, 780)], radius=1)
+    s.node('acc', 'box', 1040, 700, 280, 100, 'Accept the merge and save', key=True, size=22)
+    s.arrow([(bus2, 700), s.port('acc', 'l', 4)])
+    s.node('mv', 'box', 1375, 700, 290, 120, 'Optionally move the copy to a conflicted copies folder', size=21)
+    s.link('acc', 'mv', 'rl')
+    return s
 
 
 # --------------------------------------------------------------------------- guides
 
 def window():
-    ops = []
-    sx, sy, sw, sh = MARGIN, 320, 900, 560
-    ops += box('frame', sx, sy, sw, sh, fill=SURFACE, stroke=INK, radius=8, stroke_width=3)
-    ops += box('ribbon', sx + 12, sy + 12, sw - 24, 70, fill=PAPER)
-    ops += image('ribbon-logo', LOGO, sx + 24, sy + 24, 120)
+    s = Sheet('the-window', 'Guide 1', 'Guide', 'Find your way around the window',
+              'A schematic of the editor. The writing page stays white inside warm paper margins.',
+              'A schematic of the ByAuthorX window with six numbered parts explained beside it.')
+    fx, fy, fw, fh = M, 316, 900, 580
+    s.box(fx, fy, fw, fh, SURFACE, INK, 3.4, 12)
+    s.box(fx + 14, fy + 14, fw - 28, 72, PAPER, RULE, FINE)
+    s.image(LOGO, fx + 30, fy + 28, 130)
     for i, key in enumerate(['save', 'undo', 'find', 'checks', 'comment', 'export']):
-        ops += icon(f'ribbon-{key}', key, sx + 170 + i * 52, sy + 28, 40)
-    ops += box('outline', sx + 12, sy + 94, 190, sh - 140, fill=PAPER)
-    for i in range(6):
-        ops += rule(f'outline-row-{i}', sx + 28, sy + 140 + i * 34, 120 - (i % 3) * 18, color=MUTED, h=3)
-    ops += text('outline-title', 'Outline', 18, sx + 24, sy + 104, 160, 26, color=DEEP)
-    ops += box('page', sx + 214, sy + 94, 470, sh - 140, fill='#FFFFFF')
+        s.icon(key, fx + 190 + i * 58, fy + 30, 44)
+    s.box(fx + 14, fy + 100, 190, fh - 154, PAPER, RULE, FINE)
+    s.text('Outline', fx + 30, fy + 124, 150, 19, DEEP)
+    for i, length in enumerate([120, 90, 110, 70, 100, 80]):
+        s.wave(fx + 32, fx + 32 + length, fy + 166 + i * 36, INK, FINE)
+    s.box(fx + 218, fy + 100, 470, fh - 154, '#FFFFFF', RULE, FINE)
     for i in range(11):
-        ops += rule(f'page-line-{i}', sx + 250, sy + 140 + i * 30, 400 - (i % 4) * 40, color=RULE, h=3)
-    ops += dict(type='shape', name='page-mark', shape='rectangle', x=sx + 300, y=sy + 202, width=120, height=4,
-                fill=RED, radius=2),
-    ops += box('inspector', sx + 696, sy + 94, 192, sh - 140, fill=PAPER)
+        s.wave(fx + 252, fx + 252 + [400, 360, 300, 380, 400, 340, 390, 280, 400, 350, 250][i], fy + 150 + i * 32, RULE, FINE)
+    s.wave(fx + 300, fx + 420, fy + 214, RED, 3.4, 2.2)
+    s.box(fx + 702, fy + 100, 184, fh - 154, PAPER, RULE, FINE)
     for i in range(4):
-        ops += rule(f'tab-{i}', sx + 706 + i * 44, sy + 118, 36, color=GREEN if i == 0 else MUTED, h=4 if i == 0 else 3)
+        s.wave(fx + 716 + i * 40, fx + 746 + i * 40, fy + 124, GREEN if i == 0 else MUTED, 3.6 if i == 0 else FINE, 0.8)
     for i in range(4):
-        ops += box(f'card-{i}', sx + 706, sy + 150 + i * 70, 172, 56, fill=SURFACE)
-    ops += box('status', sx + 12, sy + sh - 40, sw - 24, 30, fill=PAPER)
-    ops += text('status-text', 'Saved locally        1,240 words', 15, sx + 24, sy + sh - 36, 400, 22,
-                font='onionskin', color=MUTED)
-    marks = [(1, sx + 600, sy + 27, 40), (2, sx + 148, sy + 98, 40), (3, sx + 600, sy + 104, 40),
-             (4, sx + 770, sy + 420, 40), (5, sx + 820, sy + 157, 40), (6, sx + 840, sy + sh - 39, 28)]
-    for n, mx, my, d in marks:
-        ops += badge(f'mark-{n}', n, mx, my, d)
-    items = [
-        ('Ribbon', 'Two rows of tools. Each file view shows only what its format supports.'),
-        ('Side panel', 'Choose Outline, Binder, Layout, Bookmarks, Statistics, Scratchpad or Library.'),
-        ('Writing view', 'Continuous editing. Switch to Pages for the layout print and PDF use.'),
-        ('Inspector', 'Proposed changes, Checks, AI and Configure.'),
-        ('Proposed changes', 'Every suggestion waits here. Run all active checks from this tab.'),
-        ('Status bar', 'Save state, counters and the limits of the current file format.'),
-    ]
-    ix, iy = 1030, 316
+        s.box(fx + 716, fy + 146 + i * 76, 156, 60, SURFACE, RULE, FINE, 6)
+    s.box(fx + 14, fy + fh - 52, fw - 28, 38, PAPER, RULE, FINE, 8)
+    s.text('Saved locally       1,240 words', fx + 32, fy + fh - 33, 420, 15, MUTED, 'onionskin')
+    for n, (cx, cy, r) in enumerate([(fx + 620, fy + 50, 20), (fx + 150, fy + 124, 20), (fx + 640, fy + 128, 20),
+                                      (fx + 790, fy + 100 + (fh - 154) - 36, 20), (fx + 840, fy + 176, 20),
+                                      (fx + fw - 56, fy + fh - 33, 15)], 1):
+        s.badge(n, cx, cy, r)
+    items = [('Ribbon', 'Two rows of tools. Each file view shows only what its format supports.'),
+             ('Side panel', 'Choose Outline, Binder, Layout, Bookmarks, Statistics, Scratchpad or Library.'),
+             ('Writing view', 'Continuous editing. Switch to Pages for the layout print and PDF use.'),
+             ('Inspector', 'Proposed changes, Checks, AI and Configure.'),
+             ('Proposed changes', 'Every suggestion waits here. Run all active checks from this tab.'),
+             ('Status bar', 'Save state, counters and the limits of the current file format.')]
+    lx, top, pitch = 1040, 334, 98
     for n, (head, body) in enumerate(items, 1):
-        y = iy + (n - 1) * 94
-        ops += badge(f'key-{n}', n, ix, y + 2, 36)
-        ops += text(f'key-head-{n}', head, 22, ix + 52, y, 440, 28, color=INK)
-        ops += text(f'key-body-{n}', body, 17, ix + 52, y + 30, 440, 56, color=MUTED, line_height=1.2)
-    return dict(
-        key='the-window', ref='Guide 1', kicker='Guide', title='Find your way around the window',
-        lede='A schematic of the editor. The writing page stays white inside warm paper margins.',
-        ops=ops, alt='A schematic of the ByAuthorX window with six numbered parts explained beside it.',
-    )
+        cy = top + (n - 1) * pitch
+        s.badge(n, lx + 20, cy, 20)
+        s.text(head, lx + 56, cy, 440, 24, INK)
+        s.text(body, lx + 56, cy + 24, 424, 18, MUTED, lh=1.25, top=True)
+    return s
 
 
 def first_minutes():
-    steps = [
-        ('pages', 'Take the tour', 'Six short steps. Reopen any time with Help → Take the tour…'),
-        ('open-document', 'Open the sample project', 'Help → Open sample project makes a copy of The Lamp at Harrow Point to practise on.'),
-        ('save', 'Write, then save', 'A .byax file keeps your text, images, review notes and history together.'),
-        ('checks', 'Run the local checks', 'In Proposed changes, choose Run all active checks. Nothing leaves your computer.'),
-        ('comment', 'Accept or reject', 'Each proposal waits for you. Keep what works.'),
-        ('export', 'Export a copy', 'File → Export. The master is never replaced, and you see what a format left out.'),
-    ]
-    ops = []
-    cw, ch, gap = 460, 250, 30
+    s = Sheet('first-minutes', 'Guide 2', 'Guide', 'Your first minutes',
+              'Six steps from a fresh install to a first export, all on your own computer.',
+              'Six numbered steps: tour, sample project, write and save, run checks, accept or reject, export.')
+    steps = [('pages', 'Take the tour', 'Six short steps. Reopen any time with Help → Take the tour…'),
+             ('open-document', 'Open the sample project', 'Help → Open sample project makes a copy of The Lamp at Harrow Point to practise on.'),
+             ('save', 'Write, then save', 'A .byax file keeps your text, images, review notes and history together.'),
+             ('checks', 'Run the local checks', 'In Proposed changes, choose Run all active checks. Nothing leaves your computer.'),
+             ('comment', 'Accept or reject', 'Each proposal waits for you. Keep what works.'),
+             ('export', 'Export a copy', 'File → Export. The master is never replaced, and you see what a format left out.')]
+    cw, ch, gx, gy = 460, 248, 30, 24
     for i, (key, head, body) in enumerate(steps):
-        col, row = i % 3, i // 3
-        x, y = MARGIN + col * (cw + gap), 322 + row * (ch + 24)
-        ops += box(f'card-{i}', x, y, cw, ch)
-        ops += badge(f'step-{i}', i + 1, x + 24, y + 24, 44)
-        ops += icon(f'step-{i}', key, x + cw - 24 - 72, y + 18, 72)
-        ops += text(f'step-head-{i}', head, 30, x + 24, y + 92, cw - 48, 40)
-        ops += text(f'step-body-{i}', body, 23, x + 24, y + 140, cw - 48, 100, color=MUTED, line_height=1.3)
-    ops += box('install', MARGIN, 868, W - 2 * MARGIN, 52, fill=PAPER, stroke=RULE)
-    ops += text('install-text',
-                'Install: Windows 11 x64 setup, Ubuntu 24.04 x64 .deb, or macOS 14+ .dmg for Apple silicon. Installers may be unsigned; see troubleshooting.',
-                18, MARGIN + 20, 882, W - 2 * MARGIN - 40, 28, color=MUTED)
-    return dict(
-        key='first-minutes', ref='Guide 2', kicker='Guide', title='Your first minutes',
-        lede='Six steps from a fresh install to a first export, all on your own computer.',
-        ops=ops, alt='Six numbered steps: tour, sample project, write and save, run checks, accept or reject, export.',
-    )
+        x, y = M + (i % 3) * (cw + gx), 322 + (i // 3) * (ch + gy)
+        s.box(x, y, cw, ch, SURFACE, INK, PEN, 12)
+        s.badge(i + 1, x + 46, y + 46, 22)
+        s.icon(key, x + cw - 24 - 72, y + 10, 72)
+        s.text(head, x + 24, y + 112, cw - 48, 30, INK)
+        s.text(body, x + 24, y + 144, cw - 48, 22, MUTED, lh=1.3, top=True)
+    s.box(M, 868, W - 2 * M, 48, PAPER, RULE, FINE, 8)
+    s.text('Install: Windows 11 x64 setup, Ubuntu 24.04 x64 .deb, or macOS 14+ .dmg for Apple silicon. Installers may be unsigned; see troubleshooting.',
+           M + 20, 892, W - 2 * M - 40, 17, MUTED)
+    return s
 
 
 def checks():
-    rows = [
-        ('On this computer', 'Spelling, grammar, document health.', 'Active by default', 'Stays on your computer'),
-        ('Fiction analysis', 'Dialogue tags, filter words, repeated openings, rhythm, sensory balance, invented-name spelling.',
-         'Inactive by default', 'Stays on your computer. Advisory.'),
-        ('Extension checks', 'Added by extensions you install and enable under Tools → Extensions…', 'Inactive by default',
-         'Depends on the extension'),
-        ('With an AI provider', 'Information repository, factual accuracy, voice consistency and checks you write.',
-         'Inactive by default', 'Asks for your authorization each time'),
-    ]
-    ops = []
-    ops += text('h-what', 'CHECK', 16, MARGIN + 24, 318, 300, 24, font='onionskin', color=MUTED, tracking=1.5)
-    ops += text('h-state', 'STARTS', 16, 800, 318, 200, 24, font='onionskin', color=MUTED, tracking=1.5)
-    ops += text('h-where', 'WHERE IT RUNS', 16, 1010, 318, 300, 24, font='onionskin', color=MUTED, tracking=1.5)
+    s = Sheet('checks', 'Guide 3', 'Guide', 'Checks at a glance',
+              'Four kinds of check, what each starts as, and where it runs.',
+              'A table of the four kinds of check with their default state and where they run.')
+    rows = [('On this computer', 'Spelling, grammar, document health.', 'Active by default', 'Stays on your computer'),
+            ('Fiction analysis', 'Dialogue tags, filter words, repeated openings, rhythm, sensory balance, invented-name spelling.',
+             'Inactive by default', 'Stays on your computer. Advisory.'),
+            ('Extension checks', 'Added by extensions you install and enable under Tools → Extensions…',
+             'Inactive by default', 'Depends on the extension'),
+            ('With an AI provider', 'Information repository, factual accuracy, voice consistency and checks you write.',
+             'Inactive by default', 'Asks for your authorization each time')]
+    tw, c1, c2, c3 = 1180, M + 26, 790, 1010
+    s.label('Check', c1, 322, 'onionskin', MUTED, 16)
+    s.label('Starts', c2, 322, 'onionskin', MUTED, 16)
+    s.label('Where it runs', c3, 322, 'onionskin', MUTED, 16)
     for i, (head, body, state, where) in enumerate(rows):
-        y = 350 + i * 118
-        ops += box(f'row-{i}', MARGIN, y, 1180, 104)
-        ops += text(f'row-head-{i}', head, 26, MARGIN + 24, y + 14, 330, 36)
-        ops += text(f'row-body-{i}', body, 18, MARGIN + 24, y + 52, 700, 44, color=MUTED, line_height=1.2)
-        ops += text(f'row-state-{i}', state, 20, 800, y + 18, 190, 60, color=DEEP if i == 0 else INK)
-        ops += text(f'row-where-{i}', where, 20, 1010, y + 18, 230, 70, color=INK, line_height=1.2)
-    ops += art('marks', 'proofread-marks', 1290, 340, 260)
-    ops += text('marks-note', 'Red pen marks spelling and green pen marks grammar. They are interface only and never appear in print or exports.',
-                17, 1290, 540, 230, 150, font='scholium', color=INK, line_height=1.25)
-    ops += text('foot-note', 'Results are proposals. Text changes only when you accept. Find the list in Inspector → Checks.',
-                20, MARGIN, 830, 1180, 56, color=INK)
-    return dict(
-        key='checks', ref='Guide 3', kicker='Guide', title='Checks at a glance',
-        lede='Four kinds of check, what each starts as, and where it runs.',
-        ops=ops, alt='A table of the four kinds of check with their default state and where they run.',
-    )
+        y = 346 + i * 124
+        s.box(M, y, tw, 112, SURFACE, INK, PEN, 10)
+        s.text(head, c1, y + 32, 640, 26, INK)
+        s.text(body, c1, y + 60, 680, 18, MUTED, lh=1.2, top=True)
+        s.text(state, c2, y + 56, 200, 20, DEEP if i == 0 else INK, lh=1.2)
+        s.text(where, c3, y + 56, 230, 20, INK, lh=1.2)
+    s.image(UI / 'illustrations' / 'proofread-marks-light.png', 1296, 340, 224)
+    s.text('Red pen marks spelling and green pen marks grammar. They are interface only and never appear in print or exports.',
+           1296, 530, 224, 18, INK, 'scholium', lh=1.3)
+    s.text('Results are proposals. Text changes only when you accept. Find the list in Inspector → Checks.',
+           M, 866, 1180, 21, INK)
+    return s
 
 
 def formats():
-    rows = [
-        ('save', 'Keep a master you can edit later', 'Save as .byax'),
-        ('open-document', 'Open Word, ODT, RTF, HTML, EPUB or text', 'File → Open. A report lists anything lost.'),
-        ('export', 'Share a PDF or Word copy', 'File → Export. The master is never replaced.'),
-        ('pages', 'See how a format will look', 'Use the File view selector in the toolbar.'),
-        ('contents', 'Publish an e-book', 'File → Export → EPUB.'),
-        ('print', 'Make a print book or a submission', 'File → Compile…'),
-    ]
-    ops = text('h-want', 'YOU WANT TO', 16, MARGIN + 100, 318, 400, 24, font='onionskin', color=MUTED, tracking=1.5)
-    ops += text('h-do', 'DO THIS', 16, 780, 318, 300, 24, font='onionskin', color=MUTED, tracking=1.5)
+    s = Sheet('files-and-formats', 'Guide 4', 'Guide', 'Your file, your copies',
+              'The master file holds everything. Every other format is a copy that says what it left out.',
+              'A table matching six goals to the File command that does them.')
+    rows = [('save', 'Keep a master you can edit later', 'Save as .byax'),
+            ('open-document', 'Open Word, ODT, RTF, HTML, EPUB or text', 'File → Open. A report lists anything lost.'),
+            ('export', 'Share a PDF or Word copy', 'File → Export. The master is never replaced.'),
+            ('pages', 'See how a format will look', 'Use the File view selector in the toolbar.'),
+            ('contents', 'Publish an e-book', 'File → Export → EPUB.'),
+            ('print', 'Make a print book or a submission', 'File → Compile…')]
+    s.label('You want to', M + 104, 322, 'onionskin', MUTED, 16)
+    s.label('Do this', 800, 322, 'onionskin', MUTED, 16)
     for i, (key, want, do) in enumerate(rows):
-        y = 348 + i * 88
-        ops += box(f'row-{i}', MARGIN, y, W - 2 * MARGIN, 76)
-        ops += icon(f'row-{i}', key, MARGIN + 16, y + 6, 64)
-        ops += text(f'row-want-{i}', want, 24, MARGIN + 100, y + 22, 640, 40)
-        ops += text(f'row-do-{i}', do, 22, 780, y + 24, 700, 40, color=DEEP)
-    ops += text('note', 'Hidden or unsupported content stays in the master. Word, ODT and RTF previews are approximate.',
-                20, MARGIN, 884, W - 2 * MARGIN, 28, font='scholium', color=INK)
-    return dict(
-        key='files-and-formats', ref='Guide 4', kicker='Guide', title='Your file, your copies',
-        lede='The master file holds everything. Every other format is a copy that says what it left out.',
-        ops=ops, alt='A table matching six goals to the File command that does them.',
-    )
+        y = 346 + i * 88
+        s.box(M, y, W - 2 * M, 76, SURFACE, INK, PEN, 10)
+        s.icon(key, M + 18, y + 6, 64)
+        s.text(want, M + 104, y + 38, 640, 24, INK)
+        s.text(do, 800, y + 38, 680, 22, DEEP)
+    s.text('Hidden or unsupported content stays in the master. Word, ODT and RTF previews are approximate.',
+           M, 894, W - 2 * M, 20, INK, 'scholium')
+    return s
 
 
 def privacy():
-    claims = [
-        ('No account', 'Nothing to sign up for. Write the day you install.'),
-        ('No telemetry', 'ByAuthorX does not report how you use it.'),
-        ('No background traffic', 'No update pings. Help → Check for updates makes one request, only when you click it.'),
-        ('Nothing leaves until you choose', 'AI sends nothing until you add a provider and press Send.'),
-    ]
-    ops = image('art-copy', ROOT / 'assets' / 'logo-companion-library' / 'illustrations' / 'local-copy-light.png', 1000, 330, 520)
+    s = Sheet('private-by-default', 'Guide 5', 'Guide', 'Private by default',
+              'Four claims, said the same way everywhere ByAuthorX speaks.',
+              'Four privacy claims: no account, no telemetry, no background network traffic, nothing leaves until you choose.')
+    claims = [('No account', 'Nothing to sign up for. Write the day you install.'),
+              ('No telemetry', 'ByAuthorX does not report how you use it.'),
+              ('No background traffic', 'No update pings. Help → Check for updates asks once, when you click.'),
+              ('Nothing leaves until you choose', 'AI sends nothing until you add a provider and press Send.')]
     for i, (head, body) in enumerate(claims):
-        y = 330 + i * 130
-        ops += box(f'claim-{i}', MARGIN, y, 880, 112)
-        ops += badge(f'claim-{i}', i + 1, MARGIN + 24, y + 34, 44)
-        ops += text(f'claim-head-{i}', head, 28, MARGIN + 92, y + 16, 760, 40)
-        ops += text(f'claim-body-{i}', body, 20, MARGIN + 92, y + 58, 760, 46, color=MUTED, line_height=1.2)
-    ops += text('ai-note', 'Hosted or local, you choose the provider. Keys stay in your OS keyring or a named environment variable.',
-                22, 1000, 700, 520, 120, font='scholium', color=INK, line_height=1.3)
-    return dict(
-        key='private-by-default', ref='Guide 5', kicker='Guide', title='Private by default',
-        lede='Four claims, said the same way everywhere ByAuthorX speaks.',
-        ops=ops, alt='Four privacy claims: no account, no telemetry, no background network traffic, nothing leaves until you choose.',
-    )
+        y = 330 + i * 134
+        s.box(M, y, 880, 114, SURFACE, INK, PEN, 12)
+        s.badge(i + 1, M + 52, y + 57, 24)
+        s.text(head, M + 100, y + 34, 740, 28, INK)
+        s.text(body, M + 100, y + 58, 740, 20, MUTED, lh=1.2, top=True)
+    s.image(ROOT / 'assets' / 'logo-companion-library' / 'illustrations' / 'local-copy-light.png', 1010, 340, 510)
+    s.text('Hosted or local, you choose the provider. Keys stay in your OS keyring or a named environment variable.',
+           1010, 770, 510, 22, INK, 'scholium', lh=1.3)
+    return s
 
 
 SHEETS = [proposals, share, book, ai, conflict, window, first_minutes, checks, formats, privacy]
@@ -424,8 +646,8 @@ SHEETS = [proposals, share, book, ai, conflict, window, first_minutes, checks, f
 
 # --------------------------------------------------------------------------- build
 
-def new_project(height=H):
-    project = Project(W, height, PAPER, workspace=ROOT)
+def new_project():
+    project = Project(W, H, PAPER, workspace=ROOT)
     for name, rel in FACES.items():
         import_font(project, FONTS / rel, name)
     return project
@@ -436,50 +658,50 @@ def report(label, project):
     findings = [i for i in result.get('issues', []) if i.get('severity') in ('error', 'fix')]
     print(f"{label}: {'ok' if result['passed'] else 'FAILED'}  ({len(findings)} to fix)")
     for issue in findings[:8]:
-        print('   ', issue.get('rule') or issue.get('code'), issue.get('message', '')[:140])
+        print('   ', issue.get('rule') or issue.get('code'), issue.get('message', '')[:150])
     return result['passed']
 
 
 def build_sheet(sheet, index, total):
+    key = sheet.meta['key']
     project = new_project()
-    result = project.apply(chrome(sheet, index, total) + sheet['ops'])
+    result = project.apply(chrome(sheet, index, total) + sheet.ops)
     for warning in result.get('warnings', []):
-        print('  warn', sheet['key'], str(warning)[:160])
+        print('  warn', key, str(warning)[:160])
     for sub in ('vixl', 'png', 'svg'):
         (OUT / sub).mkdir(parents=True, exist_ok=True)
-    project.save(OUT / 'vixl' / f"{sheet['key']}.vixl", overwrite=True)
-    project.export(OUT / 'png' / f"{sheet['key']}.png", overwrite=True)
-    project.export(OUT / 'svg' / f"{sheet['key']}.svg", overwrite=True)
-    return report(sheet['key'], project)
+    project.save(OUT / 'vixl' / f'{key}.vixl', overwrite=True)
+    project.export(OUT / 'png' / f'{key}.png', overwrite=True)
+    project.export(OUT / 'svg' / f'{key}.svg', overwrite=True)
+    return report(key, project)
+
+
+def cover_and_contents(sheets):
+    cover = Sheet('cover', 'Booklet', 'Visual guides', 'ByAuthorX at a glance',
+                  'Flowcharts and guides for writers. Your words. Your call.', '')
+    cover.image(UI / 'illustrations' / 'checks-clear-light.png', 520, 320, 560)
+    cover.text('Write. Review. Make it yours.', W / 2, 870, 1000, 34, DEEP, align='center')
+    contents = Sheet('contents', 'Contents', 'Contents', 'What is inside',
+                     'Five flowcharts and five guides. Each page also stands alone as a PNG.', '')
+    for i, sheet in enumerate(sheets):
+        cy = 350 + i * 54
+        contents.text(f'{i + 3}', M, cy, 60, 20, DEEP, 'onionskin')
+        contents.text(sheet.meta['title'], M + 70, cy, 900, 28, INK)
+        contents.text(sheet.meta['kicker'], W - M, cy, 300, 17, MUTED, 'onionskin', 'right')
+        contents.wave(M, W - M, cy + 28, RULE, FINE, 1.2)
+    return [cover, contents]
 
 
 def build_booklet(sheets):
     project = new_project()
-    total = len(sheets) + 2
-    cover = dict(key='cover', ref='Booklet', kicker='Visual guides', title='ByAuthorX at a glance',
-                 lede='Flowcharts and guides for writers. Your words. Your call.', ops=[])
-    toc = [f"{i + 3}.  {s['title']}" for i, s in enumerate(sheets)]
-    contents = dict(key='contents', ref='Contents', kicker='Contents', title='What is inside',
-                    lede='Five flowcharts and five guides. Each page also stands alone as a PNG.', ops=[])
-    contents['ops'] = text('toc', '\n'.join(toc), 26, MARGIN, 330, 1200, 560, line_height=1.55)
-    pages = [cover, contents] + sheets
+    pages = cover_and_contents(sheets) + sheets
+    total = len(pages)
     ops = []
     for n, sheet in enumerate(pages, 1):
         name = f'p{n}'
         ops.append(dict(type='page', action='add', name=name))
-        page_ops = chrome(sheet, n, total) + sheet['ops']
-        for op in page_ops:
-            if op['type'] != 'accessibility':
-                op = {**op, 'page': name}
-                if op['type'] == 'diagram':
-                    op['name'] = f"{op['name']}-{n}"
-
-            ops.append(op)
-        if sheet is cover:
-            ops += [{**op, 'page': name} for op in
-                    art('cover-art', 'checks-clear', 520, 330, 560) + text(
-                        'cover-line', 'Write. Review. Make it yours.', 34, MARGIN, 840, W - 2 * MARGIN, 50,
-                        align='center', color=DEEP)]
+        for op in chrome(sheet, n, total) + sheet.ops:
+            ops.append(op if op['type'] == 'accessibility' else {**op, 'page': name})
     project.apply(ops)
     project.save(OUT / 'vixl' / 'byauthorx-at-a-glance.vixl', overwrite=True)
     project.export(OUT / 'ByAuthorX-at-a-glance.pdf', overwrite=True)
@@ -495,8 +717,8 @@ def main(argv=None):
     sheets = [make() for make in SHEETS]
     total = len(sheets) + 2
     ok = True
-    for index, sheet in enumerate(sheets, 2):
-        if args.only and args.only != sheet['key']:
+    for index, sheet in enumerate(sheets, 3):
+        if args.only and args.only != sheet.meta['key']:
             continue
         ok &= build_sheet(sheet, index, total)
     if not args.only and not args.no_booklet:
