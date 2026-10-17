@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "measured_at_utc": "2026-10-17T02:05:39.818543+00:00",
+  "measured_at_utc": "2026-10-17T04:34:04.918153+00:00",
   "environment": {
     "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
     "machine": "x86_64",
@@ -11,43 +11,43 @@
     "sqlite": "3.45.1",
     "engine": "0.3.0",
     "load_average_1m_5m_15m": [
-      4.17,
-      4.47,
-      4.01
+      3.73,
+      3.64,
+      2.88
     ],
     "hardware_qualification": "Unqualified execution host; CPU/SSD target hardware not verified."
   },
   "embedder": "qwen3-embedding-0.6b-int8",
   "summary_macro": {
     "1": {
-      "recall@5": 0.931,
+      "recall@5": 0.9306,
       "recall@20": 0.9966,
-      "ndcg@10": 0.8488,
-      "mrr": 0.8157
+      "ndcg@10": 0.8442,
+      "mrr": 0.8084
     },
     "2": {
-      "recall@5": 0.9647,
-      "recall@20": 0.9926,
-      "ndcg@10": 0.8832,
-      "mrr": 0.8558
+      "recall@5": 0.9697,
+      "recall@20": 0.9966,
+      "ndcg@10": 0.8859,
+      "mrr": 0.8577
     },
     "3": {
-      "recall@5": 0.9788,
-      "recall@20": 0.9915,
-      "ndcg@10": 0.9056,
-      "mrr": 0.8845
+      "recall@5": 0.9772,
+      "recall@20": 0.9966,
+      "ndcg@10": 0.9091,
+      "mrr": 0.8874
     },
     "4": {
-      "recall@5": 0.9834,
-      "recall@20": 0.9926,
-      "ndcg@10": 0.9214,
-      "mrr": 0.9034
+      "recall@5": 0.9806,
+      "recall@20": 0.9938,
+      "ndcg@10": 0.9234,
+      "mrr": 0.9047
     },
     "keyword": {
-      "recall@5": 0.9811,
-      "recall@20": 0.9915,
-      "ndcg@10": 0.9646,
-      "mrr": 0.9567
+      "recall@5": 0.9846,
+      "recall@20": 0.9938,
+      "ndcg@10": 0.9697,
+      "mrr": 0.9633
     }
   },
   "runs": [
@@ -55,10 +55,10 @@
       "library": "novel",
       "keyword_weight": 1,
       "metrics": {
-        "recall@5": 0.8621,
+        "recall@5": 0.8448,
         "recall@20": 0.9828,
-        "ndcg@10": 0.8509,
-        "mrr": 0.8708
+        "ndcg@10": 0.8505,
+        "mrr": 0.8638
       },
       "by_type": {
         "absence_probe": {
@@ -72,43 +72,43 @@
           "queries": 10,
           "recall@5": 0.8,
           "recall@20": 1.0,
-          "ndcg@10": 0.7918,
-          "mrr": 0.8583
+          "ndcg@10": 0.7773,
+          "mrr": 0.8083
         },
         "continuity": {
           "queries": 10,
-          "recall@5": 0.8,
+          "recall@5": 0.7,
           "recall@20": 1.0,
-          "ndcg@10": 0.7047,
-          "mrr": 0.6361
+          "ndcg@10": 0.7193,
+          "mrr": 0.6517
         },
         "factual_lookup": {
           "queries": 5,
           "recall@5": 0.8,
-          "recall@20": 0.8667,
+          "recall@20": 0.8,
           "ndcg@10": 0.8,
-          "mrr": 0.8125
+          "mrr": 0.8
         },
         "known_item_quote": {
           "queries": 22,
-          "recall@5": 0.9091,
+          "recall@5": 0.8939,
           "recall@20": 1.0,
-          "ndcg@10": 0.9048,
+          "ndcg@10": 0.9046,
           "mrr": 0.9318
         },
         "thematic": {
           "queries": 2,
-          "recall@5": 0.5,
-          "recall@20": 0.8333,
-          "ndcg@10": 0.7388,
+          "recall@5": 0.6667,
+          "recall@20": 1.0,
+          "ndcg@10": 0.7317,
           "mrr": 1.0
         }
       },
       "keyword_metrics": {
-        "recall@5": 0.9483,
-        "recall@20": 0.9713,
-        "ndcg@10": 0.9315,
-        "mrr": 0.9124
+        "recall@5": 0.9655,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9527,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -120,24 +120,24 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9604,
-          "mrr": 0.9333
+          "ndcg@10": 0.9712,
+          "mrr": 0.95
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9131,
-          "mrr": 0.8833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 5,
-          "recall@5": 0.6,
+          "recall@5": 0.7333,
           "recall@20": 0.8,
-          "ndcg@10": 0.6943,
-          "mrr": 0.6333
+          "ndcg@10": 0.7102,
+          "mrr": 0.65
         },
         "known_item_quote": {
           "queries": 22,
@@ -149,9 +149,9 @@
         "thematic": {
           "queries": 2,
           "recall@5": 0.6667,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.4102,
-          "mrr": 0.2917
+          "recall@20": 1.0,
+          "ndcg@10": 0.4971,
+          "mrr": 0.3333
         }
       },
       "queries": 74
@@ -160,10 +160,10 @@
       "library": "novel",
       "keyword_weight": 2,
       "metrics": {
-        "recall@5": 0.9224,
-        "recall@20": 0.977,
-        "ndcg@10": 0.8934,
-        "mrr": 0.898
+        "recall@5": 0.9052,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9105,
+        "mrr": 0.9177
       },
       "by_type": {
         "absence_probe": {
@@ -177,43 +177,43 @@
           "queries": 10,
           "recall@5": 0.9,
           "recall@20": 1.0,
-          "ndcg@10": 0.8665,
+          "ndcg@10": 0.8697,
           "mrr": 0.8833
         },
         "continuity": {
           "queries": 10,
-          "recall@5": 0.95,
+          "recall@5": 0.85,
           "recall@20": 1.0,
-          "ndcg@10": 0.7848,
-          "mrr": 0.725
+          "ndcg@10": 0.792,
+          "mrr": 0.7393
         },
         "factual_lookup": {
           "queries": 5,
           "recall@5": 0.8,
           "recall@20": 0.8,
-          "ndcg@10": 0.7466,
-          "mrr": 0.7
+          "ndcg@10": 0.7935,
+          "mrr": 0.8
         },
         "known_item_quote": {
           "queries": 22,
           "recall@5": 0.9545,
           "recall@20": 1.0,
-          "ndcg@10": 0.9665,
-          "mrr": 0.9773
+          "ndcg@10": 0.9821,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 2,
           "recall@5": 0.5,
-          "recall@20": 0.8333,
-          "ndcg@10": 0.6539,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8103,
           "mrr": 1.0
         }
       },
       "keyword_metrics": {
-        "recall@5": 0.9483,
-        "recall@20": 0.9713,
-        "ndcg@10": 0.9315,
-        "mrr": 0.9124
+        "recall@5": 0.9655,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9527,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -225,24 +225,24 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9604,
-          "mrr": 0.9333
+          "ndcg@10": 0.9712,
+          "mrr": 0.95
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9131,
-          "mrr": 0.8833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 5,
-          "recall@5": 0.6,
+          "recall@5": 0.7333,
           "recall@20": 0.8,
-          "ndcg@10": 0.6943,
-          "mrr": 0.6333
+          "ndcg@10": 0.7102,
+          "mrr": 0.65
         },
         "known_item_quote": {
           "queries": 22,
@@ -254,9 +254,9 @@
         "thematic": {
           "queries": 2,
           "recall@5": 0.6667,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.4102,
-          "mrr": 0.2917
+          "recall@20": 1.0,
+          "ndcg@10": 0.4971,
+          "mrr": 0.3333
         }
       },
       "queries": 74
@@ -265,10 +265,10 @@
       "library": "novel",
       "keyword_weight": 3,
       "metrics": {
-        "recall@5": 0.9368,
-        "recall@20": 0.9713,
-        "ndcg@10": 0.9072,
-        "mrr": 0.9138
+        "recall@5": 0.9425,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.93,
+        "mrr": 0.9397
       },
       "by_type": {
         "absence_probe": {
@@ -280,45 +280,45 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9,
+          "recall@5": 0.9333,
           "recall@20": 1.0,
-          "ndcg@10": 0.9081,
+          "ndcg@10": 0.9145,
           "mrr": 0.9333
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.819,
-          "mrr": 0.7833
+          "ndcg@10": 0.8797,
+          "mrr": 0.8667
         },
         "factual_lookup": {
           "queries": 5,
-          "recall@5": 0.7333,
+          "recall@5": 0.8,
           "recall@20": 0.8,
-          "ndcg@10": 0.7167,
-          "mrr": 0.6667
+          "ndcg@10": 0.7425,
+          "mrr": 0.7
         },
         "known_item_quote": {
           "queries": 22,
-          "recall@5": 0.9848,
+          "recall@5": 0.9697,
           "recall@20": 1.0,
-          "ndcg@10": 0.9752,
-          "mrr": 0.9773
+          "ndcg@10": 0.9857,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 2,
           "recall@5": 0.5,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.6539,
+          "recall@20": 1.0,
+          "ndcg@10": 0.8,
           "mrr": 1.0
         }
       },
       "keyword_metrics": {
-        "recall@5": 0.9483,
-        "recall@20": 0.9713,
-        "ndcg@10": 0.9315,
-        "mrr": 0.9124
+        "recall@5": 0.9655,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9527,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -330,24 +330,24 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9604,
-          "mrr": 0.9333
+          "ndcg@10": 0.9712,
+          "mrr": 0.95
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9131,
-          "mrr": 0.8833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 5,
-          "recall@5": 0.6,
+          "recall@5": 0.7333,
           "recall@20": 0.8,
-          "ndcg@10": 0.6943,
-          "mrr": 0.6333
+          "ndcg@10": 0.7102,
+          "mrr": 0.65
         },
         "known_item_quote": {
           "queries": 22,
@@ -359,9 +359,9 @@
         "thematic": {
           "queries": 2,
           "recall@5": 0.6667,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.4102,
-          "mrr": 0.2917
+          "recall@20": 1.0,
+          "ndcg@10": 0.4971,
+          "mrr": 0.3333
         }
       },
       "queries": 74
@@ -371,9 +371,9 @@
       "keyword_weight": 4,
       "metrics": {
         "recall@5": 0.9598,
-        "recall@20": 0.977,
-        "ndcg@10": 0.9224,
-        "mrr": 0.9239
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9335,
+        "mrr": 0.9368
       },
       "by_type": {
         "absence_probe": {
@@ -387,43 +387,43 @@
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9218,
+          "ndcg@10": 0.9271,
           "mrr": 0.9333
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.869,
-          "mrr": 0.85
+          "ndcg@10": 0.9059,
+          "mrr": 0.9
         },
         "factual_lookup": {
           "queries": 5,
           "recall@5": 0.7333,
           "recall@20": 0.8,
-          "ndcg@10": 0.708,
-          "mrr": 0.65
+          "ndcg@10": 0.7396,
+          "mrr": 0.7
         },
         "known_item_quote": {
           "queries": 22,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9961,
+          "ndcg@10": 0.9924,
           "mrr": 1.0
         },
         "thematic": {
           "queries": 2,
           "recall@5": 0.5,
-          "recall@20": 0.8333,
-          "ndcg@10": 0.5673,
+          "recall@20": 1.0,
+          "ndcg@10": 0.6413,
           "mrr": 0.75
         }
       },
       "keyword_metrics": {
-        "recall@5": 0.9483,
-        "recall@20": 0.9713,
-        "ndcg@10": 0.9315,
-        "mrr": 0.9124
+        "recall@5": 0.9655,
+        "recall@20": 0.9828,
+        "ndcg@10": 0.9527,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -435,24 +435,24 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9667,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9604,
-          "mrr": 0.9333
+          "ndcg@10": 0.9712,
+          "mrr": 0.95
         },
         "continuity": {
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9131,
-          "mrr": 0.8833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 5,
-          "recall@5": 0.6,
+          "recall@5": 0.7333,
           "recall@20": 0.8,
-          "ndcg@10": 0.6943,
-          "mrr": 0.6333
+          "ndcg@10": 0.7102,
+          "mrr": 0.65
         },
         "known_item_quote": {
           "queries": 22,
@@ -464,9 +464,9 @@
         "thematic": {
           "queries": 2,
           "recall@5": 0.6667,
-          "recall@20": 0.6667,
-          "ndcg@10": 0.4102,
-          "mrr": 0.2917
+          "recall@20": 1.0,
+          "ndcg@10": 0.4971,
+          "mrr": 0.3333
         }
       },
       "queries": 74
@@ -477,8 +477,8 @@
       "metrics": {
         "recall@5": 0.9306,
         "recall@20": 1.0,
-        "ndcg@10": 0.8322,
-        "mrr": 0.7884
+        "ndcg@10": 0.8347,
+        "mrr": 0.7919
       },
       "by_type": {
         "absence_probe": {
@@ -492,44 +492,44 @@
           "queries": 13,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8143,
-          "mrr": 0.75
+          "ndcg@10": 0.858,
+          "mrr": 0.8077
         },
         "factual_lookup": {
           "queries": 19,
           "recall@5": 0.8947,
           "recall@20": 1.0,
-          "ndcg@10": 0.8154,
-          "mrr": 0.7963
+          "ndcg@10": 0.8167,
+          "mrr": 0.799
         },
         "known_item_quote": {
           "queries": 28,
           "recall@5": 0.8929,
           "recall@20": 1.0,
-          "ndcg@10": 0.78,
-          "mrr": 0.7102
+          "ndcg@10": 0.7785,
+          "mrr": 0.7084
         },
         "thematic": {
           "queries": 4,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.9077,
+          "mrr": 0.875
         }
       },
       "keyword_metrics": {
         "recall@5": 0.9722,
         "recall@20": 0.9861,
-        "ndcg@10": 0.962,
-        "mrr": 0.9592
+        "ndcg@10": 0.9722,
+        "mrr": 0.9735
       },
       "keyword_by_type": {
         "absence_probe": {
           "queries": 8,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9539,
-          "mrr": 0.9375
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 13,
@@ -543,7 +543,7 @@
           "recall@5": 0.8947,
           "recall@20": 0.9474,
           "ndcg@10": 0.8947,
-          "mrr": 0.898
+          "mrr": 0.8995
         },
         "known_item_quote": {
           "queries": 28,
@@ -556,8 +556,8 @@
           "queries": 4,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9077,
-          "mrr": 0.875
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         }
       },
       "queries": 88
@@ -567,9 +567,9 @@
       "keyword_weight": 2,
       "metrics": {
         "recall@5": 0.9583,
-        "recall@20": 0.9861,
-        "ndcg@10": 0.8759,
-        "mrr": 0.8446
+        "recall@20": 1.0,
+        "ndcg@10": 0.8805,
+        "mrr": 0.8515
       },
       "by_type": {
         "absence_probe": {
@@ -583,22 +583,22 @@
           "queries": 13,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9148,
-          "mrr": 0.8846
+          "ndcg@10": 0.8864,
+          "mrr": 0.8462
         },
         "factual_lookup": {
           "queries": 19,
           "recall@5": 0.8947,
-          "recall@20": 0.9474,
-          "ndcg@10": 0.819,
-          "mrr": 0.7971
+          "recall@20": 1.0,
+          "ndcg@10": 0.8296,
+          "mrr": 0.8138
         },
         "known_item_quote": {
           "queries": 28,
           "recall@5": 0.9643,
           "recall@20": 1.0,
-          "ndcg@10": 0.8432,
-          "mrr": 0.7917
+          "ndcg@10": 0.8612,
+          "mrr": 0.8158
         },
         "thematic": {
           "queries": 4,
@@ -611,16 +611,16 @@
       "keyword_metrics": {
         "recall@5": 0.9722,
         "recall@20": 0.9861,
-        "ndcg@10": 0.962,
-        "mrr": 0.9592
+        "ndcg@10": 0.9722,
+        "mrr": 0.9735
       },
       "keyword_by_type": {
         "absence_probe": {
           "queries": 8,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9539,
-          "mrr": 0.9375
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 13,
@@ -634,7 +634,7 @@
           "recall@5": 0.8947,
           "recall@20": 0.9474,
           "ndcg@10": 0.8947,
-          "mrr": 0.898
+          "mrr": 0.8995
         },
         "known_item_quote": {
           "queries": 28,
@@ -647,8 +647,8 @@
           "queries": 4,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9077,
-          "mrr": 0.875
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         }
       },
       "queries": 88
@@ -657,10 +657,10 @@
       "library": "series",
       "keyword_weight": 3,
       "metrics": {
-        "recall@5": 0.9722,
-        "recall@20": 0.9861,
-        "ndcg@10": 0.9072,
-        "mrr": 0.8863
+        "recall@5": 0.9583,
+        "recall@20": 1.0,
+        "ndcg@10": 0.9107,
+        "mrr": 0.892
       },
       "by_type": {
         "absence_probe": {
@@ -674,22 +674,22 @@
           "queries": 13,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9716,
-          "mrr": 0.9615
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "factual_lookup": {
           "queries": 19,
           "recall@5": 0.8947,
-          "recall@20": 0.9474,
-          "ndcg@10": 0.8453,
-          "mrr": 0.8325
+          "recall@20": 1.0,
+          "ndcg@10": 0.849,
+          "mrr": 0.8409
         },
         "known_item_quote": {
           "queries": 28,
-          "recall@5": 1.0,
+          "recall@5": 0.9643,
           "recall@20": 1.0,
-          "ndcg@10": 0.8794,
-          "mrr": 0.8393
+          "ndcg@10": 0.8729,
+          "mrr": 0.8304
         },
         "thematic": {
           "queries": 4,
@@ -702,16 +702,16 @@
       "keyword_metrics": {
         "recall@5": 0.9722,
         "recall@20": 0.9861,
-        "ndcg@10": 0.962,
-        "mrr": 0.9592
+        "ndcg@10": 0.9722,
+        "mrr": 0.9735
       },
       "keyword_by_type": {
         "absence_probe": {
           "queries": 8,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9539,
-          "mrr": 0.9375
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 13,
@@ -725,7 +725,7 @@
           "recall@5": 0.8947,
           "recall@20": 0.9474,
           "ndcg@10": 0.8947,
-          "mrr": 0.898
+          "mrr": 0.8995
         },
         "known_item_quote": {
           "queries": 28,
@@ -738,8 +738,8 @@
           "queries": 4,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9077,
-          "mrr": 0.875
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         }
       },
       "queries": 88
@@ -748,10 +748,10 @@
       "library": "series",
       "keyword_weight": 4,
       "metrics": {
-        "recall@5": 0.9722,
+        "recall@5": 0.9583,
         "recall@20": 0.9861,
-        "ndcg@10": 0.9179,
-        "mrr": 0.9002
+        "ndcg@10": 0.9159,
+        "mrr": 0.8981
       },
       "by_type": {
         "absence_probe": {
@@ -773,14 +773,14 @@
           "recall@5": 0.8947,
           "recall@20": 0.9474,
           "ndcg@10": 0.849,
-          "mrr": 0.8368
+          "mrr": 0.8377
         },
         "known_item_quote": {
           "queries": 28,
-          "recall@5": 1.0,
+          "recall@5": 0.9643,
           "recall@20": 1.0,
-          "ndcg@10": 0.8912,
-          "mrr": 0.8542
+          "ndcg@10": 0.8861,
+          "mrr": 0.8482
         },
         "thematic": {
           "queries": 4,
@@ -793,16 +793,16 @@
       "keyword_metrics": {
         "recall@5": 0.9722,
         "recall@20": 0.9861,
-        "ndcg@10": 0.962,
-        "mrr": 0.9592
+        "ndcg@10": 0.9722,
+        "mrr": 0.9735
       },
       "keyword_by_type": {
         "absence_probe": {
           "queries": 8,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9539,
-          "mrr": 0.9375
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "citation_locating": {
           "queries": 13,
@@ -816,7 +816,7 @@
           "recall@5": 0.8947,
           "recall@20": 0.9474,
           "ndcg@10": 0.8947,
-          "mrr": 0.898
+          "mrr": 0.8995
         },
         "known_item_quote": {
           "queries": 28,
@@ -829,8 +829,8 @@
           "queries": 4,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9077,
-          "mrr": 0.875
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         }
       },
       "queries": 88
@@ -839,10 +839,10 @@
       "library": "humanities",
       "keyword_weight": 1,
       "metrics": {
-        "recall@5": 0.9552,
+        "recall@5": 0.9701,
         "recall@20": 1.0,
-        "ndcg@10": 0.8346,
-        "mrr": 0.7814
+        "ndcg@10": 0.8308,
+        "mrr": 0.7758
       },
       "by_type": {
         "absence_probe": {
@@ -854,38 +854,38 @@
         },
         "citation_locating": {
           "queries": 13,
-          "recall@5": 0.9231,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8063,
-          "mrr": 0.7443
+          "ndcg@10": 0.772,
+          "mrr": 0.6974
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.854,
-          "mrr": 0.8059
+          "ndcg@10": 0.8834,
+          "mrr": 0.8451
         },
         "known_item_quote": {
           "queries": 28,
           "recall@5": 0.9286,
           "recall@20": 1.0,
-          "ndcg@10": 0.8091,
-          "mrr": 0.7491
+          "ndcg@10": 0.8113,
+          "mrr": 0.7515
         },
         "thematic": {
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         }
       },
       "keyword_metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9759,
-        "mrr": 0.974
+        "ndcg@10": 0.9701,
+        "mrr": 0.9664
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -900,14 +900,14 @@
           "recall@5": 0.9231,
           "recall@20": 1.0,
           "ndcg@10": 0.9231,
-          "mrr": 0.9274
+          "mrr": 0.9295
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9639,
-          "mrr": 0.9529
+          "ndcg@10": 0.9706,
+          "mrr": 0.9608
         },
         "known_item_quote": {
           "queries": 28,
@@ -920,8 +920,8 @@
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         }
       },
       "queries": 77
@@ -932,8 +932,8 @@
       "metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.8773,
-        "mrr": 0.843
+        "ndcg@10": 0.8658,
+        "mrr": 0.822
       },
       "by_type": {
         "absence_probe": {
@@ -947,36 +947,36 @@
           "queries": 13,
           "recall@5": 0.9231,
           "recall@20": 1.0,
-          "ndcg@10": 0.8663,
-          "mrr": 0.8526
+          "ndcg@10": 0.8251,
+          "mrr": 0.7674
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.886,
-          "mrr": 0.848
+          "ndcg@10": 0.8783,
+          "mrr": 0.8382
         },
         "known_item_quote": {
           "queries": 28,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.851,
-          "mrr": 0.803
+          "ndcg@10": 0.8604,
+          "mrr": 0.8161
         },
         "thematic": {
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         }
       },
       "keyword_metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9759,
-        "mrr": 0.974
+        "ndcg@10": 0.9701,
+        "mrr": 0.9664
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -991,14 +991,14 @@
           "recall@5": 0.9231,
           "recall@20": 1.0,
           "ndcg@10": 0.9231,
-          "mrr": 0.9274
+          "mrr": 0.9295
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9639,
-          "mrr": 0.9529
+          "ndcg@10": 0.9706,
+          "mrr": 0.9608
         },
         "known_item_quote": {
           "queries": 28,
@@ -1011,8 +1011,8 @@
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         }
       },
       "queries": 77
@@ -1023,8 +1023,8 @@
       "metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9077,
-        "mrr": 0.8829
+        "ndcg@10": 0.8977,
+        "mrr": 0.8636
       },
       "by_type": {
         "absence_probe": {
@@ -1038,36 +1038,36 @@
           "queries": 13,
           "recall@5": 0.9231,
           "recall@20": 1.0,
-          "ndcg@10": 0.8947,
-          "mrr": 0.8901
+          "ndcg@10": 0.8895,
+          "mrr": 0.8547
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9113,
-          "mrr": 0.8824
+          "ndcg@10": 0.9272,
+          "mrr": 0.902
         },
         "known_item_quote": {
           "queries": 28,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8951,
-          "mrr": 0.8601
+          "ndcg@10": 0.8772,
+          "mrr": 0.8363
         },
         "thematic": {
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         }
       },
       "keyword_metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9759,
-        "mrr": 0.974
+        "ndcg@10": 0.9701,
+        "mrr": 0.9664
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -1082,14 +1082,14 @@
           "recall@5": 0.9231,
           "recall@20": 1.0,
           "ndcg@10": 0.9231,
-          "mrr": 0.9274
+          "mrr": 0.9295
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9639,
-          "mrr": 0.9529
+          "ndcg@10": 0.9706,
+          "mrr": 0.9608
         },
         "known_item_quote": {
           "queries": 28,
@@ -1102,8 +1102,8 @@
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         }
       },
       "queries": 77
@@ -1114,8 +1114,8 @@
       "metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9156,
-        "mrr": 0.8928
+        "ndcg@10": 0.9166,
+        "mrr": 0.8885
       },
       "by_type": {
         "absence_probe": {
@@ -1129,36 +1129,36 @@
           "queries": 13,
           "recall@5": 0.9231,
           "recall@20": 1.0,
-          "ndcg@10": 0.8947,
-          "mrr": 0.8897
+          "ndcg@10": 0.9178,
+          "mrr": 0.8932
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9154,
-          "mrr": 0.8873
+          "ndcg@10": 0.9272,
+          "mrr": 0.902
         },
         "known_item_quote": {
           "queries": 28,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9116,
-          "mrr": 0.881
+          "ndcg@10": 0.9091,
+          "mrr": 0.878
         },
         "thematic": {
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.6309,
+          "mrr": 0.5
         }
       },
       "keyword_metrics": {
         "recall@5": 0.9851,
         "recall@20": 1.0,
-        "ndcg@10": 0.9759,
-        "mrr": 0.974
+        "ndcg@10": 0.9701,
+        "mrr": 0.9664
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -1173,14 +1173,14 @@
           "recall@5": 0.9231,
           "recall@20": 1.0,
           "ndcg@10": 0.9231,
-          "mrr": 0.9274
+          "mrr": 0.9295
         },
         "factual_lookup": {
           "queries": 17,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9639,
-          "mrr": 0.9529
+          "ndcg@10": 0.9706,
+          "mrr": 0.9608
         },
         "known_item_quote": {
           "queries": 28,
@@ -1193,8 +1193,8 @@
           "queries": 1,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 1.0,
-          "mrr": 1.0
+          "ndcg@10": 0.5,
+          "mrr": 0.3333
         }
       },
       "queries": 77
@@ -1205,8 +1205,8 @@
       "metrics": {
         "recall@5": 0.9367,
         "recall@20": 1.0,
-        "ndcg@10": 0.856,
-        "mrr": 0.8098
+        "ndcg@10": 0.8528,
+        "mrr": 0.8058
       },
       "by_type": {
         "absence_probe": {
@@ -1220,36 +1220,36 @@
           "queries": 10,
           "recall@5": 0.7,
           "recall@20": 1.0,
-          "ndcg@10": 0.7987,
-          "mrr": 0.7417
+          "ndcg@10": 0.8001,
+          "mrr": 0.7433
         },
         "factual_lookup": {
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9005,
-          "mrr": 0.8667
+          "ndcg@10": 0.8943,
+          "mrr": 0.8587
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 0.9333,
           "recall@20": 1.0,
-          "ndcg@10": 0.8627,
-          "mrr": 0.8192
+          "ndcg@10": 0.859,
+          "mrr": 0.8147
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.649,
-          "mrr": 0.5315
+          "ndcg@10": 0.6471,
+          "mrr": 0.5278
         }
       },
       "keyword_metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9538,
-        "mrr": 0.9378
+        "ndcg@10": 0.9537,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -1270,22 +1270,22 @@
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.941,
-          "mrr": 0.9206
+          "ndcg@10": 0.9348,
+          "mrr": 0.9127
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9877,
-          "mrr": 0.9833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7727,
-          "mrr": 0.6944
+          "ndcg@10": 0.7456,
+          "mrr": 0.6611
         }
       },
       "queries": 95
@@ -1294,10 +1294,10 @@
       "library": "webclips",
       "keyword_weight": 2,
       "metrics": {
-        "recall@5": 0.9873,
+        "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.8837,
-        "mrr": 0.8456
+        "ndcg@10": 0.885,
+        "mrr": 0.8468
       },
       "by_type": {
         "absence_probe": {
@@ -1309,24 +1309,24 @@
         },
         "citation_locating": {
           "queries": 10,
-          "recall@5": 0.9,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8287,
-          "mrr": 0.775
+          "ndcg@10": 0.8361,
+          "mrr": 0.7833
         },
         "factual_lookup": {
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9357,
-          "mrr": 0.9143
+          "ndcg@10": 0.9294,
+          "mrr": 0.9063
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8974,
-          "mrr": 0.8644
+          "ndcg@10": 0.9026,
+          "mrr": 0.8706
         },
         "thematic": {
           "queries": 9,
@@ -1339,8 +1339,8 @@
       "keyword_metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9538,
-        "mrr": 0.9378
+        "ndcg@10": 0.9537,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -1361,22 +1361,22 @@
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.941,
-          "mrr": 0.9206
+          "ndcg@10": 0.9348,
+          "mrr": 0.9127
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9877,
-          "mrr": 0.9833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7727,
-          "mrr": 0.6944
+          "ndcg@10": 0.7456,
+          "mrr": 0.6611
         }
       },
       "queries": 95
@@ -1387,8 +1387,8 @@
       "metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.8973,
-        "mrr": 0.8622
+        "ndcg@10": 0.8948,
+        "mrr": 0.8591
       },
       "by_type": {
         "absence_probe": {
@@ -1409,29 +1409,29 @@
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9181,
-          "mrr": 0.8905
+          "ndcg@10": 0.9139,
+          "mrr": 0.8849
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9274,
-          "mrr": 0.9028
+          "ndcg@10": 0.9216,
+          "mrr": 0.8956
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6693,
-          "mrr": 0.5556
+          "ndcg@10": 0.6761,
+          "mrr": 0.5648
         }
       },
       "keyword_metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9538,
-        "mrr": 0.9378
+        "ndcg@10": 0.9537,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -1452,22 +1452,22 @@
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.941,
-          "mrr": 0.9206
+          "ndcg@10": 0.9348,
+          "mrr": 0.9127
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9877,
-          "mrr": 0.9833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7727,
-          "mrr": 0.6944
+          "ndcg@10": 0.7456,
+          "mrr": 0.6611
         }
       },
       "queries": 95
@@ -1478,8 +1478,8 @@
       "metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9059,
-        "mrr": 0.8734
+        "ndcg@10": 0.9042,
+        "mrr": 0.8713
       },
       "by_type": {
         "absence_probe": {
@@ -1493,36 +1493,36 @@
           "queries": 10,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9131,
-          "mrr": 0.8833
+          "ndcg@10": 0.8762,
+          "mrr": 0.8333
         },
         "factual_lookup": {
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9202,
-          "mrr": 0.8929
+          "ndcg@10": 0.9172,
+          "mrr": 0.8889
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9318,
-          "mrr": 0.9083
+          "ndcg@10": 0.9441,
+          "mrr": 0.925
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6838,
-          "mrr": 0.5741
+          "ndcg@10": 0.6761,
+          "mrr": 0.5648
         }
       },
       "keyword_metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9538,
-        "mrr": 0.9378
+        "ndcg@10": 0.9537,
+        "mrr": 0.9382
       },
       "keyword_by_type": {
         "absence_probe": {
@@ -1543,22 +1543,22 @@
           "queries": 21,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.941,
-          "mrr": 0.9206
+          "ndcg@10": 0.9348,
+          "mrr": 0.9127
         },
         "known_item_quote": {
           "queries": 30,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9877,
-          "mrr": 0.9833
+          "ndcg@10": 1.0,
+          "mrr": 1.0
         },
         "thematic": {
           "queries": 9,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.7727,
-          "mrr": 0.6944
+          "ndcg@10": 0.7456,
+          "mrr": 0.6611
         }
       },
       "queries": 95
@@ -1569,8 +1569,8 @@
       "metrics": {
         "recall@5": 0.9706,
         "recall@20": 1.0,
-        "ndcg@10": 0.8702,
-        "mrr": 0.8282
+        "ndcg@10": 0.8522,
+        "mrr": 0.8047
       },
       "by_type": {
         "absence_probe": {
@@ -1591,22 +1591,22 @@
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.6988,
-          "mrr": 0.5972
+          "ndcg@10": 0.6654,
+          "mrr": 0.5556
         },
         "known_item_quote": {
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8978,
-          "mrr": 0.8667
+          "ndcg@10": 0.8363,
+          "mrr": 0.7833
         },
         "thematic": {
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8436,
-          "mrr": 0.7917
+          "ndcg@10": 0.8363,
+          "mrr": 0.7833
         }
       },
       "keyword_metrics": {
@@ -1658,10 +1658,10 @@
       "library": "papers",
       "keyword_weight": 2,
       "metrics": {
-        "recall@5": 0.9706,
+        "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.8856,
-        "mrr": 0.848
+        "ndcg@10": 0.8878,
+        "mrr": 0.8505
       },
       "by_type": {
         "absence_probe": {
@@ -1673,10 +1673,10 @@
         },
         "citation_locating": {
           "queries": 6,
-          "recall@5": 0.8333,
+          "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8927,
-          "mrr": 0.8611
+          "ndcg@10": 0.9051,
+          "mrr": 0.875
         },
         "factual_lookup": {
           "queries": 6,
@@ -1689,15 +1689,15 @@
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9051,
-          "mrr": 0.875
+          "ndcg@10": 0.8552,
+          "mrr": 0.8056
         },
         "thematic": {
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8552,
-          "mrr": 0.8056
+          "ndcg@10": 0.9051,
+          "mrr": 0.875
         }
       },
       "keyword_metrics": {
@@ -1751,8 +1751,8 @@
       "metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9084,
-        "mrr": 0.8775
+        "ndcg@10": 0.9122,
+        "mrr": 0.8824
       },
       "by_type": {
         "absence_probe": {
@@ -1780,8 +1780,8 @@
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9167,
-          "mrr": 0.8889
+          "ndcg@10": 0.9385,
+          "mrr": 0.9167
         },
         "thematic": {
           "queries": 6,
@@ -1842,8 +1842,8 @@
       "metrics": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.945,
-        "mrr": 0.9265
+        "ndcg@10": 0.9468,
+        "mrr": 0.9289
       },
       "by_type": {
         "absence_probe": {
@@ -1864,15 +1864,15 @@
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.8552,
-          "mrr": 0.8056
+          "ndcg@10": 0.8436,
+          "mrr": 0.7917
         },
         "known_item_quote": {
           "queries": 6,
           "recall@5": 1.0,
           "recall@20": 1.0,
-          "ndcg@10": 0.9167,
-          "mrr": 0.8889
+          "ndcg@10": 0.9385,
+          "mrr": 0.9167
         },
         "thematic": {
           "queries": 6,

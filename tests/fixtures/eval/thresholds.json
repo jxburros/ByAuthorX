@@ -14,23 +14,23 @@
     "keyword": {
       "novel": {
         "recall@5": 0.9242,
-        "recall@20": 0.9242,
-        "ndcg@10": 0.9009,
-        "mrr": 0.8902,
+        "recall@20": 0.9545,
+        "ndcg@10": 0.9088,
+        "mrr": 0.8939,
         "queries": 24
       },
       "series": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9832,
-        "mrr": 0.9773,
+        "ndcg@10": 1.0,
+        "mrr": 1.0,
         "queries": 24
       },
       "humanities": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 1.0,
-        "mrr": 1.0,
+        "ndcg@10": 0.9773,
+        "mrr": 0.9697,
         "queries": 24
       },
       "webclips": {
@@ -52,36 +52,36 @@
       "novel": {
         "recall@5": 0.7879,
         "recall@20": 0.9545,
-        "ndcg@10": 0.7779,
-        "mrr": 0.7495,
+        "ndcg@10": 0.787,
+        "mrr": 0.7652,
         "queries": 24
       },
       "series": {
         "recall@5": 0.9545,
         "recall@20": 1.0,
-        "ndcg@10": 0.805,
-        "mrr": 0.7578,
+        "ndcg@10": 0.7991,
+        "mrr": 0.7501,
         "queries": 24
       },
       "humanities": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.9378,
-        "mrr": 0.9167,
+        "ndcg@10": 0.9406,
+        "mrr": 0.9205,
         "queries": 24
       },
       "webclips": {
         "recall@5": 0.9091,
         "recall@20": 1.0,
-        "ndcg@10": 0.8361,
-        "mrr": 0.8023,
+        "ndcg@10": 0.8568,
+        "mrr": 0.8119,
         "queries": 24
       },
       "papers": {
         "recall@5": 1.0,
         "recall@20": 1.0,
-        "ndcg@10": 0.905,
-        "mrr": 0.8727,
+        "ndcg@10": 0.907,
+        "mrr": 0.875,
         "queries": 24
       }
     }

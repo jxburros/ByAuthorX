@@ -30,7 +30,7 @@ report has one block per library (`novel`, `series`, `humanities`, `webclips`, `
 | Field | Meaning |
 | --- | --- |
 | `metrics.recall@5`, `recall@20` | Share of a query's relevant locators covered by a hit in the top 5 or 20 |
-| `metrics.ndcg@10` | Binary-gain nDCG; a hit gains only when it newly covers a relevant locator |
+| `metrics.ndcg@10` | Binary-gain nDCG; a hit gains only when it newly covers a relevant locator. From the 0.4 files on, the ideal ranking is the fewest hits whose chunks cover every locator (`Corpus.ideal_ranks`), not one hit per locator: a merged chunk can hold several locators, and `context-0.2-baseline.json` used one per locator (see [Context engine benchmarks](context-engine.md#retrieval)) |
 | `metrics.mrr` | Reciprocal rank of the first relevant hit within the top 20 |
 | `by_type` | The same metrics per query type (`known_item_quote`, `factual_lookup`, `thematic`, `citation_locating`, `continuity`, `absence_probe`) |
 | `absence` | Literal absence probes found, and whether expected-absent probes returned nothing |
