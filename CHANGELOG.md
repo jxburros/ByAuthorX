@@ -9,6 +9,13 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ## [Unreleased]
 
+## [0.4.1] - 2026-10-17
+
+### Fixed
+
+- Finding the review package from a returned PDF's footer no longer fails when the review identifier contains
+  `ff`, which the PDF text layer can store as a single ligature character. This broke the 0.4.0 release build.
+
 ## [0.4.0] - 2026-10-17
 
 This release implements the [context engine plan](https://github.com/jxburros/ByAuthorX/blob/main/docs/context-engine-plan.md)
@@ -251,6 +258,7 @@ limitations below before relying on it.
 [0.1.1]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.1
 [0.1.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.1.0
 
+[0.4.1]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.4.1
 [0.4.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.4.0
 [0.3.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.3.0
 [0.2.0]: https://github.com/jxburros/ByAuthorX/releases/tag/v0.2.0

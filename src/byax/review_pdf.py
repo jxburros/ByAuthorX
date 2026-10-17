@@ -23,6 +23,7 @@ import io
 import math
 import re
 import tempfile
+import unicodedata
 from pathlib import Path
 from typing import Any
 
@@ -148,7 +149,8 @@ def read_pdf_annotations(raw: bytes) -> dict[str, Any]:
         for number, page in enumerate(reader.pages, start=1):
             if review_id is None and number == 1:
                 try:
-                    found = _ID.search(page.extract_text() or '')
+                    # Shaping can turn the identifier's 'ff' into one ligature glyph (U+FB00), so fold it back first.
+                    found = _ID.search(unicodedata.normalize('NFKC', page.extract_text() or ''))
                 except Exception:  # noqa: BLE001 - text extraction of untrusted PDFs may fail in many ways
                     found = None
                 review_id = found.group(0) if found else None
