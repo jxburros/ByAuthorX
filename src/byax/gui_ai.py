@@ -36,7 +36,7 @@ from PySide6.QtWidgets import (
 )
 from shiboken6 import isValid
 
-from . import engine, model
+from . import model
 from .gui_art import EmptyPanel, TaskLoop, themed_art
 from .gui_editor import ProofMark
 
@@ -124,6 +124,14 @@ class AIPanel(QWidget):
         self.messages = []
         self._spelling_token = None
         self._pending = None
+        # Routing and the inspector (context engine 8.3, 8.4): items pinned or excluded by the author,
+        # one record per request for the conversation export, and the last assembled request.
+        self.pinned = {}
+        self.excluded = set()
+        self.turns = []
+        self._assembled = None
+        self._request = None
+        self._last_request = None
         outer = QVBoxLayout(self)
         outer.setContentsMargins(0, 0, 0, 0)
         scroll = QScrollArea()
@@ -546,6 +554,48 @@ class AIPanel(QWidget):
             self.tr('Search attached libraries and choose passages before sending.')
         )
         cv.addWidget(self.use_libraries)
+        # Routing (context engine 8.3): the route is chosen per request and shown with its reason;
+        # the author can pick one instead, and decide what happens to local-only sources.
+        routing = QHBoxLayout()
+        self.route_box = QComboBox()
+        self.route_box.setAccessibleName(self.tr('Assistant route'))
+        self.route_box.setToolTip(
+            self.tr('Automatic picks what the assistant sees for each request; choose a route to override it')
+        )
+        self.route_box.addItem(self.tr('Route: automatic'), 'auto')
+        from .router import ROUTE_LABELS
+
+        for route, label in ROUTE_LABELS.items():
+            self.route_box.addItem(f'{route} · {self.tr(label)}', route)
+        routing.addWidget(self.route_box, 1)
+        self.privacy_box = QComboBox()
+        self.privacy_box.setAccessibleName(self.tr('Local-only sources'))
+        self.privacy_box.setToolTip(
+            self.tr('What happens to a local-only library when the chosen model is remote')
+        )
+        self.privacy_box.addItem(self.tr('Local-only sources: leave out'), 'exclude')
+        self.privacy_box.addItem(self.tr('Local-only sources: use a local model'), 'local')
+        saved_privacy = self.window.settings.value('ai/privacy', 'exclude', type=str)
+        self.privacy_box.setCurrentIndex(max(0, self.privacy_box.findData(saved_privacy)))
+        self.privacy_box.currentIndexChanged.connect(
+            lambda *_: self.window.settings.setValue('ai/privacy', self.privacy_box.currentData())
+        )
+        routing.addWidget(self.privacy_box, 1)
+        cv.addLayout(routing)
+        self.route_label = QLabel('')
+        self.route_label.setObjectName('emptyDescription')
+        self.route_label.setWordWrap(True)
+        self.route_label.setAccessibleName(self.tr('Route for the last request'))
+        cv.addWidget(self.route_label)
+        self.summaries_button = QPushButton(self.tr('Build chapter summaries…'))
+        self.summaries_button.setToolTip(
+            self.tr(
+                'Ask the selected provider to summarize each chapter, so whole-book questions work on '
+                'small models. Summaries stay in your cache and are never written into the document.'
+            )
+        )
+        self.summaries_button.clicked.connect(self.build_summaries)
+        cv.addWidget(self.summaries_button)
         self.send_button = QPushButton(self.tr('Send'))
         self.send_button.setProperty('primary', True)
         self.send_button.setShortcut('Ctrl+Return')
@@ -563,6 +613,10 @@ class AIPanel(QWidget):
             )
         )
         layout.addWidget(self.chat_stack, 1)
+        from .gui_context_inspector import ContextInspector
+
+        self.context_inspector = ContextInspector(self)
+        layout.addWidget(self.context_inspector)
         self._mode_changed()
         return box
 
@@ -811,24 +865,71 @@ class AIPanel(QWidget):
             return True
         return False
 
-    def context(self, frozen):
-        selected = [(t, s, e) for t, s, e in self.window.editor.selection_targets() if s != e]
-        target = selected[0][0] if selected else None
-        context = engine.context(
-            frozen, target=target, limit=CONTEXT_LIMIT, profile=getattr(self.window, 'active_profile', None)
-        )
-        context['scope'] = 'selection' if selected else 'document'
-        if selected:
-            context['selection'] = [
-                {'target': t, 'start': s, 'end': e, 'text': model.find_object(frozen, t).get('text', '')[s:e]}
-                for t, s, e in selected
-            ]
-        # Codex entries and traits hidden from AI never reach a model (context engine 8.2).
-        from .codex import redact_for_ai
+    def _selection_ranges(self, frozen):
+        return [
+            {'target': t, 'start': s, 'end': e, 'text': model.find_object(frozen, t).get('text', '')[s:e]}
+            for t, s, e in self.window.editor.selection_targets()
+            if s != e
+        ]
 
-        return redact_for_ai(frozen, context)
+    def route_override(self):
+        return self.route_box.currentData() or 'auto'
+
+    def privacy_mode(self):
+        return self.privacy_box.currentData() or 'exclude'
+
+    def assemble(self, frozen, prompt, config=None):
+        """Route the request and assemble its context (router + context_assembly); nothing is sent."""
+        from .context_assembly import assemble
+        from .series import with_series
+
+        window = self.window
+        selection = self._selection_ranges(frozen)
+        cursor = None
+        if not selection:
+            try:
+                cursor = window.editor.current_id()
+            except Exception:
+                cursor = None
+        local = [c for c in text_providers() if c.get('locality') == 'local']
+        return assemble(
+            with_series(frozen, getattr(window, 'path', None)),
+            prompt,
+            selection=selection,
+            cursor=str(cursor) if cursor else None,
+            document_path=getattr(window, 'path', None),
+            provider=config,
+            messages=self.messages,
+            mode=self.mode,
+            override=self.route_override(),
+            privacy=self.privacy_mode(),
+            local_providers=local,
+            use_libraries=self.use_libraries.isChecked(),
+            pinned=list(self.pinned.values()),
+            excluded=sorted(self.excluded),
+            profile=getattr(window, 'active_profile', None),
+        )
+
+    def context(self, frozen, prompt=None):
+        """The routed request context for ``prompt`` (redacted for codex entries hidden from AI).
+
+        Every assistant request goes through the router; the assembled request (route, items, dropped
+        items, research log) is kept for the "What the AI saw" panel.
+        """
+        prompt = prompt if prompt is not None else (self._request or '')
+        config = getattr(self, '_config', None)
+        self._assembled = self.assemble(frozen, prompt or '(no request yet)', config)
+        return self._assembled['context']
+
+    def _show_route(self, assembled):
+        route = assembled['route']
+        text = self.tr('Route {0} · {1}: {2}').format(
+            route['route'], self.tr(route['label']), route['reason']
+        )
+        self.route_label.setText(text)
 
     def send(self):
+        from .context_assembly import apply_passage_selection, inspector_payload
         from .gui_providers import authorize_payload
         from .providers import ProviderRegistry
 
@@ -845,52 +946,49 @@ class AIPanel(QWidget):
         try:
             registry = ProviderRegistry()
             config = registry.get(alias)
+            self._config, self._request = config, prompt
             context = self.context(frozen)
-            library_authorized = False
-            if self.use_libraries.isChecked():
-                from .context_assembly import library_budget
-                from .gui_retrieval import select_passages
-                from .retrieval import augment_context, retrieve_context
-
-                remote = registry.preview(alias, kind='chat')['remote']
-                from .series import with_series
-
-                retrieval = retrieve_context(
-                    with_series(frozen, getattr(window, 'path', None)),
-                    prompt,
-                    method='auto',
-                    remote=remote,
-                    profile=getattr(window, 'active_profile', None),
-                    target=context.get('target'),
-                    max_tokens=library_budget(config).tokens,
-                    provider=config,
+            assembled = self._assembled
+            # The privacy rule may switch a request with local-only sources to a local model.
+            if assembled.get('provider') and assembled['provider'] != alias:
+                self._append(
+                    'note',
+                    assembled['route']['privacy'].get('reason', 'Using a local model for this request.'),
                 )
+                alias = assembled['provider']
+                config = registry.get(alias)
+            self._show_route(assembled)
+            self.context_inspector.show_payload(inspector_payload(assembled, provider=config))
+            if assembled.get('abstain') is not None:
+                # R3 found nothing, even literally, and the document is too large to send whole: abstain.
+                from .retrieval import describe_absence
+
+                self.input.clear()
+                self._last_request = prompt
+                self._append('user', prompt)
+                self._append(
+                    'note',
+                    'Not found in your manuscript or attached libraries, so nothing was sent.\n'
+                    + describe_absence(assembled['abstain']),
+                )
+                self._record_turn(prompt, assembled, inspector_payload(assembled, provider=config))
+                self.route_box.setCurrentIndex(0)
+                return
+            library_authorized = False
+            retrieval = assembled.get('retrieval')
+            remote = registry.preview(alias, kind='chat')['remote']
+            if retrieval is not None:
+                from .gui_retrieval import select_passages
+
                 if retrieval['included']:
                     retrieval = select_passages(window, retrieval, alias, remote)
                     if retrieval is None:
                         return
                     library_authorized = True
-                context = augment_context(context, retrieval)
-                count = len(retrieval['included'])
-                methods = ', '.join(
-                    f'{lib["name"]}: {lib["method"]}'
-                    + (
-                        f' ({lib["embedding_state"]})'
-                        if lib['embedding_state'] not in ('disabled', 'ready')
-                        else ''
-                    )
-                    for lib in retrieval.get('libraries', [])
-                )
-                self._append(
-                    'note',
-                    f'Library retrieval: {count} selected passage(s)'
-                    + (f' · {methods}.' if methods else '.'),
-                )
-                for library in retrieval.get('libraries', []):
-                    if library.get('notice'):
-                        self._append('note', f'{library["name"]}: {library["notice"]}')
-                for omission in retrieval['omitted']:
-                    self._append('note', 'Library passage omitted: ' + omission['reason'])
+                    assembled = apply_passage_selection(assembled, retrieval)
+                    self._assembled = assembled
+                    context = assembled['context']
+                self._library_notes(retrieval)
             preview = registry.preview(
                 alias,
                 kind='chat',
@@ -909,6 +1007,8 @@ class AIPanel(QWidget):
             authorized = True
         self.input.clear()
         self.messages = messages
+        self._last_request = prompt
+        self.route_box.setCurrentIndex(0)
         self._append('user', prompt)
         token = object()
         self._pending = token
@@ -932,10 +1032,42 @@ class AIPanel(QWidget):
         window.background(
             self.tr('Asking {0}…').format(alias),
             work,
-            lambda result: self._answered(token, mode, frozen, result, context),
+            lambda result: self._answered(token, mode, frozen, result, context, assembled, config),
         )
 
-    def _answered(self, token, mode, frozen, result, context=None):
+    def _library_notes(self, retrieval):
+        count = len(retrieval['included'])
+        methods = ', '.join(
+            f'{lib["name"]}: {lib["method"]}'
+            + (f' ({lib["embedding_state"]})' if lib['embedding_state'] not in ('disabled', 'ready') else '')
+            for lib in retrieval.get('libraries', [])
+        )
+        self._append(
+            'note', f'Library retrieval: {count} selected passage(s)' + (f' · {methods}.' if methods else '.')
+        )
+        for library in retrieval.get('libraries', []):
+            if library.get('notice'):
+                self._append('note', f'{library["name"]}: {library["notice"]}')
+
+    def _record_turn(self, prompt, assembled, payload):
+        self.turns.append(
+            {
+                'request': prompt,
+                'route': {k: payload['route'][k] for k in ('route', 'name', 'label', 'reason', 'rule')},
+                'inspector': {
+                    'items': payload['items'],
+                    'dropped': payload['dropped'],
+                    'model': payload['model'],
+                    'cache': payload['cache'],
+                    'cost': payload['cost'],
+                },
+                'research_log': payload.get('research_log'),
+            }
+        )
+
+    def _answered(self, token, mode, frozen, result, context=None, assembled=None, config=None):
+        from .context_assembly import inspector_payload
+
         if token is not self._pending:
             return
         self._pending = None
@@ -949,6 +1081,17 @@ class AIPanel(QWidget):
         reply = result.get('reply') or '(No reply text.)'
         self.messages.append({'role': 'assistant', 'content': reply})
         self._append_grounded(reply, result, context or {})
+        if assembled is not None:
+            from .research_log import cite_from_grounding
+
+            if assembled.get('research_log') and isinstance(result.get('grounding'), dict):
+                assembled = dict(
+                    assembled,
+                    research_log=cite_from_grounding(assembled['research_log'], result['grounding']),
+                )
+            payload = inspector_payload(assembled, provider=config, result=result)
+            self.context_inspector.show_payload(payload)
+            self._record_turn(self._last_request, assembled, payload)
         self.verify_absence(reply, frozen)
         if mode != 'work':
             # Chat mode never edits, whatever the model returned.
@@ -959,6 +1102,123 @@ class AIPanel(QWidget):
         proposals = result.get('proposals') or []
         if proposals:
             self.offer_proposals(proposals, frozen)
+
+    # Inspector actions -------------------------------------------------------
+
+    def toggle_pin(self, identity):
+        """Pin an item of the last request so later requests always include it (or unpin it)."""
+        if identity in self.pinned:
+            del self.pinned[identity]
+            return False
+        item = next((i for i in (self._assembled or {}).get('items', []) if i['id'] == identity), None)
+        if item is None:
+            return False
+        self.pinned[identity] = copy.deepcopy(item)
+        self.excluded.discard(identity)
+        return True
+
+    def can_rerun(self):
+        return bool(self._last_request) and self._pending is None
+
+    def exclude_and_rerun(self, identity):
+        """One action: leave the item out and ask the last question again (its earlier answer is replaced)."""
+        if not self.can_rerun():
+            return False
+        self.excluded.add(identity)
+        self.pinned.pop(identity, None)
+        prompt = self._last_request
+        if len(self.messages) >= 2 and self.messages[-1]['role'] == 'assistant':
+            self.messages = self.messages[:-2]
+        self._append('note', f'Excluded {identity} and asked again.')
+        self.input.setPlainText(prompt)
+        self.send()
+        return True
+
+    def export_conversation(self, path=None):
+        """Save the conversation with each request's route, inspector summary and research log."""
+        from PySide6.QtWidgets import QFileDialog
+
+        from .research_log import export_conversation
+
+        if path is None:
+            path, _ = QFileDialog.getSaveFileName(
+                self.window,
+                self.tr('Export conversation'),
+                'conversation.md',
+                self.tr('Markdown (*.md);;JSON (*.json)'),
+            )
+        if not path:
+            return None
+        fmt = 'json' if str(path).lower().endswith('.json') else 'markdown'
+        try:
+            with open(path, 'w', encoding='utf-8') as handle:
+                handle.write(export_conversation(self.messages, self.turns, fmt))
+        except OSError as exc:
+            self.window.error(exc)
+            return None
+        self.window.status_label.setText(self.tr('Conversation exported.'))
+        return path
+
+    def build_summaries(self):
+        """Explicit action: summarize each chapter with the selected provider (consent as for chat)."""
+        from . import summaries
+        from .gui_providers import authorize_payload
+        from .providers import ProviderRegistry
+
+        alias = self.provider_box.currentData()
+        window = self.window
+        if not alias or not window.flush_edits():
+            return None
+        frozen = copy.deepcopy(window.doc)
+        try:
+            registry = ProviderRegistry()
+            config = registry.get(alias)
+            state = summaries.status(frozen)
+            todo = state['counts']['missing'] + state['counts']['stale']
+            preview = summaries.preview(frozen, alias, registry=registry)['preview']
+        except Exception as exc:
+            window.error(exc)
+            return None
+        box = QMessageBox(window)
+        box.setIcon(QMessageBox.Question)
+        box.setWindowTitle(self.tr('Build chapter summaries?'))
+        box.setText(
+            self.tr(
+                '{0} will summarize {1} of {2} chapter(s) ({3}). Summaries are kept in your cache, never '
+                'written into the document, and rebuilt only when you ask after a chapter changes.'
+            ).format(alias, todo, len(state['sections']), preview.get('locality_label', ''))
+        )
+        box.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        self.last_summary_dialog = box
+        if box.exec() != QMessageBox.Yes:
+            return None
+        authorized = False
+        if preview['remote'] and not config.allow_remote:
+            if not authorize_payload(window, 'Authorize chapter summaries (first request shown)', preview):
+                return None
+            authorized = True
+
+        def work():
+            try:
+                return summaries.build(frozen, alias, registry=registry, authorized=authorized)
+            except Exception as exc:
+                return {'error': str(exc)}
+
+        def done(report):
+            if not isValid(self):
+                return
+            self.last_summary_report = report
+            if 'error' in report:
+                self._append('note', 'Chapter summaries could not be built: ' + report['error'])
+                return
+            self._append(
+                'note',
+                f'Chapter summaries: {len(report["built"])} built, {len(report["reused"])} unchanged, '
+                f'{len(report["failed"])} failed; book summary {report["book"]}.',
+            )
+
+        window.background(self.tr('Building chapter summaries…'), work, done)
+        return True
 
     def verify_absence(self, reply, frozen):
         """Q14: before a "not in your sources" answer stands, search every eligible source literally."""

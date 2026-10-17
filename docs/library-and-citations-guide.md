@@ -722,3 +722,101 @@ same library; `local_only` and other retrieval policies still come from the libr
 `series.with_series(doc, path)` gives the merged, read-only view that retrieval and codex queries
 use. Attaching a series attaches libraries, so `series-attach`/`series-detach` (and `set_settings`
 with `series`) are local CLI or desktop actions; MCP and REST refuse them.
+
+## Routing: what the assistant sees for each request
+
+AI stays opt-in: nothing below sends anything until you pick a provider (local providers are
+first-class) and press **Send**. Every assistant request goes through `byax.router`, which picks a
+route with visible, deterministic rules and records each rule it ran:
+
+| Route | What is sent | Typical request | Escalation |
+| --- | --- | --- | --- |
+| R0 selection | The selection, profile and protections | "Tighten this", grammar, tone | — |
+| R1 local | The selection (or cursor block) ± N blocks, codex entries mentioned there, the chapter's cached summary (or its binder synopsis) | "Continue this scene" | R2 when the request names an entity that is not in that window |
+| R2 lookup | Codex entries first, then the best passages from the manuscript (project index, else the open document) and, when **Use attached libraries** is on, the libraries; scoped by a named chapter or the current scene and ranked by metadata (R-meta). Structure questions (word counts, outline, statuses) get the outline with counts and binder metadata and no retrieval | "What did I name the innkeeper?" | R3 when the sufficiency check fails |
+| R3 multi-hop | A budgeted loop (12 calls) over the read-only tools `search`, `semantic_search`, `get_outline`, `read_range`, `get_entity`; the research log records every step | "Every place Mara lies to Tom" | R4, or abstain after verified absence |
+| R4 full document | The manuscript (or the named chapter) as a snapshot in the stable prompt prefix when it fits the model's real context; otherwise the cached chapter summaries with the outline | "Assess act 2 pacing" | R3 when no summaries exist yet |
+
+**Privacy runs first.** When a `local_only` library is attached and the model is remote, the
+library is left out of that request (the default), or, with **Local-only sources: use a local
+model**, the request goes to a configured local model instead. The route record and the inspector
+say which; an override cannot change it. Codex entries and traits hidden from AI are never detected,
+looked up or sent.
+
+**Thresholds follow the model (R-rev).** The full document is sent only below about 20,000 tokens
+for local models (and at most three quarters of a small window), or half of a context window you
+verified for a remote provider (`context_tokens`); a provider with no verified window is treated
+like a local one. Top-k is 4 at 8K tokens or less, 20 at 32K or more, in between proportionally;
+the R1 radius grows from 2 to 5 blocks the same way.
+
+**Escalation.** The R2 sufficiency check is deterministic: there must be evidence, every name or
+quoted phrase in the request must occur in it, and at least half of the request's content words.
+After R3, every term the evidence does not cover is searched exhaustively and literally (Q14:
+every eligible library, the open document and the project index). Literal matches are offered; when
+nothing is found and the document is too large to send, the assistant abstains and says what was
+searched instead of calling the model. The in-app R3 loop follows a fixed plan (entities, the
+request, a query per entity, semantic search when vectors exist, neighbouring blocks, the outline);
+an external agent can drive the same read-only tools over MCP. No route can write or send
+anything; the loop refuses any other tool.
+
+**Overrides and accuracy.** The route and its reason are always shown, and the route menu in the
+AI tab (or `byax route --override R2`) picks one for the next request. On a labelled set of 132
+requests over a synthetic four-chapter novel the rules choose the labelled route 95% of the time,
+with the misses listed ([benchmark](benchmarks/0.3-router.json)); it measures the rules against one
+writer's labels, not answer quality. A learned router is not used: there are no route-accuracy
+labels from real use yet.
+
+## "What the AI saw" and the research log
+
+The **What the AI saw** panel in the AI tab shows, for each request: the route and reason
+(and any escalation); every pinned and retrieved item with its token estimate, score source
+(`bm25`, `vector`, `rrf`, `rerank`, `codex`, `structure`, `term count` for the in-memory search of an
+unsaved document, `neighbour` for `read_range` blocks), library, and whether it stays on this
+computer, is sent to the named remote model, or is a local-only source; the model and whether it is
+local; prompt-cache reads and writes once the provider reports them; the estimated cost from the
+rates you entered for that provider (input only before sending, provider-reported usage after the
+reply); and everything left out by top-k, the token budget, the privacy rule, your exclusions or
+hidden codex entries. **Pin** keeps an item in later requests (pinned items are excluded from
+retrieval, so they are never sent twice); **Exclude** leaves it out; **Exclude and re-run** does
+both and asks the last question again in one step. Library passages still go through the passage
+approval dialog, and remote payloads through payload authorization, exactly as before.
+
+`byax route PATH --request "…" --inspect` returns the same payload
+(`byax.context_assembly.inspector_payload`) without calling any model; MCP clients get it from
+`byax_route`.
+
+For R2 and R3 requests the research log records each query with its arguments and candidate count,
+what was reranked (reciprocal-rank fusion across queries plus the R-meta boosts; no reranking model
+is installed yet), what was kept and dropped and why, and, after the reply, which kept items it
+cited (PRISMA-style: queries → candidates → reranked → kept → cited). **Export conversation…** saves
+the conversation with each request's route, item list and research log as Markdown or JSON
+(`byax.research_log.export_conversation`).
+
+## Chapter summaries
+
+Whole-book questions on a small local model need summaries, not the whole text.
+**Build chapter summaries…** in the AI tab (or `byax summaries PATH --action build --alias A`) asks
+the provider you selected to summarize each chapter: binder chapters, else top-level binder items,
+else top-level headings. A chapter longer than 24,000 characters is summarized in parts at block
+boundaries, then from those part summaries (RAPTOR-style, bottom-up); the book summary is built from
+the chapter summaries. This only happens when you ask. A remote provider needs the usual
+authorization (the first request is shown; `--allow-remote` on the CLI); `--dry-run` shows the first
+request without sending it.
+
+Summaries are derived data in your user cache (`…/ByAuthorX/summaries/`), keyed by the content
+hashes of the blocks they summarize. When a chapter changes, its summary (and the book summary)
+reads as `stale` and is never used until you rebuild it; `--action status` lists fresh, stale and
+missing chapters, `show` the fresh ones, and `clear` deletes the cache. They are never written into
+the document. `--action propose-synopsis --target ITEM` turns a fresh summary into a pending
+proposal that sets that binder item's synopsis only when you accept it in Review. R1 adds the
+selection's chapter summary; R4 uses the summaries when the document does not fit.
+
+## Read-only tools for agents
+
+`byax_library_search` (with `method`), `byax_project_search`, `byax_entity`, `byax_outline`
+(`inspect --outline` with `depth`, `counts` and `binder`), `byax_verify_citations` and `byax_route`
+are read-only MCP tools, bounded with `offset` continuations and listed in the interface inventory.
+`verify-citations` returns grounding records for a reply, checked against the text the attached
+library index or the open document holds now (text sent with the request is never trusted), or,
+without a reply, the document's citation audit. None of these tools can configure libraries,
+embeddings or providers.

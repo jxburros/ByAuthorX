@@ -555,6 +555,64 @@ ARGUMENTS['entity'] = {
         'book',
     )
 }
+# Assistant routing, the "What the AI saw" inspector and read-only grounding tools (context engine
+# 8.3-8.5) and opt-in chapter summaries (Phase 6); see byax.cli_context.
+COMMANDS['route'] = (
+    'Explain the assistant route (R0-R4) for a request and, with --inspect, what it would see; never calls a model'
+)
+ARGUMENTS['route'] = {
+    'path': 'string',
+    'request': 'string',
+    'target': 'string',
+    'start': 'integer',
+    'end': 'integer',
+    'cursor': 'string',
+    'alias': 'string',
+    'override': 'string',
+    'privacy': 'string',
+    'use_libraries': 'boolean',
+    'inspect': 'boolean',
+    'exclude': 'array',
+    'limit': 'integer',
+    'offset': 'integer',
+    'config_dir': 'string',
+}
+COMMANDS['outline'] = 'Read-only outline: headings with depth, word counts per section and binder metadata'
+ARGUMENTS['outline'] = {
+    'path': 'string',
+    'depth': 'integer',
+    'counts': 'boolean',
+    'binder': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+}
+COMMANDS['verify-citations'] = (
+    'Read-only grounding records for a reply checked against indexed sources, or the citation audit'
+)
+ARGUMENTS['verify-citations'] = {
+    'path': 'string',
+    'reply': 'string',
+    'input': 'object',
+    'limit': 'integer',
+    'offset': 'integer',
+}
+COMMANDS['summaries'] = (
+    'Chapter and book summaries: status, show, build with a provider you choose (opt-in), propose a synopsis'
+)
+ARGUMENTS['summaries'] = {
+    'path': 'string',
+    'action': 'string',
+    'alias': 'string',
+    'target': 'string',
+    'allow_remote': 'boolean',
+    'rebuild': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'config_dir': 'string',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
 # Word review round trip (byax.docx_review): send a review copy, merge the returned file as proposals.
 COMMANDS['review-package'] = (
     'Send a Word review copy: pin its snapshot and write a DOCX with Track Changes on'
@@ -765,6 +823,9 @@ ARGUMENTS['excerpt'] = {
 REQUIRED['excerpt'] = ['path']
 # Commands whose document path is positional but optional (the action decides whether one is needed).
 OPTIONAL_PATH = frozenset({'bibliography'})
+REQUIRED.update(
+    {'route': ['path', 'request'], 'outline': ['path'], 'verify-citations': ['path'], 'summaries': ['path']}
+)
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -1825,6 +1886,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 from .beta_readers import beta_copy_command, merge_comments_command
 from .cli_bibliography import bibliography_command, excerpt_command
 from .cli_codex import codex_command, entity_command
+from .cli_context import outline_command, route_command, summaries_command, verify_citations_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
 from .cli_provenance import provenance_command
 from .compile import compile_command
@@ -1902,6 +1964,10 @@ _HANDLERS: dict[str, Handler] = {
     'provenance': provenance_command,
     'bibliography': bibliography_command,
     'excerpt': excerpt_command,
+    'route': route_command,
+    'outline': outline_command,
+    'verify-citations': verify_citations_command,
+    'summaries': summaries_command,
 }
 
 

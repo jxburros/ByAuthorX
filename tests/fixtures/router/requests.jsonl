@@ -1,0 +1,132 @@
+{"id": "r001", "request": "Tighten this paragraph.", "selection": "c1s1p2", "expected": "R0"}
+{"id": "r002", "request": "Fix the grammar here.", "selection": "c1s1p3", "expected": "R0"}
+{"id": "r003", "request": "Make this more formal.", "selection": "c2s1p3", "expected": "R0"}
+{"id": "r004", "request": "Rewrite this in the present tense.", "selection": "c3s1p1", "expected": "R0"}
+{"id": "r005", "request": "Can you shorten this?", "selection": "c1s1p1", "expected": "R0"}
+{"id": "r006", "request": "Is this sentence grammatical?", "selection": "c4s2p1", "expected": "R0"}
+{"id": "r007", "request": "Polish the dialogue.", "selection": "c2s1p3", "expected": "R0"}
+{"id": "r008", "request": "Cut the adverbs.", "selection": "c1s2p3", "expected": "R0"}
+{"id": "r009", "request": "Rephrase this so it flows better.", "selection": "c3s2p2", "expected": "R0"}
+{"id": "r010", "request": "Translate this into French.", "selection": "c4s2p2", "expected": "R0"}
+{"id": "r011", "request": "Proofread this.", "selection": "c2s2p3", "expected": "R0"}
+{"id": "r012", "request": "Simplify the wording.", "selection": "c3s1p2", "expected": "R0"}
+{"id": "r013", "request": "Is the tone too gloomy?", "selection": "c1s1p1", "expected": "R0"}
+{"id": "r014", "request": "Expand this into a longer paragraph.", "selection": "c3s2p3", "expected": "R0"}
+{"id": "r015", "request": "Change the passive voice to active.", "selection": "c2s1p2", "expected": "R0"}
+{"id": "r016", "request": "Remove the repetition.", "selection": "c4s1p2", "expected": "R0"}
+{"id": "r017", "request": "Any typos in this?", "selection": "c1s2p2", "expected": "R0"}
+{"id": "r018", "request": "Smooth out the rhythm of these sentences.", "selection": "c3s1p3", "expected": "R0"}
+{"id": "r019", "request": "Make Mara sound angrier here.", "selection": "c1s1p2", "expected": "R0"}
+{"id": "r020", "request": "Punctuate this dialogue correctly.", "selection": "c2s1p3", "expected": "R0"}
+{"id": "r021", "request": "Could you make this paragraph more concise?", "selection": "c4s1p3", "expected": "R0"}
+{"id": "r022", "request": "Strengthen the verbs.", "selection": "c3s2p1", "expected": "R0"}
+{"id": "r023", "request": "Give me a stronger last line for this paragraph.", "selection": "c4s2p3", "expected": "R0", "note": "a rewrite phrased with 'give'; the rules read it as a local request"}
+{"id": "r024", "request": "Is this too wordy?", "selection": "c2s2p1", "expected": "R0"}
+{"id": "r025", "request": "Vary the sentence openings.", "selection": "c1s2p1", "expected": "R0"}
+{"id": "r026", "request": "What is Mara feeling in this passage?", "selection": "c1s1p2", "expected": "R1"}
+{"id": "r027", "request": "Continue this scene.", "selection": "c2s1p3", "expected": "R1"}
+{"id": "r028", "request": "What happens next?", "selection": "c3s2p3", "expected": "R1"}
+{"id": "r029", "request": "Does this paragraph show or tell?", "selection": "c1s2p3", "expected": "R1"}
+{"id": "r030", "request": "Explain what the key symbolizes here.", "selection": "c1s2p2", "expected": "R1"}
+{"id": "r031", "request": "Write the next paragraph.", "selection": "c4s1p3", "expected": "R1"}
+{"id": "r032", "request": "Suggest three ways this scene could end.", "selection": "c3s2p3", "expected": "R1"}
+{"id": "r033", "request": "Who is speaking in this exchange?", "selection": "c3s1p2", "expected": "R1"}
+{"id": "r034", "request": "Why does Tom refuse here?", "selection": "c1s2p1", "expected": "R1"}
+{"id": "r035", "request": "Continue from here in Mara's voice.", "selection": "c2s1p1", "expected": "R1"}
+{"id": "r036", "request": "Continue the story.", "cursor": "c2s1p3", "expected": "R1"}
+{"id": "r037", "request": "Keep going.", "cursor": "c3s1p3", "expected": "R1"}
+{"id": "r038", "request": "What happens next?", "cursor": "c4s1p3", "expected": "R1"}
+{"id": "r039", "request": "Write the next line.", "cursor": "c1s1p3", "expected": "R1"}
+{"id": "r040", "request": "Pick up where I left off.", "cursor": "c2s2p3", "expected": "R1"}
+{"id": "r041", "request": "Describe what Mara sees from the tower.", "selection": "c2s1p2", "expected": "R1"}
+{"id": "r042", "request": "Brainstorm what Bram might say next.", "selection": "c1s1p3", "expected": "R1"}
+{"id": "r043", "request": "Who is Ada in this scene?", "selection": "c4s1p1", "expected": "R1"}
+{"id": "r044", "request": "Continue the scene.", "cursor": "c3s1p3", "doc": "large", "expected": "R1"}
+{"id": "r045", "request": "Tighten the prose.", "doc": "large", "expected": "R1", "note": "too large for the local model and nothing selected"}
+{"id": "r046", "request": "Fix the typo please.", "doc": "large", "cursor": "c2s1p1", "expected": "R1"}
+{"id": "r047", "request": "What is the mood of this moment?", "selection": "c3s2p1", "expected": "R1"}
+{"id": "r048", "request": "How would Tom react to this?", "selection": "c2s1p3", "expected": "R1"}
+{"id": "r049", "request": "Finish this sentence for me.", "selection": "c4s2p1", "expected": "R1"}
+{"id": "r050", "request": "What does this image suggest about her state of mind?", "selection": "c1s1p2", "expected": "R1"}
+{"id": "r051", "request": "What did I name the innkeeper?", "expected": "R2"}
+{"id": "r052", "request": "What colour are Mara's eyes?", "expected": "R2"}
+{"id": "r053", "request": "Where does Tom keep the brass key?", "expected": "R2"}
+{"id": "r054", "request": "Who is Ada?", "expected": "R2"}
+{"id": "r055", "request": "Find a source for this claim.", "selection": "c2s1p3", "expected": "R2"}
+{"id": "r056", "request": "What do my sources say about lighthouse lamps?", "expected": "R2"}
+{"id": "r057", "request": "Is there research in my library about shipwreck salvage law?", "expected": "R2"}
+{"id": "r058", "request": "Cite a reference for the lens type.", "selection": "c2s1p3", "expected": "R2"}
+{"id": "r059", "request": "How old is Mara?", "expected": "R2"}
+{"id": "r060", "request": "In chapter 2, what does Mara find in the desk?", "expected": "R2"}
+{"id": "r061", "request": "What is Gull Point like?", "expected": "R2"}
+{"id": "r062", "request": "Who is Bram Hollis?", "expected": "R2"}
+{"id": "r063", "request": "What does Tom say about the key in chapter 3?", "expected": "R2"}
+{"id": "r064", "request": "When does the storm hit in chapter three?", "expected": "R2"}
+{"id": "r065", "request": "Tell me about the brass key.", "expected": "R2"}
+{"id": "r066", "request": "What did Bram tell Mara on the first night?", "expected": "R2"}
+{"id": "r067", "request": "Rewrite this so it matches how Tom described the lamp in chapter 2.", "selection": "c3s1p3", "expected": "R2"}
+{"id": "r068", "request": "Who is Bram?", "selection": "c2s1p1", "expected": "R2", "note": "R1 escalates: Bram is not in the selection or nearby"}
+{"id": "r069", "request": "Why does Mara distrust Bram?", "selection": "c2s2p1", "expected": "R2", "note": "R1 escalates: Bram is not nearby"}
+{"id": "r070", "request": "What is the word count?", "expected": "R2"}
+{"id": "r071", "request": "How many chapters are there?", "expected": "R2"}
+{"id": "r072", "request": "Which chapters are still marked draft?", "expected": "R2"}
+{"id": "r073", "request": "Show me the outline.", "expected": "R2"}
+{"id": "r074", "request": "List the scenes in chapter 3.", "expected": "R2"}
+{"id": "r075", "request": "How long is chapter 4?", "expected": "R2"}
+{"id": "r076", "request": "What is the status of each chapter?", "expected": "R2"}
+{"id": "r077", "request": "Which is the longest chapter?", "expected": "R2"}
+{"id": "r078", "request": "What's my target word count?", "expected": "R2"}
+{"id": "r079", "request": "What historical sources mention Gull Point?", "expected": "R2"}
+{"id": "r080", "request": "According to my notes, when was the lighthouse built?", "expected": "R2"}
+{"id": "r081", "request": "Where is the Point?", "expected": "R2"}
+{"id": "r082", "request": "What did the letters from Mara's father say?", "expected": "R2"}
+{"id": "r083", "request": "Who wrote the letters Mara found?", "selection": "c4s1p2", "expected": "R2", "note": "the letters are found in chapter two, outside the selection"}
+{"id": "r084", "request": "Look up what I said about the lens.", "expected": "R2", "note": "no entity: the rules read it as a whole-document question when the document fits"}
+{"id": "r085", "request": "What does Tom do for a living?", "doc": "large", "expected": "R2"}
+{"id": "r086", "request": "Who is Ada Lindqvist?", "doc": "large", "model": "remote-200k", "expected": "R2"}
+{"id": "r087", "request": "Find every place Tom lies to Mara.", "expected": "R3"}
+{"id": "r088", "request": "List all the scenes where the brass key appears.", "expected": "R3"}
+{"id": "r089", "request": "Does Mara ever mention her mother?", "expected": "R3"}
+{"id": "r090", "request": "Is Mara's eye colour consistent throughout?", "expected": "R3"}
+{"id": "r091", "request": "Track how Tom's attitude to Mara changes.", "expected": "R3"}
+{"id": "r092", "request": "Every time Bram appears, what is he doing?", "expected": "R3"}
+{"id": "r093", "request": "Find all mentions of the lamp failing.", "expected": "R3"}
+{"id": "r094", "request": "Compare the storm scene with the wreck scene.", "expected": "R3"}
+{"id": "r095", "request": "Are there any continuity errors with the key?", "expected": "R3"}
+{"id": "r096", "request": "Which scenes does Ada appear in?", "expected": "R3"}
+{"id": "r097", "request": "Trace the timeline of the storm night.", "expected": "R3"}
+{"id": "r098", "request": "How often does Mara go up the tower?", "expected": "R3"}
+{"id": "r099", "request": "Throughout the manuscript, how is the sea described?", "expected": "R3"}
+{"id": "r100", "request": "Has Tom ever told the truth about the letters?", "expected": "R3"}
+{"id": "r101", "request": "Find every scene where it rains.", "expected": "R3"}
+{"id": "r102", "request": "Did Bram ever meet Edwin?", "expected": "R3"}
+{"id": "r103", "request": "Show all the times the ferry is mentioned.", "expected": "R3"}
+{"id": "r104", "request": "Is this consistent with how Tom acted earlier?", "selection": "c3s1p2", "expected": "R3"}
+{"id": "r105", "request": "Does this contradict what I wrote earlier about the ferry?", "selection": "c3s1p1", "expected": "R3"}
+{"id": "r106", "request": "Where else does the brass key appear?", "expected": "R3", "note": "'where else' asks for every other place; the rules read it as a lookup"}
+{"id": "r107", "request": "Find every mention of the lens.", "doc": "large", "expected": "R3"}
+{"id": "r108", "request": "Summarize the whole book.", "expected": "R4"}
+{"id": "r109", "request": "Assess the pacing of act 2.", "expected": "R4"}
+{"id": "r110", "request": "What are the main themes?", "expected": "R4"}
+{"id": "r111", "request": "Write a blurb for the novel.", "expected": "R4"}
+{"id": "r112", "request": "Give me overall feedback on the manuscript.", "expected": "R4"}
+{"id": "r113", "request": "Is the ending satisfying?", "expected": "R4"}
+{"id": "r114", "request": "Summarize chapter 3.", "expected": "R4"}
+{"id": "r115", "request": "Critique this chapter.", "selection": "c2s2p2", "expected": "R4"}
+{"id": "r116", "request": "How is the pacing in this scene?", "selection": "c3s1p2", "expected": "R4"}
+{"id": "r117", "request": "Review chapter two for tension.", "expected": "R4"}
+{"id": "r118", "request": "Are there plot holes?", "expected": "R4"}
+{"id": "r119", "request": "Describe Mara's character arc.", "expected": "R4"}
+{"id": "r120", "request": "Write a logline.", "expected": "R4"}
+{"id": "r121", "request": "Fix the typo please.", "expected": "R4"}
+{"id": "r122", "request": "Is the opening strong?", "expected": "R4"}
+{"id": "r123", "request": "Summarize the whole book.", "doc": "large", "expected": "R4"}
+{"id": "r124", "request": "What do you think of my draft?", "expected": "R4"}
+{"id": "r125", "request": "Summarize the first half.", "expected": "R4"}
+{"id": "r126", "request": "Give me a beta read of chapter 4.", "expected": "R4"}
+{"id": "r127", "request": "What is the story about?", "expected": "R4"}
+{"id": "r128", "request": "Is the opening strong?", "doc": "large", "model": "remote-200k", "expected": "R4"}
+{"id": "r129", "request": "Is the opening strong?", "doc": "large", "expected": "R4", "note": "too large for the local model; the rules fall back to search instead of chapter summaries"}
+{"id": "r130", "request": "How does Mara change over the book?", "expected": "R4", "note": "a character arc; the rules read 'how does ... change' as an everywhere question"}
+{"id": "r131", "request": "What would make the climax stronger?", "model": "remote-unverified", "expected": "R4"}
+{"id": "r132", "request": "Check the whole manuscript for tone shifts.", "model": "none", "expected": "R4"}

@@ -69,8 +69,11 @@ def handle(request: dict) -> dict | None:
                             'library-search',
                             'library-read',
                             'entity',
+                            'route',
+                            'outline',
+                            'verify-citations',
                         ),
-                        'openWorldHint': name in ('providers', 'transcribe'),
+                        'openWorldHint': name in ('providers', 'transcribe', 'summaries'),
                     },
                 }
                 for name, description in COMMANDS.items()

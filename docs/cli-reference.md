@@ -110,6 +110,10 @@ command's flags.
 | `provenance` | Report text provenance, write AI-use disclosures and export an optional C2PA sidecar |
 | `bibliography` | Bibliography health (offline report from the cache; `--online` asks Crossref, DataCite, OpenAlex, linked sites and the Wayback Machine only on request), RIS import and export, BibTeX export with citation keys, extra CSL styles, Retraction Watch import and the Zotero local API. The document `PATH` is optional for actions that need none |
 | `excerpt` | Add live excerpts with a pointer to their source, check them against the source, and show where each source is used |
+| `route` | Explain the assistant route (R0–R4) for a request and, with `--inspect`, what it would see; never calls a model |
+| `outline` | Read-only outline: headings with depth, word counts per section and binder metadata |
+| `verify-citations` | Read-only grounding records for a reply checked against indexed sources, or the citation audit |
+| `summaries` | Chapter and book summaries: status, show, build with a provider you choose (opt-in), propose a synopsis |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -566,6 +570,50 @@ byax excerpt Essay.byax --action refresh          # records the proposals for re
 - `excerpt` actions: `where-used` (default), `list`, `check`, `refresh`, `add` (`--source`, then `--chunk-id`
   with optional `--start`/`--end`, or `--text`; `--target` is the block to insert after; `--style`, default
   `quotation`). `add` accepts `--expect-revision`, `--request-id` and `--dry-run`.
+
+## Routing, inspector, outline, citations and summaries
+
+`route`, `outline` and `verify-citations` are read-only and never call a model (MCP marks them
+`readOnlyHint`). See the [library guide](library-and-citations-guide.md#routing-what-the-assistant-sees-for-each-request)
+for what each route sends.
+
+```bash
+byax route Novel.byax --request "Where does Tom keep the key?" --json         # route, reason, rules
+byax route Novel.byax --request "Tighten this." --target p_… --start 0 --end 80 --inspect
+byax route Novel.byax --request "Summarize the book" --alias local-llama --inspect --limit 20
+byax route Novel.byax --request "…" --override R2 --use-libraries --privacy local --exclude CHUNK_ID
+byax outline Novel.byax --depth 2 --counts --binder --limit 50
+byax verify-citations Novel.byax                                              # the citation audit
+byax verify-citations Novel.byax --input reply.json                           # records for a reply
+byax summaries Novel.byax                                                     # status (default)
+byax summaries Novel.byax --action build --alias local-llama                  # explicit, opt-in
+byax summaries Novel.byax --action build --alias cloud --dry-run              # show the first request
+byax summaries Novel.byax --action propose-synopsis --target item_…
+```
+
+- `route`: `--request` (required); a selection as `--target` with optional `--start`/`--end`, or
+  `--cursor BLOCK`; `--alias` names a configured provider so the thresholds, privacy rule and cost use
+  its real settings (it is read, never changed or called); `--override auto|R0|R1|R2|R3|R4`;
+  `--privacy exclude|local` for local-only libraries with a remote model; `--use-libraries`;
+  `--exclude ITEM_ID` (repeatable). The result is `route` (route, name, label, reason, rule, every
+  rule with whether it fired, signals, privacy outcome, model and `thresholds`) and `sent: false`.
+  With `--inspect` it also has `inspector` (the "What the AI saw" payload: pinned and retrieved
+  items with tokens, score source, library and locality, dropped items, token budget, research
+  log, cost before sending) with `items_page` for `--limit`/`--offset`, and `abstain` (the verified
+  absence report when the assistant would not call the model).
+- `outline`: `--depth` (1–6, relative to the shallowest heading level), `--counts` (`words` up to the
+  next heading, `total_words` for the section, the document total), `--binder` (item, kind, status,
+  synopsis, targets, compile inclusion); bounded with `--limit`/`--offset`.
+- `verify-citations`: `--reply TEXT` or `--input` `{"reply": "…", "passages": [{"library_id", "document_id",
+  "chunk_id"} | {"target": "BLOCK"}]}` returns `records` (grounding records, state per citation),
+  `summary` and `invalid`; passage text is read from the attached library index or the open
+  document, never from the request. Without a reply it returns the citation audit
+  (`validation`/`review` as for `check --citations`). Records are paged with `--limit`/`--offset`.
+- `summaries`: actions `status`, `show` (paged), `build` (`--alias` required, `--target` for one
+  chapter, `--rebuild`, `--allow-remote` authorizes a remote provider, `--dry-run` previews),
+  `propose-synopsis` (`--target` binder item; a pending proposal, `--expect-revision`,
+  `--request-id`, `--dry-run`) and `clear` (deletes the cached summaries). Summaries live in the user
+  cache and are never written into the document.
 
 ## Word review round trip
 

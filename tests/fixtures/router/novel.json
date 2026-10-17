@@ -1,0 +1,146 @@
+{
+  "title": "The Lamp at Gull Point",
+  "note": "Synthetic fixture written for the router benchmark (scripts/router_benchmark.py). Four chapters of two scenes each, a codex with one entry hidden from AI, binder statuses and one synopsis.",
+  "chapters": [
+    {
+      "title": "Chapter One",
+      "status": "final",
+      "synopsis": "Mara arrives at Gull Point and meets the innkeeper and the keeper.",
+      "scenes": [
+        {
+          "title": "Arrival",
+          "paragraphs": [
+            "The evening ferry pushed through grey water toward Gull Point, and the lighthouse stood dark against the cliffs. Nobody on deck spoke.",
+            "Mara Quill held her suitcase on her knees and counted the gulls. She had not seen the Point since she was a child, and she did not like the way the tower watched the harbour.",
+            "At the inn, Bram Hollis poured her a cup of tea and said the keeper would not see visitors. The innkeeper's hands shook when he mentioned the lamp."
+          ]
+        },
+        {
+          "title": "The Keeper",
+          "paragraphs": [
+            "Tom Vane opened the tower door only wide enough to look at her. He refused to say why the lamp had gone dark.",
+            "On a nail inside the door hung a brass key, green at the edges. Tom saw her looking and closed the door.",
+            "That night she wrote in her notebook that he was afraid of something, and that it was not the sea."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chapter Two",
+      "status": "revised",
+      "scenes": [
+        {
+          "title": "Night Watch",
+          "paragraphs": [
+            "At midnight the lamp failed again. Mara climbed the hill in the rain and found the tower door unlocked.",
+            "From the gallery she could see the whole harbour, the ferry lights and the black rocks the lamp was meant to warn against.",
+            "Tom found her there and did not shout. He only said that the lens was older than both of them."
+          ]
+        },
+        {
+          "title": "Letters",
+          "paragraphs": [
+            "In the desk Mara found a bundle of letters tied with string. They were from her father, written the winter before he drowned.",
+            "One letter asked Tom to keep the key safe until his daughter came. Another was signed only with the name Edwin.",
+            "She put the letters back exactly as she had found them and told no one."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chapter Three",
+      "status": "draft",
+      "scenes": [
+        {
+          "title": "Storm",
+          "paragraphs": [
+            "The storm came in on the third day. Waves broke over the harbour wall and the ferry stayed in port.",
+            "Mara asked Tom about the brass key, and he said he had lost it years ago. It was hanging on the nail behind him as he spoke.",
+            "She did not call him a liar. She asked him instead to teach her how to light the lamp by hand."
+          ]
+        },
+        {
+          "title": "The Wreck",
+          "paragraphs": [
+            "Near dawn a fishing boat struck the rocks below the tower. Bram rowed out with two men from the inn.",
+            "Mara held the lamp steady while Tom turned the lens, and the light reached the water in time.",
+            "They brought one survivor ashore, a young woman wrapped in a sail."
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Chapter Four",
+      "status": "to_do",
+      "scenes": [
+        {
+          "title": "Ashore",
+          "paragraphs": [
+            "The survivor said her name was Ada Lindqvist and that she had come to find the keeper.",
+            "Ada carried a letter in the same hand as the bundle in the desk. Mara read it twice before she understood it.",
+            "Tom sat down on the stairs and finally told her the truth about her father."
+          ]
+        },
+        {
+          "title": "Morning",
+          "paragraphs": [
+            "In the morning the storm had passed and the harbour was flat and bright.",
+            "Mara decided to stay through the winter. Bram said the inn would keep her room.",
+            "That evening she lit the lamp herself, and the brass key went back on its nail."
+          ]
+        }
+      ]
+    }
+  ],
+  "codex": [
+    {
+      "id": "cx_mara",
+      "kind": "character",
+      "name": "Mara Quill",
+      "aliases": ["Mara", "Miss Quill"],
+      "description": "Returns to Gull Point after her father's death.",
+      "traits": [{"name": "eyes", "value": "grey"}, {"name": "age", "value": "24"}]
+    },
+    {
+      "id": "cx_tom",
+      "kind": "character",
+      "name": "Tom Vane",
+      "aliases": ["Tom", "the keeper"],
+      "description": "Keeper of the Gull Point light.",
+      "traits": [{"name": "role", "value": "lighthouse keeper"}]
+    },
+    {
+      "id": "cx_bram",
+      "kind": "character",
+      "name": "Bram Hollis",
+      "aliases": ["Bram", "the innkeeper"],
+      "description": "Runs the inn by the harbour.",
+      "traits": []
+    },
+    {
+      "id": "cx_point",
+      "kind": "place",
+      "name": "Gull Point",
+      "aliases": ["the Point"],
+      "description": "A headland with a lighthouse and a small harbour.",
+      "traits": []
+    },
+    {
+      "id": "cx_key",
+      "kind": "item",
+      "name": "brass key",
+      "aliases": ["the key"],
+      "description": "Opens the lamp room; Mara's father asked Tom to keep it.",
+      "traits": []
+    },
+    {
+      "id": "cx_edwin",
+      "kind": "character",
+      "name": "Edwin Marsh",
+      "aliases": ["Edwin"],
+      "description": "Wrote one of the letters.",
+      "hide_from_ai": true,
+      "traits": []
+    }
+  ]
+}

@@ -4,7 +4,7 @@ Dictionaries, grammar rules, word lists and interface strings are data. A **lang
 
 ## Translation coverage
 
-Coverage is the share of the interface texts that have a usable translation. The catalogue is generated from the literal `tr()` texts in the desktop code (`scripts/extract_strings.py`, stored in `src/byax/resources/catalog/strings.json`): 1537 interface texts at the time of writing. A translation counts only if it is not empty and keeps the source text's placeholders (`{0}`, `%1`), because a translation that loses one would break the sentence it is inserted into. English is the source language.
+Coverage is the share of the interface texts that have a usable translation. The catalogue is generated from the literal `tr()` texts in the desktop code (`scripts/extract_strings.py`, stored in `src/byax/resources/catalog/strings.json`): 1583 interface texts at the time of writing. A translation counts only if it is not empty and keeps the source text's placeholders (`{0}`, `%1`), because a translation that loses one would break the sentence it is inserted into. English is the source language.
 
 | Language | Coverage | Notes |
 | --- | --- | --- |

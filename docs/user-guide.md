@@ -364,6 +364,34 @@ nothing changes until you accept each one. Remote messages show the exact outbou
 your approval unless that provider's saved policy allows remote calls. Set up keys through
 **Add or manage API keys…**; see [providers](providers.md).
 
+AI is opt-in: the assistant sends nothing until you choose a provider and press **Send**, and you
+choose the provider. A local model on your own computer works as well as a hosted one, and keeps
+everything on this computer.
+
+**What the assistant sees.** Each request takes a *route*, shown under the message box with the
+reason: only your selection (for "tighten this"), the selection and the text around it (for
+"continue this scene"), a look-up in your codex, manuscript and, when **Use attached libraries** is
+on, your libraries (for "what did I name the innkeeper?"), a search in several steps (for "every
+place Mara lies to Tom"), or the whole manuscript when it fits the model (for "assess the pacing").
+The route menu picks one yourself for the next request. If a library is marked local-only and the
+model is remote, that library is left out, or the request goes to your local model instead if you
+choose **Local-only sources: use a local model**. When nothing is found even by an exact search of
+every source, the assistant says so and sends nothing.
+
+Open **What the AI saw** to see every item the last request carried, with its size, where it came
+from and whether it left this computer, plus the model, prompt-cache use, an estimated cost from the
+rates you entered, and what was left out and why. **Pin** keeps an item for later requests,
+**Exclude** leaves it out, and **Exclude and re-run** asks again without it. Multi-step searches
+keep a research log (each search, what it found, what was kept and cited); **Export conversation…**
+saves it with the conversation as Markdown or JSON.
+
+**Chapter summaries.** On a small local model, whole-book questions use chapter summaries. Choose
+**Build chapter summaries…** to have the selected provider write them; this happens only when you
+ask. They stay in your cache, are never written into the document, and a changed chapter's summary
+is not used until you build it again. You can turn a summary into a binder synopsis as a proposal
+you accept in Review (`byax summaries --action propose-synopsis`). See the
+[library guide](library-and-citations-guide.md#routing-what-the-assistant-sees-for-each-request).
+
 ### Dictation
 
 Choose a transcription provider (OpenAI, ElevenLabs, or a local whisper.cpp binary), record, and
