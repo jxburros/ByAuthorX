@@ -60,6 +60,8 @@ OP_SCHEMAS = {
     'add_reference': ('id values', ''),
     'cite': ('target start end source', 'locator quote kind prefix suffix anchor'),
     'reanchor_citation': ('target start end source anchor', 'locator'),
+    'excerpt': ('target start end source', 'locator quote anchor'),
+    'reanchor_excerpt': ('target start end source anchor', 'locator'),
     'fill_fields': ('values', ''),
     'add_layer': ('values', ''),
     'update_layer': ('target values', ''),
@@ -957,6 +959,60 @@ def _op_cite(doc, op, base_revision, kind, changed, allow_policy_changes):
     changed.append(obj['id'])
 
 
+def _op_excerpt(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Mark text as an excerpt of a source (context engine plan 9, A2): a back-pointer, no text change."""
+    obj = _target(doc, op)
+    if 'text' not in obj:
+        _error('Excerpts require an editable text target.', 'target')
+    _boundaries(obj['text'], op['start'], op['end'])
+    if op['start'] == op['end']:
+        _error('Select the excerpted text.', 'end')
+    if op['source'] not in doc['references']:
+        _error('Excerpt source does not exist.', 'source')
+    _citation_locator(op.get('locator', {}))
+    if 'quote' in op and not isinstance(op['quote'], str):
+        _error('Expected excerpt text.', 'quote')
+    mark = {
+        'type': 'excerpt',
+        'value': op['source'],
+        'start': op['start'],
+        'end': op['end'],
+        'quote': op.get('quote', obj['text'][op['start'] : op['end']]),
+    }
+    if 'anchor' in op:
+        _citation_anchor(op['anchor'])
+        mark['anchor'] = copy.deepcopy(op['anchor'])
+    if 'locator' in op:
+        mark['locator'] = copy.deepcopy(op['locator'])
+    if mark not in obj.setdefault('marks', []):
+        obj['marks'].append(mark)
+    changed.append(obj['id'])
+
+
+def _op_reanchor_excerpt(doc, op, base_revision, kind, changed, allow_policy_changes):
+    """Record an excerpt's re-anchoring result; an ``unanchored`` state keeps the mark and its text."""
+    obj = _target(doc, op)
+    _citation_anchor(op['anchor'])
+    marks = [
+        m
+        for m in obj.get('marks', [])
+        if m.get('type') == 'excerpt'
+        and m.get('value') == op['source']
+        and (m.get('start'), m.get('end')) == (op['start'], op['end'])
+    ]
+    if not marks:
+        raise ByaxError('missing_target', 'No excerpt mark matches this target, range and source.')
+    if 'locator' in op:
+        _citation_locator(op['locator'])
+    for mark in marks:
+        mark['anchor'] = copy.deepcopy(op['anchor'])
+        if 'locator' in op:
+            mark['locator'] = copy.deepcopy(op['locator'])
+        if op['anchor'].get('state') != 'unanchored':
+            mark.pop('unanchored_reason', None)
+    changed.append(obj['id'])
+
+
 def _citation_locator(locator):
     def valid_locator(key, value):
         if key == 'heading_path':
@@ -1108,6 +1164,7 @@ _ANCHOR_MODES = {
     'delete_text': 'range',
     'format_text': 'range',
     'cite': 'range',
+    'excerpt': 'range',
     'add_comment': 'range',
     'apply_character_style': 'range',
     'clear_formatting': 'range',
@@ -2265,6 +2322,8 @@ _HANDLERS = {
     'add_reference': _op_document_record,
     'cite': _op_cite,
     'reanchor_citation': _op_reanchor_citation,
+    'excerpt': _op_excerpt,
+    'reanchor_excerpt': _op_reanchor_excerpt,
     'set_profile': _op_document_record,
     'set_requirement': _op_document_record,
     'add_layer': _op_add_layer,
@@ -2520,6 +2579,10 @@ def _op_remove_reference(doc, op, base_revision, kind, changed, allow_policy_cha
         raise ByaxError('missing_target', 'Reference does not exist.', target=op['id'])
     del doc['references'][op['id']]
     changed.append(op['id'])
+    # Excerpts keep their text and their pointer; they become unanchored, never erased.
+    from .excerpts import detach_source
+
+    changed.extend(detach_source(doc, op['id']))
 
 
 _CHECK_HANDLERS = {

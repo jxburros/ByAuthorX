@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "HEAD",
+  "url": "https://www.nature.com/articles/nature14539?code=cb0a7285-3687-4eaf-98c1-5fb93784cb6e&error=cookies_not_supported"
+ },
+ "response": {
+  "headers": {
+   "content-type": "text/html; charset=utf-8"
+  },
+  "status": 200,
+  "text": ""
+ }
+}

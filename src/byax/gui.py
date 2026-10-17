@@ -66,6 +66,7 @@ from .formats import FORMATS, project
 from .gui_ai import AIPanel
 from .gui_art import ActivityGraphic, EmptyPanel, themed_art
 from .gui_beta_readers import BetaReaderPanels
+from .gui_bibliography import BibliographyPanels
 from .gui_codex import CodexPanels
 from .gui_compile import CompilePanels
 from .gui_docx_review import DocxReviewPanels
@@ -126,6 +127,7 @@ class MainWindow(
     CompilePanels,
     CodexPanels,
     ProvenancePanels,
+    BibliographyPanels,
     DocxReviewPanels,
     LocalModelPanels,
     BetaReaderPanels,
@@ -618,6 +620,10 @@ class MainWindow(
             ('Readability report…', self.readability_report),
             ('Codex…', self.codex_panel),
             ('Provenance…', self.provenance_panel),
+            ('Bibliography health…', self.bibliography_health),
+            ('Where is this source used…', self.where_used),
+            ('Import from Zotero…', self.import_from_zotero),
+            ('Citation styles…', self.citation_styles),
             ('Synced folder safety…', self.sync_safety_details),
             ('On-device search…', self.local_models_dialog),
             ('Review conflicted copies…', self.review_conflicted_copies),

@@ -196,9 +196,14 @@ second transmission.
 | `unanchored` | The cited source text is not available, or was not found again after the source changed |
 | `unverified` | The ID was not supplied with the request |
 
-Stage 2 (local entailment) and stage 3 (an optional judge using a different provider) plug
-into the same cascade later (`grounding.register_stage`); until then a request for them is
-reported as `not_run`. Support for a paraphrase is never inferred from word overlap.
+Stage 2 (local entailment) plugs into the same cascade later (`grounding.register_stage`);
+until then a request for it is reported as `not_run`. Stage 3 is the optional judge
+([below](#optional-judge-stage-3)). Support for a paraphrase is never inferred from word
+overlap. `grounding.split_claims(text)` splits a reply into sentences and clauses (with
+exact offsets) for the model-based stages: abbreviations such as `Dr.`, `e.g.`, `et al.`,
+initials and decimals do not end a sentence, and a sentence is split at a semicolon or at
+`, but` / `, yet` / `, and` / `, so` / `whereas` / `although` only when both sides have four
+words and the split is not inside quotation marks or brackets.
 
 **Chips.** In the AI tab each citation shows as a numbered chip after the claim it
 supports: `[1]` found or not checkable (the hover card says which), `[1~]` partial, `[1!]` not found, `[1×]` unanchored, `[1?]`
@@ -260,6 +265,186 @@ on the exact cited range, and counts as needing review. Nothing is changed autom
 Rendered output (exports, compile, print) is unchanged unless you set
 `settings.citations.annotate_superseded` to `true`; then citations whose source records
 `superseded_by` get " (cites an earlier version)" after the rendered citation or note.
+
+## Optional judge (stage 3)
+
+Some citations the deterministic stages cannot settle: a paraphrase (`not_checkable`), a near
+match (`partial`) or a quotation that was not found (`unsupported`). A second model can read
+the claim and the cited text and say `supported`, `partial` or `unsupported` with a one- or
+two-sentence reason. It is off unless you name a provider, and:
+
+- **It is never the writer.** `ProviderRegistry.chat(..., judge_alias=)` and
+  `byax check --citations --judge ALIAS` refuse the alias that generated the answer, and an alias
+  with the same provider kind, model and endpoint, before anything is sent. An alias that
+  cannot hold a text conversation (a speech-to-text provider) is refused too.
+- **Only low-confidence cases are sent.** A record the quote stage found (`supported`), a
+  record with no claim and a record whose source text is unavailable are never sent.
+- **Only under existing consent.** A remote judge needs explicit authorization for the run (or a
+  saved remote policy on the alias) and the `library_passages` permission for that alias,
+  because the cited text is sent. Text from a `local_only` library never goes to a remote
+  judge; an unknown library policy is treated the same way. A local (loopback) judge needs
+  neither. `--authorize` on the CLI stands for both approvals for that run. MCP and REST refuse
+  `judge`.
+- **The claim and the source are data.** Both are framed in provenance delimiters and the judge is
+  told to ignore any instruction inside them. The answer must be one JSON object; anything else is
+  recorded as `not_run`, never guessed. Percentages are not requested and are removed from the
+  rationale.
+- **It adds to the evidence.** The check is appended to the record (`stage: judge`, `result`,
+  `rationale`, the judge's model, and the state it started from); the earlier checks stay. The
+  verdict is advisory, like every other support state.
+
+```bash
+byax providers --action configure --input judge.json     # a different provider alias from the writer
+byax check Essay.byax --citations --judge my-judge       # local judge; add --authorize for a remote one
+```
+
+In the audit, each judged item keeps its stage 1 `status` and gains `judge` and an updated
+`record`; the report is marked `deterministic: false`, and `network: true` when the judge is
+remote. Library API: `grounding_judge.make_stage`, `judge_grounding`, `judge_audit`; tests use a
+fake provider (`tests/test_grounding_judge.py`).
+
+## Bibliography health
+
+**Tools → Bibliography health…** (or the Checks tab, or `byax bibliography PATH`) reports on the
+reference list. The checks that need no network run first, every time:
+
+| Check | What it finds |
+| --- | --- |
+| DOI syntax | A DOI that is not `10.<registrant>/<suffix>`, or that ends with punctuation copied from a sentence (a repair is suggested) |
+| Citations against the list | Citations whose source is not in the list, entries never cited, and `(Author, Year)` text with no matching entry (marks and plain author-year text are both read) |
+| Citation density | Citations and words per section (a section runs from a heading to the next), citations per 1,000 words, and long sections with no citations |
+| Reference age | A distribution of the references by age (0–2, 3–5, 6–10, 11–20, over 20 years), the median and how many are over ten years old, for the listed and for the cited references |
+| Punctuation placement | In author-date and numeric styles the sentence period follows the parenthetical citation; in note styles (footnotes and endnotes) the note mark follows the punctuation and the closing quotation mark. Block quotations are exempt. The document's style and presentation decide the rule; a CSL style's `citation-format` decides for installed styles |
+| Retractions | From an offline Retraction Watch file you imported (below) |
+
+**Online checks** are a separate, explicit step: **Check online…** in the panel, or
+`byax bibliography PATH --online`. They need your permission first. The panel lists each service
+and what it would receive, and you can remember the choice; on the CLI, `--allow-network` approves one
+run and `byax bibliography --action consent` stores the permission (the `citation_lookup` category,
+kept per service in the consent file next to provider settings). The services are:
+
+- **Crossref** (every DOI), then **DataCite** for DOIs Crossref does not know, then **OpenAlex** as a
+  last fallback: does the DOI resolve, and do the title (fuzzy match with RapidFuzz), the author
+  family names and the year agree with the registry? A subtitle the registry adds and a truncated
+  author list are small differences, not errors. Differences are reported as *Differs from the
+  registry* (title, authors or year more than one year apart) or *Small difference*.
+- **Retractions and corrections** from Crossref's `updated-by` notices (which include the Retraction
+  Watch data Crossref carries) and `relation` entries, and OpenAlex's retracted flag. A retracted
+  work is the only finding shown as serious; the notice DOI and date are listed. A reference that is
+  itself a retraction notice is flagged.
+- **Dead links** (a reference's `URL`) checked from this computer with a short HEAD request, falling
+  back to GET: redirects are followed by hand and every hop must be a public address, so a link
+  cannot point the check at your own computer or network. `404`/`410` is reported as *may be dead*;
+  anything else that blocks automatic checks (403, 429, timeouts) is *unverified*. With **archived
+  copies** the Internet Archive's availability API is asked for the closest snapshot of a dead
+  link.
+
+**Not found is not fake.** A DOI that none of the registries knows is shown as *Unverified, please
+check*, with the registries that were asked. A registry that did not answer, or that rate-limited the
+run, is *could not be checked just now*. Neither is ever called fake or invalid.
+
+**Etiquette.** Every request names ByAuthorX and the project page in its `User-Agent`. A contact
+address is sent to Crossref and OpenAlex (their "polite pool") only if you set one (**Contact
+address…**, or `--action configure --input mailto.json` holding `{"mailto": "you@example.org"}`). Requests to a host are
+spaced (0.2 s for the registries, 1 s for the Wayback Machine, 0.5 s for linked sites), a 429 stops that
+host for the rest of the run, timeouts are 15 s and answers are limited to 4 MiB. Answers are cached in
+the user cache (found for 30 days, not found for 3), so a repeat check is free; `byax bibliography PATH`
+without `--online` builds its report from the cache alone and says so (`network.mode: cache only`).
+
+**Retraction Watch file.** Download the Retraction Watch database as CSV yourself, then **Import
+Retraction Watch file…** or `byax bibliography --action retractions-import --source-path rw.csv`.
+Required columns: `OriginalPaperDOI` and `RetractionNature` (`Retraction`, `Correction`, `Expression
+of concern` or `Reinstatement`). Used when present: `Record ID`, `Title`, `Reason`, `RetractionDate`,
+`RetractionDOI`, `Journal`, `Notes`. Rows without a DOI are skipped and counted. The file is indexed
+in the user data folder (SQLite); nothing is uploaded.
+
+Over MCP and REST only the cached report is available; online checks, consent, the contact address and
+imports are local CLI and desktop actions. `validation` is `failed` (exit code 4) when a reference is
+retracted, `review` is `required` for anything to look at. `findings` are paged with `--limit` and
+`--offset`. Tests replay recorded Crossref, DataCite, OpenAlex and Wayback answers
+(`tests/fixtures/bibliography`; re-record with `tests/bibliography_fixtures.py`); the live checks run
+only with `pytest -m live`.
+
+## Bibliography exchange and citation styles
+
+- **RIS.** `byax bibliography PATH --action ris-export [--out refs.ris]` writes every source;
+  `--action ris-import --source-path refs.ris` (or the Import sources… button) reads one. Import
+  understands the common tags: type (`JOUR`, `BOOK`, `CHAP`, `CONF`, `THES`, `RPRT`, `ELEC`, `NEWS`,
+  `DATA`, `COMP` and more), `TI`/`T1`, authors `AU`/`A1`, editors `ED`/`A2`, series editors, translators,
+  container `JO`/`JF`/`T2`, `JA`, series `T3`, dates `PY`/`DA`/`Y1` (`2019/03/05/Spring`), access date `Y2`,
+  `SP`/`EP`, `VL`, `IS`, `PB`, `CY`, `SN` (told apart as ISBN or ISSN), `DO`, `UR`, `AB`/`N2`, `KW`, `N1`,
+  `LA`, `ET`, `AN`, `M3`. A corporate author ends with a comma (`World Health Organization,`). Tags
+  with no CSL field are kept under `custom.ris` and written back on export. Re-import is idempotent.
+  RIS export carries bibliographic fields only, never library paths or excerpts.
+- **BibTeX** export also writes ISBN, ISSN, abstract, edition, series, address, keywords, month and
+  editors; organizations are braced. `--action export-bib` writes it with stable citation keys
+  (below).
+- **More CSL styles.** APA, MLA and Chicago are built in. `byax bibliography --action styles-preview
+  --name ieee` downloads one style from
+  `https://raw.githubusercontent.com/citation-style-language/styles/master/<name>.csl` for display
+  only: it shows the URL, size, SHA-256, title and licence and installs nothing. `--action styles-add
+  --name ieee --allow-network --expect-sha256 …` installs it, refusing a file that differs from the one
+  previewed. `--source-path file.csl` imports a local file without the network. The file must be a
+  standalone CSL 1.0 style (a dependent style names its parent, which you add instead) that the
+  citation processor can load; it is stored with its hash in the user data folder, and **every use
+  re-checks the hash**, so an edited file is refused. Installed styles appear in **Citation
+  style…** and work with `source --action bibliography --style NAME`. A document records only the
+  style's name, so on a computer that lacks the style, rendering and export stop with a message naming
+  it (add it again or choose another style) instead of silently using a different one. The styles are CC BY-SA 3.0,
+  attributed in [citation-licenses.md](citation-licenses.md); each file keeps its own author block.
+  **Tools → Citation styles…** does the same with a confirmation showing the source, size and
+  checksum.
+
+## Zotero
+
+**Tools → Import from Zotero…** and `byax bibliography PATH --action zotero-import` read Zotero 7's local
+API (`http://localhost:23119/api/`, read-only; only `GET` is ever sent, only to a loopback address, and
+Zotero is never changed). In Zotero turn on *Settings → Advanced → Allow other applications on this
+computer to communicate with Zotero* and keep it open. `zotero-collections` lists collections;
+`--collection KEY` imports one; `--no-annotations` skips annotations; `--dry-run` reads and counts without
+changing the document.
+
+- **Items** (`/api/users/0/items/top` with `include=data,csljson`) become source records, idempotent by the
+  Zotero item key: importing again updates the record, keeps your own notes and does not duplicate.
+  Attachments and standalone notes are skipped.
+- **Annotations** (`itemType=annotation`, made in Zotero's PDF reader and attached through the PDF
+  attachment to the item) become **linked notes** on the source: `kind` (highlight, underline, note, image,
+  ink), the highlighted `text`, your `comment`, the **page as a locator** (`{"page": "436"}`, the page
+  label, or the reader's page index plus one), colour, tags and the attachment. `zotero.citation_for_note`
+  gives the quotation and locator to cite a note with (`cite --kind quotation`).
+- **Citation keys.** A Better BibTeX key in the `citationKey` field or in `extra` (`Citation Key:
+  smith2020`) is kept (`zotero.citation_key`). `--action export-bib [--only-zotero] [--out refs.bib]` writes
+  BibTeX using those keys; other sources get `familyYYYY` with `a`, `b` on a clash, and a generated key never
+  collides with a kept one.
+
+The Zotero JSON in `tests/fixtures/zotero` is written to the Zotero Web API v3 format that the local API
+serves; it was not captured from a running Zotero. MCP and REST refuse every Zotero action.
+
+## Excerpts and where a source is used
+
+An **excerpt** is source text brought into the manuscript with a pointer back. In the document it is an
+ordinary paragraph (a block quotation by default) carrying an `excerpt` mark (document schema 3):
+`value` is the source ID, `quote` the text, `locator` the library chunk and page, and `anchor` the same
+three source-side selectors a citation keeps (position, quote and 32 characters of context, plus the
+source's content hash). `byax excerpt PATH --action add --source ID --chunk-id CHUNK [--start N --end N]
+[--target BLOCK]` inserts one after a block (or `--text "phrase"` to find a phrase in the source; it must
+be there verbatim). The text is the source's, not retyped.
+
+- **Live.** `--action check` compares every excerpt with its source: `current`, `edited` (you changed
+  your copy), `source_changed` (the source changed and the excerpt was found again, with a proposed
+  refresh when its wording differs), `unanchored`, `source_removed`, `source_unavailable` or `unchecked`
+  (the source is not in a library). It proposes operations and changes nothing. `--action refresh`
+  records them as pending proposals (one for the source pointer, one for the excerpts); the desktop's
+  **Apply proposed updates** applies them as two separate actions, because source corrections and
+  document corrections are never mixed.
+- **Deleting a source never erases an excerpt.** `remove_reference` leaves the paragraph and its mark, marks
+  the anchor `unanchored` with the reason `source_removed`, and keeps the source ID, so adding the source
+  back and checking again re-anchors it. A source that is still cited cannot be removed (the existing
+  citation rule); excerpts do not block removal.
+- **Where is this source used.** **Tools → Where is this source used…** and `excerpt --action where-used`
+  list every citation and excerpt per source with the section (nearest heading), the marked text and its
+  state; sources no longer in the list but still pointed to by an excerpt are shown as removed;
+  `--include-unused` lists unused sources. Double-click a row to go to the block.
 
 ## Optional embeddings
 
@@ -463,8 +648,10 @@ also apply. No performance numbers are claimed without reference-hardware measur
 
 The first-release keyword library, citation and context/review paths are implemented.
 Configured embeddings and hybrid ranking (chosen automatically when a library has vectors)
-are available, with on-device embedding and reranking as described above. Outside DOI/catalog lookup and Zotero local API remain future capabilities
-(the specification's optional installer work and phase 5). PDFs require an extractable
+are available, with on-device embedding and reranking as described above. Optional downloadable
+weights (and the local entailment model, cascade stage 2) remain future capabilities. Outside DOI lookup,
+the Zotero local API, RIS exchange, extra CSL styles, excerpts and the optional judge are described
+above. PDFs require an extractable
 text layer; OCR is not included. Citation processing dependency licenses are recorded
 in [citation-licenses.md](citation-licenses.md).
 

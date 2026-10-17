@@ -233,6 +233,9 @@ ARGUMENTS: dict[str, dict[str, str]] = {
         'strict': 'boolean',
         # Context engine plan 6.4: audit every citation mark (stage 1; local, no consent).
         'citations': 'boolean',
+        # Plan 9, stage 3: also put the low-confidence citations to this provider alias (local CLI only).
+        'judge': 'string',
+        'authorize': 'boolean',
     },
     'review': {
         'path': 'string',
@@ -708,9 +711,60 @@ ARGUMENTS['provenance'] = {
     'request_id': 'string',
     'dry_run': 'boolean',
 }
+# Bibliography health, exchange, CSL styles, Zotero and live excerpts (context engine plan 9);
+# see byax.cli_bibliography. ``bibliography`` takes a document path only for the actions that need one.
+COMMANDS['bibliography'] = (
+    'Bibliography health, RIS exchange, extra CSL styles, Retraction Watch import and Zotero; online checks only on request'
+)
+ARGUMENTS['bibliography'] = {
+    'path': 'string',
+    'action': 'string',
+    'input': 'object',
+    'source_path': 'string',
+    'out': 'string',
+    'overwrite': 'boolean',
+    'text': 'string',
+    'checks': 'array',
+    'online': 'boolean',
+    'archive': 'boolean',
+    'allow_network': 'boolean',
+    'name': 'string',
+    'expect_sha256': 'string',
+    'replace': 'boolean',
+    'collection': 'string',
+    'url': 'string',
+    'no_annotations': 'boolean',
+    'only_zotero': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
 REQUIRED['provenance'] = ['path']
 # Version-pinned citations: cite another .byax draft (byax.version_pins).
 ARGUMENTS['source']['draft_path'] = 'string'
+COMMANDS['excerpt'] = 'Live excerpts with a pointer to their source, and where each source is used'
+ARGUMENTS['excerpt'] = {
+    'path': 'string',
+    'action': 'string',
+    'source': 'string',
+    'target': 'string',
+    'chunk_id': 'string',
+    'text': 'string',
+    'start': 'integer',
+    'end': 'integer',
+    'style': 'string',
+    'include_unused': 'boolean',
+    'limit': 'integer',
+    'offset': 'integer',
+    'expect_revision': 'string',
+    'request_id': 'string',
+    'dry_run': 'boolean',
+}
+REQUIRED['excerpt'] = ['path']
+# Commands whose document path is positional but optional (the action decides whether one is needed).
+OPTIONAL_PATH = frozenset({'bibliography'})
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -1103,12 +1157,26 @@ def _cmd_check(a: Args, owner: str | None) -> Result:
     from .checks import run_checks
 
     doc = _load(a['path'])
+    if (a.get('judge') or a.get('authorize')) and not a.get('citations'):
+        _error('invalid_input', '--judge and --authorize apply to --citations', field='judge')
     if a.get('citations'):
         from .grounding import audit_citations
 
         if a.get('suite') or a.get('family'):
             _error('invalid_input', 'Run --citations on its own; it is a separate audit', field='citations')
         report = audit_citations(doc, document_path=a['path'])
+        if a.get('judge'):
+            from .grounding_judge import judge_audit, make_stage
+            from .providers import ProviderRegistry
+
+            # Plan 9, stage 3: low-confidence citations go to a second provider, only when asked.
+            stage = make_stage(
+                ProviderRegistry(),
+                a['judge'],
+                authorized=a.get('authorize', False),
+                library_authorized=a.get('authorize', False),
+            )
+            report = judge_audit(report, doc, stage)
         return envelope(report, doc, **({'strict': True} if a.get('strict') else {}))
     suites = a.get('suite')
     if a.get('family'):
@@ -1755,6 +1823,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
 
 
 from .beta_readers import beta_copy_command, merge_comments_command
+from .cli_bibliography import bibliography_command, excerpt_command
 from .cli_codex import codex_command, entity_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
 from .cli_provenance import provenance_command
@@ -1831,6 +1900,8 @@ _HANDLERS: dict[str, Handler] = {
     'beta-copy': beta_copy_command,
     'merge-comments': merge_comments_command,
     'provenance': provenance_command,
+    'bibliography': bibliography_command,
+    'excerpt': excerpt_command,
 }
 
 
@@ -1896,7 +1967,15 @@ def build_parser() -> argparse.ArgumentParser:
         p.add_argument('--human', action='store_true', default=argparse.SUPPRESS)
         for key, kind in ARGUMENTS[name].items():
             if key == 'path':
-                p.add_argument('path', help='Input document, source directory, or audio file')
+                if name in OPTIONAL_PATH:
+                    p.add_argument(
+                        'path',
+                        nargs='?',
+                        default=argparse.SUPPRESS,
+                        help='Document (not needed for every action)',
+                    )
+                else:
+                    p.add_argument('path', help='Input document, source directory, or audio file')
                 continue
             flag = '--from' if key == 'from_revision' else '--' + key.replace('_', '-')
             aliases = ('--comments',) if key == 'comments_path' else ()

@@ -81,6 +81,21 @@ def validate_source(source, source_id=None):
         problem = pointer_problem(result['byax'])
         if problem:
             _error(problem)
+    if 'notes' in result:
+        notes = result['notes']
+        if not isinstance(notes, list) or any(
+            not isinstance(n, dict)
+            or not isinstance(n.get('id'), str)
+            or not isinstance(n.get('text', ''), str)
+            or not isinstance(n.get('comment', ''), str)
+            or not isinstance(n.get('locator', {}), dict)
+            for n in notes
+        ):
+            _error('Source notes need an ID, text, comment and a locator object.')
+        if len({n['id'] for n in notes}) != len(notes):
+            _error('Source note IDs must be unique.')
+    if 'zotero' in result and not isinstance(result['zotero'], dict):
+        _error('Zotero details must be an object.')
     if 'import' in result:
         origin = result['import']
         if not isinstance(origin, dict) or origin.get('origin') not in {
@@ -95,6 +110,9 @@ def validate_source(source, source_id=None):
 
 
 def _name(text):
+    text = text.strip()
+    if text.startswith('{') and text.endswith('}'):
+        return {'literal': text[1:-1].strip()}
     if ',' in text:
         family, given = text.split(',', 1)
         return {'family': family.strip(), 'given': given.strip()}
@@ -132,7 +150,13 @@ def _bibtex_records(text):
         'number': 'issue',
         'pages': 'page',
         'isbn': 'ISBN',
+        'issn': 'ISSN',
         'abstract': 'abstract',
+        'edition': 'edition',
+        'note': 'note',
+        'keywords': 'keyword',
+        'series': 'collection-title',
+        'language': 'language',
     }
     records = []
     for entry in database.entries:
@@ -143,68 +167,29 @@ def _bibtex_records(text):
                 record[field] = [_name(n) for n in entry[field].split(' and ')]
         year = re.match(r'\d{1,4}', entry.get('year', ''))
         if year:
-            record['issued'] = {'date-parts': [[int(year.group())]]}
+            parts = [int(year.group())]
+            month = _bibtex_month(entry.get('month', ''))
+            if month:
+                parts.append(month)
+            record['issued'] = {'date-parts': [parts]}
         records.append(record)
     return records
 
 
+_MONTHS = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+
+
+def _bibtex_month(text):
+    text = text.strip().casefold()
+    if text.isdigit() and 1 <= int(text) <= 12:
+        return int(text)
+    return _MONTHS.index(text[:3]) + 1 if text[:3] in _MONTHS else None
+
+
 def _ris_records(text):
-    records, entry, last = [], None, None
-    for line in text.splitlines():
-        match = re.match(r'^([A-Z0-9]{2})  - ?(.*)$', line)
-        if not match:
-            if line.strip() and entry is not None and last:
-                entry[last][-1] += ' ' + line.strip()
-            continue
-        tag, value = match.groups()
-        if tag == 'TY':
-            if entry is not None:
-                _error('RIS record is missing its ER terminator.')
-            entry = {'TY': [value]}
-        elif tag == 'ER':
-            if entry is not None:
-                records.append(entry)
-            entry, last = None, None
-        elif entry is not None:
-            entry.setdefault(tag, []).append(value)
-            last = tag
-    if entry is not None:
-        _error('RIS record is missing its ER terminator.')
-    result = []
-    for item in records:
-        first = lambda *keys, item=item: next((item[k][0] for k in keys if item.get(k)), '')
-        record = {
-            'type': {
-                'JOUR': 'article-journal',
-                'CHAP': 'chapter',
-                'THES': 'thesis',
-                'RPRT': 'report',
-                'BOOK': 'book',
-            }.get(first('TY'), 'document'),
-            'title': first('TI', 'T1'),
-        }
-        for target, tags in {
-            'id': ('ID',),
-            'container-title': ('JO', 'JF', 'T2'),
-            'publisher': ('PB',),
-            'DOI': ('DO',),
-            'URL': ('UR',),
-            'volume': ('VL',),
-            'issue': ('IS',),
-        }.items():
-            if value := first(*tags):
-                record[target] = value
-        if item.get('AU') or item.get('A1'):
-            record['author'] = [_name(n) for n in item.get('AU', item.get('A1', []))]
-        year = re.match(r'\d{1,4}', first('PY', 'Y1'))
-        if year:
-            record['issued'] = {'date-parts': [[int(year.group())]]}
-        if page := first('SP'):
-            record['page'] = page + ('-' + first('EP') if first('EP') else '')
-        result.append(record)
-    if text.strip() and not result:
-        _error('No RIS entries could be read.')
-    return result
+    from .ris import parse
+
+    return parse(text)
 
 
 def import_sources(text, format, existing=None):
@@ -254,51 +239,113 @@ def import_sources(text, format, existing=None):
     return list(result.values())
 
 
-def export_sources(references, format='csl-json'):
-    """Only export bibliographic metadata, never library paths, excerpts or local settings."""
+def _bibtex_person(name):
+    if name.get('literal'):
+        return '{' + name['literal'] + '}'  # braces keep an organization from being split into a name
+    return ', '.join(filter(None, [name.get('family'), name.get('suffix'), name.get('given')]))
+
+
+def citation_keys(references):
+    """Deterministic BibTeX keys: a stored Better BibTeX key, else ``familyYYYY`` with a/b/c on clashes.
+
+    A key kept from a Zotero import (``zotero.citation_key``) wins; otherwise the first author's
+    family name (ASCII, lower case) plus the year, or the first title word, or the source id.
+    """
+    import unicodedata
+
+    keys, used, stored = {}, {}, set()
+    for ident, source in references.items():
+        kept = (source.get('zotero') or {}).get('citation_key')
+        if isinstance(kept, str) and kept.strip():
+            keys[ident] = re.sub(r'[^\w:.-]', '_', kept.strip())
+            stored.add(ident)
+            continue
+        csl = source.get('csl') or {}
+        authors = csl.get('author') or []
+        family = (authors[0].get('family') or authors[0].get('literal') or '') if authors else ''
+        if not family:
+            family = next(iter(re.findall(r'\w+', csl.get('title') or source.get('title') or '')), '')
+        family = unicodedata.normalize('NFKD', family)
+        family = re.sub(r'[^a-z0-9]', '', ''.join(c for c in family if not unicodedata.combining(c)).lower())
+        parts = (csl.get('issued') or {}).get('date-parts') or [[]]
+        year = str(parts[0][0]) if parts and parts[0] else ''
+        base = (family + year) or re.sub(r'[^\w:.-]', '_', ident)
+        keys[ident] = base
+        used.setdefault(base, []).append(ident)
+    taken = {keys[i] for i in stored}
+    for base, idents in used.items():
+        if len(idents) > 1 or base in taken:
+            for number, ident in enumerate(idents):
+                keys[ident] = base + (chr(ord('a') + number) if number < 26 else str(number))
+    return keys
+
+
+def export_sources(references, format='csl-json', keys=None):
+    """Only export bibliographic metadata, never library paths, excerpts or local settings.
+
+    ``keys`` maps source ID to the BibTeX citation key (see :func:`citation_keys`); without it the
+    imported key, else the CSL ID, is used.
+    """
     records = []
     for ident, source in references.items():
         csl = copy.deepcopy(source.get('csl', {'type': 'document', 'title': source.get('title', ident)}))
-        csl['id'] = str(source.get('import', {}).get('key') or csl.get('id') or ident)
+        csl['id'] = str(
+            (keys or {}).get(ident) or source.get('import', {}).get('key') or csl.get('id') or ident
+        )
         records.append(csl)
     format = format.lower().lstrip('.')
     if format in ('json', 'csl-json'):
         return json.dumps(records, ensure_ascii=False, indent=2) + '\n'
+    if format == 'ris':
+        from .ris import dump
+
+        return dump(records)
     if format not in ('bib', 'bibtex'):
-        _error('Supported source exports are CSL-JSON and BibTeX.')
+        _error('Supported source exports are CSL-JSON, BibTeX and RIS.')
     import bibtexparser
 
     database = bibtexparser.bibdatabase.BibDatabase()
     fields = {
         'title': 'title',
-        'container-title': 'journal',
         'publisher': 'publisher',
+        'publisher-place': 'address',
         'DOI': 'doi',
         'URL': 'url',
         'volume': 'volume',
         'issue': 'number',
         'page': 'pages',
+        'ISBN': 'isbn',
+        'ISSN': 'issn',
+        'abstract': 'abstract',
+        'edition': 'edition',
+        'collection-title': 'series',
+        'keyword': 'keywords',
+        'note': 'note',
+        'language': 'language',
     }
     for record in records:
-        entry = {
-            'ID': re.sub(r'[^\w:.-]', '_', record['id']),
-            'ENTRYTYPE': {
-                'article-journal': 'article',
-                'chapter': 'incollection',
-                'book': 'book',
-                'thesis': 'phdthesis',
-            }.get(record.get('type'), 'misc'),
-        }
+        entry_type = {
+            'article-journal': 'article',
+            'chapter': 'incollection',
+            'paper-conference': 'inproceedings',
+            'book': 'book',
+            'thesis': 'phdthesis',
+            'report': 'techreport',
+        }.get(record.get('type'), 'misc')
+        entry = {'ID': re.sub(r'[^\w:.-]', '_', record['id']), 'ENTRYTYPE': entry_type}
         entry.update({dest: str(record[key]) for key, dest in fields.items() if key in record})
+        if 'container-title' in record:
+            entry['booktitle' if entry_type in ('incollection', 'inproceedings') else 'journal'] = str(
+                record['container-title']
+            )
         for field in ('author', 'editor'):
             if record.get(field):
-                entry[field] = ' and '.join(
-                    n.get('literal') or ', '.join(filter(None, [n.get('family'), n.get('given')]))
-                    for n in record[field]
-                )
+                entry[field] = ' and '.join(_bibtex_person(n) for n in record[field])
         parts = record.get('issued', {}).get('date-parts', [])
         if parts and parts[0]:
             entry['year'] = str(parts[0][0])
+            if len(parts[0]) > 1:
+                entry['month'] = _MONTHS[parts[0][1] - 1] if 1 <= parts[0][1] <= 12 else str(parts[0][1])
         database.entries.append(entry)
     return bibtexparser.dumps(database)
 
@@ -377,17 +424,16 @@ def verify_source(source, read, locator=None, quote=None):
 def _processor(references, style):
     from citeproc import CitationStylesBibliography, CitationStylesStyle, formatter
     from citeproc.source.json import CiteProcJSON
-    from citeproc_styles import get_style_filepath
 
-    if style.lower() not in STYLES:
-        _error('Citation style must be APA, MLA or Chicago.')
+    from .csl_styles import style_path
+
     records = []
     for ident, source in references.items():
         csl = copy.deepcopy(source.get('csl', {'type': 'document', 'title': source.get('title', ident)}))
         csl['id'] = ident
         records.append(csl)
     return CitationStylesBibliography(
-        CitationStylesStyle(get_style_filepath(STYLES[style.lower()]), validate=False),
+        CitationStylesStyle(style_path(style), validate=False),
         CiteProcJSON(records),
         formatter.plain,
     )

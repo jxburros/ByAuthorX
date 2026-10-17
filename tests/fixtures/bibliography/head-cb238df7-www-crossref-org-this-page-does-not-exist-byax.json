@@ -1,0 +1,13 @@
+{
+ "request": {
+  "method": "HEAD",
+  "url": "https://www.crossref.org/this-page-does-not-exist-byax"
+ },
+ "response": {
+  "headers": {
+   "content-type": "application/xml"
+  },
+  "status": 404,
+  "text": ""
+ }
+}

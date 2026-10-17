@@ -60,7 +60,11 @@ packages = ["src/byax"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-markers = ["languagetool: needs a local LanguageTool server; set BYAX_LANGUAGETOOL_URL (for example http://127.0.0.1:8081)"]
+markers = [
+    "languagetool: needs a local LanguageTool server; set BYAX_LANGUAGETOOL_URL (for example http://127.0.0.1:8081)",
+    "live: makes real requests to Crossref, DataCite, OpenAlex or the Wayback Machine; deselected by default, run with -m live",
+]
+addopts = "-m 'not live'"
 
 [tool.ruff]
 line-length = 110

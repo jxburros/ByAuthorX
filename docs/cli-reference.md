@@ -70,7 +70,7 @@ command's flags.
 | `fill` | Fill document fields using a JSON values object |
 | `history` | List revisions, checkpoint, branch, or restore |
 | `diff` | Compare semantic content against a saved revision |
-| `check` | Run deterministic validation suites (`--family continuity` for the advisory continuity suite). `--citations` audits every citation mark instead, including version pins |
+| `check` | Run deterministic validation suites (`--family continuity` for the advisory continuity suite). `--citations` audits every citation mark instead, including version pins; `--citations --judge ALIAS [--authorize]` also puts the low-confidence citations to a second provider (local CLI only) |
 | `review` | Inspect, propose, accept, or reject changes and comments |
 | `import` | Import an exchange document into a native package |
 | `save-as` | Save an existing document under another path |
@@ -108,6 +108,8 @@ command's flags.
 | `beta-copy` | Write a read-and-comment copy for beta readers: self-contained HTML (or a read-only companion page), PDF or Word |
 | `merge-comments` | Merge beta readers' comment files (and annotated PDFs) as comments and proposals |
 | `provenance` | Report text provenance, write AI-use disclosures and export an optional C2PA sidecar |
+| `bibliography` | Bibliography health (offline report from the cache; `--online` asks Crossref, DataCite, OpenAlex, linked sites and the Wayback Machine only on request), RIS import and export, BibTeX export with citation keys, extra CSL styles, Retraction Watch import and the Zotero local API. The document `PATH` is optional for actions that need none |
+| `excerpt` | Add live excerpts with a pointer to their source, check them against the source, and show where each source is used |
 `serve` and `mcp` start the REST and stdio transports and are not engine commands.
 
 ## Common recipes
@@ -519,6 +521,51 @@ byax source Essay.byax --action add-draft --draft-path notes.byax
   codex traits accept `valid_from`/`valid_to` in `codex_add` and `codex_add_trait`, and
   `codex_update_trait` sets or (with `null`) clears them. `facts-at` accepts `--book N` to place the
   document in its series; otherwise the series member list decides.
+
+## Bibliography, Zotero and excerpts
+
+`byax bibliography [PATH] --action …` (MCP `byax_bibliography`) and `byax excerpt PATH --action …` are
+described in the [library and citations guide](library-and-citations-guide.md#bibliography-health).
+`bibliography` takes a document `PATH` only for the actions marked below.
+
+```bash
+byax bibliography Essay.byax                                  # health, from the cache and this computer only
+byax bibliography Essay.byax --online --allow-network         # ask the registries for this run (shows what is sent)
+byax bibliography Essay.byax --online --archive --allow-network --checks doi --checks links
+byax bibliography --action consent --input consent.json       # {"services": ["crossref", "datacite"], "allowed": true}
+byax bibliography --action configure --input contact.json     # {"mailto": "you@example.org"}
+byax bibliography --action retractions-import --source-path retraction_watch.csv
+byax bibliography Essay.byax --action ris-export --out refs.ris
+byax bibliography Essay.byax --action ris-import --source-path refs.ris
+byax bibliography Essay.byax --action export-bib --out refs.bib [--only-zotero]
+byax bibliography --action styles-list
+byax bibliography --action styles-preview --name ieee         # URL, size, SHA-256, licence; installs nothing
+byax bibliography --action styles-add --name ieee --allow-network --expect-sha256 <hash>
+byax bibliography --action styles-add --source-path my-style.csl
+byax bibliography Essay.byax --action zotero-import [--collection KEY] [--no-annotations] [--dry-run]
+byax excerpt Essay.byax --action add --source source_… --chunk-id chunk_… --target p_…
+byax excerpt Essay.byax --action where-used [--target source_…] [--include-unused]
+byax excerpt Essay.byax --action check            # read only; proposes operations
+byax excerpt Essay.byax --action refresh          # records the proposals for review
+```
+
+- `bibliography` actions. With a document: `health` (default), `status`, `ris-export`, `ris-import`,
+  `export-bib`, `zotero-import`. Without one: `styles-list`, `styles-preview`, `styles-add`, `styles-remove`,
+  `retractions-status`, `retractions-import`, `consent`, `configure`, `zotero-collections`, `clear-cache`.
+- `health` flags: `--checks` (repeatable; `doi`, `metadata`, `retractions`, `citations`, `density`, `age`,
+  `punctuation`, `links`), `--online`, `--allow-network` (approves this run without storing anything), `--archive`
+  (Wayback lookup for dead links), `--limit`/`--offset` (findings are paged with `findings_window`). The
+  result is `{report, lines}`; `report.summary` counts findings by severity and status. `validation` is
+  `failed` (exit code 4) when a reference is retracted.
+- Without a stored permission and without `--allow-network`, `--online` fails with `authorization_required`
+  naming the services and what each would receive; nothing is sent.
+- **MCP and REST** accept `health` without `--online`/`--archive`/`--allow-network` (it reads the cache),
+  `status`, `ris-export`, `ris-import`, `export-bib`, `styles-list`, `retractions-status` and every `excerpt`
+  action. Everything else, and `check --judge`, is refused with `unsupported_feature`, including inside a
+  `jobs` submission.
+- `excerpt` actions: `where-used` (default), `list`, `check`, `refresh`, `add` (`--source`, then `--chunk-id`
+  with optional `--start`/`--end`, or `--text`; `--target` is the block to insert after; `--style`, default
+  `quotation`). `add` accepts `--expect-revision`, `--request-id` and `--dry-run`.
 
 ## Word review round trip
 

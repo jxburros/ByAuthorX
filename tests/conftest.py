@@ -25,6 +25,12 @@ def isolated_language_data(tmp_path_factory, monkeypatch):
 
 
 @pytest.fixture(autouse=True)
+def isolated_bibliography_data(tmp_path_factory, monkeypatch):
+    """Lookup caches, the Retraction Watch index and installed CSL styles stay out of the user folders."""
+    monkeypatch.setenv('BYAX_BIBLIOGRAPHY_DIR', str(tmp_path_factory.mktemp('bibliography')))
+
+
+@pytest.fixture(autouse=True)
 def isolated_user_config(tmp_path_factory, monkeypatch):
     """Writing-goal records and other local preferences must never land in the developer's real config."""
     root = tmp_path_factory.mktemp('user-config')
