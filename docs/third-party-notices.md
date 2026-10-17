@@ -48,3 +48,5 @@ Models (downloaded on request or bundled in the standard installers; catalogue i
 | docling-layout-heron | Apache-2.0 | `license: apache-2.0` in the model card of `docling-project/docling-layout-heron` |
 
 Downloading a model is not a licence to anything beyond these terms; weights are not covered by the repository's MIT licence. Entailment models (Phase 5) and Qwen3-Reranker have not passed the dependency gate and are not in the catalogue.
+
+Playwright for Python (Apache-2.0, https://github.com/microsoft/playwright-python) and its dependencies pyee (MIT) and greenlet (MIT and PSF-2.0) are **development and test dependencies only** (the `dev` extra). `tests/test_review_html.py` drives the self-contained HTML review copy in a locally installed Chromium and is skipped when the package or a browser is missing. They are not bundled in the application or its installers, and no browser is downloaded by ByAuthorX.

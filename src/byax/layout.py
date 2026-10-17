@@ -3032,7 +3032,7 @@ def _draw_crop_marks(painter, width, height, offset, bleed):
     painter.restore()
 
 
-def export_pdf(doc, path, pages=None, output=None):
+def export_pdf(doc, path, pages=None, output=None, creator='ByAuthorX'):
     """Controlled PDF; the layout's ``bleed`` and ``crop_marks`` enlarge each sheet around the trim."""
     qdoc = build_document(doc)
     selected = _selected_pages(pages, resolved_page_count(qdoc, doc, output))
@@ -3046,7 +3046,7 @@ def export_pdf(doc, path, pages=None, output=None):
     page_layout.setMode(QPageLayout.Mode.FullPageMode)
     writer.setPageLayout(page_layout)
     writer.setTitle(doc.get('metadata', {}).get('title', ''))
-    writer.setCreator('ByAuthorX')
+    writer.setCreator(creator)
     painter = QPainter(writer)
     if not painter.isActive():
         raise OSError(f'Unable to open PDF output {path}')

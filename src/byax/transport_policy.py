@@ -22,6 +22,7 @@ PATH_KEYS = frozenset(
         'copy_path',
         'series_path',
         'reviewed_path',
+        'comments_path',
     )
 )
 
@@ -269,6 +270,20 @@ INTERFACE_INVENTORY = (
         'merge-review',
         'byax.docx_review.merge_reviewed_copy',
         'File > Merge reviewed copy…',
+    ),
+    (
+        'Review',
+        'send to beta readers (HTML, PDF, Word)',
+        'beta-copy',
+        'byax.beta_readers.create_beta_copy',
+        'File > Send to beta readers…',
+    ),
+    (
+        'Review',
+        'merge reader comments',
+        'merge-comments',
+        'byax.beta_readers.merge_comments',
+        'File > Import reader comments…',
     ),
     (
         'Files',

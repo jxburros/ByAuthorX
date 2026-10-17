@@ -609,6 +609,29 @@ ARGUMENTS['macro'] = {
     'request_id': 'string',
     'config_dir': 'string',
 }
+# Beta-reader round trip (byax.beta_readers): read-and-comment copies out, reader comments back in.
+COMMANDS['beta-copy'] = 'Write a read-and-comment copy for beta readers: self-contained HTML, PDF or Word'
+COMMANDS['merge-comments'] = (
+    'Merge beta readers\u2019 comment files (and annotated PDFs) as comments and proposals'
+)
+ARGUMENTS['beta-copy'] = {
+    'path': 'string',
+    'out': 'string',
+    'format': 'string',
+    'reviewer': 'string',
+    'note': 'string',
+    'companion': 'boolean',
+    'overwrite': 'boolean',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
+ARGUMENTS['merge-comments'] = {
+    'path': 'string',
+    'comments_path': 'array',
+    'review_id': 'string',
+    'expect_revision': 'string',
+    'dry_run': 'boolean',
+}
 REQUIRED = {
     'compile': ['path'],
     'statistics': ['path'],
@@ -661,6 +684,7 @@ for _name in (
 for _name in ('project-search', 'codex', 'entity'):
     REQUIRED[_name] = ['path']
 REQUIRED.update({'review-package': ['path'], 'merge-review': ['path', 'reviewed_path']})
+REQUIRED.update({'beta-copy': ['path'], 'merge-comments': ['path', 'comments_path']})
 
 
 def command_schema(command: str) -> dict[str, Any]:
@@ -1699,6 +1723,7 @@ def _cmd_fonts(a: Args, owner: str | None) -> Result:
     _error('invalid_input', 'Use fonts --action inspect, glyphs or embed')
 
 
+from .beta_readers import beta_copy_command, merge_comments_command
 from .cli_codex import codex_command, entity_command
 from .cli_libraries import cite_command, library_command, library_read, library_search, source_command
 from .compile import compile_command
@@ -1771,6 +1796,8 @@ _HANDLERS: dict[str, Handler] = {
     'models': models_command,
     'extensions': extensions_command,
     'macro': macro_command,
+    'beta-copy': beta_copy_command,
+    'merge-comments': merge_comments_command,
 }
 
 
@@ -1839,6 +1866,7 @@ def build_parser() -> argparse.ArgumentParser:
                 p.add_argument('path', help='Input document, source directory, or audio file')
                 continue
             flag = '--from' if key == 'from_revision' else '--' + key.replace('_', '-')
+            aliases = ('--comments',) if key == 'comments_path' else ()
             options: dict = {'dest': key, 'default': argparse.SUPPRESS}
             if key in REQUIRED.get(name, []):
                 options['required'] = True
@@ -1852,7 +1880,7 @@ def build_parser() -> argparse.ArgumentParser:
                 options['help'] = 'UTF-8 JSON file, or - for stdin'
             elif key == 'pages':
                 options['help'] = '1-based pages/ranges (1,3-5), or affected for the last committed edit'
-            p.add_argument(flag, **options)
+            p.add_argument(flag, *aliases, **options)
     service = sub.add_parser('serve', help='Explicitly start an authenticated, scoped loopback REST service')
     service.add_argument(
         '--root', action='append', required=True, help='Authorized filesystem root; repeat as needed'

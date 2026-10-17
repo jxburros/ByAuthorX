@@ -48,6 +48,12 @@ Live providers are exercised only by the opt-in `scripts/provider_smoke.py` with
 Offscreen results do not establish physical-desktop behavior; record such evidence in the
 [acceptance matrix](acceptance-matrix.md).
 
+The HTML review copy is also tested in a real browser (`tests/test_review_html.py`: no network request,
+phone width, keyboard and touch flows, a downloaded comment file imported back). It needs the `dev` extra
+(Playwright for Python) and a Chromium build; the tests skip themselves otherwise. Point
+`PLAYWRIGHT_BROWSERS_PATH` at an installed Playwright browser folder, or set `BYAX_TEST_CHROMIUM` to a
+Chromium executable. ByAuthorX never downloads a browser.
+
 Fixtures and benchmarks:
 
 ```bash

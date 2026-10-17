@@ -179,6 +179,70 @@ sent.
 The same steps run headless as `byax review-package` and `byax merge-review`
 ([reference](cli-reference.md#word-review-round-trip)).
 
+## Sharing with beta readers
+
+Beta readers rarely use Word or ByAuthorX. **File → Send to beta readers…** writes one file for them to
+read and comment on, and **File → Import reader comments…** turns what they send back into comments
+and suggestions. There is no hosted service and no account: you send the file however you like (email, a
+shared folder, a message) and they send theirs back the same way. Nothing is uploaded by ByAuthorX.
+
+1. Save your document as a `.byax` file, then choose **File → Send to beta readers…**. Pick the kind of
+   copy:
+   - **Web page** (recommended): one `.html` file that opens in any browser on a phone, tablet or
+     computer, with no internet connection needed. You can add a short note at the top, for example
+     what kind of feedback you want, and name the reader.
+   - **PDF**: readers mark it up in their own PDF app. Every page footer carries the copy's ID.
+   - **Word**: the Word review copy, with editing restricted to comments.
+2. ByAuthorX remembers this version as the snapshot, saves your document, and writes the file. Your own
+   open comments, footnotes, the contents block and content excluded from output are not in a web page
+   or PDF copy; they are listed when the file is written.
+3. Keep writing. Each reader opens the web page, enters a name, selects text and presses **Comment**.
+   They can also suggest replacing or deleting the selected text. When they are done they press
+   **Download my comments** and send you the `.byaxcomments.json` file. (PDF readers send back the
+   annotated PDF; Word readers send back the `.docx`, which you merge with **Merge reviewed copy…**.)
+4. Choose **File → Import reader comments…** and select every file you received (you can pick several).
+   Each reader's file is merged on its own. Comments arrive in the review panel marked with the reader's
+   name, on the passage they selected even if you have edited around it since. A reader's suggestion
+   arrives as a pending proposal; accept or reject it like any other, and nothing in your text changes
+   until you accept.
+5. A comment that cannot be placed exactly is never thrown away: it is kept as a comment on its
+   paragraph (or the first paragraph) that quotes the passage it was about, and the import report says
+   why. Importing the same file twice, or a later download from the same reader that repeats earlier
+   comments, adds nothing twice.
+
+Comment files and annotated PDFs come from other people, so ByAuthorX treats them as data only: they are
+size-limited and checked before anything is merged, their text is shown as plain text, and nothing in
+them is ever run as an instruction.
+
+PDF notes work on the sent layout: sticky notes and highlights are matched to the lines they mark, so
+re-saving the PDF in a tool that rewrites the pages, or reflowing it, can leave notes on a paragraph rather
+than on exact words. Annotation types that carry no text (drawings, stamps) are reported, not imported.
+
+The same steps run headless as `byax beta-copy` and `byax merge-comments`
+([reference](cli-reference.md#beta-readers)).
+
+### Reading on your phone
+
+The web page copy is also the companion viewer: send yourself the file, open it on a phone or in any
+browser, and read the manuscript away from your desk. Choose **Read-only copy with no comment tools** in
+the Send to beta readers dialog for a pure reader. It has no comment buttons and no script, it is not
+remembered in your document, and it works with no connection.
+
+With comments on, the page is built for a small screen as well as a keyboard:
+
+- The text reflows to the screen width, follows the system light or dark setting and respects reduced
+  motion. Buttons are large enough to touch.
+- Press and hold a word and drag to select, then press **Comment**. Use **Comments** to jump to the
+  list, **Download** to save the file for the writer, and **Show in text**, **Edit** or **Delete** on each
+  comment.
+- With a keyboard, press Tab to enter the text, move between paragraphs with the Up and Down arrow keys,
+  and press C to comment on the paragraph (or on the selected text).
+- Comments are kept in the browser on that device until downloaded. A private or "incognito" window,
+  clearing site data, or a different browser starts empty, so download before closing.
+
+The page was checked in a desktop Chromium, including phone-sized windows and touch emulation; it has not
+been run on a physical phone by the maintainers. The page makes no network requests at all.
+
 ## Reviewing your own text
 
 The Inspector's **Checks** tab lists every check with an active checkbox and its own **Run**

@@ -40,6 +40,7 @@ The canonical editable representation is a JSON-compatible semantic document. Pa
 | `gui_*` | Focused GUI pieces split from `gui`: AI tab, libraries, providers, review (Checks tab), readability report and pacing graph, configure, ribbon, views, workflows, workspace, document settings, accessibility, and brand art/ink/motion/icons |
 | `grammar`, `language_packs`, `gui_languages` | Offline grammar tiers behind one engine interface: data-driven built-in rules (`resources/grammar`) and an adapter for a local LanguageTool server (loopback only, explicit pinned download, UTF-16 to scalar offset mapping); versioned, checksummed language packs for spelling dictionaries, grammar rules, word lists and interface strings (installed under the user data folder, verified before use, built-in English packs), the translation catalogue and the `QTranslator` plumbing; the Languages dialog and the Checks tab tier status |
 | `docx_review`, `gui_docx_review` | Word review round trip: review copy (Track Changes, restriction, package ID, identity bookmarks, comment threads) pinned as peer `review:<id>`; returned-copy reader (revisions, moves, formatting, comments, located losses) and three-way planner that turns editor changes into `docx_review` proposals and comment threads; File menu actions |
+| `beta_readers`, `review_html`, `review_pdf`, `gui_beta_readers` | Beta-reader round trip: reader copies (a single self-contained HTML page with offline commenting, a read-only companion page, a PDF with a review footer, or the Word copy restricted to comments) pinned like Word packages; the strict `byax-comments` file schema; re-anchoring of each comment with its three selectors against the pinned snapshot and mapping onto the current document; `add_comment` attributed to the reader and one `beta_reader` proposal per suggestion; PDF annotation import through the layout's page map; File menu actions |
 | `sync_safety`, `gui_sync` | Synced-folder detection, risk report, conflicted-copy discovery and merge-as-proposal (`engine.import_branch` + `propose_merge`), explicit archive of merged copies; the notice bar and review dialog |
 | `platform_support`, `gui_platform` | Platform seams read at call time so tests can patch `sys.platform`: macOS font folders and scan, full fsync, lock identity (case and Unicode folding), best-effort parser limits; Finder open events, application-menu roles and native key names |
 | `updates`, `samples`, `gui_onboarding` | The one manual update request (GitHub Releases API, proxy-aware, never at startup), the bundled sample project and its safe copy, and the Help menu glue: first-run tour, sample, update check |
@@ -269,6 +270,16 @@ paragraph backwards, so recorded offsets stay exact. A pending proposal edit who
 without moving its range is re-anchored, so proposals on the same paragraph can be accepted in any
 order. Removing a pin (`unpin_merge_base`) makes the package unmergeable; merge refuses rather than
 guessing a base.
+
+Beta-reader copies (`beta_readers`) use the same records. An HTML, PDF or Word reader copy pins the
+revision for `review:<id>` and records the package with its `format`; the snapshot hash is the digest
+of the same block units the Word copy hashes, recomputed from the pinned snapshot when comments come
+back. The HTML page carries the review ID, document ID and snapshot hash and writes them into the
+comment file. A reader's comment file is untrusted: it is validated against a closed schema, each
+comment is re-anchored in the snapshot text (`quote_match.reanchor` with the position, quote, prefix and
+suffix selectors) and mapped to the current text through the Word merge's word-level change map, and
+only `add_comment`, `reply_comment`, `propose` (kind `beta_reader`) and the package record are planned.
+A companion copy takes no comments and records nothing.
 
 These operations are local history policy, available through canonical apply.
 A future hosted implementation (#81) must authorize pin changes at the host and
