@@ -1,0 +1,6 @@
+.vixl-cache/
+.vixl-cache.usage.*
+.film-*/
+*-draft.mp4
+score.wav
+.vixl-cache.seen
