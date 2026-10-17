@@ -7,6 +7,80 @@ number is `src/byax/__init__.py`; `tests/test_release_metadata.py` fails if any 
 disagrees or if the version has no entry below. The release workflow publishes a version's
 entry as its GitHub Release notes, so use absolute links and no in-page anchors in entries.
 
+## [Unreleased]
+
+This release implements the [context engine plan](https://github.com/jxburros/ByAuthorX/blob/main/docs/context-engine-plan.md)
+and the [competitiveness plan](https://github.com/jxburros/ByAuthorX/blob/main/docs/competitiveness-plan.md).
+AI stays opt-in: nothing here sends your writing anywhere unless you configure a provider and choose to use it.
+
+### Added
+
+- **Manuscript projects.** A binder inside one `.byax` (`byax project`, `project_*` operations) with parts,
+  chapters, scenes, notes and front/back matter; outline and corkboard views with drag and keyboard reordering,
+  inline synopses and opt-in "Draft a synopsis" proposals; writing goals, sessions and streaks kept as local
+  preferences (`byax goals`); named drafts with scene-level compare and "Bring changes from draft"
+  (`byax drafts`).
+- **Publishing.** Deterministic EPUB 3 export and import with navigation, footnotes, accessibility metadata,
+  a cover and licence-respecting font embedding; a built-in EPUB structural check and an optional EPUBCheck CI
+  job. A compile pipeline (`byax compile`, File → Compile…) with novel, non-fiction and standard-manuscript
+  presets, preflight, reproducible PDF/EPUB/Word/Markdown output, and book design (trim sizes, gutter, mirrored
+  margins, running heads, scene breaks, small caps, bleed and crop marks).
+- **Interchange.** Word review round trip (File → Send for review (Word)…, Merge reviewed copy…,
+  `byax review-package`, `byax merge-review`): editors' tracked changes, untracked edits, moves, formatting,
+  comments and replies come back as attributed proposals and threads without overwriting your later edits.
+  Beta-reader copies (`byax beta-copy`) as a self-contained offline HTML page with commenting, a PDF or a
+  comment-only Word file, a read-only `--companion` viewer for phones, and `byax merge-comments`.
+  Synced-folder safety (`byax sync`): provider detection, risk report, conflicted-copy discovery and merge as
+  a reviewable proposal.
+- **Writing quality.** An advisory fiction check suite (dialogue tags, filter words, echoes, repeated openings,
+  rhythm, sensory balance, show/tell, adverb density, invented-name spelling); readability reports with a
+  pacing graph (`byax readability`); offline grammar with built-in rules and an optional local LanguageTool
+  tier (`byax grammar`); checksummed language packs (`byax languages`) and translation coverage tracking;
+  a temporal codex and an advisory continuity suite.
+- **Retrieval.** Library search syntax (phrases, `NEAR`, `-word`, `prefix*`, field filters) with "did you mean";
+  `--method auto|keyword|hybrid`; global fusion across libraries; verified absence before "not found";
+  normalized quote verification with the advisory `quote_near_match` status; token budgets and Ollama
+  `num_ctx`; local/remote labels; an extracted-text preview; on-device semantic search (`byax models`, explicit
+  verified downloads, local embedder) with optional rerankers, an optional sqlite-vec backend, contextual notes
+  and an optional Docling PDF engine.
+- **Citations you can check.** Citation chips in the AI tab, Anthropic native citations in Chat mode, the
+  citation audit (`byax check --citations`), re-anchoring with `unanchored` instead of silently stale marks,
+  version-pinned citations, an optional second-provider judge, a bibliography health panel
+  (`byax bibliography`: DOIs, Crossref/DataCite/OpenAlex metadata, retractions, dead links, all behind
+  consent), complete RIS exchange, extra CSL styles, Zotero import and live excerpts.
+- **Manuscript as a corpus.** Find in project with saved searches, backlinks and unlinked mentions
+  (`byax project-search`); a codex of characters, places, items and terms with aliases, traits and
+  hide-from-AI (`byax codex`, `byax entity`); series files shared across books.
+- **Assistant transparency.** A router (R0–R4) whose route and reason are always shown and can be overridden;
+  the "What the AI saw" inspector with pin, exclude and re-run; a research log; opt-in chapter and book
+  summaries; cache-ordered prompts with cache usage and cost estimates; `byax route`, `byax outline`,
+  `byax verify-citations`.
+- **Provenance.** A per-span log of typed, pasted and AI text (View → Show text origin, `byax provenance`),
+  APA/MLA/Chicago AI-use disclosures and an optional unsigned C2PA sidecar.
+- **Extensions.** Versioned out-of-process extensions with scoped permissions for custom checks and export
+  hooks (`byax extensions`), saved command macros (`byax macro`) and scoped REST tokens.
+- **Reach.** A macOS (Apple silicon) app and `.dmg`, optional signing and notarization in the release workflow,
+  a manual Help → Check for updates… (one request, never automatic), a sample project and a first-run tour.
+- **Measurement.** A retrieval evaluation harness with public-domain and openly licensed fixtures, golden
+  queries, fidelity tests and published benchmarks under `docs/benchmarks/`.
+
+### Changed
+
+- Document schema 3, migrated automatically from schema 2; the first save keeps the original as a
+  `.schema2-` backup.
+- Library indexes use schema 3 with structure-aware chunks; they rebuild on the next refresh.
+- An unknown cite ID is removed and marked unverified instead of rejecting the whole reply.
+- Save refuses to overwrite a file changed on disk since it was opened; truncated, empty and placeholder
+  packages fail with clear messages.
+- Menu wording uses *draft* and *compare*; the Tools menu groups bibliography and document resources.
+
+### Fixed
+
+- The first attached library no longer takes the whole retrieval budget; partial vector sets are no longer
+  treated as ready.
+- Several pending proposals on one paragraph can be accepted in any order.
+- The library parser no longer aborts when macOS refuses its memory limit.
+
 ## [0.3.0] - 2026-10-16
 
 ### Fixed
