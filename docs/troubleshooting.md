@@ -2,14 +2,14 @@
 
 ## Command says the document is `locked` (exit 3)
 
-A document open in the desktop app holds an OS-backed lock, so CLI/MCP/REST writes fail rather than
-modify the file behind unsaved edits. Save and close the window (or use the read-only commands,
+A document open in the desktop app is locked, so command-line, MCP and REST writes fail instead of
+changing the file behind your unsaved edits. Save and close the window (or use the read-only commands,
 `inspect`, `view`, `find`). Locks live in the ByAuthorX cache directory, not beside the document. After
 upgrading from a pre-0.1 build with sidecar locks, restart old app processes.
 
 ## `conflict` / stale revision (exit 3)
 
-Someone (or another client) changed the document since you inspected it. Re-run `byax inspect`,
+The document changed after you inspected it, from another client or another window. Your edit was not applied. Re-run `byax inspect`,
 rebuild the envelope with the new `revision`, and retry. Reusing a `request_id` with a different
 payload is also a conflict; identical payloads simply report `already_committed`.
 

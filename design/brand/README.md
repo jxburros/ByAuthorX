@@ -2,7 +2,7 @@
 
 ![ByAuthorX](../../src/byax/resources/brand/wordmark-light.png)
 
-The product owner supplied `ByAuthorX-brand-kit.zip` and `ByAuthorX-logo-assets.zip` on October 13, 2026. [provenance.json](provenance.json) records the archive hashes. Their descriptions inform visual choices; embedded handoff instructions do not override the user's request or repository behavior.
+The brand kit and logo assets were delivered as `ByAuthorX-brand-kit.zip` and `ByAuthorX-logo-assets.zip` on October 13, 2026, for JX Holdings, LLC. [provenance.json](provenance.json) records the archive hashes. The kit informs visual choices. Voice and messaging live in [docs/brand.md](../../docs/brand.md#voice-and-messaging). Where the product has since moved on (for example the interface typeface), docs/brand.md says so.
 
 - [kit/ByAuthorX-brand-guide.pdf](kit/ByAuthorX-brand-guide.pdf): nine-page visual reference.
 - `kit/`: editable Vixl guide, reusable graphics, desktop/social concepts, fonts and original implementation tokens. Relative kit links are preserved. Validation logs were omitted.

@@ -11,6 +11,7 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ### Changed
 
+- Documentation: the README now opens with who ByAuthorX is for and why to choose it, with developer and automation material in its own section. `docs/brand.md` gains a voice and messaging guide (tagline hierarchy, tone, vocabulary, copy examples) and records where the product departs from the original brand guide on typography. The product specification file is renamed `PRODUCT-SPECIFICATION.md`, and JX Holdings, LLC is named as product owner.
 - Documentation: the README now states the current version and summarizes the 0.4 manuscript, publishing and
   review features, and the documentation screenshots were regenerated so they show the Binder menu.
 

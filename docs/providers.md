@@ -1,6 +1,6 @@
 # Provider setup
 
-No provider is required for local writing. Configure only services you intend to use. Hosted calls transmit the selected text/context or audio to that provider; the GUI shows the payload before transmission. CLI calls require `--allow-remote` or a saved `allow_remote: true` policy. Document contents cannot select a provider, grant transmission permission, or execute tools.
+You do not need a provider to write, save, print or run local checks. Add one only if you want AI review, chat or dictation, and only for services you intend to use. A hosted provider receives the text, context or audio you select, and the app shows you exactly what will be sent before it goes. CLI calls require `--allow-remote` or a saved `allow_remote: true` policy. Document contents cannot select a provider, grant transmission permission, or execute tools.
 
 Use Tools → Provider settings in the desktop or a JSON configuration file:
 

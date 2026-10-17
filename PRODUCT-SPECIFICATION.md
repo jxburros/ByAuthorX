@@ -1,6 +1,6 @@
 # ByAuthorX Product Specification
 
-Version 1.0 | October 13 2026 | Product owner Jeffrey Guntly
+Version 1.0 | October 13 2026 | Product owner JX Holdings, LLC
 
 ByAuthorX is a native desktop word processor for writing, formatting, reviewing, dictating, and publishing documents. It combines an approachable graphical editor with a complete command line interface and agent interfaces. Its native editable document format is `.byax`.
 
