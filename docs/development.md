@@ -44,6 +44,14 @@ QT_QPA_PLATFORM=offscreen uv run pytest tests/test_engine.py -q
 ```
 
 (PowerShell: `$env:QT_QPA_PLATFORM = "offscreen"`.) The suite mocks all HTTP; no billable calls are made.
+The whole suite runs in one process (about 8 minutes, 11 with branch coverage), so two rules keep it healthy.
+A hung test fails after 300 seconds with a stack dump (`pytest-timeout`, thread method, set in `pyproject.toml`;
+pass `--timeout=0` to debug under a debugger). `tests/conftest.py` fails any test that changes the runner's
+resource limits (the extension and parser workers apply `RLIMIT_CPU`/`RLIMIT_AS`/`RLIMIT_FSIZE` to their own
+process, so call them in a subprocess or replace `apply_parser_limits`) and any test module that leaves a child
+process or non-daemon thread behind. Tests of flows that need the optional `local-models` runtime stub
+`local_models.runtime_status` instead of requiring the extra, because an unstubbed "install it" prompt opens a
+modal dialog that never returns offscreen.
 Live providers are exercised only by the opt-in `scripts/provider_smoke.py` with `--allow-remote`.
 Offscreen results do not establish physical-desktop behavior; record such evidence in the
 [acceptance matrix](acceptance-matrix.md).
@@ -131,7 +139,7 @@ uv run python scripts/build.py --bundle-only
 ```
 
 CI runs the full suite, static checks, a locked runtime dependency audit and branch coverage on Ubuntu/Python 3.12. Focused
-storage, transports, jobs, security and GUI regressions also run on Windows/Python 3.12
+storage, sync, extension, transports, jobs, security and GUI regressions also run on Windows/Python 3.12
 and Ubuntu/Python 3.11. Wheels and source distributions are built every code run, with
 CLI document roundtrip and MCP smoke checks against an isolated wheel installation.
 Native builds run for packaging/dependency/workflow changes, manual runs, weekly checks

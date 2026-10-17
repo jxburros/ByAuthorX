@@ -49,6 +49,9 @@ def no_models(tmp_path, monkeypatch):
     monkeypatch.setenv('BYAX_MODELS_DIR', str(tmp_path / 'models'))
     monkeypatch.delenv('BYAX_BUNDLED_MODELS', raising=False)
     monkeypatch.setenv('XDG_CONFIG_HOME', str(tmp_path / 'config'))
+    # The model is what is missing here; the runtime is reported present so these tests behave the same
+    # with and without the local-models extra (the runtime-missing reason has its own test).
+    monkeypatch.setattr(local_models, 'runtime_status', lambda: {'installed': True, 'extra': 'local-models'})
     yield
     grounding.register_stage('entailment', None)
 

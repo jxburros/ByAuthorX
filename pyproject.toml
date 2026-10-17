@@ -44,6 +44,7 @@ dev = [
     "pytest>=8",
     "pytest-qt>=4",
     "pytest-cov>=5",
+    "pytest-timeout>=2.3",
     "ruff>=0.9",
     "mypy>=1.11",
     "pyinstaller>=6",
@@ -66,6 +67,11 @@ markers = [
     "eval_models: real on-device models (retrieval evaluation, entailment agreement); needs them installed (BYAX_REAL_MODELS_DIR); deselected by default, run with -m eval_models",
 ]
 addopts = "-m 'not live and not eval_models'"
+# A hung test must fail fast with a stack dump instead of eating the CI budget. The thread method works
+# on Windows too (the signal method is POSIX only); it ends the whole run, which is what a wedged
+# process needs. The slowest legitimate test takes well under a minute.
+timeout = 300
+timeout_method = "thread"
 
 [tool.ruff]
 line-length = 110
