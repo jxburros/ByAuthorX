@@ -72,6 +72,60 @@ CHIP_STATES = {
 }
 
 
+# Support underlines (context engine plan 9, stage 2): advisory and categorical, never a percentage.
+# The bracketed glyph after the claim and the hover text carry the meaning, so colour is never the only signal.
+SUPPORT = {
+    'supported': ('✓', '#2f6f4f'),
+    'partial': ('~', '#8a6d1f'),
+    'unsupported': ('!', '#a33a2b'),
+}
+SUPPORT_RANK = {'supported': 0, 'partial': 1, 'unsupported': 2}
+
+
+def support_meaning(result):
+    from .grounding_entailment import MEANINGS
+
+    return MEANINGS.get(result, '')
+
+
+def support_span(piece, result, index=None, text_colour='#000000'):
+    """An underlined claim (escaped HTML in ``piece``) with its category glyph after it."""
+    colour = SUPPORT[result][1]
+    meaning = html.escape(support_meaning(result), quote=True)
+    underline = f'text-decoration: underline; text-decoration-color:{colour};'
+    if index is None:
+        body = f'<span title="{meaning}" style="color:{text_colour}; {underline}">{piece}</span>'
+    else:
+        body = f'<a href="support:{index}" title="{meaning}" style="color:{text_colour}; {underline}">{piece}</a>'
+    return body
+
+
+def support_glyph(result):
+    glyph, colour = SUPPORT[result]
+    return f'<sup style="color:{colour}; font-weight:600;">[{glyph}]</sup>'
+
+
+def support_lines(records):
+    """Plain-text lines for a support check, one per checked claim (the accessible, copyable form)."""
+    from .grounding_entailment import MEANINGS
+
+    lines = []
+    for record in records:
+        check = next(
+            (
+                c
+                for c in reversed(record.get('checks') or [])
+                if c.get('stage') == 'entailment' and c.get('claims')
+            ),
+            None,
+        )
+        for item in (check or {}).get('claims', []):
+            lines.append(
+                f'{SUPPORT[item["result"]][0]} {MEANINGS[item["result"]].split(":", 1)[0]}: “{item["text"]}”'
+            )
+    return lines
+
+
 def chip_html(index, record):
     """One chip: a numbered link (``cite:<index>``) whose colour and suffix give the state."""
     suffix, colour, _ = CHIP_STATES.get(record.get('state'), CHIP_STATES['unverified'])
@@ -522,7 +576,9 @@ class AIPanel(QWidget):
         self.history.setMinimumHeight(180)
         # Citation chips: hover shows the cited passage, click opens the source at its locator.
         self.citations = []
+        self.supports = []
         self.last_chip_tooltip = None
+        self._support_asked = False
         self.history.highlighted.connect(self._chip_hovered)
         self.history.anchorClicked.connect(self._chip_clicked)
         self.history_stack.addWidget(
@@ -554,6 +610,13 @@ class AIPanel(QWidget):
             self.tr('Search attached libraries and choose passages before sending.')
         )
         cv.addWidget(self.use_libraries)
+        # Cascade stage 2: an on-device model reads each cited claim against its source. Off until the
+        # writer turns it on, and honest about a missing model instead of pretending.
+        self.support_check = QCheckBox(self.tr('Check claims against their sources'))
+        self.support_check.setAccessibleName(self.tr('Check claims against their sources'))
+        self.support_check.toggled.connect(self._support_toggled)
+        cv.addWidget(self.support_check)
+        self.refresh_support_check()
         # Routing (context engine 8.3): the route is chosen per request and shown with its reason;
         # the author can pick one instead, and decide what happens to local-only sources.
         routing = QHBoxLayout()
@@ -624,6 +687,30 @@ class AIPanel(QWidget):
     def mode(self):
         return 'work' if self.mode_buttons['work'].isChecked() else 'chat'
 
+    def refresh_support_check(self):
+        """Enable the support check only when the on-device model is installed; say why when it is not."""
+        from .grounding_entailment import availability
+
+        self.support_state = state = availability()
+        wanted = self.support_wanted = self.window.settings.value('ai/support_check', False, type=bool)
+        self.support_check.blockSignals(True)
+        self.support_check.setEnabled(state['available'])
+        self.support_check.setChecked(bool(wanted and state['available']))
+        self.support_check.blockSignals(False)
+        tip = (
+            self.tr(
+                'Underlines each claim that cites a source: supported, partly supported or not supported by '
+                'the cited text. Advisory. Runs on this computer; nothing is sent anywhere.'
+            )
+            if state['available']
+            else self.tr('Not available: {0}').format(state.get('reason', ''))
+        )
+        self.support_check.setToolTip(tip)
+        self.support_check.setAccessibleDescription(tip)
+
+    def _support_toggled(self, on):
+        self.window.settings.setValue('ai/support_check', bool(on))
+
     def _mode_changed(self, *_):
         self.window.settings.setValue('ai/mode', self.mode)
         self.mode_hint.setText(
@@ -639,12 +726,15 @@ class AIPanel(QWidget):
         self.send_button.setEnabled(ready and bool(self.input.toPlainText().strip()))
 
     def _append(self, role, text, records=None, texts=None):
-        colors = {'user': 'You', 'assistant': 'Assistant', 'note': 'Note'}
         if records:
             escaped = self._with_chips(text, records, texts or {})
         else:
             escaped = html.escape(text).replace('\n', '<br>')
-        self.history.append(f'<p><b>{colors[role]}:</b> {escaped}</p>')
+        self._append_html(role, escaped)
+
+    def _append_html(self, role, body):
+        colors = {'user': 'You', 'assistant': 'Assistant', 'note': 'Note'}
+        self.history.append(f'<p><b>{colors[role]}:</b> {body}</p>')
         self.history_stack.setCurrentIndex(1)
 
     # Citation chips ------------------------------------------------------
@@ -662,10 +752,18 @@ class AIPanel(QWidget):
         text = grounded.get('text', reply)
         if not grounded['records']:
             self._append('assistant', text.strip() or reply)
+            if self._support_asked:
+                self._append(
+                    'note',
+                    self.tr(
+                        'Support check: this reply cites no sources, so there was nothing to check against.'
+                    ),
+                )
             return
         lead = len(text) - len(text.lstrip())
         records = [dict(r, marker=max(0, int(r.get('marker') or 0) - lead)) for r in grounded['records']]
         self._append('assistant', text.strip(), records=records, texts=texts)
+        self._support_notes(grounded, records)
         invalid = grounded.get('invalid') or []
         retry = result.get('citation_retry') or {}
         if retry.get('attempted'):
@@ -680,22 +778,75 @@ class AIPanel(QWidget):
                 'They were removed and are marked unverified [?].',
             )
 
+    def _support_notes(self, grounded, records):
+        """After a reply: what the support check did, in words (underlines alone are not enough)."""
+        support = grounded.get('entailment')
+        if support is None:
+            return
+        if not support.get('available', True):
+            self._append(
+                'note',
+                self.tr('Support check not run: {0}').format(support.get('reason', 'model not installed')),
+            )
+            return
+        lines = support_lines(records)
+        if lines:
+            heading = self.tr('Support check (advisory, checked on this computer):')
+            self._append('note', heading + '\n' + '\n'.join(lines[:12]))
+        else:
+            self._append('note', self.tr('Support check: no cited claim could be checked.'))
+
+    def _support_spans(self, text, records):
+        """Non-overlapping ``(start, end, result, index)`` underlines for the records' support checks."""
+        from .grounding_entailment import underlines
+
+        found = {}
+        for record in records:
+            for mark in underlines(record, text):
+                key = (mark['start'], mark['end'])
+                if key not in found or SUPPORT_RANK[mark['result']] > SUPPORT_RANK[found[key]]:
+                    found[key] = mark['result']
+        spans, last = [], 0
+        for (start, end), result in sorted(found.items()):
+            if start < last:
+                continue  # overlapping claim pieces: the earlier one wins
+            index = len(self.supports)
+            self.supports.append({'result': result, 'claim': text[start:end]})
+            spans.append((start, end, result, index))
+            last = end
+        return spans
+
     def _with_chips(self, text, records, texts):
-        """Reply HTML with a chip at each record's marker; records join ``self.citations``."""
+        """Reply HTML with a chip at each record's marker and support underlines on checked claims."""
         placed = sorted(
             (min(max(0, int(r.get('marker') or 0)), len(text)), position, r)
             for position, r in enumerate(records)
         )
-        out, cursor = [], 0
+        spans = self._support_spans(text, records)
+        colour = self.history.palette().text().color().name()
+        cuts = sorted(
+            {0, len(text), *(m for m, _, _ in placed), *(s[0] for s in spans), *(s[1] for s in spans)}
+        )
+        chips = {}
         for marker, _, record in placed:
-            out.append(html.escape(text[cursor:marker]).replace('\n', '<br>'))
-            index = len(self.citations)
-            self.citations.append(
-                {'record': record, 'text': texts.get(record.get('chunk_id') or record.get('citation_id'), '')}
-            )
-            out.append(chip_html(index, record))
-            cursor = marker
-        out.append(html.escape(text[cursor:]).replace('\n', '<br>'))
+            chips.setdefault(marker, []).append(record)
+        out = []
+        for here, after in zip(cuts, [*cuts[1:], None], strict=True):
+            out.extend(support_glyph(result) for _, end, result, _ in spans if end == here)
+            for record in chips.get(here, []):
+                index = len(self.citations)
+                self.citations.append(
+                    {
+                        'record': record,
+                        'text': texts.get(record.get('chunk_id') or record.get('citation_id'), ''),
+                    }
+                )
+                out.append(chip_html(index, record))
+            if after is None:
+                break
+            piece = html.escape(text[here:after]).replace('\n', '<br>')
+            inside = next((s for s in spans if s[0] <= here and after <= s[1]), None)
+            out.append(support_span(piece, inside[2], inside[3], colour) if inside else piece)
         return ''.join(out).strip()
 
     def _chip_index(self, url):
@@ -712,10 +863,35 @@ class AIPanel(QWidget):
         entry = self.citations[index]
         return chip_tooltip(entry['record'], entry['text'])
 
+    def _support_index(self, url):
+        value = url.toString() if hasattr(url, 'toString') else str(url)
+        if not value.startswith('support:'):
+            return None
+        try:
+            index = int(value.split(':', 1)[1])
+        except ValueError:
+            return None
+        return index if 0 <= index < len(self.supports) else None
+
+    def support_tooltip(self, index):
+        entry = self.supports[index]
+        _, colour = SUPPORT[entry['result']]
+        model_name = getattr(self, 'support_state', {}).get('model', 'on-device model')
+        return (
+            f'<p><b style="color:{colour}">{html.escape(support_meaning(entry["result"]))}</b></p>'
+            f'<p>“{html.escape(entry["claim"])}”</p>'
+            f'<p><i>{html.escape(self.tr("Advisory: checked on this computer by {0}; not proof.").format(model_name))}</i></p>'
+        )
+
     def _chip_hovered(self, url):
         from PySide6.QtGui import QCursor
         from PySide6.QtWidgets import QToolTip
 
+        support = self._support_index(url)
+        if support is not None:
+            self.last_support_tooltip = self.support_tooltip(support)
+            QToolTip.showText(QCursor.pos(), self.last_support_tooltip, self.history)
+            return
         index = self._chip_index(url)
         if index is None:
             QToolTip.hideText()
@@ -1009,7 +1185,15 @@ class AIPanel(QWidget):
         self.messages = messages
         self._last_request = prompt
         self.route_box.setCurrentIndex(0)
+        self.refresh_support_check()
+        use_support = self.support_check.isChecked()
+        self._support_asked = use_support
         self._append('user', prompt)
+        if self.support_wanted and not use_support:
+            # Turned on earlier, but the model is gone: say so rather than quietly skipping the check.
+            self._append(
+                'note', self.tr('Support check not run: {0}').format(self.support_state.get('reason', ''))
+            )
         token = object()
         self._pending = token
         self._sync_send()
@@ -1025,6 +1209,7 @@ class AIPanel(QWidget):
                     context=context,
                     authorized=authorized,
                     **({'library_authorized': True} if library_authorized else {}),
+                    **({'entailment': True} if use_support else {}),
                 )
             except Exception as exc:
                 return {'error': str(exc)}
@@ -1101,7 +1286,7 @@ class AIPanel(QWidget):
                 self._append('note', result[key])
         proposals = result.get('proposals') or []
         if proposals:
-            self.offer_proposals(proposals, frozen)
+            self.offer_proposals(proposals, frozen, result.get('proposal_grounding'))
 
     # Inspector actions -------------------------------------------------------
 
@@ -1252,10 +1437,34 @@ class AIPanel(QWidget):
 
         self.window.background(self.tr('Checking sources for literal matches…'), work, done)
 
-    def offer_proposals(self, proposals, frozen):
+    def _append_edits_with_support(self, proposals, grounding):
+        """The suggested edits with the support check on what each edit cites (underlines and a text summary)."""
+        rows, lines = [], []
+        for number, proposal in enumerate(proposals):
+            grounded = grounding[number] if number < len(grounding) else None
+            replacement = html.escape(proposal['replacement']).replace('\n', '<br>')
+            if grounded and grounded.get('records'):
+                records = [dict(r, marker=max(0, int(r.get('marker') or 0))) for r in grounded['records']]
+                replacement = self._with_chips(grounded['text'], records, {})
+                lines += [f'{number + 1}. {line}' for line in support_lines(records)]
+            explanation = html.escape(proposal.get('explanation', ''))
+            rows.append(
+                f'{number + 1}. “{html.escape(proposal["expected_text"])}” → “{replacement}”  ({explanation})'
+            )
+        self._append_html(
+            'note', f'{html.escape(self.tr("Suggested edits"))} ({len(proposals)}):<br>' + '<br>'.join(rows)
+        )
+        if lines:
+            heading = self.tr('Support check of what the edits cite (advisory, checked on this computer):')
+            self._append('note', heading + '\n' + '\n'.join(lines[:12]))
+
+    def offer_proposals(self, proposals, frozen, grounding=None):
         window = self.window
         listing = '\n'.join(describe_edit(proposal) for proposal in proposals)
-        self._append('note', f'Suggested edits ({len(proposals)}):\n{listing}')
+        if any(grounding or []):
+            self._append_edits_with_support(proposals, grounding)
+        else:
+            self._append('note', f'Suggested edits ({len(proposals)}):\n{listing}')
         window.flush_edits()
         if window.doc['revision'] != frozen['revision']:
             self._append(

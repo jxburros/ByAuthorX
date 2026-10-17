@@ -8,11 +8,12 @@ source version (content hash) at citation time.
 
 The verification cascade runs named stages in order. Stage 1 is deterministic and local: ``quote``
 checks a claimed quotation against the cited chunk with :mod:`byax.quote_match`, and ``fuzzy``
-aligns an unquoted claim sentence with the chunk. Stage 2 (local entailment) and stage 3 (an
-optional LLM judge) register later through :func:`register_stage` (plan Phase 5); until then they
-are reported as ``not_run`` rather than skipped silently. Lexical overlap is never presented as
-proof that a paraphrase is supported: an unquoted claim that does not align closely stays
-``not_checkable`` until a model-based stage exists.
+aligns an unquoted claim sentence with the chunk. Stage 2 (local entailment, :mod:`byax.grounding_entailment`)
+and stage 3 (an optional LLM judge, :mod:`byax.grounding_judge`) register through :func:`register_stage`
+(plan Phase 5); a stage that is not installed or whose model is absent is reported as ``not_run``
+rather than skipped silently. Lexical overlap is never presented as proof that a paraphrase is
+supported: an unquoted claim that does not align closely stays ``not_checkable`` until a model-based
+stage has judged it.
 
 Record states:
 
@@ -48,7 +49,6 @@ CONTEXT_CHARS = 32
 PARTIAL_THRESHOLD = 60.0
 CITE_TOKEN = re.compile(r'\[\[cite:([^\]]+)\]\]')
 _QUOTE_IN = re.compile(r'["“„«]([^"“”„‟«»]{4,}?)["”‟»]')
-_SENTENCE_END = re.compile(r'[.!?]["”’)\]]*\s+|\n+')
 # Locator keys a citation mark accepts (engine ``cite``), and the structural ones re-anchoring keeps.
 LOCATOR_KEYS = (
     'page',
@@ -253,18 +253,18 @@ def _invalid(ident, *, origin, claim, answer_span, marker, reason):
 
 
 def _claim_span(text, marker):
-    """The sentence a citation at ``marker`` is attached to: back to the previous sentence end."""
+    """The sentence a citation at ``marker`` is attached to: back to the previous sentence end.
+
+    Sentence ends are the abbreviation-aware ones of :func:`split_claims` ("Mrs. Wren" and "e.g." do not
+    end a sentence), so the claim a verification stage reads is the whole sentence.
+    """
     end = marker
     while end > 0 and text[end - 1].isspace():
         end -= 1
-    probe = end
-    while probe > 0 and text[probe - 1] in '"”’)]':
-        probe -= 1
-    if probe > 0 and text[probe - 1] in '.!?':
-        probe -= 1
-    start = 0
-    for match in _SENTENCE_END.finditer(text, 0, probe):
-        start = match.end()
+    spans = [span for span in _sentence_spans(text) if span[0] < end]
+    start = spans[-1][0] if spans else 0
+    while start < end and text[start].isspace():
+        start += 1
     return [start, end]
 
 
@@ -828,7 +828,7 @@ _STAGES = {'quote': _quote_stage, 'fuzzy': _fuzzy_stage}
 
 
 def register_stage(name, check):
-    """Install a cascade stage (``entailment`` and ``judge`` arrive in plan Phase 5).
+    """Install a cascade stage (``entailment``: :mod:`byax.grounding_entailment`; ``judge``: :mod:`byax.grounding_judge`).
 
     ``check(record, source_text)`` returns ``None`` to abstain, or a dict with ``stage``,
     ``result`` (``supported`` | ``partial`` | ``unsupported`` | ``not_checkable``) and ``model``.
@@ -886,6 +886,11 @@ def verify(records, stages=DEFAULT_STAGES, *, texts=None, overrides=None):
         decided = current_result(record)
         for name in sorted(dict.fromkeys(stages), key=STAGE_ORDER.index):
             stage = (overrides or {}).get(name) or _STAGES.get(name)
+            if stage is None and name == 'entailment':
+                from .grounding_entailment import install
+
+                install()  # the on-device stage registers itself; without the model it reports not_run
+                stage = _STAGES.get(name)
             if stage is None:
                 record.checks.append(
                     {
@@ -1213,6 +1218,36 @@ def _quote_outcome(item, passages, pointer, everything=None):
     return item
 
 
+def audit_source_text(item, doc, *, registry=None, cache_dir=None, max_chunks=6):
+    """``(text, reason)``: the cited text of a paraphrase in a citation audit, read locally.
+
+    A library source gives the chunk(s) the citation's locator names (the same version the citation
+    recorded); a reference without a library gives its own excerpt. A locator too wide to find the cited
+    passage (the whole document) gives no text and says so: the model is never asked to read a book.
+    """
+    source = doc.get('references', {}).get(item['source_id'])
+    if not isinstance(source, dict):
+        return '', 'The cited source record does not exist.'
+    pointer = source.get('library')
+    if not pointer:
+        text = _reference_text(source)
+        return (text, None) if text else ('', 'The source has no text in this document to compare.')
+    try:
+        _, index = _library_index(pointer['library_id'], registry, cache_dir)
+        current = _current_document(index, pointer)
+    except (ByaxError, OSError, KeyError) as exc:
+        return '', f'The cited library cannot be read: {exc}'
+    if current is None:
+        return '', 'The cited library document is no longer indexed.'
+    _, chunks, page = current
+    if page.get('stale'):
+        return '', 'The source file changed since it was indexed; refresh the library first.'
+    chunks = _filter_locator(chunks, item['locator'], same_version=True)
+    if not chunks or len(chunks) > max_chunks:
+        return '', 'The citation has no page, block or chunk narrow enough to find the cited passage.'
+    return '\n\n'.join(c['text'] for c in chunks), None
+
+
 def _filter_locator(chunks, locator, same_version):
     if same_version and locator.get('chunk'):
         exact = [c for c in chunks if c['chunk_id'] == locator['chunk']]
@@ -1458,6 +1493,11 @@ def describe_audit(report):
     ]
     for item in report['citations']:
         detail = f' — {item["message"]}' if item.get('message') else ''
+        support = item.get('entailment') or {}
+        if support.get('result') in ('supported', 'partial', 'unsupported'):
+            detail += f' — support check (advisory): {support["result"]}'
+        elif support.get('reason'):
+            detail += f' — support check not run: {support["reason"]}'
         lines.append(f'{labels[item["status"]]}: “{item["text"]}” ({item["title"]}){detail}')
     for row in (report.get('versions') or {}).get('sources', []):
         if row['state'] == 'superseded':

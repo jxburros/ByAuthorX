@@ -817,7 +817,9 @@ def decide(
 
 
 def score_source(hit: dict[str, Any]) -> str:
-    """Where a hit's rank came from: ``bm25``, ``vector``, ``rrf`` (fused) or ``rerank``."""
+    """Where a hit's rank came from: ``bm25``, ``vector``, ``rrf`` (fused), ``rerank`` or ``llm-rerank``."""
+    if hit.get('rerank_source') == 'llm-rerank':
+        return 'llm-rerank'
     if hit.get('rerank_score') is not None or hit.get('reranked'):
         return 'rerank'
     ranks = hit.get('ranks') or {}
@@ -1551,13 +1553,16 @@ def gather(
     max_calls: int = R3_MAX_CALLS,
     planner: Any = None,
     context_limit: int = 100_000,
+    llm_reranker: Any = None,
 ) -> dict[str, Any]:
     """Collect the decided route's context items, escalating R1→R2→R3→R4 or abstaining.
 
     Returns ``{'route', 'base', 'items', 'dropped', 'retrieval', 'research_log', 'abstain'}``. ``base``
     is the engine context without its blocks; ``items`` are pinned and retrieved candidates in priority
     order (budgets are applied by :func:`byax.context_assembly.assemble`). Local and read-only: indexes
-    and the codex are read, nothing is sent and nothing is written.
+    and the codex are read, nothing is sent and nothing is written. The one exception is a caller-supplied
+    ``llm_reranker`` (:mod:`byax.llm_rerank`, built only after the writer opted in and consented): R3 offers
+    it the top candidates of a request the deterministic rules classify as thematic, and records the step.
     """
     from .research_log import ResearchLog
 
@@ -1875,11 +1880,13 @@ def gather(
             row.pop('fused_score', None)
         hits.append(row)
     hits, boosts = metadata_boosts(doc, hits, sig)
-    log.rerank(
-        'rrf across queries' + (' + metadata boosts (R-meta)' if boosts else ''),
-        len(hits),
-        [h['chunk_id'] for h in hits],
-    )
+    method = 'rrf across queries' + (' + metadata boosts (R-meta)' if boosts else '')
+    llm_note = None
+    if llm_reranker is not None:
+        hits, llm_note = _llm_rerank(llm_reranker, request, hits, log)
+        if llm_note['applied']:
+            method += f' + {llm_reranker.identity}'
+    log.rerank(method, len(hits), [h['chunk_id'] for h in hits])
     keep = max(top_k, 6)
     retrieved = [
         _passage_item(h, rank=n + 1, reason='Found by the R3 loop') for n, h in enumerate(hits[:keep])
@@ -1936,7 +1943,7 @@ def gather(
             'R3',
             base,
             [*local_items, *evidence, *([absence_item] if absence_item else []), *extra_items],
-            ranking={'boosts': boosts},
+            ranking={'boosts': boosts, **({'llm_rerank': llm_note} if llm_note else {})},
             sufficiency=check,
             absence=report,
             tool_calls=loop.calls,
@@ -1963,6 +1970,45 @@ def gather(
         f'{decision["reason"]} Nothing was found, even by an exhaustive literal search, so the assistant abstains.'
     )
     return finish('R3', base, list(local_items), absence=report, tool_calls=loop.calls)
+
+
+def _llm_rerank(reranker, request, hits, log):
+    """Offer the fused R3 hits to the writer's chosen model when the request is thematic; always logged.
+
+    Returns ``(hits, note)``; ``note['applied']`` says whether the order changed. A request that is not
+    thematic, a refusal, a provider failure or an unreadable answer leaves the order as it was and says
+    why in the research log (a cancellation is raised to the caller).
+    """
+    from .llm_rerank import classify
+    from .retrieval import rerank_results
+
+    verdict = classify(request)
+    note = {'applied': False, 'model': reranker.identity, 'thematic': verdict['thematic'], 'reason': None}
+    if not verdict['thematic']:
+        note['reason'] = verdict['reason']
+        log.query('llm_rerank', {'model': reranker.identity}, 0, notice='skipped: ' + verdict['reason'])
+        return hits, note
+    try:
+        ordered = rerank_results(request, hits, reranker, reranker.depth)
+    except ByaxError as exc:
+        if exc.code in ('cancelled', 'uncertain_external_outcome'):
+            raise
+        note['reason'] = exc.message
+        log.query('llm_rerank', {'model': reranker.identity}, 0, notice=f'failed: {exc.message}')
+        return hits, note
+    last = reranker.last
+    note.update(
+        applied=bool(last['applied']), sent=last['sent'], withheld=last['withheld'], reason=last['reason']
+    )
+    arguments = {'model': reranker.identity, 'because': verdict['reason']}
+    if last['applied']:
+        detail = f'reordered {last["sent"]} candidate(s)'
+        if last['withheld']:
+            detail += f'; {last["withheld"]} not sent (local-only library or no permission)'
+        log.query('llm_rerank', arguments, last['sent'], notice=detail)
+        return ordered, note
+    log.query('llm_rerank', arguments, last['sent'], notice='not applied: ' + str(last['reason']))
+    return hits, note
 
 
 def _verify(tools, terms, doc, **options):

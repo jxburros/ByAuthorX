@@ -7,6 +7,8 @@ still imports; loading a model then raises ``missing_dependency``.
 * :class:`LocalEmbeddingProvider` satisfies :class:`byax.embeddings.EmbeddingProvider`
   (``model_identity``, ``dimension``, ``max_input_chars``, ``embed``) plus ``embed_query``.
 * :class:`CrossEncoderReranker` and :class:`ColbertReranker` implement :class:`byax.ranking.Reranker`.
+* :class:`EntailmentScorer` scores a claim against the text it cites (cascade stage 2,
+  :mod:`byax.grounding_entailment`).
 """
 
 from __future__ import annotations
@@ -381,3 +383,80 @@ def load_reranker(name=None, *, catalogue=None, directory=None):
     family = entry.get('runtime', {}).get('family')
     cls = ColbertReranker if family == 'colbert' else CrossEncoderReranker
     return cls(name, catalogue=catalogue, directory=directory)
+
+
+class EntailmentScorer:
+    """How consistent is a claim with a premise? A T5 classifier (HHEM-2.1-Open) run through ONNX.
+
+    ``score`` returns, for each ``(premise, claim)`` pair, the model's probability that the claim is
+    consistent with the premise (0 to 1). The number is an internal ranking signal: it is never shown
+    to the writer, who sees only the categories :mod:`byax.grounding_entailment` derives from it.
+    The prompt is the one the model was trained with; the premise is trimmed from both ends (never the
+    claim) until the pair fits ``max_tokens``.
+    """
+
+    kind = 'entailment'
+    batch = 4
+    MIN_PREMISE_CHARS = 200
+
+    def __init__(self, name=None, *, catalogue=None, directory=None):
+        self.name = name or local_models.load_settings()['entailer']
+        self.catalogue = catalogue or local_models.load_catalogue()
+        entry = local_models.get_model(self.name, self.catalogue)
+        if entry['kind'] != 'entailment':
+            raise ByaxError('invalid_input', 'Model is not an entailment checker', name=self.name)
+        self.directory = directory
+        self.identity = f'local:{self.name}@{entry["version"]}'
+        self.parameters = dict(entry.get('runtime', {}))
+
+    def _tokens(self, model, text):
+        with model.lock:
+            model.tokenizer.no_padding()
+            model.tokenizer.no_truncation()
+            return model.tokenizer.encode(text).ids
+
+    def _fit(self, model, premise, claim):
+        """Token ids of the prompt, shortening the premise around its middle until it fits."""
+        template = self.parameters['prompt']
+        limit = int(self.parameters.get('max_tokens', 1024))
+        ids = self._tokens(model, template.format(text1=premise, text2=claim))
+        while len(ids) > limit and len(premise) > self.MIN_PREMISE_CHARS:
+            keep = max(self.MIN_PREMISE_CHARS, int(len(premise) * min(0.9, limit / len(ids) * 0.97)))
+            cut = (len(premise) - keep) // 2
+            premise = premise[cut : cut + keep]
+            ids = self._tokens(model, template.format(text1=premise, text2=claim))
+        return ids[:limit] if len(ids) > limit else ids
+
+    def score(self, pairs):
+        pairs = list(pairs)
+        if any(not isinstance(p, str) or not isinstance(c, str) for p, c in pairs):
+            raise ByaxError('invalid_input', 'Entailment text must be a string')
+        if not pairs:
+            return []
+        model = load(self.name, catalogue=self.catalogue, directory=self.directory)
+        _, _, np = runtime()
+        pad = int(self.parameters.get('pad_token_id', 0))
+        encoded = [self._fit(model, premise, claim) for premise, claim in pairs]
+        order = sorted(range(len(encoded)), key=lambda i: len(encoded[i]))
+        result = [0.0] * len(encoded)
+        for start in range(0, len(order), self.batch):
+            indices = order[start : start + self.batch]
+            length = max(len(encoded[i]) for i in indices)
+            ids = np.full((len(indices), length), pad, dtype=np.int64)
+            mask = np.zeros((len(indices), length), dtype=np.int64)
+            for row, i in enumerate(indices):
+                ids[row, : len(encoded[i])] = encoded[i]
+                mask[row, : len(encoded[i])] = 1
+            logits = model.session.run(None, {'input_ids': ids, 'attention_mask': mask})[0]
+            logits = np.asarray(logits, dtype=np.float64).reshape(len(indices), -1)[:, :2]
+            logits = logits - logits.max(axis=1, keepdims=True)
+            probabilities = np.exp(logits)
+            probabilities = probabilities[:, 1] / probabilities.sum(axis=1)
+            for row, i in enumerate(indices):
+                result[i] = float(probabilities[row])
+        return result
+
+
+def load_entailer(name=None, *, catalogue=None, directory=None):
+    """The entailment scorer for a catalogue model; the model loads (and is verified) on the first score."""
+    return EntailmentScorer(name, catalogue=catalogue, directory=directory)

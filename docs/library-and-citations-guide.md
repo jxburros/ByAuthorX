@@ -196,8 +196,8 @@ second transmission.
 | `unanchored` | The cited source text is not available, or was not found again after the source changed |
 | `unverified` | The ID was not supplied with the request |
 
-Stage 2 (local entailment) plugs into the same cascade later (`grounding.register_stage`);
-until then a request for it is reported as `not_run`. Stage 3 is the optional judge
+Stage 2 is the on-device [support check](#support-check-stage-2) (`grounding.register_stage('entailment', ...)`);
+a request for it without the model is reported as `not_run`. Stage 3 is the optional judge
 ([below](#optional-judge-stage-3)). Support for a paraphrase is never inferred from word
 overlap. `grounding.split_claims(text)` splits a reply into sentences and clauses (with
 exact offsets) for the model-based stages: abbreviations such as `Dr.`, `e.g.`, `et al.`,
@@ -266,6 +266,101 @@ Rendered output (exports, compile, print) is unchanged unless you set
 `settings.citations.annotate_superseded` to `true`; then citations whose source records
 `superseded_by` get " (cites an earlier version)" after the rendered citation or note.
 
+## Support check (stage 2)
+
+A paraphrase cannot be verified by looking for its words, so stage 1 leaves it `not_checkable`. Stage 2 reads
+the claim and the text it cites with a small model that runs **on this computer** and answers in three
+categories, never as a number:
+
+| Category | Meaning | Underline |
+| --- | --- | --- |
+| `supported` | The cited text states what the claim says | solid underline, `[✓]` |
+| `partial` | Part of the claim is in the cited text and part is not, or the evidence is only middling | solid underline, `[~]` |
+| `unsupported` | The cited text does not state the claim (it is absent or contradicted) | solid underline, `[!]` |
+
+It is **advisory and off until you ask for it**. The glyph after each underlined claim and the hover card carry the
+meaning, so colour is never the only signal; the transcript also lists every checked claim in words. It applies to:
+
+- **Assistant replies and proposed edits** (AI tab). Tick **Check claims against their sources**; each cited claim is
+  underlined, and a suggested edit's cited text is checked the same way (the edit itself is not changed). The box is
+  disabled, with the reason as its tooltip, until the model is installed.
+- **Your own paraphrase citations**: `byax check --citations --entailment`, MCP `byax_check`
+  (`citations: true, entailment: true`), REST, or Checks tab → **Paraphrase support (on-device)**. Quotations are settled
+  by stage 1 and skipped; so is a paraphrase of a source that changed since it was cited (review that first). The cited
+  text is the chunk(s) the citation's locator names, or the reference's own excerpt; a locator too wide to find the
+  passage is reported as `not_run` with the reason rather than guessed.
+- `byax verify-citations --reply TEXT --entailment` returns the same records for a reply you supply.
+
+**How a claim is judged.** The claim is split into sentences and clauses (`grounding.split_claims`; pieces under three
+words are not scored). Each piece is scored against the cited text (the whole chunk, or about 3,500 characters around the
+cited span) by the model; a piece at or above the model's `supported_at` threshold is supported, at or below
+`unsupported_at` unsupported, and between them partial. A claim is supported only if every piece is, unsupported only if
+none is, and partial otherwise. The thresholds (0.80 and 0.65) were chosen on the development half of the labelled set
+so that at most 15% of unsupported claims are called supported; they are stored with the model in the catalogue. Stage 2
+abstains where stage 1 already decided (a quotation, or a claim that repeats the source nearly verbatim) and its result
+is the record's state afterwards, so the optional judge only sees what remains partial or unsupported.
+
+**The model.** `hhem-2.1-open-int8` is the project's ONNX build of Vectara's HHEM-2.1-Open (a FLAN-T5-base classifier;
+English only), listed in the model catalogue like the search models. It is an optional download (167 MB,
+**Tools → On-device search…** or `byax models --action download --name hhem-2.1-open-int8`), is not part of the
+standard installer, and nothing is sent about your writing when you use it. Without `byauthorx[local-models]` or without the
+model the check is reported as `not_run` with the remedy, and the command-line audit refuses with that message; an
+assistant reply is returned as usual with a note. The catalogue records its licence and sources:
+
+| | |
+| --- | --- |
+| Licence | Apache-2.0: `license: apache-2.0` in the model card front matter of `vectara/hallucination_evaluation_model` and of its base `google/flan-t5-base`, read 17 October 2026. The upstream repository carries no separate LICENSE file; the card is the primary statement. Bespoke-MiniCheck is excluded (non-commercial) |
+| Upstream | `vectara/hallucination_evaluation_model` at `de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8`, tokenizer from `google/flan-t5-base` at `7bcac572ce56db69c1ea7c8af255c5d7c9672fc2` |
+| `trust_remote_code` | Not needed. Upstream is a thin custom wrapper around the stock `T5ForTokenClassification`; the export rebuilds that module from the pinned FLAN-T5 configuration, loads the upstream weights into it and exports the encoder with its two-way head. At run time only `onnxruntime` and `tokenizers` are used |
+| Existing ONNX | A third-party export exists on Hugging Face (`FamiliarTools/HHEM-2.1-Open-onnx`, float32, 419 MB, Apache-2.0); it is not used, because the catalogue pins files the project can reproduce and mirror |
+| Size and bundling | 167 MB with 8-bit weights (float32 is 439 MB). Not bundled: with the embedder and the small reranker the bundled models would come to about 885 MiB, past the 800 MiB budget the catalogue test enforces, and the agreement below does not justify the extra size. `bundled: false` |
+| Download | `mirror_only`: the file is served from the `models-v1` mirror release (`hhem-2.1-open-int8__model.onnx`), which the maintainer populates. Until then `download` explains this and refuses; there is no upstream copy to fetch |
+
+**Rebuilding the file** (maintainer; nothing is committed): `scripts/export_hhem_onnx.py` documents the exact recipe
+(Python 3.12, torch 2.14.1 CPU, transformers 4.57.6, onnx 1.23.2, onnxruntime 1.31.0, onnxscript 0.7.2) and prints
+SHA-256 values. It checks the float32 export against the model card's seven published scores (maximum difference 0.0000)
+and quantizes with dynamic 8-bit weights **except the twelve feed-forward output projections**: quantizing those too
+clips T5's large activations and loses ordering (supported-versus-rest AUC 0.900 instead of 0.948 on the labelled set;
+26 of 244 verdicts at 0.5 differ from float32), while excluding them gives 0.948 with 5 differing. The expected result is
+`model.onnx` 166,804,567 bytes, SHA-256 `8ac275e8177561ed5d94ef836b83931738d39945f4275b1b179e35f478050dbe`, which
+is what the catalogue pins (two runs on the build machine produced identical bytes; a different CPU or library version may not,
+in which case update the pin). Upload it under the catalogue's `mirror_asset` name together with the model cards, set
+`mirror.populated` to `true` for the release, and check with `scripts/build_model_catalogue.py --check`.
+
+### How well it agrees with people
+
+`tests/fixtures/entailment/pairs.json` holds **244 claim/source pairs written and labelled by hand** (103 supported, 59
+partial, 82 unsupported) over 8 research passages written for the set, passages of *Pride and Prejudice* (chapters I-VI,
+public domain) and the synthetic manuscript used by the router benchmark. Odd pair ids are the development half
+(where the thresholds were chosen); even ids are held out. `scripts/entailment_benchmark.py` reproduces
+[`docs/benchmarks/0.4-entailment.json`](benchmarks/0.4-entailment.json); `pytest -m eval_models` with
+`BYAX_REAL_MODELS_DIR` set re-measures it. Measured on a 4-core 2.1 GHz Xeon, one thread:
+
+| | Held out (122 pairs) | All (244 pairs) |
+| --- | --- | --- |
+| Three-way agreement with the human label | **73.8%** | 73.8% |
+| Called `supported`: was supported (precision) | 90.7% | 88.2% |
+| Supported claims found (recall) | 81.2% | 79.6% |
+| **Unsupported claims called `supported`** | **4.5%** | **8.5%** |
+| Partly or un-supported claims called `supported` | 5.4% | 7.8% |
+| `partial`: precision / recall | 54% / 43% | 60% / 54% |
+| `unsupported`: precision / recall | 69% / 86% | 67% / 80% |
+
+Latency is about 0.17 s per claim at the median and 0.45 s at the 95th percentile (the benchmark file records the run;
+it includes a whole-claim pass the shipped method does not need, and repeated runs vary by about a third). The float32 build agrees to within
+a point (73.0% held out), so the 8-bit file costs nothing measurable. Scoring the whole claim instead of its pieces
+reaches 64.8% held out and finds only 9% of the partial claims; splitting is what makes the middle category usable. Raising `supported_at` trades
+recall for fewer false `supported` (at 0.90: 68% of supported claims found, 3.7% of unsupported called supported); the
+benchmark file lists the operating points.
+
+How to read this honestly: **an underline is a pointer to reread, not a verdict.** A `supported` is right about nine
+times in ten and misses one supported claim in five; `partial` is the weakest category and the model is least reliable
+on claims that mix a true part with a contradicted one (39% agreement) or that add a detail the source does not give
+(63%). The set is small, written by the project in one style (paraphrase, contradiction, swapped roles, added detail),
+English only, and its passages are short; real model output and long chunks may behave differently. Because the
+agreement is modest, the stage ships **off by default**, behind an explicit tick or flag, labelled advisory, and
+out of the standard installer.
+
 ## Optional judge (stage 3)
 
 Some citations the deterministic stages cannot settle: a paraphrase (`not_checkable`), a near
@@ -284,7 +379,8 @@ two-sentence reason. It is off unless you name a provider, and:
   because the cited text is sent. Text from a `local_only` library never goes to a remote
   judge; an unknown library policy is treated the same way. A local (loopback) judge needs
   neither. `--authorize` on the CLI stands for both approvals for that run. MCP and REST refuse
-  `judge`.
+  `judge`. When the support check ran first, the judge sees only what it left `partial` or
+  `unsupported`.
 - **The claim and the source are data.** Both are framed in provenance delimiters and the judge is
   told to ignore any instruction inside them. The answer must be one JSON object; anything else is
   recorded as `not_run`, never guessed. Percentages are not requested and are removed from the
@@ -648,8 +744,9 @@ also apply. No performance numbers are claimed without reference-hardware measur
 
 The first-release keyword library, citation and context/review paths are implemented.
 Configured embeddings and hybrid ranking (chosen automatically when a library has vectors)
-are available, with on-device embedding and reranking as described above. Optional downloadable
-weights (and the local entailment model, cascade stage 2) remain future capabilities. Outside DOI lookup,
+are available, with on-device embedding and reranking as described above. The local entailment
+model (cascade stage 2) is an optional download whose measured agreement is published (see
+[Support check](#support-check-stage-2)). Outside DOI lookup,
 the Zotero local API, RIS exchange, extra CSL styles, excerpts and the optional judge are described
 above. PDFs require an extractable
 text layer; OCR is not included. Citation processing dependency licenses are recorded
@@ -770,7 +867,7 @@ labels from real use yet.
 
 The **What the AI saw** panel in the AI tab shows, for each request: the route and reason
 (and any escalation); every pinned and retrieved item with its token estimate, score source
-(`bm25`, `vector`, `rrf`, `rerank`, `codex`, `structure`, `term count` for the in-memory search of an
+(`bm25`, `vector`, `rrf`, `rerank`, `llm-rerank`, `codex`, `structure`, `term count` for the in-memory search of an
 unsaved document, `neighbour` for `read_range` blocks), library, and whether it stays on this
 computer, is sent to the named remote model, or is a local-only source; the model and whether it is
 local; prompt-cache reads and writes once the provider reports them; the estimated cost from the
@@ -786,11 +883,45 @@ approval dialog, and remote payloads through payload authorization, exactly as b
 `byax_route`.
 
 For R2 and R3 requests the research log records each query with its arguments and candidate count,
-what was reranked (reciprocal-rank fusion across queries plus the R-meta boosts; no reranking model
-is installed yet), what was kept and dropped and why, and, after the reply, which kept items it
+what was reranked (reciprocal-rank fusion across queries plus the R-meta boosts, and the optional
+[LLM reranker](#optional-llm-reranker-for-thematic-searches) when you enabled it), what was kept and dropped and why, and, after the reply, which kept items it
 cited (PRISMA-style: queries → candidates → reranked → kept → cited). **Export conversation…** saves
 the conversation with each request's route, item list and research log as Markdown or JSON
 (`byax.research_log.export_conversation`).
+
+## Optional LLM reranker for thematic searches
+
+The on-device rerankers (Accurate search) order passages by how well they match the words and meaning of the
+question. For a *thematic* question ("how does the book treat grief?", "what does the brass key represent?") a language
+model reading a dozen short candidates often does better, so the R3 loop can offer it. It is off unless you ask, and
+it changes only the order of what the loop already found:
+
+- **Only when you enable it and the request is thematic.** `byax route PATH --request TEXT --inspect --llm-rerank ALIAS`
+  (library: `context_assembly.assemble(..., llm_reranker=llm_rerank.make_reranker(registry, alias))`) passes a reranker to
+  the router. R3 uses it for a request that `llm_rerank.classify` calls thematic: it names a theme, motif, symbol,
+  metaphor or what something represents, or uses a word such as explore, portray, tension or recurring in a request that
+  does not open as a factual question (who, where, when, which, list, find, quote). A request for a count or the exact
+  words is never thematic. R2 and the other routes never use it. The rule is conservative on purpose: a request it
+  misses just keeps the local ranking.
+- **Your provider, your consent.** The model is a provider alias you configured; a local (loopback) model is first-class
+  and needs no consent. A remote one needs this run's authorization (or the saved remote policy on the alias), as for any
+  other request, and the `library_passages` permission before a library candidate is sent; otherwise only manuscript
+  candidates are. Candidates from a `local_only` library are never sent to a remote model. A candidate that is not sent
+  keeps its place in the order. `--authorize` stands for both approvals for that run. MCP and REST refuse `llm_rerank`,
+  because it sends text to a model; `route --inspect` without it still never calls one.
+- **Data, not instructions, and only an order.** The question and each candidate (cut to 700 characters) go in
+  provenance delimiters with an instruction to ignore anything inside them. The model must return a JSON list of
+  candidate numbers; anything else, or a provider failure, leaves the order unchanged and says why. At most the top 12
+  fused hits are offered (`depth`, 2 to 30).
+- **Inspectable.** Reordered rows carry `rerank_source: "llm-rerank"` and the model's identity; the inspector shows
+  `llm-rerank` as the score source. The research log records an `llm_rerank` step (the model, why the request was
+  thematic, how many candidates were sent and how many withheld, or why it was skipped or failed), and the reranking
+  line reads "rrf across queries + llm-rerank:ALIAS:MODEL". The route result adds `llm_rerank` with the same
+  counts. The reply is not graded by it: the alias may be the one that answers.
+
+There is no number to trust here: the model's order is a judgement, and it is not part of the retrieval benchmarks (they
+measure the local tier). `tests/test_llm_rerank.py` uses a fake provider. The desktop does not offer it yet:
+assembling the request runs on the interface thread, and a provider call must not.
 
 ## Chapter summaries
 

@@ -63,8 +63,9 @@ testpaths = ["tests"]
 markers = [
     "languagetool: needs a local LanguageTool server; set BYAX_LANGUAGETOOL_URL (for example http://127.0.0.1:8081)",
     "live: makes real requests to Crossref, DataCite, OpenAlex or the Wayback Machine; deselected by default, run with -m live",
+    "eval_models: runs real on-device models and needs them installed (BYAX_REAL_MODELS_DIR); deselected by default, run with -m eval_models",
 ]
-addopts = "-m 'not live'"
+addopts = "-m 'not live and not eval_models'"
 
 [tool.ruff]
 line-length = 110
@@ -74,7 +75,7 @@ quote-style = "single"
 
 [tool.mypy]
 python_version = "3.11"
-files = ["src/byax/engine.py", "src/byax/storage.py", "src/byax/cli.py", "src/byax/service.py", "src/byax/mcp.py", "src/byax/transport_policy.py", "src/byax/citations.py", "src/byax/project.py", "src/byax/grammar.py", "src/byax/language_packs.py", "src/byax/compile.py", "src/byax/project_index.py", "src/byax/codex.py", "src/byax/series.py", "src/byax/cli_codex.py", "src/byax/local_models.py", "src/byax/local_inference.py", "src/byax/vector_store.py", "src/byax/contextual.py", "src/byax/provenance.py", "src/byax/disclosure.py", "src/byax/version_pins.py", "src/byax/continuity.py", "src/byax/cli_provenance.py"]
+files = ["src/byax/engine.py", "src/byax/storage.py", "src/byax/cli.py", "src/byax/service.py", "src/byax/mcp.py", "src/byax/transport_policy.py", "src/byax/citations.py", "src/byax/project.py", "src/byax/grammar.py", "src/byax/language_packs.py", "src/byax/compile.py", "src/byax/project_index.py", "src/byax/codex.py", "src/byax/series.py", "src/byax/cli_codex.py", "src/byax/local_models.py", "src/byax/local_inference.py", "src/byax/vector_store.py", "src/byax/contextual.py", "src/byax/provenance.py", "src/byax/disclosure.py", "src/byax/version_pins.py", "src/byax/continuity.py", "src/byax/cli_provenance.py", "src/byax/grounding_entailment.py", "src/byax/llm_rerank.py"]
 follow_imports = "silent"
 ignore_missing_imports = true
 check_untyped_defs = false

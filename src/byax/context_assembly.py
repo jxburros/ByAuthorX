@@ -465,6 +465,7 @@ def assemble(
     project_index=None,
     planner=None,
     libraries=None,
+    llm_reranker=None,
 ):
     """Route one assistant request and assemble its context within the model's token budget.
 
@@ -474,7 +475,8 @@ def assemble(
     'items', 'dropped', 'retrieval', 'research_log', 'abstain', 'tokens', 'provider', 'base'}``:
     ``context`` is ready for ``ProviderRegistry.chat`` and redacted for codex entries hidden from AI;
     ``provider`` is the alias to send to (a local model when the privacy rule switched to one).
-    Nothing is sent; only local indexes are read.
+    Nothing is sent; only local indexes are read, except by an ``llm_reranker`` the caller built after the
+    writer opted in (:mod:`byax.llm_rerank`).
     """
     from . import router
     from .codex import redact_for_ai
@@ -521,6 +523,7 @@ def assemble(
         project_index=project_index,
         planner=planner,
         context_limit=min(tokens_to_chars(budget.tokens), budget.chars),
+        llm_reranker=llm_reranker,
     )
     base = redact_for_ai(doc, gathered['base'])
     conversation = [*(messages or []), {'role': 'user', 'content': request}]

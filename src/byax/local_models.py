@@ -31,7 +31,7 @@ CHUNK = 1 << 20
 MAX_REDIRECTS = 5
 # Loopback hosts may use plain http so tests can serve fixtures; everything else must be https.
 LOOPBACK = ('127.0.0.1', 'localhost', '::1')
-KINDS = ('embedder', 'reranker', 'layout')
+KINDS = ('embedder', 'reranker', 'layout', 'entailment')
 SOURCES = ('auto', 'mirror', 'upstream')
 RERANK_MODES = ('fast', 'accurate')
 DEFAULT_RERANK_DEPTH = 40
@@ -39,6 +39,7 @@ MAX_RERANK_DEPTH = 100
 PROMPT = 'Enable on-device semantic search? Nothing leaves this computer.'
 DEFAULT_EMBEDDER = 'qwen3-embedding-0.6b-int8'
 DEFAULT_RERANKER = 'answerai-colbert-small-v1'
+DEFAULT_ENTAILER = 'hhem-2.1-open-int8'
 OPT_IN_NOTE = (
     'Downloaded only on your request. Nothing is sent about your writing; only the model files are fetched.'
 )
@@ -309,6 +310,15 @@ def download_plan(name, *, source='auto', catalogue=None, directory=None):
     catalogue = catalogue or load_catalogue()
     model = get_model(name, catalogue)
     chosen = resolve_source(catalogue, source)
+    if chosen == 'upstream' and any(item.get('mirror_only') for item in model['files']):
+        # Our own export (for example the ONNX build of HHEM-2.1-Open) has no upstream copy to fetch.
+        _error(
+            'unsupported_feature',
+            f'{name} is published only on the project model mirror, which has not been populated yet. '
+            'The maintainer can rebuild it with scripts/export_hhem_onnx.py (see docs/library-and-citations-guide.md)',
+            name=name,
+            release=catalogue['mirror'].get('release_tag'),
+        )
     target = (Path(directory) if directory else models_dir()) / name
     status = model_status(name, catalogue=catalogue, directory=directory)
     files = [
@@ -642,6 +652,7 @@ def load_settings(config_dir=None):
         'reranker': DEFAULT_RERANKER,
         'rerank_depth': DEFAULT_RERANK_DEPTH,
         'embedder': DEFAULT_EMBEDDER,
+        'entailer': DEFAULT_ENTAILER,
     }
     try:
         stored = json.loads(settings_path(config_dir).read_text(encoding='utf-8'))
@@ -655,8 +666,14 @@ def load_settings(config_dir=None):
 def save_settings(values, config_dir=None, *, catalogue=None):
     from .providers import _atomic_json
 
-    if not isinstance(values, dict) or set(values) - {'rerank', 'reranker', 'rerank_depth', 'embedder'}:
-        _error('invalid_input', 'Settings accept rerank, reranker, rerank_depth and embedder')
+    if not isinstance(values, dict) or set(values) - {
+        'rerank',
+        'reranker',
+        'rerank_depth',
+        'embedder',
+        'entailer',
+    }:
+        _error('invalid_input', 'Settings accept rerank, reranker, rerank_depth, embedder and entailer')
     settings = load_settings(config_dir)
     settings.update(values)
     if settings['rerank'] not in RERANK_MODES:
@@ -664,7 +681,7 @@ def save_settings(values, config_dir=None, *, catalogue=None):
     depth = settings['rerank_depth']
     if type(depth) is not int or not 5 <= depth <= MAX_RERANK_DEPTH:
         _error('invalid_input', f'rerank_depth must be between 5 and {MAX_RERANK_DEPTH}')
-    for key, kind in (('reranker', 'reranker'), ('embedder', 'embedder')):
+    for key, kind in (('reranker', 'reranker'), ('embedder', 'embedder'), ('entailer', 'entailment')):
         if get_model(settings[key], catalogue)['kind'] != kind:
             _error('invalid_input', f'{key} must name a catalogue {kind}', name=settings[key])
     _atomic_json(settings_path(config_dir), settings)
@@ -815,13 +832,22 @@ def models_command(a, owner=None):
     if not name:
         _error('invalid_input', f'models --action {action} requires --name', field='name')
     if action == 'status':
+        try:
+            plan, unavailable = (
+                download_plan(name, source=a.get('source', 'auto'), catalogue=catalogue, directory=directory),
+                None,
+            )
+        except ByaxError as exc:
+            if exc.code != 'unsupported_feature':
+                raise
+            # A model published only on the (not yet populated) mirror has no download to plan yet.
+            plan, unavailable = None, exc.message
         return envelope(
             {
                 'runtime': runtime,
                 'model': model_status(name, catalogue=catalogue, directory=directory),
-                'plan': download_plan(
-                    name, source=a.get('source', 'auto'), catalogue=catalogue, directory=directory
-                ),
+                'plan': plan,
+                **({'plan_unavailable': unavailable} if unavailable else {}),
             }
         )
     if action == 'download':

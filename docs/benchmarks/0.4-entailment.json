@@ -1,0 +1,739 @@
+{
+  "benchmark": "entailment agreement with human labels",
+  "plan": "context-engine-plan.md section 9 (Phase 5), exit criterion",
+  "date": "2026-10-17",
+  "model": {
+    "name": "hhem-2.1-open-int8",
+    "version": "1",
+    "upstream": {
+      "model": "vectara/hallucination_evaluation_model",
+      "export": "vectara/hallucination_evaluation_model",
+      "revision": "de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8",
+      "url": "https://huggingface.co/vectara/hallucination_evaluation_model/tree/de9a5e6ba9ba49531a022dba17e35ffeb2a6fad8",
+      "export_recipe": "scripts/export_hhem_onnx.py"
+    },
+    "size_bytes": 169257809,
+    "model_sha256": "8ac275e8177561ed5d94ef836b83931738d39945f4275b1b179e35f478050dbe"
+  },
+  "hardware": {
+    "cpu": "Intel(R) Xeon(R) Processor @ 2.10GHz",
+    "logical_cores": 4,
+    "platform": "Linux-6.18.44-fc-v139-x86_64-with-glibc2.39",
+    "python": "3.13.16"
+  },
+  "fixture": {
+    "file": "tests/fixtures/entailment/pairs.json",
+    "pairs": 244,
+    "counts": {
+      "supported": 103,
+      "partial": 59,
+      "unsupported": 82
+    },
+    "sources": 28,
+    "split": "odd pair ids are the development half (thresholds chosen there); even ids are held out"
+  },
+  "labels": {
+    "supported": "the source states what the claim says (paraphrase or direct consequence)",
+    "partial": "part of the claim is stated and another substantive part is not (extra, stronger or contradicted)",
+    "unsupported": "no substantive part of the claim is stated by the source, even if it is true elsewhere"
+  },
+  "selected_on_development": {
+    "supported_at": 0.8,
+    "unsupported_at": 0.65,
+    "method": "pieces"
+  },
+  "shipped_thresholds": {
+    "supported_at": 0.8,
+    "unsupported_at": 0.65,
+    "method": "pieces"
+  },
+  "shipped": {
+    "development": {
+      "pairs": 122,
+      "accuracy": 0.738,
+      "macro_f1": 0.722,
+      "per_class": {
+        "supported": {
+          "precision": 0.86,
+          "recall": 0.782,
+          "support": 55
+        },
+        "partial": {
+          "precision": 0.655,
+          "recall": 0.655,
+          "support": 29
+        },
+        "unsupported": {
+          "precision": 0.651,
+          "recall": 0.737,
+          "support": 38
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 43,
+          "partial": 5,
+          "unsupported": 7
+        },
+        "partial": {
+          "supported": 2,
+          "partial": 19,
+          "unsupported": 8
+        },
+        "unsupported": {
+          "supported": 5,
+          "partial": 5,
+          "unsupported": 28
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.132,
+        "not_fully_supported_called_supported": 0.104
+      },
+      "supported_vs_rest": {
+        "precision": 0.86,
+        "recall": 0.782
+      }
+    },
+    "held_out": {
+      "pairs": 122,
+      "accuracy": 0.738,
+      "macro_f1": 0.702,
+      "per_class": {
+        "supported": {
+          "precision": 0.907,
+          "recall": 0.812,
+          "support": 48
+        },
+        "partial": {
+          "precision": 0.542,
+          "recall": 0.433,
+          "support": 30
+        },
+        "unsupported": {
+          "precision": 0.691,
+          "recall": 0.864,
+          "support": 44
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 39,
+          "partial": 7,
+          "unsupported": 2
+        },
+        "partial": {
+          "supported": 2,
+          "partial": 13,
+          "unsupported": 15
+        },
+        "unsupported": {
+          "supported": 2,
+          "partial": 4,
+          "unsupported": 38
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.045,
+        "not_fully_supported_called_supported": 0.054
+      },
+      "supported_vs_rest": {
+        "precision": 0.907,
+        "recall": 0.812
+      }
+    },
+    "all": {
+      "pairs": 244,
+      "accuracy": 0.738,
+      "macro_f1": 0.714,
+      "per_class": {
+        "supported": {
+          "precision": 0.882,
+          "recall": 0.796,
+          "support": 103
+        },
+        "partial": {
+          "precision": 0.604,
+          "recall": 0.542,
+          "support": 59
+        },
+        "unsupported": {
+          "precision": 0.673,
+          "recall": 0.805,
+          "support": 82
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 82,
+          "partial": 12,
+          "unsupported": 9
+        },
+        "partial": {
+          "supported": 4,
+          "partial": 32,
+          "unsupported": 23
+        },
+        "unsupported": {
+          "supported": 7,
+          "partial": 9,
+          "unsupported": 66
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.085,
+        "not_fully_supported_called_supported": 0.078
+      },
+      "supported_vs_rest": {
+        "precision": 0.882,
+        "recall": 0.796
+      }
+    },
+    "by_kind": {
+      "absent": {
+        "pairs": 10,
+        "agree": 9,
+        "agreement": 0.9
+      },
+      "contradicted part": {
+        "pairs": 18,
+        "agree": 7,
+        "agreement": 0.389
+      },
+      "contradiction": {
+        "pairs": 66,
+        "agree": 53,
+        "agreement": 0.803
+      },
+      "extra detail": {
+        "pairs": 38,
+        "agree": 24,
+        "agreement": 0.632
+      },
+      "inference": {
+        "pairs": 3,
+        "agree": 1,
+        "agreement": 0.333
+      },
+      "overstatement": {
+        "pairs": 3,
+        "agree": 1,
+        "agreement": 0.333
+      },
+      "paraphrase": {
+        "pairs": 95,
+        "agree": 77,
+        "agreement": 0.811
+      },
+      "role swap": {
+        "pairs": 6,
+        "agree": 4,
+        "agreement": 0.667
+      },
+      "verbatim": {
+        "pairs": 5,
+        "agree": 4,
+        "agreement": 0.8
+      }
+    },
+    "disagreements": 64
+  },
+  "operating_points": [
+    {
+      "supported_at": 0.5,
+      "unsupported_at": 0.5,
+      "held_out": {
+        "accuracy": 0.77,
+        "supported_recall": 0.938,
+        "supported_precision": 0.818,
+        "unsupported_called_supported": 0.159
+      },
+      "all": {
+        "accuracy": 0.762,
+        "supported_recall": 0.922,
+        "supported_precision": 0.779,
+        "unsupported_called_supported": 0.232
+      }
+    },
+    {
+      "supported_at": 0.6,
+      "unsupported_at": 0.5,
+      "held_out": {
+        "accuracy": 0.779,
+        "supported_recall": 0.938,
+        "supported_precision": 0.849,
+        "unsupported_called_supported": 0.136
+      },
+      "all": {
+        "accuracy": 0.766,
+        "supported_recall": 0.913,
+        "supported_precision": 0.81,
+        "unsupported_called_supported": 0.195
+      }
+    },
+    {
+      "supported_at": 0.7,
+      "unsupported_at": 0.5,
+      "held_out": {
+        "accuracy": 0.762,
+        "supported_recall": 0.896,
+        "supported_precision": 0.843,
+        "unsupported_called_supported": 0.136
+      },
+      "all": {
+        "accuracy": 0.75,
+        "supported_recall": 0.854,
+        "supported_precision": 0.822,
+        "unsupported_called_supported": 0.183
+      }
+    },
+    {
+      "supported_at": 0.8,
+      "unsupported_at": 0.5,
+      "held_out": {
+        "accuracy": 0.73,
+        "supported_recall": 0.812,
+        "supported_precision": 0.907,
+        "unsupported_called_supported": 0.045
+      },
+      "all": {
+        "accuracy": 0.725,
+        "supported_recall": 0.796,
+        "supported_precision": 0.882,
+        "unsupported_called_supported": 0.085
+      }
+    },
+    {
+      "supported_at": 0.9,
+      "unsupported_at": 0.5,
+      "held_out": {
+        "accuracy": 0.689,
+        "supported_recall": 0.688,
+        "supported_precision": 0.943,
+        "unsupported_called_supported": 0.023
+      },
+      "all": {
+        "accuracy": 0.689,
+        "supported_recall": 0.68,
+        "supported_precision": 0.946,
+        "unsupported_called_supported": 0.037
+      }
+    },
+    {
+      "supported_at": 0.95,
+      "unsupported_at": 0.5,
+      "held_out": {
+        "accuracy": 0.639,
+        "supported_recall": 0.542,
+        "supported_precision": 1.0,
+        "unsupported_called_supported": 0.0
+      },
+      "all": {
+        "accuracy": 0.619,
+        "supported_recall": 0.505,
+        "supported_precision": 0.981,
+        "unsupported_called_supported": 0.012
+      }
+    }
+  ],
+  "whole_claim_same_model": {
+    "selected_on_development": {
+      "supported_at": 0.8,
+      "unsupported_at": 0.55,
+      "method": "whole"
+    },
+    "development": {
+      "pairs": 122,
+      "accuracy": 0.623,
+      "macro_f1": 0.547,
+      "per_class": {
+        "supported": {
+          "precision": 0.878,
+          "recall": 0.782,
+          "support": 55
+        },
+        "partial": {
+          "precision": 0.294,
+          "recall": 0.172,
+          "support": 29
+        },
+        "unsupported": {
+          "precision": 0.5,
+          "recall": 0.737,
+          "support": 38
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 43,
+          "partial": 7,
+          "unsupported": 5
+        },
+        "partial": {
+          "supported": 1,
+          "partial": 5,
+          "unsupported": 23
+        },
+        "unsupported": {
+          "supported": 5,
+          "partial": 5,
+          "unsupported": 28
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.132,
+        "not_fully_supported_called_supported": 0.09
+      },
+      "supported_vs_rest": {
+        "precision": 0.878,
+        "recall": 0.782
+      }
+    },
+    "held_out": {
+      "pairs": 122,
+      "accuracy": 0.648,
+      "macro_f1": 0.519,
+      "per_class": {
+        "supported": {
+          "precision": 0.891,
+          "recall": 0.854,
+          "support": 48
+        },
+        "partial": {
+          "precision": 0.0,
+          "recall": 0.0,
+          "support": 30
+        },
+        "unsupported": {
+          "precision": 0.567,
+          "recall": 0.864,
+          "support": 44
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 41,
+          "partial": 5,
+          "unsupported": 2
+        },
+        "partial": {
+          "supported": 3,
+          "partial": 0,
+          "unsupported": 27
+        },
+        "unsupported": {
+          "supported": 2,
+          "partial": 4,
+          "unsupported": 38
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.045,
+        "not_fully_supported_called_supported": 0.068
+      },
+      "supported_vs_rest": {
+        "precision": 0.891,
+        "recall": 0.854
+      }
+    },
+    "all": {
+      "pairs": 244,
+      "accuracy": 0.635,
+      "macro_f1": 0.537,
+      "per_class": {
+        "supported": {
+          "precision": 0.884,
+          "recall": 0.816,
+          "support": 103
+        },
+        "partial": {
+          "precision": 0.192,
+          "recall": 0.085,
+          "support": 59
+        },
+        "unsupported": {
+          "precision": 0.537,
+          "recall": 0.805,
+          "support": 82
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 84,
+          "partial": 12,
+          "unsupported": 7
+        },
+        "partial": {
+          "supported": 4,
+          "partial": 5,
+          "unsupported": 50
+        },
+        "unsupported": {
+          "supported": 7,
+          "partial": 9,
+          "unsupported": 66
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.085,
+        "not_fully_supported_called_supported": 0.078
+      },
+      "supported_vs_rest": {
+        "precision": 0.884,
+        "recall": 0.816
+      }
+    },
+    "by_kind": {
+      "absent": {
+        "pairs": 10,
+        "agree": 9,
+        "agreement": 0.9
+      },
+      "contradicted part": {
+        "pairs": 18,
+        "agree": 1,
+        "agreement": 0.056
+      },
+      "contradiction": {
+        "pairs": 66,
+        "agree": 53,
+        "agreement": 0.803
+      },
+      "extra detail": {
+        "pairs": 38,
+        "agree": 4,
+        "agreement": 0.105
+      },
+      "inference": {
+        "pairs": 3,
+        "agree": 1,
+        "agreement": 0.333
+      },
+      "overstatement": {
+        "pairs": 3,
+        "agree": 0,
+        "agreement": 0.0
+      },
+      "paraphrase": {
+        "pairs": 95,
+        "agree": 79,
+        "agreement": 0.832
+      },
+      "role swap": {
+        "pairs": 6,
+        "agree": 4,
+        "agreement": 0.667
+      },
+      "verbatim": {
+        "pairs": 5,
+        "agree": 4,
+        "agreement": 0.8
+      }
+    },
+    "disagreements": 89
+  },
+  "latency_seconds_per_claim": {
+    "p50": 0.166,
+    "p95": 0.452,
+    "note": "one claim incl. its pieces and a whole-claim pass, one thread, premise up to 3500 characters"
+  },
+  "float32_reference": {
+    "model_bytes": 438796636,
+    "model_sha256": "5b20c9bd792b803c9f6e9a45522acf13999c1086b2c1af5fd0b7919a164e6ce2",
+    "development": {
+      "pairs": 122,
+      "accuracy": 0.738,
+      "macro_f1": 0.717,
+      "per_class": {
+        "supported": {
+          "precision": 0.915,
+          "recall": 0.782,
+          "support": 55
+        },
+        "partial": {
+          "precision": 0.6,
+          "recall": 0.621,
+          "support": 29
+        },
+        "unsupported": {
+          "precision": 0.644,
+          "recall": 0.763,
+          "support": 38
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 43,
+          "partial": 5,
+          "unsupported": 7
+        },
+        "partial": {
+          "supported": 2,
+          "partial": 18,
+          "unsupported": 9
+        },
+        "unsupported": {
+          "supported": 2,
+          "partial": 7,
+          "unsupported": 29
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.053,
+        "not_fully_supported_called_supported": 0.06
+      },
+      "supported_vs_rest": {
+        "precision": 0.915,
+        "recall": 0.782
+      }
+    },
+    "held_out": {
+      "pairs": 122,
+      "accuracy": 0.73,
+      "macro_f1": 0.696,
+      "per_class": {
+        "supported": {
+          "precision": 0.927,
+          "recall": 0.792,
+          "support": 48
+        },
+        "partial": {
+          "precision": 0.52,
+          "recall": 0.433,
+          "support": 30
+        },
+        "unsupported": {
+          "precision": 0.679,
+          "recall": 0.864,
+          "support": 44
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 38,
+          "partial": 8,
+          "unsupported": 2
+        },
+        "partial": {
+          "supported": 1,
+          "partial": 13,
+          "unsupported": 16
+        },
+        "unsupported": {
+          "supported": 2,
+          "partial": 4,
+          "unsupported": 38
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.045,
+        "not_fully_supported_called_supported": 0.041
+      },
+      "supported_vs_rest": {
+        "precision": 0.927,
+        "recall": 0.792
+      }
+    },
+    "all": {
+      "pairs": 244,
+      "accuracy": 0.734,
+      "macro_f1": 0.708,
+      "per_class": {
+        "supported": {
+          "precision": 0.92,
+          "recall": 0.786,
+          "support": 103
+        },
+        "partial": {
+          "precision": 0.564,
+          "recall": 0.525,
+          "support": 59
+        },
+        "unsupported": {
+          "precision": 0.663,
+          "recall": 0.817,
+          "support": 82
+        }
+      },
+      "confusion": {
+        "supported": {
+          "supported": 81,
+          "partial": 13,
+          "unsupported": 9
+        },
+        "partial": {
+          "supported": 3,
+          "partial": 31,
+          "unsupported": 25
+        },
+        "unsupported": {
+          "supported": 4,
+          "partial": 11,
+          "unsupported": 67
+        }
+      },
+      "false_positive_rate_supported": {
+        "unsupported_called_supported": 0.049,
+        "not_fully_supported_called_supported": 0.05
+      },
+      "supported_vs_rest": {
+        "precision": 0.92,
+        "recall": 0.786
+      }
+    },
+    "by_kind": {
+      "absent": {
+        "pairs": 10,
+        "agree": 9,
+        "agreement": 0.9
+      },
+      "contradicted part": {
+        "pairs": 18,
+        "agree": 7,
+        "agreement": 0.389
+      },
+      "contradiction": {
+        "pairs": 66,
+        "agree": 54,
+        "agreement": 0.818
+      },
+      "extra detail": {
+        "pairs": 38,
+        "agree": 23,
+        "agreement": 0.605
+      },
+      "inference": {
+        "pairs": 3,
+        "agree": 1,
+        "agreement": 0.333
+      },
+      "overstatement": {
+        "pairs": 3,
+        "agree": 1,
+        "agreement": 0.333
+      },
+      "paraphrase": {
+        "pairs": 95,
+        "agree": 76,
+        "agreement": 0.8
+      },
+      "role swap": {
+        "pairs": 6,
+        "agree": 4,
+        "agreement": 0.667
+      },
+      "verbatim": {
+        "pairs": 5,
+        "agree": 4,
+        "agreement": 0.8
+      }
+    },
+    "disagreements": 65
+  },
+  "decision": {
+    "default": "off",
+    "bundled": false,
+    "licence": "Apache-2.0 (model card front matter of vectara/hallucination_evaluation_model and google/flan-t5-base)",
+    "summary": "On the 122 held-out pairs the three-way verdict agrees with the human label 74% of the time (all 244 pairs: 74%). A claim called \"supported\" was supported 91% of the time (all pairs: 88%), and it found 81% of the supported ones. 4.5% of unsupported claims were called supported on the held-out half and 8.5% over all pairs. \"Partial\" is the weakest category (precision 54%, recall 43% held out). The stage ships advisory and off: it runs only when asked, the model is a separate download, and it is not part of the standard installer."
+  }
+}

@@ -67,7 +67,7 @@ Each release has two variants. Both contain the application, the CLI, the MCP se
 | **standard** | the lean tree plus the catalogue models marked `bundled`: Qwen3-Embedding-0.6B (int8, 625 MB) and answerai-colbert-small-v1 (134 MB), about 760 MB in all, under `models/` with `SHA256SUMS.txt` and the Apache-2.0 text | `byauthorx_<version>_amd64.deb`, `ByAuthorX-<version>-windows-x64-setup.exe` |
 | **lean** | no model files; a model is fetched only from the *On-device search* dialog or `byax models --action download` | `byauthorx-lean_<version>_amd64.deb`, `ByAuthorX-<version>-windows-x64-lean-setup.exe` |
 
-`SHA256SUMS.txt` on the GitHub Release covers every installer of both variants. The bge-reranker-v2-m3 (571 MB) and the Docling layout model (172 MB) are never bundled: bundling them as well would pass the 800 MB budget the plan sets, so they are installable on request. The smaller reranker is the bundled one until the retrieval harness shows the larger one earns its size.
+`SHA256SUMS.txt` on the GitHub Release covers every installer of both variants. The bge-reranker-v2-m3 (571 MB), the Docling layout model (172 MB) and the HHEM-2.1-Open entailment checker (167 MB) are never bundled: bundling them as well would pass the 800 MB budget the plan sets, so they are installable on request. The smaller reranker is the bundled one until the retrieval harness shows the larger one earns its size.
 
 ```bash
 uv sync --extra dev --extra local-models
@@ -87,11 +87,11 @@ The standard variant is built only from the project's own mirror, never from a t
 The release does not exist yet. To create it:
 
 1. `python scripts/build.py --models-help` prints every file, asset name, size and SHA-256.
-2. Download each file from its `url` in `src/byax/resources/models.json` (pinned to a commit) and check the SHA-256 (`python scripts/build_model_catalogue.py --check` verifies the pins against Hugging Face).
+2. Download each file from its `url` in `src/byax/resources/models.json` (pinned to a commit) and check the SHA-256 (`python scripts/build_model_catalogue.py --check` verifies the pins against Hugging Face). Files flagged `mirror_only` have no upstream copy: `hhem-2.1-open-int8__model.onnx` is the project's own ONNX build, produced by `scripts/export_hhem_onnx.py` (recipe and pinned library versions in its docstring). Run it, compare the printed size and SHA-256 with the catalogue (`166804567` bytes, `8ac275e8…`), and upload that file; if a different CPU or library version gives other bytes, update the pin in `scripts/build_model_catalogue.py`, rerun it and `scripts/entailment_benchmark.py --write docs/benchmarks/0.4-entailment.json`. Until the release is populated `byax models --action download --name hhem-2.1-open-int8` explains this and refuses.
 3. Create the GitHub Release `models-v1` in `jxburros/ByAuthorX`, upload each file under its `mirror_asset` name, add a `SHA256SUMS.txt` generated with `sha256sum` and each model's licence (Apache-2.0; the model cards `MODEL-CARD.md` are already files of the catalogue entries).
 4. Set `"populated": true` in the `mirror` section of `models.json` (and flip `test_the_shipped_catalogue_has_an_unpopulated_mirror...` in `tests/test_local_models.py`), commit, and tag a release. The next CI run builds both variants.
 
-Models are mirrored unchanged, so a mirror file's hash equals the upstream hash. Do not rename or re-export a file without updating the catalogue entry and `build_model_catalogue.py`.
+Models are mirrored unchanged, so a mirror file's hash equals the upstream hash, except for `mirror_only` files, whose hash is the one the catalogue pins for the project's own build. Do not rename or re-export a file without updating the catalogue entry and `build_model_catalogue.py`.
 
 ### Sizes
 
