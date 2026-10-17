@@ -642,7 +642,106 @@ def privacy():
     return s
 
 
-SHEETS = [proposals, share, book, ai, conflict, window, first_minutes, checks, formats, privacy]
+def context_flow():
+    s = Sheet('context-flow', '', 'Flowchart', 'What the assistant sees for each request',
+              'The context engine sends only what a question needs, says why, and lets you look.',
+              'The context engine flow: privacy first, then a route from your selection to the whole manuscript, then the What the AI saw panel.')
+    s.node('ask', 'box', 155, 560, 150, 110, 'You ask in the AI tab', key=True, size=20)
+    s.node('priv', 'box', 375, 560, 210, 150, 'Privacy first. Local-only sources stay out of remote requests.', size=18)
+    s.node('rt', 'box', 625, 560, 210, 120, 'The router picks a route and says why', size=19)
+    s.link('ask', 'priv', 'rl')
+    s.link('priv', 'rt', 'rl')
+    routes = [('Just your selection', 'Tighten this'),
+              ('Your selection and the text around it', 'Continue this scene'),
+              ('Codex, manuscript and libraries', 'What did I name the innkeeper?'),
+              ('A step-by-step search', 'Every place Mara lies to Tom'),
+              ('The whole manuscript, or chapter summaries', 'Assess act 2 pacing')]
+    ys = [368 + i * 98 for i in range(5)]
+    bus = 790
+    s.stroke([s.port('rt', 'r', 3), (bus, 560)], radius=1)
+    s.stroke([(bus, ys[0]), (bus, ys[-1])], radius=1)
+    s.text('ROUTE', 1045, 312, 300, 15, DEEP, 'onionskin', 'center')
+    s.text('A TYPICAL ASK', 1390, 312, 260, 15, DEEP, 'onionskin', 'center')
+    for i, ((label, ask), cy) in enumerate(zip(routes, ys)):
+        s.node(f'r{i}', 'box', 1045, cy, 390, 78, label, size=20)
+        s.arrow([(bus, cy), s.port(f'r{i}', 'l', 4)])
+        s.text(ask, 1390, cy, 240, 19, MUTED, 'scholium', 'center', lh=1.15)
+    s.box(M, 818, W - 2 * M, 84, PAPER, INK, PEN, 12)
+    s.text('Open What the AI saw to read the route, the reason and every item. Pin it, exclude it, or exclude it and ask again.',
+           M + 30, 860, W - 2 * M - 60, 22, INK)
+    return s
+
+
+def context_meet():
+    s = Sheet('context-engine', '', 'Guide', 'Meet the context engine',
+              'Answers about your own work that you can find, check and trust.',
+              'Three promises of the context engine, found, checked and shown, with a private-first strip beneath.')
+    cards = [('find', 'Found',
+              'It searches your manuscript, codex and research on this computer. Exact phrases, excluded words and near words all work.'),
+             ('cite', 'Checked',
+              'Citations open at the page you recorded. Quotations are checked against their source. "Not in your sources" is only said after a literal search.'),
+             ('properties', 'Shown',
+              'For every request you see the route, the reason and each passage the assistant saw. Pin it, leave it out, or ask again without it.')]
+    cw, gap = 460, 30
+    for i, (key, head, body) in enumerate(cards):
+        x = M + i * (cw + gap)
+        s.box(x, 320, cw, 370, SURFACE, INK, PEN, 12)
+        s.icon(key, x + 28, 344, 80)
+        s.text(head, x + 130, 384, cw - 150, 38, INK)
+        s.wave(x + 28, x + cw - 28, 440, GREEN, 3.4, 1.4)
+        s.text(body, x + 28, 468, cw - 56, 25, MUTED, lh=1.35, top=True)
+    s.box(M, 722, W - 2 * M, 134, PAPER, INK, PEN, 12)
+    s.icon('protect', M + 24, 756, 66)
+    s.text('Private first', M + 120, 762, 600, 30, INK)
+    s.text('Local-only libraries never reach a remote model. Codex entries marked Hide from AI are never sent. Nothing is sent until you choose a provider.',
+           M + 120, 800, W - 2 * M - 150, 20, MUTED, lh=1.3, top=True)
+    s.text('Search, codex and the citation audit work with no AI at all.', M, 890, W - 2 * M, 20, INK, 'scholium')
+    return s
+
+
+def context_use():
+    s = Sheet('context-use', '', 'Guide', 'Use the context engine',
+              'Four steps. Search, codex and the citation audit need no AI; the assistant needs a provider you choose.',
+              'Four steps for using the context engine beside a sketch of the What the AI saw panel.')
+    steps = [('Add your sources', 'Tools → Libraries attaches research folders. Tools → Codex… keeps characters and places. Mark a library local-only, or an entry Hide from AI.'),
+             ('Ask in the AI tab', 'Choose a provider and Chat or Work, then Send. The route and the reason appear under the message box.'),
+             ('Open What the AI saw', 'Read every item with its size and where it went. Pin it, Exclude it, or Exclude and re-run.'),
+             ('Check the citations', 'Hover a chip for the passage, click it to open the source at its page, then Insert as citation. Checks → Citation audit re-checks them all.')]
+    for i, (head, body) in enumerate(steps):
+        y = 336 + i * 138
+        s.badge(i + 1, M + 24, y + 4, 22)
+        s.text(head, M + 64, y + 4, 600, 28, INK)
+        s.text(body, M + 64, y + 28, 640, 19, MUTED, lh=1.3, top=True)
+    s.text('From the command line:  byax route draft.byax --request "…" --inspect', M, 896, 760, 17, DEEP, 'onionskin')
+    px, py, pw, ph = 880, 320, 640, 560
+    s.box(px, py, pw, ph, SURFACE, INK, 3.4, 12)
+    s.text('What the AI saw', px + 28, py + 36, 360, 26, INK)
+    s.text('EXAMPLE', px + pw - 28, py + 36, 160, 15, MUTED, 'onionskin', 'right')
+    s.wave(px + 24, px + pw - 24, py + 64, RULE, FINE, 1.0)
+    s.pill(px + 28, py + 84, 250, 40, GREEN, DEEP, PEN)
+    s.text('Route: lookup', px + 153, py + 104, 220, 19, '#FFFFFF', align='center')
+    s.text('The request names someone who is not in the nearby text.', px + 28, py + 150, pw - 56, 18, INK, 'scholium')
+    rows = [('Codex: the innkeeper', 'stays on this computer'),
+            ('Chapter 3, paragraph 12', 'stays on this computer'),
+            ('Research notes, page 41', 'left out: local-only source')]
+    for i, (name, note) in enumerate(rows):
+        y = py + 190 + i * 76
+        s.box(px + 28, y, pw - 56, 62, PAPER if i < 2 else SURFACE, RULE if i < 2 else INK, FINE, 8)
+        s.text(name, px + 48, y + 22, 360, 19, INK)
+        s.text(note, px + 48, y + 46, 360, 15, MUTED, 'onionskin')
+        if i < 2:
+            s.pill(px + pw - 176, y + 16, 60, 30, SURFACE, INK, FINE)
+            s.text('Pin', px + pw - 146, y + 31, 56, 16, INK, align='center')
+            s.pill(px + pw - 108, y + 16, 66, 30, SURFACE, INK, FINE)
+            s.text('Exclude', px + pw - 75, y + 31, 64, 15, INK, align='center')
+    s.pill(px + 28, py + 450, 300, 46, GREEN, DEEP, PEN)
+    s.text('Exclude and re-run', px + 178, py + 473, 280, 20, '#FFFFFF', align='center')
+    s.text('Passages and payloads still ask for your approval.', px + 28, py + 524, pw - 56, 16, MUTED, 'scholium')
+    return s
+
+
+SHEETS = [proposals, context_flow, share, book, ai, conflict, context_meet, context_use, window, first_minutes, checks,
+          formats, privacy]
 
 
 # --------------------------------------------------------------------------- build
@@ -716,6 +815,11 @@ def main(argv=None):
     parser.add_argument('--no-booklet', action='store_true')
     args = parser.parse_args(argv)
     sheets = [make() for make in SHEETS]
+    counts = {}
+    for sheet in sheets:
+        kind = sheet.meta['kicker']
+        counts[kind] = counts.get(kind, 0) + 1
+        sheet.meta['ref'] = f'{kind} {counts[kind]}'
     total = len(sheets) + 2
     ok = True
     for index, sheet in enumerate(sheets, 3):

@@ -11,7 +11,7 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ### Added
 
-- Visual guides: five flowcharts (proposals, sharing, manuscript to book, opting in to AI, synced-folder conflicts) and five one-page guides (the window, first minutes, checks, files and formats, privacy), authored in Vixl in the brand's look, with PNG, SVG and editable `.vixl` masters and a 12-page PDF booklet. Rebuild with `scripts/build_visual_guides.py`; see `docs/visual-guides/README.md`.
+- Visual guides: six flowcharts (proposals, what the assistant sees, sharing, manuscript to book, opting in to AI, synced-folder conflicts) and seven one-page guides (meet and use the context engine, the window, first minutes, checks, files and formats, privacy), authored in Vixl in the brand's look, with PNG, SVG and editable `.vixl` masters and a 12-page PDF booklet. Rebuild with `scripts/build_visual_guides.py`; see `docs/visual-guides/README.md`.
 
 ### Changed
 
