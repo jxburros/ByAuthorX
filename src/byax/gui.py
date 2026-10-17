@@ -615,8 +615,6 @@ class MainWindow(
         self.word_label.setObjectName('statusCounter')
         self.statusBar().addPermanentWidget(self.word_label)
         for label, slot in (
-            ('Linked assets…', self.linked_assets),
-            ('Reusable settings…', self.reusable_settings),
             ('Readability report…', self.readability_report),
             ('Codex…', self.codex_panel),
             ('Provenance…', self.provenance_panel),
@@ -624,6 +622,8 @@ class MainWindow(
             ('On-device search…', self.local_models_dialog),
             ('Review conflicted copies…', self.review_conflicted_copies),
             ('Languages…', self.show_languages),
+            ('Extensions…', self.show_extensions),
+            ('Macros…', self.show_macros),
         ):
             menus['&Tools'].addAction(self.action(self.tr(label), slot))
         # Nested so the Tools menu stays within the 20-entry limit (tests/test_gui_workspace.py).
@@ -637,7 +637,10 @@ class MainWindow(
                     ('Citation styles…', self.citation_styles),
                 ),
             ),
-            ('Automation', (('Extensions…', self.show_extensions), ('Macros…', self.show_macros))),
+            (
+                'Document resources',
+                (('Linked assets…', self.linked_assets), ('Reusable settings…', self.reusable_settings)),
+            ),
         ):
             submenu = menus['&Tools'].addMenu(self.tr(title))
             for label, slot in entries:
