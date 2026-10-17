@@ -9,6 +9,10 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ## [Unreleased]
 
+### Added
+
+- Visual guides: five flowcharts (proposals, sharing, manuscript to book, opting in to AI, synced-folder conflicts) and five one-page guides (the window, first minutes, checks, files and formats, privacy), authored in Vixl in the brand's look, with PNG, SVG and editable `.vixl` masters and a 12-page PDF booklet. Rebuild with `scripts/build_visual_guides.py`; see `docs/visual-guides/README.md`.
+
 ### Changed
 
 - Documentation: the README now opens with who ByAuthorX is for and why to choose it, with developer and automation material in its own section. `docs/brand.md` gains a voice and messaging guide (tagline hierarchy, tone, vocabulary, copy examples) and records where the product departs from the original brand guide on typography. The product specification file is renamed `PRODUCT-SPECIFICATION.md`, and JX Holdings, LLC is named as product owner.

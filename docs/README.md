@@ -15,7 +15,7 @@
 | Work on the code | [Development guide](development.md), [CONTRIBUTING](../CONTRIBUTING.md) |
 | Build or release installers | [Packaging](packaging.md) |
 | Check what is verified | [Acceptance matrix](acceptance-matrix.md), [interface parity](interface-parity.md), [accessibility audit](accessibility-audit.md), [benchmarks and retrieval baseline](benchmarks/README.md), [published context engine benchmarks](benchmarks/context-engine.md) |
-| Write in the ByAuthorX voice; work with the brand and assets | [Brand, voice and motion](brand.md), [design sources](../design/brand/README.md), [brand fonts](../assets/brand-fonts/README.md), [creative library](../assets/creative-library/README.md), [logo companions](../assets/logo-companion-library/README.md), [logo UI library](../assets/logo-ui-library/README.md) |
+| Write in the ByAuthorX voice; work with the brand and assets | [Brand, voice and motion](brand.md), [design sources](../design/brand/README.md), [brand fonts](../assets/brand-fonts/README.md), [creative library](../assets/creative-library/README.md), [logo companions](../assets/logo-companion-library/README.md), [logo UI library](../assets/logo-ui-library/README.md), [visual guides and flowcharts](visual-guides/README.md) |
 | Review licensing | [Third-party notices](third-party-notices.md), [citation style licenses](citation-licenses.md) |
 | Plan the context, retrieval and citation engine | [Context engine plan](context-engine-plan.md), [context engine research](research/context-engine/README.md) |
 | Plan manuscript projects, publishing, interchange, grammar and reach | [Competitiveness plan](competitiveness-plan.md) |
