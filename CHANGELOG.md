@@ -66,14 +66,20 @@ AI stays opt-in: nothing here sends your writing anywhere unless you configure a
   hooks (`byax extensions`), saved command macros (`byax macro`) and scoped REST tokens.
 - **Reach.** A macOS (Apple silicon) app and `.dmg`, optional signing and notarization in the release workflow,
   a manual Help → Check for updates… (one request, never automatic), a sample project and a first-run tour.
-- **Measurement.** A retrieval evaluation harness with public-domain and openly licensed fixtures, golden
-  queries, fidelity tests and published benchmarks under `docs/benchmarks/`.
+- **Measurement.** A retrieval evaluation harness with public-domain and openly licensed fixtures, 648 golden
+  queries, fidelity tests and published benchmarks
+  ([context engine benchmarks](https://github.com/jxburros/ByAuthorX/blob/main/docs/benchmarks/context-engine.md)):
+  retrieval, quote verification, false absence, routing and latency against the 0.2 baseline.
 
 ### Changed
 
 - Document schema 3, migrated automatically from schema 2; the first save keeps the original as a
   `.schema2-` backup.
 - Library indexes use schema 3 with structure-aware chunks; they rebuild on the next refresh.
+- Keyword library search is about 20 times faster at 10,000 documents (p95 1.4 s to 63 ms) with identical
+  results. The quote near-match threshold is now 94, chosen from a published precision/recall sweep.
+- A test that hangs now fails after 300 s (`pytest-timeout`, development only); tests of the on-device flows no
+  longer need the `local-models` extra.
 - An unknown cite ID is removed and marked unverified instead of rejecting the whole reply.
 - Save refuses to overwrite a file changed on disk since it was opened; truncated, empty and placeholder
   packages fail with clear messages.
