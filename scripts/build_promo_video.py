@@ -29,7 +29,22 @@ from vixl.timeline import render_at
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from build_visual_guides import (  # noqa: E402
-    DEEP, FACES, FONTS, GREEN, INK, LOGO, MUTED, PAPER, PEN, RED, ROOT, RULE, SURFACE, Sheet, _f, localize,
+    DEEP,
+    FACES,
+    FONTS,
+    GREEN,
+    INK,
+    LOGO,
+    MUTED,
+    PAPER,
+    PEN,
+    RED,
+    ROOT,
+    RULE,
+    SURFACE,
+    Sheet,
+    _f,
+    localize,
 )
 
 OUT = ROOT / 'docs' / 'promo'
@@ -55,17 +70,46 @@ class Scene(Sheet):
     def path(self, name, d, stroke=INK, sw=SW, fill='none'):
         if fill != 'none':
             local, x, y, w, h = localize(d)
-            self.ops.append(dict(type='shape', shape='path', x=x, y=y, width=w, height=h, path=local,
-                                 name=f'{name}-fill', fill=fill))
+            self.ops.append(
+                dict(
+                    type='shape',
+                    shape='path',
+                    x=x,
+                    y=y,
+                    width=w,
+                    height=h,
+                    path=local,
+                    name=f'{name}-fill',
+                    fill=fill,
+                )
+            )
         if not stroke:
             return
         rng = random.Random(f'{self.meta["key"]}/{name}')
         for k in range(VARIANTS):
-            dk = d if k == 0 else re.sub(r'-?\d+(?:\.\d+)?', lambda m: _f(float(m.group()) + rng.uniform(-BOIL, BOIL)), d)
+            dk = (
+                d
+                if k == 0
+                else re.sub(r'-?\d+(?:\.\d+)?', lambda m: _f(float(m.group()) + rng.uniform(-BOIL, BOIL)), d)
+            )
             local, x, y, w, h = localize(dk)
-            self.ops.append(dict(type='shape', shape='path', x=x, y=y, width=w, height=h, path=local,
-                                 name=name if k == 0 else f'{name}.b{k}', fill='none', stroke=stroke,
-                                 stroke_width=sw, line_cap='round', line_join='round'))
+            self.ops.append(
+                dict(
+                    type='shape',
+                    shape='path',
+                    x=x,
+                    y=y,
+                    width=w,
+                    height=h,
+                    path=local,
+                    name=name if k == 0 else f'{name}.b{k}',
+                    fill='none',
+                    stroke=stroke,
+                    stroke_width=sw,
+                    line_cap='round',
+                    line_join='round',
+                )
+            )
 
     def box(self, x, y, w, h, fill=SURFACE, stroke=INK, sw=SW, radius=14):
         super().box(x, y, w, h, fill, stroke, sw, radius)
@@ -144,13 +188,28 @@ class Scene(Sheet):
                 project.apply([dict(type='group', name=group, targets=names)])
         tail = [dict(type='timeline-set', duration=int(self.duration), fps=FPS, loop_mode='off')]
         tail += self.keys
-        tail += [dict(type='animate-preset', target=t['target'], preset='typewriter', start=t['start'],
-                      duration=t['duration']) for t in typed]
+        tail += [
+            dict(
+                type='animate-preset',
+                target=t['target'],
+                preset='typewriter',
+                start=t['start'],
+                duration=t['duration'],
+            )
+            for t in typed
+        ]
         for step in range(int(self.duration // BOIL_STEP) + 1):
             for k, group in enumerate(groups):
                 if sets[k]:
-                    tail.append(dict(type='keyframe', target=group, property='visible', time=step * BOIL_STEP,
-                                     value=(step % VARIANTS == k)))
+                    tail.append(
+                        dict(
+                            type='keyframe',
+                            target=group,
+                            property='visible',
+                            time=step * BOIL_STEP,
+                            value=(step % VARIANTS == k),
+                        )
+                    )
         result = project.apply(tail)
         for warning in result.get('warnings', []):
             print('  warn', self.meta['key'], str(warning)[:140])
@@ -158,6 +217,7 @@ class Scene(Sheet):
 
 
 # --------------------------------------------------------------------------- scenes
+
 
 def scene_title():
     s = Scene('01-title', 5500)
@@ -168,13 +228,25 @@ def scene_title():
     s.text('Your words. Your call.', W / 2, 760, 1400, 84, INK, align='center')
     s.appear(m, 1500, 900)
     m = s.mark()
-    s.path(s.name('pen'), s.hand.curve([(640, 830), (800, 822), (960, 836), (1120, 822), (1280, 832)], amplitude=2.0),
-           GREEN, 9)
+    s.path(
+        s.name('pen'),
+        s.hand.curve([(640, 830), (800, 822), (960, 836), (1120, 822), (1280, 832)], amplitude=2.0),
+        GREEN,
+        9,
+    )
     s.circle(630, 831, 11, RED)
     s.appear(m, 2500, 900)
     m = s.mark()
-    s.text('A desktop word processor for writers, from a first letter to a finished book.', W / 2, 940, 1700, 42,
-           INK, 'scholium', 'center')
+    s.text(
+        'A desktop word processor for writers, from a first letter to a finished book.',
+        W / 2,
+        940,
+        1700,
+        42,
+        INK,
+        'scholium',
+        'center',
+    )
     s.appear(m, 3500, 900)
     return s
 
@@ -189,12 +261,25 @@ def scene_action():
     s = Scene('02-in-action', 14500)
     ox, oy, k = 100, 190, 0.8
     sx, sy = (lambda x: ox + k * x), (lambda y: oy + k * y)
-    shots = [('editor-saved.png', 0, 4700), ('editor-marks.png', 4300, 9300), ('editor-review.png', 8900, 14500)]
+    shots = [
+        ('editor-saved.png', 0, 4700),
+        ('editor-marks.png', 4300, 9300),
+        ('editor-review.png', 8900, 14500),
+    ]
     for i, (file, a, b) in enumerate(shots):
         with Image.open(IMAGES / file) as im:
             ratio = im.height / im.width
-        s.ops.append(dict(type='add', name=f'shot-{i}', path=str(IMAGES / file), x=ox, y=oy, width=1320 * k,
-                          height=round(1320 * k * ratio, 2)))
+        s.ops.append(
+            dict(
+                type='add',
+                name=f'shot-{i}',
+                path=str(IMAGES / file),
+                x=ox,
+                y=oy,
+                width=1320 * k,
+                height=round(1320 * k * ratio, 2),
+            )
+        )
         s.fade(f'shot-{i}', a, 700)
         if b < 14000:
             s.hide([dict(name=f'shot-{i}')], b, 500)
@@ -207,23 +292,35 @@ def scene_action():
         s.appear(m, start + 400, 700)
         s.hide(m, end - 500, 450)
 
-    beat('Write on a clean page.', 'A paged editor with an outline, a ribbon and a status bar that says Saved locally.',
-         0, 4700)
+    beat(
+        'Write on a clean page.',
+        'A paged editor with an outline, a ribbon and a status bar that says Saved locally.',
+        0,
+        4700,
+    )
     m = s.mark()
     s.ring(sx(105), sy(879), 70, 20, GREEN, 6)
     s.appear(m, 1700, 700)
     s.hide(m, 4100, 400)
 
-    beat('Marks drawn in pen.', 'Red for spelling, green for grammar. They are interface only and never reach print or exports.',
-         4300, 9300)
+    beat(
+        'Marks drawn in pen.',
+        'Red for spelling, green for grammar. They are interface only and never reach print or exports.',
+        4300,
+        9300,
+    )
     m = s.mark()
     s.ring(sx(493), sy(343), 30, 18, RED, 6)
     s.ring(sx(594), sy(493), 66, 20, GREEN, 6)
     s.appear(m, 5700, 900)
     s.hide(m, 8800, 400)
 
-    beat('Suggestions, not surprises.', 'Checks, reviewers and AI arrive as proposals. You accept or reject each one.',
-         8900, 14500)
+    beat(
+        'Suggestions, not surprises.',
+        'Checks, reviewers and AI arrive as proposals. You accept or reject each one.',
+        8900,
+        14500,
+    )
     m = s.mark()
     s.box(sx(986), sy(230), k * 328, k * 44, 'none', GREEN, 6, 10)
     s.ring(sx(1150), sy(351), 172, 32, GREEN, 6)
@@ -234,8 +331,14 @@ def scene_action():
 def scene_proposals():
     s = Scene('03-proposals', 8200)
     s.head('Nothing changes your text until you accept it', 60, 120)
-    sources = ["Spelling and grammar checks", "Fiction and document checks", "An editor's changes from Word",
-               "A beta reader's suggestion", "The assistant in Work mode", "A saved draft or synced copy"]
+    sources = [
+        'Spelling and grammar checks',
+        'Fiction and document checks',
+        "An editor's changes from Word",
+        "A beta reader's suggestion",
+        'The assistant in Work mode',
+        'A saved draft or synced copy',
+    ]
     ys = [330 + i * 108 for i in range(6)]
     mid = (ys[0] + ys[-1]) / 2
     bus = 590
@@ -256,9 +359,11 @@ def scene_proposals():
     s.link('p', 'd', 'rl')
     s.appear(m, 4200, 800)
     bus2 = 1390
-    outs = [('accept', 'Your text changes. One revision, which you can undo.', mid - 220),
-            ('not yet', 'Reply, or leave it pending for later.', mid),
-            ('reject', 'Your text stays exactly as it is.', mid + 220)]
+    outs = [
+        ('accept', 'Your text changes. One revision, which you can undo.', mid - 220),
+        ('not yet', 'Reply, or leave it pending for later.', mid),
+        ('reject', 'Your text stays exactly as it is.', mid + 220),
+    ]
     m = s.mark()
     s.stroke([s.port('d', 'r', 3), (bus2, mid)], radius=1)
     s.stroke([(bus2, outs[0][2]), (bus2, outs[2][2])], radius=1)
@@ -286,9 +391,11 @@ def scene_context():
     m = s.mark()
     s.text('What did I name the innkeeper?', 150, 352, 650, 36, INK)
     s.type_on(m, 1900, 1300)
-    notes = [('Only what the question needs.', 'A route picks the passages, and says why.', 520, 3300),
-             ('Privacy first.', 'Local-only sources never reach a remote model.', 660, 6000),
-             ('Look, pin, or leave out.', 'Pin it, exclude it, or exclude it and ask again.', 800, 7600)]
+    notes = [
+        ('Only what the question needs.', 'A route picks the passages, and says why.', 520, 3300),
+        ('Privacy first.', 'Local-only sources never reach a remote model.', 660, 6000),
+        ('Look, pin, or leave out.', 'Pin it, exclude it, or exclude it and ask again.', 800, 7600),
+    ]
     for head, sub, cy, t0 in notes:
         m = s.mark()
         s.text(head, 110, cy, 740, 44, INK)
@@ -305,11 +412,21 @@ def scene_context():
     m = s.mark()
     s.pill(px + 40, py + 112, 320, 56, GREEN, DEEP, SW)
     s.text('Route: lookup', px + 200, py + 140, 290, 26, '#FFFFFF', align='center')
-    s.text('The request names someone who is not in the nearby text.', px + 40, py + 206, pw - 80, 27, INK, 'scholium')
+    s.text(
+        'The request names someone who is not in the nearby text.',
+        px + 40,
+        py + 206,
+        pw - 80,
+        27,
+        INK,
+        'scholium',
+    )
     s.appear(m, 3500, 900)
-    rows = [('Codex: the innkeeper', 'stays on this computer', 4500),
-            ('Chapter 3, paragraph 12', 'stays on this computer', 5200),
-            ('Research notes, page 41', 'left out: local-only source', 6100)]
+    rows = [
+        ('Codex: the innkeeper', 'stays on this computer', 4500),
+        ('Chapter 3, paragraph 12', 'stays on this computer', 5200),
+        ('Research notes, page 41', 'left out: local-only source', 6100),
+    ]
     for i, (name, tag, t0) in enumerate(rows):
         y = py + 252 + i * 98
         m = s.mark()
@@ -334,12 +451,23 @@ def scene_trust():
     m = s.mark()
     s.text('Found, checked, trusted.', 110, 120, 1700, 68, INK, lh=1.05)
     s.appear(m, 200, 700)
-    cards = [('cite', 'Citations open at the page',
-              'Hover a chip to read the passage. Click to open the source where you recorded it.'),
-             ('find', 'Absence is checked',
-              'Before "not in your sources" stands, it searches literally and shows any matches.'),
-             ('checks', 'Quotes are checked',
-              'A quotation is checked against its source. The audit says where else the exact text occurs.')]
+    cards = [
+        (
+            'cite',
+            'Citations open at the page',
+            'Hover a chip to read the passage. Click to open the source where you recorded it.',
+        ),
+        (
+            'find',
+            'Absence is checked',
+            'Before "not in your sources" stands, it searches literally and shows any matches.',
+        ),
+        (
+            'checks',
+            'Quotes are checked',
+            'A quotation is checked against its source. The audit says where else the exact text occurs.',
+        ),
+    ]
     for i, (icon, head, body) in enumerate(cards):
         x, y, w, h = 110 + i * 600, 270, 560, 600
         t0 = 900 + i * 2200
@@ -364,8 +492,12 @@ def scene_trust():
                 yy = y + 400 + k * 62
                 s.pill(x + 70, yy, 330, 48, PAPER, INK, 3)
                 s.text(label, x + 235, yy + 24, 300, 24, INK, align='center')
-                s.path(s.name('tick'), s.hand.poly([(x + 440, yy + 26), (x + 458, yy + 42), (x + 490, yy + 8)], False, 2),
-                       GREEN, 6)
+                s.path(
+                    s.name('tick'),
+                    s.hand.poly([(x + 440, yy + 26), (x + 458, yy + 42), (x + 490, yy + 8)], False, 2),
+                    GREEN,
+                    6,
+                )
         else:
             s.pill(x + 40, y + 390, 480, 52, GREEN, DEEP, SW)
             s.text('Found at the cited page', x + 280, y + 416, 450, 26, '#FFFFFF', align='center')
@@ -381,10 +513,12 @@ def scene_trust():
 def scene_privacy():
     s = Scene('06-private', 7200)
     s.head('Private by default', 64, 130)
-    claims = [('No account', 'Nothing to sign up for. Write the day you install.'),
-              ('No telemetry', 'ByAuthorX does not report how you use it.'),
-              ('No background traffic', 'No update pings. Checking for updates happens once, when you click.'),
-              ('Nothing leaves until you choose', 'AI sends nothing until you add a provider and press Send.')]
+    claims = [
+        ('No account', 'Nothing to sign up for. Write the day you install.'),
+        ('No telemetry', 'ByAuthorX does not report how you use it.'),
+        ('No background traffic', 'No update pings. Checking for updates happens once, when you click.'),
+        ('Nothing leaves until you choose', 'AI sends nothing until you add a provider and press Send.'),
+    ]
     for i, (head, body) in enumerate(claims):
         x, y = 110 + (i % 2) * 900, 270 + (i // 2) * 270
         m = s.mark()
@@ -413,8 +547,12 @@ def scene_books():
     s.node('c', 'box', 860, 550, 280, 120, 'File → Compile…', key=True, size=30)
     s.arrow([(556, 550), s.port('c', 'l', 4)])
     s.appear(m, 2200, 900)
-    outs = [('print', 'Print-ready PDF'), ('contents', 'EPUB 3'), ('export', 'Word for submission'),
-            ('pages', 'Markdown')]
+    outs = [
+        ('print', 'Print-ready PDF'),
+        ('contents', 'EPUB 3'),
+        ('export', 'Word for submission'),
+        ('pages', 'Markdown'),
+    ]
     bus = 1190
     ys = [330, 480, 630, 780]
     m = s.mark()
@@ -441,10 +579,15 @@ def scene_automation():
     for i, c in enumerate((RED, MUTED, GREEN)):
         s.circle(160 + i * 40, 296, 12, c)
     s.appear(m, 400, 1000)
-    lines = [('byax inspect report.byax --json', 'See the document and its revision.'),
-             ('byax apply report.byax --input edits.json --dry-run --json', 'Preview the edit. Nothing is written.'),
-             ('byax apply report.byax --input edits.json --json', 'Apply it as one atomic batch.'),
-             ('byax check report.byax --suite structure --json', 'Run the checks you require.')]
+    lines = [
+        ('byax inspect report.byax --json', 'See the document and its revision.'),
+        (
+            'byax apply report.byax --input edits.json --dry-run --json',
+            'Preview the edit. Nothing is written.',
+        ),
+        ('byax apply report.byax --input edits.json --json', 'Apply it as one atomic batch.'),
+        ('byax check report.byax --suite structure --json', 'Run the checks you require.'),
+    ]
     for i, (cmd, note) in enumerate(lines):
         cy = 400 + i * 120
         t0 = 1600 + i * 1900
@@ -470,7 +613,11 @@ def scene_agents():
     m = s.mark()
     s.node('a', 'pill', 270, 600, 320, 120, 'Your agent', size=38)
     s.appear(m, 500, 800)
-    ifaces = [(380, 'MCP server', 'byax-mcp'), (600, 'Command line', 'byax'), (820, 'Local REST', 'token required')]
+    ifaces = [
+        (380, 'MCP server', 'byax-mcp'),
+        (600, 'Command line', 'byax'),
+        (820, 'Local REST', 'token required'),
+    ]
     bus = 520
     m = s.mark()
     s.stroke([s.port('a', 'r', 3), (bus, 600)], radius=1)
@@ -500,8 +647,12 @@ def scene_agents():
     s.arrow([s.port('e', 'r', 3), s.port('f', 'l', 4)])
     s.appear(m, 6300, 800)
     m = s.mark()
-    s.caption('Atomic batches. A stale revision fails instead of overwriting. REST stays on this computer, behind a token.',
-              975, 40, w=1760)
+    s.caption(
+        'Atomic batches. A stale revision fails instead of overwriting. REST stays on this computer, behind a token.',
+        975,
+        40,
+        w=1760,
+    )
     s.appear(m, 7300, 900)
     return s
 
@@ -509,12 +660,14 @@ def scene_agents():
 def scene_more():
     s = Scene('10-more', 7800)
     s.head('And a good deal more.', 64, 130)
-    chips = [('track-changes', 'Word review round trip', "Your editor's tracked changes return as proposals."),
-             ('comment', 'Beta-reader copies', 'A web page, PDF or Word copy. Comments come back named.'),
-             ('branch', 'Named drafts', 'Compare scene by scene. Bring changes across.'),
-             ('cite', 'Citations you can check', 'See whether a quotation really appears in its source.'),
-             ('dictation', 'Dictation', 'Review the transcript before it is inserted.'),
-             ('statistics', 'Writing goals', 'Kept on this computer, never in your file.')]
+    chips = [
+        ('track-changes', 'Word review round trip', "Your editor's tracked changes return as proposals."),
+        ('comment', 'Beta-reader copies', 'A web page, PDF or Word copy. Comments come back named.'),
+        ('branch', 'Named drafts', 'Compare scene by scene. Bring changes across.'),
+        ('cite', 'Citations you can check', 'See whether a quotation really appears in its source.'),
+        ('dictation', 'Dictation', 'Review the transcript before it is inserted.'),
+        ('statistics', 'Writing goals', 'Kept on this computer, never in your file.'),
+    ]
     for i, (icon, head, body) in enumerate(chips):
         x, y = 110 + (i % 3) * 600, 260 + (i // 3) * 310
         m = s.mark()
@@ -532,8 +685,12 @@ def scene_close():
     s.image(LOGO, 520, 230, 880)
     s.appear(m, 200, 800)
     m = s.mark()
-    s.path(s.name('pen'), s.hand.curve([(540, 640), (720, 632), (920, 646), (1120, 632), (1380, 642)], amplitude=2.0),
-           GREEN, 9)
+    s.path(
+        s.name('pen'),
+        s.hand.curve([(540, 640), (720, 632), (920, 646), (1120, 632), (1380, 642)], amplitude=2.0),
+        GREEN,
+        9,
+    )
     s.circle(532, 641, 11, RED)
     s.appear(m, 900, 900)
     m = s.mark()
@@ -549,11 +706,23 @@ def scene_close():
     return s
 
 
-SCENES = [scene_title, scene_action, scene_proposals, scene_context, scene_trust, scene_privacy, scene_books, scene_automation, scene_agents,
-          scene_more, scene_close]
+SCENES = [
+    scene_title,
+    scene_action,
+    scene_proposals,
+    scene_context,
+    scene_trust,
+    scene_privacy,
+    scene_books,
+    scene_automation,
+    scene_agents,
+    scene_more,
+    scene_close,
+]
 
 
 # --------------------------------------------------------------------------- score
+
 
 def score(total_ms):
     """A slow piano figure in A minor: bass, arpeggio and an occasional bell, 84 beats per minute."""
@@ -567,19 +736,47 @@ def score(total_ms):
         bass.append(dict(start=int(start), duration=int(beat * 3.8), midi=root))
         pattern = (0, 1, 2, 1, 0, 1, 2, 1)
         for step, idx in enumerate(pattern):
-            notes.append(dict(start=int(start + step * beat / 2), duration=int(beat * 0.9), midi=tones[idx] + 12))
+            notes.append(
+                dict(start=int(start + step * beat / 2), duration=int(beat * 0.9), midi=tones[idx] + 12)
+            )
         if bar % 4 == 0:
             bells.append(dict(start=int(start), duration=int(beat * 3), midi=tones[2] + 24))
     project = Project(320, 240, PAPER)
-    project.apply([
-        dict(type='timeline-set', duration=int(total_ms), fps=FPS, loop_mode='off'),
-        dict(type='audio-track', name='piano', start=0, synth='piano', duration=int(total_ms), volume=0.42,
-             fade_out=2500, notes=notes),
-        dict(type='audio-track', name='bass', start=0, synth='triangle', duration=int(total_ms), volume=0.26,
-             fade_out=2500, notes=bass),
-        dict(type='audio-track', name='bell', start=0, synth='bell', duration=int(total_ms), volume=0.14,
-             fade_out=2500, notes=bells),
-    ])
+    project.apply(
+        [
+            dict(type='timeline-set', duration=int(total_ms), fps=FPS, loop_mode='off'),
+            dict(
+                type='audio-track',
+                name='piano',
+                start=0,
+                synth='piano',
+                duration=int(total_ms),
+                volume=0.42,
+                fade_out=2500,
+                notes=notes,
+            ),
+            dict(
+                type='audio-track',
+                name='bass',
+                start=0,
+                synth='triangle',
+                duration=int(total_ms),
+                volume=0.26,
+                fade_out=2500,
+                notes=bass,
+            ),
+            dict(
+                type='audio-track',
+                name='bell',
+                start=0,
+                synth='bell',
+                duration=int(total_ms),
+                volume=0.14,
+                fade_out=2500,
+                notes=bells,
+            ),
+        ]
+    )
     path = OUT / 'score.wav'
     from vixl.audio import export_audio
 
@@ -588,6 +785,7 @@ def score(total_ms):
 
 
 # --------------------------------------------------------------------------- build
+
 
 def build_scenes(only=None):
     (OUT / 'scenes').mkdir(parents=True, exist_ok=True)
@@ -616,17 +814,32 @@ def stills(projects):
 
 
 def film(projects, draft):
-    shots = [dict(source=f'scenes/{scene.meta["key"]}.vixl', duration=int(scene.duration),
-                  **({'transition': XFADE} if i else {})) for i, (scene, _) in enumerate(projects)]
+    shots = [
+        dict(
+            source=f'scenes/{scene.meta["key"]}.vixl',
+            duration=int(scene.duration),
+            **({'transition': XFADE} if i else {}),
+        )
+        for i, (scene, _) in enumerate(projects)
+    ]
     total = sum(s['duration'] for s in shots) - XFADE * (len(shots) - 1)
     wav = score(total)
-    spec = dict(version=1, width=W, height=H, fps=FPS, quality='draft' if draft else 'final', shots=shots,
-                audio=[dict(source=wav.name, start=0, trim=0, volume=0.9)])
+    spec = dict(
+        version=1,
+        width=W,
+        height=H,
+        fps=FPS,
+        quality='draft' if draft else 'final',
+        shots=shots,
+        audio=[dict(source=wav.name, start=0, trim=0, volume=0.9)],
+    )
     out = 'ByAuthorX-promo-draft.mp4' if draft else 'ByAuthorX-promo.mp4'
     (OUT / out).unlink(missing_ok=True)
     request = OUT / 'film-request.json'
     request.write_text(json.dumps(dict(output=out, spec=spec), indent=2))
-    subprocess.run(['vixl', 'workflow', 'film-export', '--request', str(request), '--workspace', str(OUT)], check=True)
+    subprocess.run(
+        ['vixl', 'workflow', 'film-export', '--request', str(request), '--workspace', str(OUT)], check=True
+    )
     print('film', OUT / out, f'{total / 1000:.1f}s')
 
 
