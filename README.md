@@ -9,7 +9,7 @@
 
 A native desktop word processor with a shared, programmable document engine. Write in a Qt desktop editor, save editable `.byax` documents, inspect and edit through the CLI or MCP, and export through the same typography engine.
 
-**Version 0.3.0** (see the [changelog](CHANGELOG.md)). Installers are unsigned unless a release's notes say otherwise, and have not been verified on physical Windows 11, Ubuntu 24.04 or Apple silicon Mac desktops (the macOS port builds in CI and its platform code is unit tested, but no Mac has run it yet).
+**Version 0.4.1** (see the [changelog](CHANGELOG.md)). Installers are unsigned unless a release's notes say otherwise, and have not been verified on physical Windows 11, Ubuntu 24.04 or Apple silicon Mac desktops (the macOS port builds in CI and its platform code is unit tested, but no Mac has run it yet).
 
 **Implementation status:** runnable application, with automated engine, format, provider-contract, desktop, and integration tests. The complete product specification remains the acceptance target. See [the acceptance matrix](docs/acceptance-matrix.md) for verified behavior and material gaps; this repository does not claim all specification scenarios are complete. Windows 11 x64, Ubuntu 24.04 x64 and macOS 14+ on Apple silicon are the intended installation targets. Live model services and physical desktop integrations require separate verification.
 
@@ -53,6 +53,17 @@ The editor includes a continuous writing view, a paginated preview, semantic out
 The Inspector has four tabs. **Proposed changes** lists pending edits, comments and findings and runs all active checks; **Checks** marks each check (spelling, grammar, document health, information repository, factual accuracy, voice consistency and custom checks) active or inactive; **AI** hosts the assistant with a persisted **Work / Chat** switch; **Configure** holds API keys, information repositories, profiles and export settings. Spelling runs locally with suggestions, exact replacements, a document dictionary, and session-only ignore. Chat mode only answers and never changes the document. Work mode may suggest exact range edits, which are shown to you and, after confirmation, added to Proposed changes as pending proposals; nothing changes until you accept each one. Remote messages show the exact outbound payload for authorization unless the provider's saved policy allows remote calls.
 
 **AI is opt-in, not opt-out.** Nothing sends your writing to a model until you add a provider and choose to use it. You pick the provider: a hosted service with your own key, or a local model that runs on your computer, such as Ollama, whisper.cpp or an OpenAI-compatible local server. Unconfigured AI functions do not prevent writing, saving, printing, or deterministic checks. Each provider requires a chosen model and local configuration; keys stay in OS credential storage or explicit environment references. No accounts, telemetry, or background model polling are required. **Updates are manual too:** ByAuthorX never checks for a new version by itself. Help → Check for updates (or `byax version --check-updates`) makes one request to GitHub's releases page when you ask, and nothing is downloaded or installed. On first run a short tour appears once; **Help → Open sample project** opens a copy of a worked example (see the [user guide](docs/user-guide.md#your-first-minutes)).
+
+## Manuscripts, publishing and review
+
+Version 0.4 adds tools for book-length work, all inside the same `.byax` file and all local by default:
+
+- **Manuscript projects.** The Binder menu organizes parts, chapters, scenes and notes, with outline and corkboard views, synopses, writing goals, and named drafts you can compare scene by scene.
+- **Publishing.** Deterministic EPUB 3 export and import, and File → Compile… with novel, non-fiction and standard-manuscript presets, preflight checks and print-book design.
+- **Interchange.** A Word review round trip that returns editors' tracked changes and comments as proposals, beta-reader copies, and synced-folder safety checks.
+- **Writing quality and research.** Fiction, readability, offline grammar and continuity checks; a codex of characters and places; library search and citation audits that show what the AI saw and whether a quote really appears in its source.
+
+See the [user guide](docs/user-guide.md) for each workflow and the [changelog](CHANGELOG.md) for the full list.
 
 ## File views and appearance
 
