@@ -76,8 +76,9 @@ AI stays opt-in: nothing here sends your writing anywhere unless you configure a
 - Document schema 3, migrated automatically from schema 2; the first save keeps the original as a
   `.schema2-` backup.
 - Library indexes use schema 3 with structure-aware chunks; they rebuild on the next refresh.
-- Keyword library search is about 20 times faster at 10,000 documents (p95 1.4 s to 63 ms) with identical
-  results. The quote near-match threshold is now 94, chosen from a published precision/recall sweep.
+- Keyword library search is about 20 times faster at 10,000 documents (p95 1.4 s to 71 ms) and re-ranks its
+  best 100 candidates by unstemmed-word and word-pair overlap, so the literal word and the quoting passage
+  outrank stems and scattered words. The quote near-match threshold is now 94, chosen from a published precision/recall sweep.
 - A test that hangs now fails after 300 s (`pytest-timeout`, development only); tests of the on-device flows no
   longer need the `local-models` extra.
 - An unknown cite ID is removed and marked unverified instead of rejecting the whole reply.
