@@ -1,6 +1,6 @@
 # Competitiveness implementation plan
 
-Status: **implemented on the 0.4 development line (Unreleased); see section 12 for decisions taken and what remains**. Written 16 October 2026 against version 0.3.0.
+Status: **implemented on the 0.4.0 release; see section 12 for decisions taken and what remains**. Written 16 October 2026 against version 0.3.0.
 It complements the [context engine plan](context-engine-plan.md), which covers retrieval, citation, grounding and provenance. This plan covers everything else needed to make ByAuthorX a credible choice for people who write books and long documents.
 
 ## 1 Goal
