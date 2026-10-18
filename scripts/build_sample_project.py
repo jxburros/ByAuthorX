@@ -18,19 +18,22 @@ import itertools
 import json
 import sys
 import uuid
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, date, datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / 'src'))
 
-from byax import engine, project  # noqa: E402
+from byax import citations, engine, project  # noqa: E402
 from byax.citations import import_sources  # noqa: E402
 from byax.model import new_document, validate_document  # noqa: E402
 from byax.storage import save_document  # noqa: E402
 
 OUTPUT = ROOT / 'src' / 'byax' / 'resources' / 'samples' / 'sample-project.byax'
 EPOCH = datetime(2026, 1, 5, 9, 0, 0, tzinfo=UTC)
+# The day recorded as the source's retrieval date; citations stamp date.today(), which would make the
+# bundled sample stale every day.
+RETRIEVED = date(2026, 10, 17)
 
 TITLE = 'The Lamp at Harrow Point'
 CHAPTER_ONE = 'Chapter one: Arrival'
@@ -103,8 +106,14 @@ def _install_determinism():
         def now(cls, tz=None):
             return (EPOCH + timedelta(minutes=next(ticks))).astimezone(tz or UTC)
 
+    class Today(date):
+        @classmethod
+        def today(cls):
+            return RETRIEVED
+
     uuid.uuid4 = lambda: uuid.UUID(int=next(counter))  # type: ignore[assignment]
     engine.datetime = Clock  # type: ignore[attr-defined]
+    citations.date = Today  # type: ignore[attr-defined]
 
 
 def _block(identity, text, kind='paragraph', style='body', **attrs):
