@@ -1,4 +1,4 @@
-#define MyAppVersion "0.4.1"
+#define MyAppVersion "0.4.2"
 ; Build with `iscc /DLean packaging/windows.iss` for the lean installer (no model files); the default is the
 ; standard installer, which packages dist\ByAuthorX-standard (see scripts/build.py --variant standard).
 #ifdef Lean
@@ -36,6 +36,31 @@ Root: HKA; Subkey: "Software\Classes\.byax"; ValueType: string; ValueData: "ByAu
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document"; ValueType: string; ValueData: "ByAuthorX Document"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document\DefaultIcon"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"",0"
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document\shell\open\command"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"" ""%1"""
+; Listing the app under Applications and OpenWithProgids makes it appear in "Open with" for these types
+; without taking over the current default.
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "ByAuthorX"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\shell\open\command"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".byax"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".docx"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".doc"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".odt"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".rtf"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".html"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".htm"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".epub"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".md"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".markdown"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".txt"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\.docx\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.doc\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.odt\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.rtf\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.html\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.htm\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.epub\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.md\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.markdown\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.txt\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
 [Run]
 Filename: "{app}\ByAuthorX.exe"; Description: "Open ByAuthorX"; Flags: postinstall nowait skipifsilent
 

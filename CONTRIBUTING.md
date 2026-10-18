@@ -7,7 +7,8 @@ tests and the CI gates, and the [architecture](docs/architecture.md) for the des
    and the [acceptance matrix](docs/acceptance-matrix.md).
 2. Branch from `main`, keep changes focused, and add tests. Run the CI gates locally:
    `ruff format --check .`, `ruff check src tests`, `mypy`, and `pytest` with `QT_QPA_PLATFORM=offscreen`.
-3. Update the docs you affected (see [docs/README.md](docs/README.md#keeping-docs-honest)) and add a
+3. Update the docs you affected (see [docs/README.md](docs/README.md#keeping-docs-honest)), decide whether the
+   change needs a version bump (ask when unsure), and add a
    [CHANGELOG](CHANGELOG.md) entry under a new version heading when releasing.
 4. Open a pull request describing what changed and how you verified it. State plainly what was *not* verified
    (physical desktops, live provider accounts).

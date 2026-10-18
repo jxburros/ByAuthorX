@@ -43,6 +43,18 @@ MACH_O_MAGIC = (
     b'\xbe\xba\xfe\xca',
 )
 
+# Formats the editor opens besides .byax; offered in "Open With" but never taken over as the default.
+OTHER_DOCUMENT_TYPES = [
+    ('Word document', ['org.openxmlformats.wordprocessingml.document'], ['docx']),
+    ('Word 97-2003 document', ['com.microsoft.word.doc'], ['doc']),
+    ('OpenDocument text', ['org.oasis-open.opendocument.text'], ['odt']),
+    ('Rich text', ['public.rtf'], ['rtf']),
+    ('HTML document', ['public.html'], ['html', 'htm']),
+    ('EPUB book', ['org.idpf.epub-container'], ['epub']),
+    ('Markdown document', ['net.daringfireball.markdown'], ['md', 'markdown']),
+    ('Plain text', ['public.plain-text'], ['txt']),
+]
+
 
 def info_plist(version: str) -> dict:
     """Keys added to the Info.plist PyInstaller generates (bundle id, documents, privacy strings)."""
@@ -74,7 +86,17 @@ def info_plist(version: str) -> dict:
                 'LSItemContentTypes': [DOCUMENT_UTI],
                 'CFBundleTypeExtensions': ['byax'],
                 'CFBundleTypeIconFile': 'byauthorx.icns',
-            }
+            },
+            *(
+                {
+                    'CFBundleTypeName': name,
+                    'CFBundleTypeRole': 'Editor',
+                    'LSHandlerRank': 'Alternate',
+                    'LSItemContentTypes': utis,
+                    'CFBundleTypeExtensions': extensions,
+                }
+                for name, utis, extensions in OTHER_DOCUMENT_TYPES
+            ),
         ],
         'UTExportedTypeDeclarations': [
             {

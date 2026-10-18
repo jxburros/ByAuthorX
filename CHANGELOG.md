@@ -9,12 +9,16 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ## [Unreleased]
 
+## [0.4.2] - 2026-10-18
+
 ### Added
 
 - Visual guides: six flowcharts (proposals, what the assistant sees, sharing, manuscript to book, opting in to AI, synced-folder conflicts) and seven one-page guides (meet and use the context engine, the window, first minutes, checks, files and formats, privacy), authored in Vixl in the brand's look, with PNG, SVG and editable `.vixl` masters and a 12-page PDF booklet. Rebuild with `scripts/build_visual_guides.py`; see `docs/visual-guides/README.md`.
 
 ### Changed
 
+- ByAuthorX is now offered in the "Open with" list for `.docx`, `.doc`, `.odt`, `.rtf`, `.html`, `.htm`, `.epub`,
+  `.md`, `.markdown` and `.txt` files on Windows, macOS and Linux. It is never set as the default for them.
 - Documentation: the README is now a writer's page (pitch, proof points, get started, what you can do, status). Running from source, the command line, MCP and REST, tests and builds, and the creative resource libraries moved to the new `docs/developers.md`. The documentation index is split into using, automating, building and project history. The voice and messaging guide moved from `docs/brand.md` to `docs/voice.md`, and `brand.md` is now the design system. The product is described in one sentence across the README, package metadata, Linux desktop entry and `.deb`, and the product specification; the lead proof point reads "Proposals, not surprises". EPUB option names moved from the user guide to the CLI reference.
 - Documentation: the README now opens with who ByAuthorX is for and why to choose it, with developer and automation material in its own section. `docs/brand.md` gains a voice and messaging guide (tagline hierarchy, tone, vocabulary, copy examples) and records where the product departs from the original brand guide on typography. The product specification file is renamed `PRODUCT-SPECIFICATION.md`, and JX Holdings, LLC is named as product owner.
 - Documentation: the README now states the current version and summarizes the 0.4 manuscript, publishing and
