@@ -42,9 +42,25 @@ Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe"; ValueType: str
 Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\shell\open\command"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"" ""%1"""
 Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".byax"; ValueData: ""
 Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".docx"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".doc"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".odt"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".rtf"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".html"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".htm"; ValueData: ""
 Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".epub"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".md"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".markdown"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".txt"; ValueData: ""
 Root: HKA; Subkey: "Software\Classes\.docx\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.doc\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.odt\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.rtf\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.html\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.htm\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
 Root: HKA; Subkey: "Software\Classes\.epub\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.md\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.markdown\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.txt\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
 [Run]
 Filename: "{app}\ByAuthorX.exe"; Description: "Open ByAuthorX"; Flags: postinstall nowait skipifsilent
 
