@@ -240,6 +240,10 @@ accessibility metadata). Chapter splits, extra CSS, the cover and other options 
 a saved export profile (`--profile NAME`); see the [user guide](user-guide.md#exporting-an-epub). `--dry-run`
 returns the same losses without writing. `byax import book.epub --out book.byax` and `convert` read EPUB like HTML.
 
+### EPUB export options
+
+The `epub` section of an export profile accepts `split_at`, `split_level` (where chapters split), `css` (an extra stylesheet), `cover`, `include` (which blocks to include), `language`, `embed_fonts`, `ncx` and `accessibility`. The same options are available to the library call `byax.epub.export_epub`. Output is deterministic: the same document and options give the same bytes, and nothing reads the clock.
+
 ## Writing goals
 
 `byax goals PATH --action …` reports progress and keeps two local preferences. Flags: `--action`

@@ -42,7 +42,7 @@ Maintainer: ByAuthorX contributors
 Conflicts: {'byauthorx-lean' if variant == 'standard' else 'byauthorx'}
 Replaces: {'byauthorx-lean' if variant == 'standard' else 'byauthorx'}
 Depends: libc6 (>= 2.39), libgl1, libegl1, libxkbcommon0, libdbus-1-3, libxcb-cursor0, libxcb-icccm4, libxcb-keysyms1, libxcb-shape0, libxcb-xinerama0, libxcb-xkb1, libxcb-render-util0, libxkbcommon-x11-0, libasound2t64, libfontconfig1, libfreetype6
-Description: Native programmable word processor
+Description: Word processor for writers, from a first letter to a finished book
  ByAuthorX desktop editor, headless CLI, and MCP server.
  {'Includes the on-device search models.' if variant == 'standard' else 'Lean build: on-device search models are downloaded only on request.'}
 """)

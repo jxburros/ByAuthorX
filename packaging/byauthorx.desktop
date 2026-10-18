@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=ByAuthorX
-Comment=Write, review, and publish documents
+Comment=A word processor for writers, from a first letter to a finished book
 Exec=/opt/byauthorx/ByAuthorX %f
 Icon=byauthorx
 Terminal=false
