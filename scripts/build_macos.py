@@ -74,7 +74,21 @@ def info_plist(version: str) -> dict:
                 'LSItemContentTypes': [DOCUMENT_UTI],
                 'CFBundleTypeExtensions': ['byax'],
                 'CFBundleTypeIconFile': 'byauthorx.icns',
-            }
+            },
+            {
+                'CFBundleTypeName': 'Word document',
+                'CFBundleTypeRole': 'Editor',
+                'LSHandlerRank': 'Alternate',
+                'LSItemContentTypes': ['org.openxmlformats.wordprocessingml.document'],
+                'CFBundleTypeExtensions': ['docx'],
+            },
+            {
+                'CFBundleTypeName': 'EPUB book',
+                'CFBundleTypeRole': 'Editor',
+                'LSHandlerRank': 'Alternate',
+                'LSItemContentTypes': ['org.idpf.epub-container'],
+                'CFBundleTypeExtensions': ['epub'],
+            },
         ],
         'UTExportedTypeDeclarations': [
             {

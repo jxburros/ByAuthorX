@@ -36,6 +36,15 @@ Root: HKA; Subkey: "Software\Classes\.byax"; ValueType: string; ValueData: "ByAu
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document"; ValueType: string; ValueData: "ByAuthorX Document"; Flags: uninsdeletekey
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document\DefaultIcon"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"",0"
 Root: HKA; Subkey: "Software\Classes\ByAuthorX.Document\shell\open\command"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"" ""%1"""
+; Listing the app under Applications and OpenWithProgids makes it appear in "Open with" for these types
+; without taking over the current default.
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe"; ValueType: string; ValueName: "FriendlyAppName"; ValueData: "ByAuthorX"; Flags: uninsdeletekey
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\shell\open\command"; ValueType: string; ValueData: """{app}\ByAuthorX.exe"" ""%1"""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".byax"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".docx"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\Applications\ByAuthorX.exe\SupportedTypes"; ValueType: string; ValueName: ".epub"; ValueData: ""
+Root: HKA; Subkey: "Software\Classes\.docx\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
+Root: HKA; Subkey: "Software\Classes\.epub\OpenWithProgids"; ValueType: string; ValueName: "ByAuthorX.Document"; ValueData: ""; Flags: uninsdeletevalue
 [Run]
 Filename: "{app}\ByAuthorX.exe"; Description: "Open ByAuthorX"; Flags: postinstall nowait skipifsilent
 
