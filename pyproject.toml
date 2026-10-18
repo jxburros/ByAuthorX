@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "byauthorx"
 version = "0.4.1"
-description = "Native, programmable desktop word processor"
+description = "A desktop word processor for writers, from a first letter to a finished book"
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"

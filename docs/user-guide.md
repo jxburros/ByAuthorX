@@ -15,7 +15,7 @@ a Windows 11 x64 setup program, an Ubuntu 24.04 x64 `.deb` and a macOS `.dmg` fo
 Windows SmartScreen or macOS Gatekeeper warn on first run; see
 [troubleshooting](troubleshooting.md#macos-gatekeeper-says-the-app-cannot-be-opened). Ubuntu:
 `sudo apt install ./byauthorx_<version>_amd64.deb`. macOS: open the `.dmg` and drag ByAuthorX to
-Applications. To run from source see the [README](../README.md#run-from-source).
+Applications. To run from source see the [developer guide](developers.md#run-from-source).
 
 ## Your first minutes
 
@@ -96,15 +96,13 @@ same document and options always give the same bytes; nothing reads the clock.
 - **Accessibility.** The package declares access modes, accessibility features, hazards and a
   summary. Images without alt text are reported in the export report (mark an image `decorative` when
   it carries no information); this is a report, not a block.
-- **Options.** Chapter split points, an extra stylesheet, the cover, a language override and which
-  blocks to include are given in an export profile's `epub` section (`split_at`, `split_level`,
-  `css`, `cover`, `include`, `language`, `embed_fonts`, `ncx`, `accessibility`), or through the
-  `byax.epub.export_epub` library call.
+- **Options.** You can change where chapters split, add a stylesheet, override the language and choose
+  what to include in an export profile. The option names are in the
+  [CLI reference](cli-reference.md#epub-export-options).
 
 The export report lists every loss with its location. Page breaks, the contents block, section
-breaks, links that leave the book and unsupported image types are not carried. The built-in structural
-check runs on every export; EPUBCheck can be run on the fixtures with `scripts/epubcheck_fixtures.py`
-(see the [development guide](development.md#epubcheck)).
+breaks, links that leave the book and unsupported image types are not carried. A structural check runs
+on every export. Running EPUBCheck yourself is described in the [development guide](development.md#epubcheck).
 
 Autosave writes recovery copies; an explicit **Save** draws a brief checkmark. If the file changes
 on disk behind you, the app tells you rather than overwriting.
@@ -263,7 +261,7 @@ Spelling results (suggestions, exact replacements, a document dictionary and ses
 ignore) appear in **Proposed changes** once a spelling check runs. Repositories are the libraries
 and sources set up in **Configure**.
 
-Results are suggestions; text changes require Apply/accept. Spelling and grammar marks are
+Results are proposals: your text changes only when you accept one. Spelling and grammar marks are
 interface-only pen strokes and never appear in print or exports.
 
 ### Fiction checks and readability
@@ -303,8 +301,7 @@ intent are not judged.
 
 Invented names use the local dictionary and counts only, so a distinct character with a similar
 name can be flagged (the rule needs the common spelling to be used at least twice as often and the
-variant at most three times). The context engine's codex will later supply canonical names through
-`byax.fiction_checks.register_name_source`.
+variant at most three times). A later release may let the codex supply the correct names.
 
 **Tools > Readability report…** (or `byax readability`) gives each chapter and the whole
 manuscript the Flesch Reading Ease, Flesch-Kincaid grade, Gunning fog, SMOG, Coleman-Liau and
