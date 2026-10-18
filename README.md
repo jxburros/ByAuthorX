@@ -27,7 +27,7 @@ Letters, resumes, reports and press kits work too; the editor is a full word pro
 
 ## Get started
 
-Download an installer from the [releases page](https://github.com/jxburros/ByAuthorX/releases) and follow the [user guide](docs/user-guide.md). **Help → Open sample project** opens a short worked manuscript to practise on, and **Help → Take the tour…** shows the main ideas in six steps. The [documentation index](docs/README.md) lists everything else.
+Download an installer from the [releases page](https://github.com/jxburros/ByAuthorX/releases) and follow the [user guide](docs/user-guide.md). **Help → Open sample project** opens a short worked manuscript to practice on, and **Help → Take the tour…** shows the main ideas in six steps. The [documentation index](docs/README.md) lists everything else.
 
 ## What you can do
 
