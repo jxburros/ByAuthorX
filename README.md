@@ -26,7 +26,7 @@ Download an installer from the [releases page](https://github.com/jxburros/ByAut
 
 ## Status
 
-Version 0.4.1 (see the [changelog](CHANGELOG.md)). ByAuthorX is a working application with automated engine, format, provider-contract, desktop and integration tests. Windows 11 x64, Ubuntu 24.04 x64 and macOS 14+ on Apple silicon are the intended installation targets.
+Version 0.4.2 (see the [changelog](CHANGELOG.md)). ByAuthorX is a working application with automated engine, format, provider-contract, desktop and integration tests. Windows 11 x64, Ubuntu 24.04 x64 and macOS 14+ on Apple silicon are the intended installation targets.
 
 What is not yet verified: installers are unsigned unless a release's notes say otherwise, and they have not been run on physical Windows 11, Ubuntu 24.04 or Apple silicon desktops (the macOS port builds in CI and its platform code is unit tested, but no Mac has run it yet). Live model services also need separate verification. The [acceptance matrix](docs/acceptance-matrix.md) records what is verified and what is not. This project does not claim that every scenario in the [product specification](PRODUCT-SPECIFICATION.md) is complete.
 
