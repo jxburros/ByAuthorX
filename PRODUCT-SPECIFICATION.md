@@ -2,9 +2,9 @@
 
 Version 1.0 | October 13 2026 | Product owner JX Holdings, LLC
 
-ByAuthorX is a native desktop word processor for writing, formatting, reviewing, dictating, and publishing documents. It combines an approachable graphical editor with a complete command line interface and agent interfaces. Its native editable document format is `.byax`.
+ByAuthorX is a desktop word processor for writers, from a first letter to a finished book. It is built for long work and for review: writing, formatting, reviewing, dictating, and publishing documents, with AI and reviewer edits arriving as proposals the author accepts one by one. It combines an approachable graphical editor with a complete command line interface and agent interfaces. Its native editable document format is `.byax`.
 
-The product serves basic to intermediate Word and Pages use cases while making documents inspectable, testable, versioned, and programmable. Markdown, rich text, page layout, layers, broad import, configurable checking, and transcription belong to one integrated product. Every functional requirement below is part of that product specification; the document does not divide capabilities into releases or delivery stages.
+The product serves basic to intermediate Word and Pages use cases and manuscript-length work, while making documents inspectable, testable, versioned, and scriptable. Markdown, rich text, page layout, layers, broad import, configurable checking, and transcription belong to one integrated product. Every functional requirement below is part of that product specification; the document does not divide capabilities into releases or delivery stages.
 
 ## 1 Product goals
 

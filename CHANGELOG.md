@@ -15,6 +15,7 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ### Changed
 
+- Documentation: the README is now a writer's page (pitch, proof points, get started, what you can do, status). Running from source, the command line, MCP and REST, tests and builds, and the creative resource libraries moved to the new `docs/developers.md`. The documentation index is split into using, automating, building and project history. The voice and messaging guide moved from `docs/brand.md` to `docs/voice.md`, and `brand.md` is now the design system. The product is described in one sentence across the README, package metadata, Linux desktop entry and `.deb`, and the product specification; the lead proof point reads "Proposals, not surprises". EPUB option names moved from the user guide to the CLI reference.
 - Documentation: the README now opens with who ByAuthorX is for and why to choose it, with developer and automation material in its own section. `docs/brand.md` gains a voice and messaging guide (tagline hierarchy, tone, vocabulary, copy examples) and records where the product departs from the original brand guide on typography. The product specification file is renamed `PRODUCT-SPECIFICATION.md`, and JX Holdings, LLC is named as product owner.
 - Documentation: the README now states the current version and summarizes the 0.4 manuscript, publishing and
   review features, and the documentation screenshots were regenerated so they show the Binder menu.
