@@ -1,91 +1,136 @@
 name: Release
-on:
-  push:
-    tags: ['v[0-9]+.[0-9]+.[0-9]+']
+'on':
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: Release channel
+        type: choice
+        options:
+        - stable
+        - preview
+        default: stable
+      dry_run:
+        description: Build and verify without publishing
+        type: boolean
+        default: true
+      app:
+        description: Optional app ID; empty selects every advanced app
+        type: string
+        default: ''
 permissions:
   contents: read
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
 jobs:
+  plan:
+    uses: JX-Holdings-LLC/release-infrastructure/.github/workflows/plan.yml@e219396d4dcab9a14c9d7ee1730320fc94006dcc
+    with:
+      toolkit-ref: e219396d4dcab9a14c9d7ee1730320fc94006dcc
+      channel: ${{ inputs.channel }}
+      app: ${{ inputs.app }}
   verify:
     name: Verify tag
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Tag matches the packaged version and the changelog
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          packaged="$(grep -oP "__version__ = '\K[^']+" src/byax/__init__.py)"
-          if [ "$version" != "$packaged" ]; then
-            echo "::error::Tag $GITHUB_REF_NAME does not match byax.__version__ ($packaged)"
-            exit 1
-          fi
-          if ! grep -qF "## [$version]" CHANGELOG.md; then
-            echo "::error::CHANGELOG.md has no entry for $version"
-            exit 1
-          fi
-      - name: Tagged commit is on main
-        run: |
-          git fetch origin main
-          if ! git merge-base --is-ancestor HEAD origin/main; then
-            echo "::error::$GITHUB_REF_NAME does not point at a commit on main"
-            exit 1
-          fi
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        fetch-depth: 0
+        ref: ${{ needs.plan.outputs.sha }}
+        persist-credentials: false
+    - name: Tag matches the packaged version and the changelog
+      run: |
+        version="${RELEASE_TAG#v}"
+        packaged="$(grep -oP "__version__ = '\K[^']+" src/byax/__init__.py)"
+        if [ "$version" != "$packaged" ]; then
+          echo "::error::Tag $RELEASE_TAG does not match byax.__version__ ($packaged)"
+          exit 1
+        fi
+        if ! grep -qF "## [$version]" CHANGELOG.md; then
+          echo "::error::CHANGELOG.md has no entry for $version"
+          exit 1
+        fi
+    - name: Tagged commit is on main
+      run: |
+        git fetch origin main
+        if ! git merge-base --is-ancestor HEAD origin/main; then
+          echo "::error::$RELEASE_TAG does not point at a commit on main"
+          exit 1
+        fi
+    needs:
+    - plan
+    if: needs.plan.outputs.selected == 'true' && fromJSON(needs.plan.outputs.apps)['byauthorx'].selected
+    env:
+      RELEASE_TAG: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].tag }}
+      RELEASE_VERSION: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].version }}
+      RELEASE_SOURCE_SHA: ${{ needs.plan.outputs.sha }}
+    permissions:
+      contents: read
   ci:
     name: Build and test
-    needs: verify
+    needs:
+    - plan
+    - verify
     uses: ./.github/workflows/ci.yml
-  # Signing is optional and driven only by repository secrets (docs/packaging.md, "Signing and
-  # notarization"). Without them every job below still runs and produces a clearly labelled unsigned
-  # file; nothing is ever signed with a placeholder.
+    if: needs.plan.outputs.selected == 'true' && fromJSON(needs.plan.outputs.apps)['byauthorx'].selected
   windows-sign:
     name: Windows installer (signed when a certificate exists)
-    needs: ci
+    needs:
+    - plan
+    - ci
     runs-on: windows-2022
     timeout-minutes: 20
     env:
       WINDOWS_CERTIFICATE_PFX: ${{ secrets.WINDOWS_CERTIFICATE_PFX }}
       WINDOWS_CERTIFICATE_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PASSWORD }}
+      RELEASE_TAG: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].tag }}
+      RELEASE_VERSION: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].version }}
+      RELEASE_SOURCE_SHA: ${{ needs.plan.outputs.sha }}
     steps:
-      - uses: actions/download-artifact@v4
-        with:
-          name: ByAuthorX-windows-2022-x64
-          path: installer
-      - name: Sign the installer with signtool (PFX certificate)
-        shell: pwsh
-        run: |
-          $installers = @(Get-ChildItem installer -Filter '*-windows-x64*-setup.exe')
-          if (-not $installers) { throw 'No Windows installer artifact found' }
-          New-Item -ItemType Directory -Force release | Out-Null
-          if ($env:WINDOWS_CERTIFICATE_PFX -and $env:WINDOWS_CERTIFICATE_PASSWORD) {
-            $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
-            [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_PFX))
-            $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
-              Sort-Object FullName | Select-Object -Last 1
-            # Every installer variant (lean, and standard when the models mirror is populated) is signed.
-            foreach ($installer in $installers) {
-              & $signtool.FullName sign /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "ByAuthorX" $installer.FullName
-              if ($LASTEXITCODE -ne 0) { throw 'signtool sign failed' }
-              & $signtool.FullName verify /pa /v $installer.FullName
-              if ($LASTEXITCODE -ne 0) { throw 'signtool verify failed' }
-            }
-            Remove-Item $pfx
-            Set-Content release/signing-status-windows.txt 'signed'
-          } else {
-            Write-Warning 'No WINDOWS_CERTIFICATE_PFX secret: publishing the installers unsigned.'
-            Set-Content release/signing-status-windows.txt 'unsigned'
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        name: ByAuthorX-windows-2022-x64
+        path: installer
+    - name: Sign the installer with signtool (PFX certificate)
+      shell: pwsh
+      run: |
+        $installers = @(Get-ChildItem installer -Filter '*-windows-x64*-setup.exe')
+        if (-not $installers) { throw 'No Windows installer artifact found' }
+        New-Item -ItemType Directory -Force release | Out-Null
+        if ($env:WINDOWS_CERTIFICATE_PFX -and $env:WINDOWS_CERTIFICATE_PASSWORD) {
+          $pfx = Join-Path $env:RUNNER_TEMP 'certificate.pfx'
+          [IO.File]::WriteAllBytes($pfx, [Convert]::FromBase64String($env:WINDOWS_CERTIFICATE_PFX))
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" |
+            Sort-Object FullName | Select-Object -Last 1
+          # Every installer variant (lean, and standard when the models mirror is populated) is signed.
+          foreach ($installer in $installers) {
+            & $signtool.FullName sign /f $pfx /p $env:WINDOWS_CERTIFICATE_PASSWORD /fd SHA256 /tr http://timestamp.digicert.com /td SHA256 /d "ByAuthorX" $installer.FullName
+            if ($LASTEXITCODE -ne 0) { throw 'signtool sign failed' }
+            & $signtool.FullName verify /pa /v $installer.FullName
+            if ($LASTEXITCODE -ne 0) { throw 'signtool verify failed' }
           }
-          foreach ($installer in $installers) { Copy-Item $installer.FullName release/ }
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-windows
-          path: release/*
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
+          Remove-Item $pfx
+          Set-Content release/signing-status-windows.txt 'signed'
+        } else {
+          Write-Warning 'No WINDOWS_CERTIFICATE_PFX secret: publishing the installers unsigned.'
+          Set-Content release/signing-status-windows.txt 'unsigned'
+        }
+        foreach ($installer in $installers) { Copy-Item $installer.FullName release/ }
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: release-windows
+        path: release/*
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 7
+    if: needs.plan.outputs.selected == 'true' && fromJSON(needs.plan.outputs.apps)['byauthorx'].selected
+    permissions:
+      contents: read
   macos:
     name: macOS disk image (signed and notarized when secrets exist)
-    needs: ci
+    needs:
+    - plan
+    - ci
     runs-on: macos-14
     timeout-minutes: 60
     env:
@@ -94,177 +139,222 @@ jobs:
       APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
       APPLE_ID: ${{ secrets.APPLE_ID }}
       APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+      RELEASE_TAG: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].tag }}
+      RELEASE_VERSION: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].version }}
+      RELEASE_SOURCE_SHA: ${{ needs.plan.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: true
-          python-version: '3.12'
-      - run: uv sync --frozen --extra dev --extra local-models
-      - name: Are all five Apple signing secrets present?
-        id: apple
-        run: |
-          if [ -n "$APPLE_CERTIFICATE_P12" ] && [ -n "$APPLE_CERTIFICATE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] \
-             && [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ]; then
-            echo "sign=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "sign=false" >> "$GITHUB_OUTPUT"
-            echo "::warning::Apple signing secrets are incomplete: building an UNSIGNED disk image."
-          fi
-      - name: Import the Developer ID certificate into a temporary keychain
-        id: keychain
-        if: steps.apple.outputs.sign == 'true'
-        run: |
-          keychain="$RUNNER_TEMP/byax-signing.keychain-db"
-          password="$(uuidgen)"
-          echo "$APPLE_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
-          security create-keychain -p "$password" "$keychain"
-          security set-keychain-settings -lut 21600 "$keychain"
-          security unlock-keychain -p "$password" "$keychain"
-          security import "$RUNNER_TEMP/certificate.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
-          security set-key-partition-list -S apple-tool:,apple: -k "$password" "$keychain"
-          security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
-          rm -f "$RUNNER_TEMP/certificate.p12"
-          identity="$(security find-identity -v -p codesigning "$keychain" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/')"
-          if [ -z "$identity" ]; then
-            echo "::error::No Developer ID Application identity in the certificate"
-            exit 1
-          fi
-          echo "keychain=$keychain" >> "$GITHUB_OUTPUT"
-          echo "identity=$identity" >> "$GITHUB_OUTPUT"
-      - name: Build, sign (hardened runtime) and notarize
-        if: steps.apple.outputs.sign == 'true'
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ steps.keychain.outputs.identity }}
-          APPLE_KEYCHAIN: ${{ steps.keychain.outputs.keychain }}
-        run: uv run --no-sync python scripts/build_macos.py --dmg --notarize
-      - name: Build an unsigned, labelled disk image
-        if: steps.apple.outputs.sign != 'true'
-        run: uv run --no-sync python scripts/build_macos.py --dmg
-      - name: Smoke test the frozen CLI and MCP server inside the app
-        run: uv run --no-sync python scripts/smoke_distribution.py dist/ByAuthorX.app/Contents/MacOS/byax dist/ByAuthorX.app/Contents/MacOS/byax-mcp
-      - name: Gatekeeper assessment
-        if: steps.apple.outputs.sign == 'true'
-        run: |
-          spctl --assess --type exec --verbose=2 dist/ByAuthorX.app
-          xcrun stapler validate dist/*.dmg
-      - name: Record signing status
-        run: |
-          mkdir release
-          cp dist/*.dmg release/
-          if [ "${{ steps.apple.outputs.sign }}" = "true" ]; then
-            echo signed > release/signing-status-macos.txt
-          else
-            echo unsigned > release/signing-status-macos.txt
-          fi
-          ls -l release
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-macos
-          path: release/*
-          if-no-files-found: error
-          compression-level: 0
-          retention-days: 7
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        ref: ${{ needs.plan.outputs.sha }}
+        persist-credentials: false
+    - uses: astral-sh/setup-uv@v6
+      with:
+        enable-cache: true
+        python-version: '3.12'
+    - run: uv sync --frozen --extra dev --extra local-models
+    - name: Are all five Apple signing secrets present?
+      id: apple
+      run: |
+        if [ -n "$APPLE_CERTIFICATE_P12" ] && [ -n "$APPLE_CERTIFICATE_PASSWORD" ] && [ -n "$APPLE_TEAM_ID" ] \
+           && [ -n "$APPLE_ID" ] && [ -n "$APPLE_APP_PASSWORD" ]; then
+          echo "sign=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "sign=false" >> "$GITHUB_OUTPUT"
+          echo "::warning::Apple signing secrets are incomplete: building an UNSIGNED disk image."
+        fi
+    - name: Import the Developer ID certificate into a temporary keychain
+      id: keychain
+      if: steps.apple.outputs.sign == 'true'
+      run: |
+        keychain="$RUNNER_TEMP/byax-signing.keychain-db"
+        password="$(uuidgen)"
+        echo "$APPLE_CERTIFICATE_P12" | base64 --decode > "$RUNNER_TEMP/certificate.p12"
+        security create-keychain -p "$password" "$keychain"
+        security set-keychain-settings -lut 21600 "$keychain"
+        security unlock-keychain -p "$password" "$keychain"
+        security import "$RUNNER_TEMP/certificate.p12" -P "$APPLE_CERTIFICATE_PASSWORD" -A -t cert -f pkcs12 -k "$keychain"
+        security set-key-partition-list -S apple-tool:,apple: -k "$password" "$keychain"
+        security list-keychains -d user -s "$keychain" $(security list-keychains -d user | tr -d '"')
+        rm -f "$RUNNER_TEMP/certificate.p12"
+        identity="$(security find-identity -v -p codesigning "$keychain" | grep 'Developer ID Application' | head -1 | sed -E 's/^[^"]*"([^"]+)".*$/\1/')"
+        if [ -z "$identity" ]; then
+          echo "::error::No Developer ID Application identity in the certificate"
+          exit 1
+        fi
+        echo "keychain=$keychain" >> "$GITHUB_OUTPUT"
+        echo "identity=$identity" >> "$GITHUB_OUTPUT"
+    - name: Build, sign (hardened runtime) and notarize
+      if: steps.apple.outputs.sign == 'true'
+      env:
+        APPLE_SIGNING_IDENTITY: ${{ steps.keychain.outputs.identity }}
+        APPLE_KEYCHAIN: ${{ steps.keychain.outputs.keychain }}
+      run: uv run --no-sync python scripts/build_macos.py --dmg --notarize
+    - name: Build an unsigned, labelled disk image
+      if: steps.apple.outputs.sign != 'true'
+      run: uv run --no-sync python scripts/build_macos.py --dmg
+    - name: Smoke test the frozen CLI and MCP server inside the app
+      run: uv run --no-sync python scripts/smoke_distribution.py dist/ByAuthorX.app/Contents/MacOS/byax dist/ByAuthorX.app/Contents/MacOS/byax-mcp
+    - name: Gatekeeper assessment
+      if: steps.apple.outputs.sign == 'true'
+      run: |
+        spctl --assess --type exec --verbose=2 dist/ByAuthorX.app
+        xcrun stapler validate dist/*.dmg
+    - name: Record signing status
+      run: |
+        mkdir release
+        cp dist/*.dmg release/
+        if [ "${{ steps.apple.outputs.sign }}" = "true" ]; then
+          echo signed > release/signing-status-macos.txt
+        else
+          echo unsigned > release/signing-status-macos.txt
+        fi
+        ls -l release
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: release-macos
+        path: release/*
+        if-no-files-found: error
+        compression-level: 0
+        retention-days: 7
+    if: needs.plan.outputs.selected == 'true' && fromJSON(needs.plan.outputs.apps)['byauthorx'].selected
+    permissions:
+      contents: read
   publish:
     name: Publish GitHub Release
-    needs: [ci, windows-sign, macos]
+    needs:
+    - plan
+    - ci
+    - windows-sign
+    - macos
     runs-on: ubuntu-24.04
     permissions:
-      contents: write
+      contents: read
     env:
       GH_TOKEN: ${{ github.token }}
       GH_REPO: ${{ github.repository }}
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
       GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+      RELEASE_TAG: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].tag }}
+      RELEASE_VERSION: ${{ fromJSON(needs.plan.outputs.apps)['byauthorx'].version }}
+      RELEASE_SOURCE_SHA: ${{ needs.plan.outputs.sha }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
-        with:
-          path: artifacts
-      - name: Collect installers and checksums
-        run: |
-          mkdir release
-          find artifacts/ByAuthorX-ubuntu-24.04-x64 -name '*_amd64.deb' -exec cp {} release/ \;
-          find artifacts/release-windows \( -name '*-windows-x64-setup.exe' -o -name '*-windows-x64-lean-setup.exe' \) -exec cp {} release/ \;
-          find artifacts/release-macos -name '*.dmg' -exec cp {} release/ \;
-          ls -l release
-          total="$(ls release | wc -l)"
-          lean="$(ls release | grep -c -- '-lean' || true)"
-          # Lean installers are always built (Ubuntu package and Windows installer) and the macOS disk image has
-          # no variants. The standard installers (bundled on-device models) exist only once the models-v1 mirror
-          # release is populated, so a release has 3 files, or 5 with both variants.
-          if [ "$lean" -ne 2 ] || { [ "$total" -ne 3 ] && [ "$total" -ne 5 ]; }; then
-            echo "::error::Expected the lean .deb and Windows installer and one macOS disk image, plus both standard installers or neither"
-            exit 1
-          fi
-          if [ "$total" -eq 3 ]; then
-            echo "::warning::The models-v1 mirror is not populated: publishing the lean variants only"
-            echo "LEAN_ONLY=true" >> "$GITHUB_ENV"
-          fi
-          (cd release && sha256sum * > SHA256SUMS.txt)
-          cat release/SHA256SUMS.txt
-      - name: Sign the checksums and the Ubuntu package with GPG (when a key exists)
-        run: |
-          if [ -z "$GPG_PRIVATE_KEY" ]; then
-            echo "::warning::No GPG_PRIVATE_KEY secret: the Ubuntu package and checksums are published unsigned."
-            echo unsigned > signing-status-linux.txt
-            exit 0
-          fi
-          export GNUPGHOME="$(mktemp -d)"
-          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
-          key="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')"
-          gpg_sign=(gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --local-user "$key")
-          # dpkg-sig embeds a signature in the .deb itself; it is optional and skipped where unavailable.
-          if sudo apt-get install -y --no-install-recommends dpkg-sig > /dev/null 2>&1; then
-            for deb in release/*.deb; do
-              dpkg-sig --gpg-options "--batch --pinentry-mode loopback --passphrase $GPG_PASSPHRASE" -k "$key" --sign builder "$deb"
-            done
-          fi
-          # The checksums are computed after dpkg-sig rewrote the package, then signed (detached).
-          (cd release && sha256sum *.deb *.exe *.dmg > SHA256SUMS.txt && "${gpg_sign[@]}" --armor --detach-sign --output SHA256SUMS.txt.asc SHA256SUMS.txt)
-          gpg --armor --export "$key" > release/byauthorx-release-key.asc
-          gpg --verify release/SHA256SUMS.txt.asc release/SHA256SUMS.txt
-          echo "signed ($key)" > signing-status-linux.txt
-      - name: Release notes from the changelog
-        run: |
-          version="${GITHUB_REF_NAME#v}"
-          awk -v v="$version" '
-            index($0, "## [" v "]") == 1 { found = 1; next }
-            found && /^## \[/ { exit }
-            found && /^\[[^]]+\]: / { next }
-            found { print }
-          ' CHANGELOG.md > release-notes.md
-          if [ ! -s release-notes.md ]; then
-            echo "::error::Could not extract release notes for $version"
-            exit 1
-          fi
-          printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt` (they cover every variant).\n' >> release-notes.md
-          if [ "${LEAN_ONLY:-}" = "true" ]; then
-            printf '\nThis release has the lean installers only (no bundled on-device search models). Models can be downloaded on request from the app or with `byax models`.\n' >> release-notes.md
-          else
-            printf '\nThe standard installers bundle the on-device search models; the `-lean` installers leave them out.\n' >> release-notes.md
-          fi
-          {
-            echo
-            echo '### Signing status'
-            echo
-            echo "- Windows installer: $(cat artifacts/release-windows/signing-status-windows.txt)"
-            echo "- macOS disk image: $(cat artifacts/release-macos/signing-status-macos.txt)"
-            echo "- Ubuntu package and checksums: $(cat signing-status-linux.txt 2>/dev/null || echo unsigned)"
-            echo
-            echo 'An unsigned file makes the operating system warn on first run. Verify it against SHA256SUMS.txt first; see the troubleshooting guide.'
-          } >> release-notes.md
-          cat release-notes.md
-      - name: Publish the release
-        run: |
-          if gh release view "$GITHUB_REF_NAME" > /dev/null 2>&1; then
-            gh release upload "$GITHUB_REF_NAME" release/* --clobber
-            gh release edit "$GITHUB_REF_NAME" \
-              --title "ByAuthorX ${GITHUB_REF_NAME#v}" \
-              --notes-file release-notes.md
-          else
-            gh release create "$GITHUB_REF_NAME" release/* \
-              --verify-tag \
-              --title "ByAuthorX ${GITHUB_REF_NAME#v}" \
-              --notes-file release-notes.md
-          fi
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        ref: ${{ needs.plan.outputs.sha }}
+        persist-credentials: false
+    - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093
+      with:
+        path: artifacts
+    - name: Collect installers and checksums
+      run: |
+        mkdir release
+        find artifacts/ByAuthorX-ubuntu-24.04-x64 -name '*_amd64.deb' -exec cp {} release/ \;
+        find artifacts/release-windows \( -name '*-windows-x64-setup.exe' -o -name '*-windows-x64-lean-setup.exe' \) -exec cp {} release/ \;
+        find artifacts/release-macos -name '*.dmg' -exec cp {} release/ \;
+        ls -l release
+        total="$(ls release | wc -l)"
+        lean="$(ls release | grep -c -- '-lean' || true)"
+        # Lean installers are always built (Ubuntu package and Windows installer) and the macOS disk image has
+        # no variants. The standard installers (bundled on-device models) exist only once the models-v1 mirror
+        # release is populated, so a release has 3 files, or 5 with both variants.
+        if [ "$lean" -ne 2 ] || { [ "$total" -ne 3 ] && [ "$total" -ne 5 ]; }; then
+          echo "::error::Expected the lean .deb and Windows installer and one macOS disk image, plus both standard installers or neither"
+          exit 1
+        fi
+        if [ "$total" -eq 3 ]; then
+          echo "::warning::The models-v1 mirror is not populated: publishing the lean variants only"
+          echo "LEAN_ONLY=true" >> "$GITHUB_ENV"
+        fi
+        (cd release && sha256sum * > SHA256SUMS.txt)
+        cat release/SHA256SUMS.txt
+    - name: Sign the checksums and the Ubuntu package with GPG (when a key exists)
+      run: |
+        if [ -z "$GPG_PRIVATE_KEY" ]; then
+          echo "::warning::No GPG_PRIVATE_KEY secret: the Ubuntu package and checksums are published unsigned."
+          echo unsigned > signing-status-linux.txt
+          exit 0
+        fi
+        export GNUPGHOME="$(mktemp -d)"
+        echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+        key="$(gpg --list-secret-keys --with-colons | awk -F: '/^fpr:/ {print $10; exit}')"
+        gpg_sign=(gpg --batch --yes --pinentry-mode loopback --passphrase "$GPG_PASSPHRASE" --local-user "$key")
+        # dpkg-sig embeds a signature in the .deb itself; it is optional and skipped where unavailable.
+        if sudo apt-get install -y --no-install-recommends dpkg-sig > /dev/null 2>&1; then
+          for deb in release/*.deb; do
+            dpkg-sig --gpg-options "--batch --pinentry-mode loopback --passphrase $GPG_PASSPHRASE" -k "$key" --sign builder "$deb"
+          done
+        fi
+        # The checksums are computed after dpkg-sig rewrote the package, then signed (detached).
+        (cd release && sha256sum *.deb *.exe *.dmg > SHA256SUMS.txt && "${gpg_sign[@]}" --armor --detach-sign --output SHA256SUMS.txt.asc SHA256SUMS.txt)
+        gpg --armor --export "$key" > release/byauthorx-release-key.asc
+        gpg --verify release/SHA256SUMS.txt.asc release/SHA256SUMS.txt
+        echo "signed ($key)" > signing-status-linux.txt
+    - name: Release notes from the changelog
+      run: |
+        version="${RELEASE_TAG#v}"
+        awk -v v="$version" '
+          index($0, "## [" v "]") == 1 { found = 1; next }
+          found && /^## \[/ { exit }
+          found && /^\[[^]]+\]: / { next }
+          found { print }
+        ' CHANGELOG.md > release-notes.md
+        if [ ! -s release-notes.md ]; then
+          echo "::error::Could not extract release notes for $version"
+          exit 1
+        fi
+        printf '\nSHA-256 checksums for the attached files are in `SHA256SUMS.txt` (they cover every variant).\n' >> release-notes.md
+        if [ "${LEAN_ONLY:-}" = "true" ]; then
+          printf '\nThis release has the lean installers only (no bundled on-device search models). Models can be downloaded on request from the app or with `byax models`.\n' >> release-notes.md
+        else
+          printf '\nThe standard installers bundle the on-device search models; the `-lean` installers leave them out.\n' >> release-notes.md
+        fi
+        {
+          echo
+          echo '### Signing status'
+          echo
+          echo "- Windows installer: $(cat artifacts/release-windows/signing-status-windows.txt)"
+          echo "- macOS disk image: $(cat artifacts/release-macos/signing-status-macos.txt)"
+          echo "- Ubuntu package and checksums: $(cat signing-status-linux.txt 2>/dev/null || echo unsigned)"
+          echo
+          echo 'An unsigned file makes the operating system warn on first run. Verify it against SHA256SUMS.txt first; see the troubleshooting guide.'
+        } >> release-notes.md
+        cat release-notes.md
+    - name: Preserve the observed signing status
+      shell: bash
+      run: sed -n '/^### Signing status/,$p' release-notes.md > release/release-signing-status.md
+    - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      with:
+        repository: JX-Holdings-LLC/release-infrastructure
+        ref: e219396d4dcab9a14c9d7ee1730320fc94006dcc
+        path: .toolkit
+        persist-credentials: false
+    - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+      with:
+        node-version: 24
+    - name: Stage the complete configured release inventory
+      shell: bash
+      env:
+        RELEASE_APP: byauthorx
+      run: node .toolkit/src/release.mjs stage --app "$RELEASE_APP" --from release --bundle unified-bundle --sha
+        "$RELEASE_SOURCE_SHA"
+    - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+      with:
+        name: bundle-byauthorx
+        path: unified-bundle
+        if-no-files-found: error
+    if: needs.plan.outputs.selected == 'true' && fromJSON(needs.plan.outputs.apps)['byauthorx'].selected
+  publish-byauthorx:
+    needs:
+    - plan
+    - publish
+    if: needs.plan.outputs.selected == 'true' && fromJSON(needs.plan.outputs.apps)['byauthorx'].selected
+    uses: JX-Holdings-LLC/release-infrastructure/.github/workflows/finish.yml@e219396d4dcab9a14c9d7ee1730320fc94006dcc
+    permissions:
+      contents: write
+    with:
+      toolkit-ref: e219396d4dcab9a14c9d7ee1730320fc94006dcc
+      source-sha: ${{ needs.plan.outputs.sha }}
+      app: byauthorx
+      security: standard
+      artifact: bundle-byauthorx
+      dry-run: ${{ inputs.dry_run }}
