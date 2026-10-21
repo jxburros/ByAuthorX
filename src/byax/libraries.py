@@ -188,6 +188,10 @@ class LibraryRegistry:
         """Choose how PDFs are read: ``pypdf`` (default) or the optional ``docling`` quality path."""
         if engine not in PDF_ENGINES:
             raise ByaxError('invalid_input', 'PDF engine must be pypdf or docling', engine=engine)
+        if engine == 'docling':
+            from .library_parser import DOCLING_UNAVAILABLE
+
+            raise ByaxError('unsupported_feature', DOCLING_UNAVAILABLE, engine=engine)
         entry = self.get(library_id)
         entry['pdf_engine'] = None if engine == 'pypdf' else engine
         _atomic_json(self.path, [entry if item['library_id'] == library_id else item for item in self.list()])

@@ -1,6 +1,7 @@
 """Isolated, resource-bounded library text extraction (never executes file content).
 
-PDFs are read with pypdf by default. The optional ``docling`` engine (``byauthorx[docling]``, MIT) runs
+PDFs are read with pypdf by default. Docling is temporarily disabled pending support for
+security-fixed Pillow 13. Its retained extraction implementation (MIT) runs
 only here, in this subprocess: it reads reading order and headings with a layout model, keeps the page
 and bounding box of every passage, and imports the PDF's own annotations as linked notes. It runs
 offline on the layout model installed with ``byax models`` and never fetches one itself. PyMuPDF is not
@@ -14,6 +15,10 @@ import os
 import sys
 from pathlib import Path
 
+DOCLING_UNAVAILABLE = (
+    'The Docling PDF engine is temporarily unavailable because its dependencies require '
+    'Pillow below the security-fixed version 13. Choose the pypdf engine instead.'
+)
 DOCLING_LAYOUT_MODEL = 'docling-layout-heron'
 # Docling labels that are page furniture, not text a writer would cite.
 DOCLING_SKIPPED = {'page_header', 'page_footer', 'footnote'}
@@ -133,7 +138,7 @@ def extract(path, maximum, engine='pypdf'):
     path = Path(path)
     if path.suffix.lower() == '.pdf':
         if engine == 'docling':
-            return extract_pdf_docling(path, maximum)
+            raise ValueError(DOCLING_UNAVAILABLE)
         from pypdf import PdfReader
 
         reader = PdfReader(path, strict=True)

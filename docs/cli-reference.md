@@ -807,7 +807,7 @@ byax library draft.byax --action chunking-configure --library-id lib_… --input
 byax library-read draft.byax --library-id lib_… --document-id doc_… --chunk-id chunk_… --section --json
 byax library draft.byax --action contextualize-preview --library-id lib_… --input - <<< '{"provider": "my-ollama"}'
 byax library draft.byax --action contextualize --library-id lib_… --input - <<< '{"provider": "my-ollama"}'
-byax library draft.byax --action pdf-engine --library-id lib_… --input - <<< '{"engine": "docling"}'
+byax library draft.byax --action pdf-engine --library-id lib_… --input - <<< '{"engine": "pypdf"}'
 ```
 
 `--rerank fast|accurate` overrides the saved setting for one search; the result's `rerank` entry names the

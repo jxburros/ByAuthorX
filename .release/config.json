@@ -1,0 +1,64 @@
+{
+  "schemaVersion": 1,
+  "bumpPolicy": "every-main-change",
+  "apps": {
+    "byauthorx": {
+      "tagPrefix": "v",
+      "paths": [
+        "**"
+      ],
+      "versionFiles": [
+        {
+          "path": "pyproject.toml",
+          "format": "text",
+          "pattern": "^version = \"(?<version>[^\"]+)\"$"
+        },
+        {
+          "path": "src/byax/__init__.py",
+          "format": "text",
+          "pattern": "^__version__ = '(?<version>[^']+)'$"
+        },
+        {
+          "path": "packaging/windows.iss",
+          "format": "text",
+          "pattern": "^#define MyAppVersion \"(?<version>[^\"]+)\"$"
+        }
+      ],
+      "notes": ".release/notes/{app}/{version}.md",
+      "assets": [
+        "ByAuthorX-{version}-windows-x64-lean-setup.exe",
+        "byauthorx-lean_{version}_amd64.deb",
+        "release-signing-status.md"
+      ],
+      "security": "standard",
+      "checksumFile": "SHA256SUMS.txt",
+      "legacyLatest": true,
+      "optionalAssets": [
+        {
+          "pattern": "^ByAuthorX-{version}-macos-arm64(?:-UNSIGNED)?\\.dmg$",
+          "min": 1,
+          "max": 1
+        },
+        {
+          "pattern": "^(?:ByAuthorX-{version}-windows-x64-setup\\.exe|byauthorx_{version}_amd64\\.deb)$",
+          "min": 0,
+          "max": 2,
+          "allOrNone": true
+        },
+        {
+          "pattern": "^(?:SHA256SUMS\\.txt\\.asc|byauthorx-release-key\\.asc)$",
+          "min": 0,
+          "max": 2,
+          "allOrNone": true
+        }
+      ],
+      "preserveChecksum": true,
+      "checksumExclusions": [
+        "SHA256SUMS.txt.asc",
+        "byauthorx-release-key.asc",
+        "release-signing-status.md"
+      ],
+      "notesAsset": "release-signing-status.md"
+    }
+  }
+}

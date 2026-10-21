@@ -104,29 +104,12 @@ def _embed(library, a, doc, index):
 
 def _pdf_engine(library, a, doc, registry):
     """Choose the PDF reader: ``pypdf`` (default) or the optional offline ``docling`` quality path."""
-    import importlib.util
-
-    from . import local_models
     from .cli import envelope
-    from .library_parser import DOCLING_LAYOUT_MODEL
 
     spec = a.get('input') or {}
     if not isinstance(spec, dict) or set(spec) - {'engine'} or not spec.get('engine'):
         raise ByaxError('invalid_input', 'PDF engine input is {"engine": "pypdf" or "docling"}')
     engine = spec['engine']
-    if engine == 'docling':
-        if importlib.util.find_spec('docling') is None:
-            raise ByaxError(
-                'missing_dependency',
-                'The Docling PDF engine needs the optional extra: install byauthorx[docling]',
-                extra='byauthorx[docling]',
-            )
-        if local_models.model_status(DOCLING_LAYOUT_MODEL)['state'] != 'installed':
-            raise ByaxError(
-                'model_missing',
-                f'Install the layout model first: byax models --action download --name {DOCLING_LAYOUT_MODEL} --confirm',
-                name=DOCLING_LAYOUT_MODEL,
-            )
     updated = registry.configure_pdf_engine(library['library_id'], engine)
     return envelope(
         {'library': updated, 'pdf_engine': engine, 'next_step': 'Run refresh; every PDF is read again.'}, doc

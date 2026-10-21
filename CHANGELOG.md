@@ -9,6 +9,22 @@ entry as its GitHub Release notes, so use absolute links and no in-page anchors 
 
 ## [Unreleased]
 
+### Release infrastructure migration — 2026-10-20
+
+- Adopt the unified release manifest, version-advance validation, manual main-only planning, complete artifact staging, and verified draft publisher. Preserve local packaging, existing updater trust, and distribution identities.
+- Validation: shared engine tests, workflow lint, and prepared manifest/version checks. Native/hosted consumer release dry runs and publication remain unverified until the migration is merged and credentials/settings are checked.
+
+## [0.4.3] - 2026-10-21
+
+### Fixed
+
+- Require security-fixed Pillow 13 and refresh the locked certificate bundle.
+- Recognize missing Linux fonts before embedding: Fontconfig substitutes are not treated as the requested family, so EPUB exports report missing fonts accurately.
+- Temporarily disable the optional Docling PDF add-on, by maintainer decision, because
+  all available upstream releases require Pillow below 13. Keep the default pypdf engine
+  available and report an explicit error for existing Docling libraries until they are
+  switched back to pypdf. Preserve source documents and retained extraction helpers.
+
 ## [0.4.2] - 2026-10-18
 
 ### Added

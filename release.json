@@ -1,0 +1,9 @@
+{
+  "schemaVersion": 1,
+  "apps": {
+    "byauthorx": {
+      "title": "ByAuthorX",
+      "version": "0.4.3"
+    }
+  }
+}

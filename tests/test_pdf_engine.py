@@ -263,97 +263,30 @@ def install_layout_model(engine):
     local_models._write_manifest(local_models.get_model('docling-layout-heron'), target, 'upstream')
 
 
-def test_docling_engine_indexes_page_bbox_headings_and_annotations_offline(engine):
+def test_disabled_docling_cannot_replace_the_default_engine(engine):
     install_layout_model(engine)
-    library = engine.registry.configure_pdf_engine(engine.definition['library_id'], 'docling')
-    index = LibraryIndex(library, cache_dir=engine.cache)
-    assert index.chunking['pdf_engine'] == 'docling' and index.status()['chunking']['pdf_engine'] == 'docling'
-    result = index.refresh()
-    assert result['files'][0]['status'] == 'ready', result['files'][0]
-    record = json.loads((engine.tmp / 'docling-log.json').read_text())
-    assert record['exists'] and record['do_ocr'] is False and record['do_table_structure'] is False
-    assert record['offline'] == '1', 'the parser subprocess runs Docling offline'
-    keeper = index.search('stair')['results'][0]
-    # Two paragraphs of one section on one page merge; the chunk keeps the page and the box covering both.
-    assert 'He lit the great lamp.' in keeper['text']
-    assert keeper['locator']['page'] == 1 and keeper['locator']['heading_path'] == [
-        'The Lighthouse',
-        'Chapter One',
-    ]
-    # The section heading, both paragraphs: one chunk, and the box covers all three.
-    assert keeper['text'].startswith('Chapter One') and keeper['locator']['bbox'] == [
-        72.0,
-        102.0,
-        400.0,
-        182.0,
-    ]
-    assert keeper['heading'] == 'The Lighthouse > Chapter One'
-    storm = index.search('storm')['results'][0]
-    assert storm['locator']['page'] == 2 and storm['locator']['bbox'][0] == 72.0
-    note = index.search('Check this date')['results'][0]
-    assert note['text'] == 'Check this date against the log.'
-    assert note['locator']['note'] == 'Text' and note['locator']['page'] == 1
-    assert note['locator']['bbox'] == [50.0, 42.0, 150.0, 92.0]
-    assert note['chunk_id'] != keeper['chunk_id'], 'a linked note is never merged into body text'
-    # The chunk's locator survives citation validation, including the box.
-    from byax import engine as document_engine
-    from byax.citations import source_from_hit
-    from byax.model import new_document
-
-    doc = new_document(text='The keeper climbed.')
-    source = source_from_hit({**keeper, 'library_name': 'Books'})
-    doc['references'][source['id']] = source
-    locator = {**keeper['locator'], 'chunk': keeper['chunk_id']}
-    op = {
-        'type': 'cite',
-        'target': doc['blocks'][0]['id'],
-        'start': 0,
-        'end': 10,
-        'source': source['id'],
-        'locator': locator,
-    }
-    updated, _ = document_engine.apply(doc, {'expected_revision': doc['revision'], 'operations': [op]})
-    assert updated['blocks'][0]['marks'][0]['locator']['bbox'] == keeper['locator']['bbox']
+    with pytest.raises(ByaxError, match='temporarily unavailable') as caught:
+        engine.registry.configure_pdf_engine(engine.definition['library_id'], 'docling')
+    assert caught.value.code == 'unsupported_feature'
+    assert engine.registry.get(engine.definition['library_id']).get('pdf_engine') is None
+    assert not (engine.tmp / 'docling-log.json').exists()
 
 
-def test_switching_engine_marks_pdfs_stale_and_vectors_incompatible(engine):
-    install_layout_model(engine)
-    default = LibraryIndex(engine.definition, cache_dir=engine.cache)
-    default.refresh()
-    assert 'pdf_engine' not in default.chunking and not default.status()['stale']
-    library = engine.registry.configure_pdf_engine(engine.definition['library_id'], 'docling')
-    switched = LibraryIndex(library, cache_dir=engine.cache)
-    assert switched.status()['stale']
-    from byax.embeddings import fingerprint
-
-    class Embedder:
-        model_identity, dimension = 'x', 2
-
-    assert fingerprint(Embedder, default.chunking) != fingerprint(Embedder, switched.chunking)
-    switched.refresh()
-    assert not switched.status()['stale']
-    back = engine.registry.configure_pdf_engine(engine.definition['library_id'], 'pypdf')
-    assert 'pdf_engine' not in back or back['pdf_engine'] is None
-    assert LibraryIndex(back, cache_dir=engine.cache).status()['stale']
-    with pytest.raises(ByaxError):
-        engine.registry.configure_pdf_engine(engine.definition['library_id'], 'pymupdf')
-    with pytest.raises(ByaxError):
-        LibraryIndex({**library, 'pdf_engine': 'pymupdf'}, cache_dir=engine.cache)
-
-
-def test_missing_layout_model_or_docling_is_reported_per_file_and_never_downloads(engine, monkeypatch):
-    library = engine.registry.configure_pdf_engine(engine.definition['library_id'], 'docling')
-    index = LibraryIndex(library, cache_dir=engine.cache)
+def test_legacy_docling_library_reports_the_block_and_can_return_to_pypdf(engine):
+    legacy = {**engine.definition, 'pdf_engine': 'docling'}
+    index = LibraryIndex(legacy, cache_dir=engine.cache)
     status = index.refresh()['files'][0]
-    assert (
-        status['status'] == 'error'
-        and 'byax models --action download --name docling-layout-heron' in status['error']
-    )
-    install_layout_model(engine)
-    monkeypatch.delenv('PYTHONPATH')
-    index.refresh(rebuild=True)
-    again = index.status()['files'][0]
-    assert again['status'] == 'error' and 'byauthorx[docling]' in again['error']
+    assert status['status'] == 'error' and 'temporarily unavailable' in status['error']
+    assert not (engine.tmp / 'docling-log.json').exists()
+    back = engine.registry.configure_pdf_engine(engine.definition['library_id'], 'pypdf')
+    refreshed = LibraryIndex(back, cache_dir=engine.cache).refresh(rebuild=True)
+    assert all(f['status'] != 'error' for f in refreshed['files'])
+    assert list(engine.root.glob('*.pdf'))
+
+
+def test_disabled_docling_extraction_refuses_before_opening_a_file(tmp_path):
+    with pytest.raises(ValueError, match='temporarily unavailable'):
+        library_parser.extract(tmp_path / 'missing.pdf', 1000, engine='docling')
 
 
 def test_pdf_engine_command_checks_prerequisites_and_is_admin_only(engine, monkeypatch):
@@ -373,17 +306,17 @@ def test_pdf_engine_command_checks_prerequisites_and_is_admin_only(engine, monke
     base = {'path': str(document), 'library_id': identity, 'action': 'pdf-engine'}
     with pytest.raises(ByaxError) as caught:
         cli.execute('library', {**base, 'input': {'engine': 'docling'}})
-    assert caught.value.code == 'missing_dependency' and 'byauthorx[docling]' in caught.value.message
+    assert caught.value.code == 'unsupported_feature' and 'Pillow' in caught.value.message
     stand_in = types.ModuleType('docling')
     stand_in.__spec__ = importlib.machinery.ModuleSpec('docling', None)
     monkeypatch.setitem(sys.modules, 'docling', stand_in)
     with pytest.raises(ByaxError) as caught:
         cli.execute('library', {**base, 'input': {'engine': 'docling'}})
-    assert caught.value.code == 'model_missing' and 'byax models --action download' in caught.value.message
+    assert caught.value.code == 'unsupported_feature' and 'temporarily unavailable' in caught.value.message
     assert LibraryRegistry().get(identity).get('pdf_engine') is None
     install_layout_model(engine)
-    done = cli.execute('library', {**base, 'input': {'engine': 'docling'}})
-    assert done['pdf_engine'] == 'docling' and LibraryRegistry().get(identity)['pdf_engine'] == 'docling'
+    with pytest.raises(ByaxError, match='temporarily unavailable'):
+        cli.execute('library', {**base, 'input': {'engine': 'docling'}})
     assert cli.execute('library', {**base, 'input': {'engine': 'pypdf'}})['library']['pdf_engine'] is None
     with pytest.raises(ByaxError):
         cli.execute('library', {**base, 'input': {'engine': 'pymupdf'}})

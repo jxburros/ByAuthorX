@@ -47,9 +47,9 @@ Runtime and optional extras (not part of the core install):
 | tokenizers 0.23 | `byauthorx[local-models]`: model tokenizers | Apache-2.0 | PyPI classifiers and the project's `LICENSE` |
 | numpy | installed by onnxruntime; speeds exact vector search | BSD-3-Clause (the wheel also records 0BSD, MIT, Zlib and CC0 components) | PyPI metadata |
 | sqlite-vec 0.1.9 | `byauthorx[sqlite-vec]`: optional vector backend (binary quantization with float re-scoring) | MIT or Apache-2.0 (dual), `LICENSE-MIT` and `LICENSE-APACHE` in the repository | github.com/asg017/sqlite-vec |
-| Docling 2.140 | `byauthorx[docling]`: optional PDF engine, run only in the parser subprocess; never bundled in installers | MIT | github.com/docling-project/docling `LICENSE` and PyPI |
+| Docling 2.140 | Former optional PDF engine; temporarily disabled for Pillow 13 security compatibility, not installed or bundled | MIT | github.com/docling-project/docling `LICENSE` and PyPI |
 
-The Docling extra pulls PyTorch. On Linux the default PyTorch wheels depend on NVIDIA CUDA runtime packages under NVIDIA's own licence terms; these are installed by the user's package manager, never redistributed by ByAuthorX. Install a CPU build of PyTorch first to avoid them. No GPL or AGPL package was found in the Docling dependency tree on Linux (checked from installed package metadata). **PyMuPDF is deliberately not used**: its AGPL licence conflicts with the project's MIT licence, and pypdf (BSD-3-Clause) stays the default PDF reader.
+The retired Docling extra pulled PyTorch. On Linux the default PyTorch wheels depend on NVIDIA CUDA runtime packages under NVIDIA's own licence terms; these are installed by the user's package manager, never redistributed by ByAuthorX. Install a CPU build of PyTorch first to avoid them. No GPL or AGPL package was found in the Docling dependency tree on Linux (checked from installed package metadata). **PyMuPDF is deliberately not used**: its AGPL licence conflicts with the project's MIT licence, and pypdf (BSD-3-Clause) stays the default PDF reader.
 
 Models (downloaded on request or bundled in the standard installers; catalogue in `src/byax/resources/models.json`; each model's card is saved next to its files as `MODEL-CARD.md` and the Apache-2.0 text in `models/licences`):
 

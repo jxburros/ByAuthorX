@@ -712,16 +712,16 @@ by `contextualize-clear`. Late chunking, the zero-LLM alternative, is not implem
 
 ## PDF quality path (Docling)
 
-pypdf is the default PDF reader and PyMuPDF is not used (AGPL). For scanned-quality layouts the optional
-extra `byauthorx[docling]` (Docling, MIT) can read PDFs with a layout model: reading order and headings,
-the page and a bounding box (`bbox`, top-left origin in PDF points) for every passage, and the PDF's own
-text annotations as separate linked notes (`note` type, page and box). Choose it per library with
-`byax library … --action pdf-engine --input '{"engine": "docling"}'` after installing the extra and the layout
-model (`byax models --action download --name docling-layout-heron --confirm`); the command refuses
-otherwise. Docling runs only inside the isolated parser subprocess, with `HF_HUB_OFFLINE=1`, on the
-installed layout model: it never fetches one. OCR and table-structure models are off, so scanned pages
-without a text layer still yield nothing. Switching engines marks PDFs stale and their vectors
-incompatible. Docling pulls PyTorch (several GB); it is never part of the installers.
+pypdf remains the default PDF reader. The optional Docling add-on is temporarily disabled:
+all currently available Docling releases require Pillow below 13, while the security fixes
+require Pillow 13. The `docling` installation extra has been removed until upstream supports
+the patched version. Selecting Docling reports an explicit unavailable error, including for
+previously saved Docling libraries; it never silently substitutes extracted text.
+
+Switch an existing library back with
+`byax library … --action pdf-engine --input '{"engine": "pypdf"}'`, then refresh it.
+Source documents and library definitions are retained. The extraction helpers and layout
+model metadata remain for future restoration, but normal parsing cannot run Docling.
 
 Recorded run, 16 October 2026 (Docling 2.140 in a scratch environment, the layout model installed with `byax models`, offline): a generated one-page PDF with two headings and two paragraphs came back in reading order, with the heading path and a top-left bounding box on every passage, in 10 to 26 seconds on 4 shared CPU cores including model load. The automated tests use a stand-in `docling` package, so a newer Docling release can change the item API without failing them; run `scripts/check_docling_pdf.py some.pdf` after upgrading Docling.
 
