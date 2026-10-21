@@ -1,4 +1,4 @@
-#define MyAppVersion "0.4.2"
+#define MyAppVersion "0.4.3"
 ; Build with `iscc /DLean packaging/windows.iss` for the lean installer (no model files); the default is the
 ; standard installer, which packages dist\ByAuthorX-standard (see scripts/build.py --variant standard).
 #ifdef Lean

@@ -141,10 +141,17 @@ def resolve_font_file(family, bold=False, italic=False):
     elif path is None and os.name == 'posix' and shutil.which('fc-match'):
         pattern = f'{family}:weight={"bold" if bold else "regular"}:slant={"italic" if italic else "roman"}'
         result = subprocess.run(
-            ['fc-match', '--format=%{file}', pattern], capture_output=True, timeout=5, check=False, text=True
+            ['fc-match', '--format=%{family}\n%{file}', pattern],
+            capture_output=True,
+            timeout=5,
+            check=False,
+            text=True,
         )
-        found = Path(result.stdout.strip())
-        if result.returncode == 0 and found.is_file():
+        matched, separator, filename = result.stdout.strip().partition('\n')
+        found = Path(filename)
+        # Fontconfig always returns a fallback, even for an unavailable family.
+        families = {name.strip().casefold() for name in matched.split(',')}
+        if result.returncode == 0 and separator and family.casefold() in families and found.is_file():
             path = found
     elif path is None and os.name == 'nt':
         import winreg

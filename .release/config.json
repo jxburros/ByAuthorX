@@ -17,6 +17,11 @@
           "path": "src/byax/__init__.py",
           "format": "text",
           "pattern": "^__version__ = '(?<version>[^']+)'$"
+        },
+        {
+          "path": "packaging/windows.iss",
+          "format": "text",
+          "pattern": "^#define MyAppVersion \"(?<version>[^\"]+)\"$"
         }
       ],
       "notes": ".release/notes/{app}/{version}.md",

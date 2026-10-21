@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "byauthorx"
-version = "0.4.2"
+version = "0.4.3"
 description = "A desktop word processor for writers, from a first letter to a finished book"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -21,7 +21,7 @@ dependencies = [
     "markdown-it-py>=3,<5",
     "python-docx>=1.1,<2",
     "odfpy>=1.4,<2",
-    "Pillow>=11,<13",
+    "Pillow>=13,<14",
     "platformdirs>=4,<5",
     "striprtf>=0.0.28",
     "defusedxml>=0.7",
@@ -38,8 +38,7 @@ dependencies = [
 local-models = ["onnxruntime>=1.20,<2", "tokenizers>=0.20,<1"]
 # Optional vector backend with binary quantization (MIT/Apache-2.0 dual licence).
 sqlite-vec = ["sqlite-vec>=0.1.6,<0.2"]
-# Optional higher-quality PDF extraction (MIT), run only inside the parser subprocess.
-docling = ["docling>=2.40,<3"]
+# Docling is temporarily unavailable: upstream requires vulnerable Pillow <13.
 dev = [
     "pytest>=8",
     "pytest-qt>=4",
